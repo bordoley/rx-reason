@@ -15,6 +15,9 @@ _build/
 *.byte
 *.native
 
-# oasis generated files
-setup.data
-setup.log
+# bsb build directory
+lib/
+
+node_modules/
+
+npm-debug.log

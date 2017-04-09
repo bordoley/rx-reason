@@ -1,0 +1,17 @@
+{
+  "name" : "Reactive.re",
+  "bs-dependencies": ["Immutable.re"],
+  "sources": [{
+    "dir": "src",
+    "public": ["Reactive"],
+    "subdirs": [
+      { "dir": "impl", "public": "none" },
+      {
+        "dir": "platform",
+        "public": "none",
+        "subdirs": [ { "dir": "bs", "public": "none" } ],
+      },
+      { "dir": "utils", "public": "none" },
+    ],
+  }],
+}

@@ -1,0 +1,22 @@
+{
+  "name": "reactive.re",
+  "version": "0.0.0",
+  "description": "Reactive for Reason",
+  "scripts": {
+    "build": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "reason",
+    "reasonml",
+    "ocaml"
+  ],
+  "author": "bordoley",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "Immutable.re": "https://github.com/facebookincubator/immutable-re.git"
+  },
+  "devDependencies": {
+    "bs-platform": "https://github.com/bloomberg/bucklescript.git"
+  }
+}
