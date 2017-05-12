@@ -1,4 +1,3 @@
-open Immutable;
 open Option.Operators;
 
 type t = unit => unit;
@@ -14,9 +13,7 @@ let create (dispose: unit => unit): t => {
 let dispose (subscription: t) => subscription ();
 
 let compose (subscriptions: list t): t => {
-  let dispose = fun () => subscriptions
-    |> List.toIterable
-    |> Iterable.forEach (fun x => x ());
+  let dispose = fun () => subscriptions |> List.iter (fun x => x ());
   create dispose
 };
 

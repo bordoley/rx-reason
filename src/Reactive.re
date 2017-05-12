@@ -1,3 +1,27 @@
+let module Equality = {
+  type t 'a = 'a => 'a => bool;
+};
+
+let module Streamable = {
+  module type S1 = {
+    type t 'a;
+
+    let defer: (unit => t 'a) => (t 'a);
+    let distinctUntilChangedWith: (Equality.t 'a) => (t 'a) => (t 'a);
+    let doOnNext: ('a => unit) => (t 'a) => (t 'a);
+    let filter: ('a => bool) => (t 'a) => (t 'a);
+    let flatMap: ('a => t 'b) => (t 'a) => (t 'b);
+    let flatten: (t (t 'a)) => (t 'a);
+    let map: ('a => 'b) => (t 'a) => (t 'b);
+    let scan: ('acc => 'a => 'acc) => 'acc => (t 'a) => (t 'acc);
+    let skip: int => (t 'a) => (t 'a);
+    let skipWhile: ('a => bool) => (t 'a) => (t 'a);
+    let startWith: 'a => (t 'a) => (t 'a);
+    let take: int => (t 'a) => (t 'a);
+    let takeWhile: ('a => bool) => (t 'a) => (t 'a);
+  };
+};
+
 let module Subscription = Subscription;
 
 let module Scheduler = Scheduler;

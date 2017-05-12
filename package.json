@@ -1,5 +1,5 @@
 {
-  "name": "reactive.re",
+  "name": "reactive-re",
   "version": "0.0.0",
   "description": "Reactive for Reason",
   "scripts": {
@@ -14,9 +14,11 @@
   "author": "bordoley",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "Immutable.re": "https://github.com/facebookincubator/immutable-re.git"
+    "bs-platform": "^1.7.1"
   },
-  "devDependencies": {
-    "bs-platform": "https://github.com/bloomberg/bucklescript.git"
+  "scripts": {
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world",
+    "build": "bsb -make-world"
   }
 }

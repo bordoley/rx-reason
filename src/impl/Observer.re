@@ -8,16 +8,18 @@ let create
     onNext::(onNext: 'a => unit): (t 'a) => {
   let isStopped = ref false;
 
-  {
-    onNext: fun ev =>
-      if (Concurrency.volatileRead isStopped |> not) (onNext ev) else (),
-    onCompleted: fun exn => {
-      let isStopped = Concurrency.interlockedExchange isStopped true |> not;
+  let onNext ev =>
+    if (Concurrency.volatileRead isStopped |> not) (onNext ev)
+    else ();
 
-      if (not isStopped) (onCompleted exn)
-      else ()
-    },
-  }
+  let onCompleted exn =>  {
+    let isStopped = Concurrency.interlockedExchange isStopped true |> not;
+
+    if (not isStopped) (onCompleted exn)
+    else ()
+  };
+
+  { onNext, onCompleted }
 };
 
 let defaultImpl = {
@@ -27,10 +29,8 @@ let defaultImpl = {
 
 let default () => defaultImpl;
 
-let onCompleted (exn: option exn) (observer: t 'a) =>
-  observer.onCompleted exn;
+let onCompleted (exn: option exn) ({ onCompleted }: t 'a) => onCompleted exn;
 
-let onNext (next: 'a) (observer: t 'a) =>
-  observer.onNext next;
+let onNext (next: 'a) ({ onNext }: t 'a) => onNext next;
 
 let toObserver (observer: t 'a): (t 'a) => observer;

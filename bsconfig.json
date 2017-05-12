@@ -1,6 +1,5 @@
 {
-  "name" : "Reactive.re",
-  "bs-dependencies": ["Immutable.re"],
+  "name" : "reactive-re",
   "sources": [{
     "dir": "src",
     "public": ["Reactive"],

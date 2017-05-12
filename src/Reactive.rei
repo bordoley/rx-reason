@@ -1,3 +1,27 @@
+let module rec Equality: {
+  type t 'a = 'a => 'a => bool;
+};
+
+let module rec Streamable: {
+  module type S1 = {
+    type t 'a;
+
+    let defer: (unit => t 'a) => (t 'a);
+    let distinctUntilChangedWith: (Equality.t 'a) => (t 'a) => (t 'a);
+    let doOnNext: ('a => unit) => (t 'a) => (t 'a);
+    let filter: ('a => bool) => (t 'a) => (t 'a);
+    let flatMap: ('a => t 'b) => (t 'a) => (t 'b);
+    let flatten: (t (t 'a)) => (t 'a);
+    let map: ('a => 'b) => (t 'a) => (t 'b);
+    let scan: ('acc => 'a => 'acc) => 'acc => (t 'a) => (t 'acc);
+    let skip: int => (t 'a) => (t 'a);
+    let skipWhile: ('a => bool) => (t 'a) => (t 'a);
+    let startWith: 'a => (t 'a) => (t 'a);
+    let take: int => (t 'a) => (t 'a);
+    let takeWhile: ('a => bool) => (t 'a) => (t 'a);
+  };
+};
+
 let module rec Subscription: {
   type t;
 
@@ -44,23 +68,23 @@ let module rec Observable: {
   type t 'a;
 
   include S1 with type t 'a := t 'a;
-  include Immutable.Streamable.S1 with type t 'a := t 'a;
+  include Streamable.S1 with type t 'a := t 'a;
 
   let combineLatest2With:
-    ('a => 'b => 'c) =>
+    selector::('a => 'b => 'c) =>
     (Observable.t 'a) =>
     (Observable.t 'b) =>
     (Observable.t 'c);
 
   let combineLatest3With:
-    ('a => 'b => 'c => 'd) =>
+    selector::('a => 'b => 'c => 'd) =>
     (Observable.t 'a) =>
     (Observable.t 'b) =>
     (Observable.t 'c) =>
     (Observable.t 'd);
 
   let combineLatest4With:
-    ('a => 'b => 'c => 'd => 'e) =>
+    selector::('a => 'b => 'c => 'd => 'e) =>
     (Observable.t 'a) =>
     (Observable.t 'b) =>
     (Observable.t 'c) =>
@@ -68,7 +92,7 @@ let module rec Observable: {
     (Observable.t 'e);
 
   let combineLatest5With:
-    ('a => 'b => 'c => 'd => 'e => 'f) =>
+    selector::('a => 'b => 'c => 'd => 'e => 'f) =>
     (Observable.t 'a) =>
     (Observable.t 'b) =>
     (Observable.t 'c) =>
@@ -76,17 +100,13 @@ let module rec Observable: {
     (Observable.t 'e) =>
     (Observable.t 'f);
 
-  let create:
-    (onNext::('a => unit) => onCompleted::(option exn => unit) => Subscription.t) =>
-    Observable.t 'a;
+  let create: (Observer.t 'a => Subscription.t) => Observable.t 'a;
 
   let doOnCompleted: ((option exn) => unit) => (Observable.t 'a) => (Observable.t 'a);
 
   let empty: unit => (Observable.t 'a);
 
   let first: (Observable.t 'a) => (Observable.t 'a);
-
-  let from: (Immutable.Iterable.t 'a) => (Observable.t 'a);
 
   let merge: (list (Observable.t 'a)) => (Observable.t 'a);
 
@@ -105,7 +125,7 @@ let module rec Observable: {
   let subscribeSafe: Observer.t 'a => Observable.t 'a => Subscription.t;
 
   let withLatestFrom:
-    ('a => 'b => 'c) =>
+    selector::('a => 'b => 'c) =>
     (Observable.t 'b) =>
     (Observable.t 'a) =>
     (Observable.t 'c);
@@ -139,5 +159,5 @@ let module rec AsyncIterable: {
   type t 'a;
 
   include S1 with type t 'a := AsyncIterable.t 'a;
-  include Immutable.Streamable.S1 with type t 'a := t 'a;
+  include Streamable.S1 with type t 'a := t 'a;
 };

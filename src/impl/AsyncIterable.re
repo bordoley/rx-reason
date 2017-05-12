@@ -31,7 +31,7 @@ let concat (asyncIterables: list (t 'a)): (t 'a) =>
 let defer (f: unit => t 'a): (t 'a) =>
   failwith "unimplemented";
 
-let distinctUntilChangedWith (equals: Immutable.Equality.t 'a) (asyncIterable: t 'a): (t 'a) =>
+let distinctUntilChangedWith (equals: 'a => 'a => bool) (asyncIterable: t 'a): (t 'a) =>
   failwith "unimplemented";
 
 let doOnNext (onNext: 'a => unit) (asyncIterable: t 'a): (t 'a) =>
