@@ -1,24 +1,17 @@
 {
-  "name": "reactive-re",
-  "version": "0.0.0",
-  "description": "Reactive for Reason",
+  "name": "rx-re",
+  "version": "0.1.0",
   "scripts": {
-    "build": "bsb -make-world -w",
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
     "clean": "bsb -clean-world"
   },
   "keywords": [
-    "reason",
-    "reasonml",
-    "ocaml"
+    "BuckleScript"
   ],
-  "author": "bordoley",
-  "license": "BSD-3-Clause",
-  "dependencies": {
-    "bs-platform": "^1.7.1"
-  },
-  "scripts": {
-    "start": "bsb -make-world -w",
-    "clean": "bsb -clean-world",
-    "build": "bsb -make-world"
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bs-platform": "^3.0.0"
   }
 }
