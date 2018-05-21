@@ -12,7 +12,7 @@ let createWithCallbacks =
       ~onNext=Functions.alwaysUnit,
       ~onComplete=Functions.alwaysUnit,
       ~onDispose=Functions.alwaysUnit,
-      ~onSubscribe=Functions.alwaysUnit,
+      ~onSubscribe=(_: Observer.t('a)) => Disposable.disposed,
       (),
     )
     : t('a) => {
@@ -33,20 +33,21 @@ let createWithCallbacks =
           currentSubscribers |> CopyOnWriteArray.forEach(Observer.next(next));
           ();
         },
-      ~onDispose=() => {
-        onDispose();
-        subscribers := CopyOnWriteArray.empty()
-      },
+      ~onDispose=
+        () => {
+          onDispose();
+          subscribers := CopyOnWriteArray.empty();
+        },
       (),
     );
-  
   let observable =
     Observable.create(observer => {
       subjectObserver |> Observer.toDisposable |> Disposable.raiseIfDisposed;
       let currentSubscribers = subscribers^;
       subscribers := currentSubscribers |> CopyOnWriteArray.addLast(observer);
-      onSubscribe(observer);
+      let onSubscribeDisposable = onSubscribe(observer);
       Disposable.create(() => {
+        Disposable.dispose(onSubscribeDisposable);
         let currentSubscribers = subscribers^;
         subscribers :=
           currentSubscribers
@@ -60,14 +61,5 @@ let createWithCallbacks =
 };
 
 let create = () => createWithCallbacks();
-
-let createWithBehavior = (defaultValue: 'a) : t('a) => {
-  let currentValue = ref(defaultValue);
-  createWithCallbacks(
-    ~onNext=next => currentValue := next,
-    ~onSubscribe=observer => observer |> Observer.next(currentValue^),
-    (),
-  );
-};
 
 /* let createWithReplay */

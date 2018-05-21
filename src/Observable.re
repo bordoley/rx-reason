@@ -65,6 +65,43 @@ let create = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
     |> AssignableDisposable.toDisposable;
   };
 
+let concat =
+    (~scheduler=Scheduler.immediate, observables: list(t('a)))
+    : t('a) =>
+  create(observer => {
+    let remaining = ref(observables);
+    let rec scheduleSubscription = () =>
+      scheduler
+      |> Scheduler.schedule(() =>
+           switch (remaining^) {
+           | [hd, ...tail] =>
+             remaining := tail;
+             doSubscribe(hd);
+           | [] => Disposable.disposed
+           }
+         )
+    and doSubscribe = observable => {
+      let subscription =
+        observable
+        |> subscribe(
+             ~onNext=next => observer |> Observer.next(next),
+             ~onComplete=
+               exn =>
+                 switch (exn) {
+                 | Some(_) => observer |> Observer.complete(~exn)
+                 | None =>
+                   /*subscription |> Disposable.dispose;*/
+                   scheduleSubscription() |> ignore
+                 },
+           );
+      subscription;
+    };
+    scheduleSubscription();
+  });
+
+let defer = (f: unit => t('a)) : t('a) =>
+  create(observer => f((), observer));
+
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
     create(observer => {
@@ -79,24 +116,12 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
          })
     );
 
-let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
-  scheduler === Scheduler.immediate ?
-    create(observer => {
-      Observer.next(value, observer);
-      Observer.complete(observer);
-      Disposable.disposed;
-    }) :
-    create(observer =>
-      scheduler
-      |> Scheduler.schedule(() => {
-           Observer.next(value, observer);
-           scheduler
-           |> Scheduler.schedule(() => {
-                Observer.complete(observer);
-                Disposable.disposed;
-              });
-         })
-    );
+let merge =
+    (~scheduler=Scheduler.immediate, observables: list(t('a)))
+    : t('a) =>
+  create(observer => Disposable.disposed);
+
+let never = () : t('a) => create((_) => Disposable.empty());
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
@@ -124,7 +149,24 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
       scheduler |> Scheduler.schedule(loop(list));
     });
 
-let never = () : t('a) => create((_) => Disposable.empty());
+let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
+  scheduler === Scheduler.immediate ?
+    create(observer => {
+      Observer.next(value, observer);
+      Observer.complete(observer);
+      Disposable.disposed;
+    }) :
+    create(observer =>
+      scheduler
+      |> Scheduler.schedule(() => {
+           Observer.next(value, observer);
+           scheduler
+           |> Scheduler.schedule(() => {
+                Observer.complete(observer);
+                Disposable.disposed;
+              });
+         })
+    );
 
 let combineLatest2 =
     (
@@ -193,7 +235,7 @@ let combineLatest2 =
 let combineLatest3 =
     (
       ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b, 'c) => 'd=Functions.tuple3,
+      ~selector: ('a, 'b, 'c) => 'd,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
@@ -204,7 +246,7 @@ let combineLatest3 =
 let combineLatest4 =
     (
       ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b, 'c, 'd) => 'e=Functions.tuple4,
+      ~selector: ('a, 'b, 'c, 'd) => 'e,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
@@ -216,7 +258,7 @@ let combineLatest4 =
 let combineLatest5 =
     (
       ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b, 'c, 'd, 'e) => 'f=Functions.tuple5,
+      ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
@@ -229,32 +271,28 @@ let combineLatest5 =
 let combineLatest6 =
     (
       ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g=Functions.tuple6,
+      ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
       observable3: t('d),
       observable4: t('e),
-      observable4: t('f),
+      observable5: t('f),
     )
     : t('g) =>
   create(observer => Disposable.disposed);
 
-let combineLatest6 =
+let combineLatest7 =
     (
       ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h=Functions.tuple7,
+      ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
       observable3: t('d),
       observable4: t('e),
-      observable4: t('f),
-      observable4: t('g),
+      observable5: t('f),
+      observable6: t('g),
     )
     : t('h) =>
   create(observer => Disposable.disposed);
-/* CombineLatest */
-/* Concat */
-/* merge */
-/* merge */

@@ -1,4 +1,66 @@
+open Functions.Operators;
+
 type t('a, 'b) = Observer.t('b) => Observer.t('a);
+
+let pipe2 =
+    (op0: t('a, 'b), op1: t('b, 'c))
+    : t('a, 'c) =>
+  op1 >> op0;
+
+let pipe3 =
+    (
+      op0: t('a, 'b),
+      op1: t('b, 'c),
+      op2: t('c, 'd),
+    )
+    : t('a, 'd) =>
+  op2 >> op1 >> op0;
+
+let pipe4 =
+    (
+      op0: t('a, 'b),
+      op1: t('b, 'c),
+      op2: t('c, 'd),
+      op3: t('d, 'e),
+    )
+    : t('a, 'e) =>
+  op3 >> op2 >> op1 >> op0;
+
+let pipe5 =
+    (
+      op0: t('a, 'b),
+      op1: t('b, 'c),
+      op2: t('c, 'd),
+      op3: t('d, 'e),
+      op4: t('e, 'f),
+    )
+    : t('a, 'f) =>
+  op4 >> op3 >> op2 >> op1 >> op0;
+
+let pipe6 =
+    (
+      op0: t('a, 'b),
+      op1: t('b, 'c),
+      op2: t('c, 'd),
+      op3: t('d, 'e),
+      op4: t('e, 'f),
+      op5: t('f, 'g),
+    )
+    : t('a, 'c) =>
+  op5 >> op4 >> op3 >> op2 >> op1 >> op0;
+
+let pipe7 =
+    (
+      op0: t('a, 'b),
+      op1: t('b, 'c),
+      op2: t('c, 'd),
+      op3: t('d, 'e),
+      op4: t('e, 'f),
+      op5: t('f, 'g),
+      op6: t('g, 'h),
+    )
+    : t('a, 'h) =>
+  op6 >> op5 >> op4 >> op3 >> op2 >> op1 >> op0;
 
 let map = (mapper: 'a => 'b) : t('a, 'b) =>
   observer =>
@@ -158,3 +220,17 @@ let switch_: t(Observable.t('a), 'a) =
       (),
     );
   };
+
+let switchMap = (mapper: 'a => Observable.t('b)) : t('a, 'b) =>
+  pipe2(map(mapper), switch_);
+
+let withLatestFrom =
+    (other: Observable.t('b), selector: ('a, 'b) => 'c)
+    : t('a, 'c) =>
+  observer =>
+    Observer.create(
+      ~onComplete=exn => observer |> Observer.complete(~exn),
+      ~onNext=next => (),
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      (),
+    );

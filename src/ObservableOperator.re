@@ -1,8 +1,3 @@
-open Functions.Operators;
-
-let defer = (f: unit => Observable.t('a)) : Observable.t('a) =>
-  Observable.create((observer: Observer.t('a)) => f((), observer));
-
 let pipe =
     (operator: Operator.t('a, 'b), observable: Observable.t('a))
     : Observable.t('b) =>
@@ -45,7 +40,7 @@ let pipe =
 let pipe2 =
     (op0: Operator.t('a, 'b), op1: Operator.t('b, 'c))
     : (Observable.t('a) => Observable.t('c)) =>
-  pipe(op1 >> op0);
+  pipe(Operator.pipe2(op0, op1));
 
 let pipe3 =
     (
@@ -54,7 +49,7 @@ let pipe3 =
       op2: Operator.t('c, 'd),
     )
     : (Observable.t('a) => Observable.t('d)) =>
-  pipe(op2 >> op1 >> op0);
+  pipe(Operator.pipe3(op0, op1, op2));
 
 let pipe4 =
     (
@@ -64,7 +59,7 @@ let pipe4 =
       op3: Operator.t('d, 'e),
     )
     : (Observable.t('a) => Observable.t('e)) =>
-  pipe(op3 >> op2 >> op1 >> op0);
+  pipe(Operator.pipe4(op0, op1, op2, op3));
 
 let pipe5 =
     (
@@ -75,7 +70,7 @@ let pipe5 =
       op4: Operator.t('e, 'f),
     )
     : (Observable.t('a) => Observable.t('f)) =>
-  pipe(op4 >> op3 >> op2 >> op1 >> op0);
+  pipe(Operator.pipe5(op0, op1, op2, op3, op4));
 
 let pipe6 =
     (
@@ -87,7 +82,7 @@ let pipe6 =
       op5: Operator.t('f, 'g),
     )
     : (Observable.t('a) => Observable.t('g)) =>
-  pipe(op5 >> op4 >> op3 >> op2 >> op1 >> op0);
+  pipe(Operator.pipe6(op0, op1, op2, op3, op4, op5));
 
 let pipe7 =
     (
@@ -100,7 +95,7 @@ let pipe7 =
       op6: Operator.t('g, 'h),
     )
     : (Observable.t('a) => Observable.t('h)) =>
-  pipe(op6 >> op5 >> op4 >> op3 >> op2 >> op1 >> op0);
+  pipe(Operator.pipe7(op0, op1, op2, op3, op4, op5, op6));
 
 let share =
     (~createSubject=Subject.create, source: Observable.t('a))
@@ -153,13 +148,17 @@ let share =
   });
 };
 
-let shareBehavior =
-    (defaultValue: 'a, observable: Observable.t('a))
-    : Observable.t('a) =>
-  observable
-  |> share(~createSubject=() => Subject.createWithBehavior(defaultValue));
+let startWithValue =
+    (~scheduler=Scheduler.immediate, value: 'a, observable: Observable.t('a)) =>
+  Observable.concat([Observable.ofValue(~scheduler, value), observable]);
+
+let startWithList =
+    (
+      ~scheduler=Scheduler.immediate,
+      values: list('a),
+      observable: Observable.t('a),
+    ) =>
+  Observable.concat([Observable.ofList(~scheduler, values), observable]);
 /* shareReplay */
 /* bufferCount */
 /* debounce */
-/* startWith */
-/* withLatestFrom */
