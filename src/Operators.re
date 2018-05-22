@@ -108,6 +108,7 @@ let scan = (scanner: ('acc, 'a) => 'acc, initialValue: 'acc) : Operator.t('a, 'a
       acc := nextAcc;
       nextAcc;
     };
+    observer |> Observer.next(initialValue);
     map(mapper, observer);
   };
 
