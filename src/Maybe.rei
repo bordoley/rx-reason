@@ -21,3 +21,5 @@ let subscribe:
 let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
 
 let toObservable: t('a) => Observable.t('a);
+
+let toSingle: t('a) => Single.t(option('a));
