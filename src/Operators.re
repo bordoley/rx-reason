@@ -22,9 +22,9 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
 
 let mapTo = (value: 'b) : Operator.t('a, 'b) => map((_) => value);
 
-let forEach = (sideEffect: 'a => unit) : Operator.t('a, 'a) =>
+let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
   map(next => {
-    sideEffect(next);
+    onNext(next);
     next;
   });
 
