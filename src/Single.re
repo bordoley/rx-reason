@@ -11,7 +11,7 @@ let create = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
 
 let empty = Observable.empty;
 
-let defer: (unit => t('a)) => t('a) = Observable.defer;
+let defer = Observable.defer;
 
 let never = Observable.never;
 

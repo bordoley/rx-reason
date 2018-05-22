@@ -5,7 +5,9 @@
   "version": "0.1.0",
   "sources": {
     "dir" : "src",
-    "subdirs" : true
+    "subdirs": [
+      {"dir": "internal", "public": "none"}
+    ]
   },
   "package-specs": {
     "module": "commonjs"

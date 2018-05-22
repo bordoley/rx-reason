@@ -71,15 +71,14 @@ let concat =
   create(observer => {
     let remaining = ref(observables);
     let rec scheduleSubscription = () =>
-      scheduler
-      |> Scheduler.schedule(() =>
-           switch (remaining^) {
-           | [hd, ...tail] =>
-             remaining := tail;
-             doSubscribe(hd);
-           | [] => Disposable.disposed
-           }
-         )
+      scheduler(() =>
+        switch (remaining^) {
+        | [hd, ...tail] =>
+          remaining := tail;
+          doSubscribe(hd);
+        | [] => Disposable.disposed
+        }
+      )
     and doSubscribe = observable => {
       let subscription =
         observable
@@ -109,11 +108,10 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
       Disposable.disposed;
     }) :
     create(observer =>
-      scheduler
-      |> Scheduler.schedule(() => {
-           Observer.complete(observer);
-           Disposable.disposed;
-         })
+      scheduler(() => {
+        Observer.complete(observer);
+        Disposable.disposed;
+      })
     );
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
@@ -188,10 +186,9 @@ let merge =
       observables
       |> List.iteri((index, observable) =>
            subscriptions[index] =
-             scheduler
-             |> Scheduler.schedule(() =>
-                  observable |> subscribeObserver(childObserver(index))
-                )
+             scheduler(() =>
+               observable |> subscribeObserver(childObserver(index))
+             )
          );
       subscription;
     });
@@ -217,12 +214,12 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
         switch (list) {
         | [next, ...tail] =>
           Observer.next(next, observer);
-          scheduler |> Scheduler.schedule(loop(tail));
+          scheduler(loop(tail));
         | [] =>
           Observer.complete(observer);
           Disposable.disposed;
         };
-      scheduler |> Scheduler.schedule(loop(list));
+      scheduler(loop(list));
     });
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
@@ -233,15 +230,13 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       Disposable.disposed;
     }) :
     create(observer =>
-      scheduler
-      |> Scheduler.schedule(() => {
-           Observer.next(value, observer);
-           scheduler
-           |> Scheduler.schedule(() => {
-                Observer.complete(observer);
-                Disposable.disposed;
-              });
-         })
+      scheduler(() => {
+        Observer.next(value, observer);
+        scheduler(() => {
+          Observer.complete(observer);
+          Disposable.disposed;
+        });
+      })
     );
 
 let startWithList =
@@ -255,65 +250,62 @@ let startWithValue =
 let combineLatest2 =
     (
       ~scheduler=Scheduler.immediate,
-      selector: ('a, 'b) => 'c,
+      ~selector: ('a, 'b) => 'c,
       observable0: t('a),
       observable1: t('b),
     )
     : t('c) =>
   create(observer =>
-    scheduler
-    |> Scheduler.schedule(() => {
-         let lock = Concurrency.Lock.create();
-         let value0 = MutableOption.empty();
-         let value1 = MutableOption.empty();
-         let parentSubscription = AssignableDisposable.create();
-         let onComplete = exn =>
-           Concurrency.Lock.execute(
-             () =>
-               switch (exn) {
-               | Some(_) =>
-                 observer |> Observer.complete(~exn);
-                 parentSubscription
-                 |> AssignableDisposable.toDisposable
-                 |> Disposable.dispose;
-               | _ => ()
-               },
-             lock,
-           );
-         let onNext = (value, next) =>
-           Concurrency.Lock.execute(
-             Functions.earlyReturnsUnit(() => {
-               MutableOption.set(next, value);
-               if (value0
-                   |> MutableOption.isNotEmpty
-                   && value1
-                   |> MutableOption.isNotEmpty) {
-                 let mapped =
-                   try (
-                     selector(
-                       MutableOption.firstOrRaise(value0),
-                       MutableOption.firstOrRaise(value1),
-                     )
-                   ) {
-                   | exn =>
-                     onComplete(Some(exn));
-                     Functions.returnUnit();
-                   };
-                 observer |> Observer.next(mapped);
-               };
-             }),
-             lock,
-           );
-         let subscription0 =
-           observable0 |> subscribe(~onNext=onNext(value0));
-         let subscription1 =
-           observable1 |> subscribe(~onNext=onNext(value1));
-         parentSubscription
-         |> AssignableDisposable.assign(
-              Disposable.compose([subscription0, subscription1]),
-            )
-         |> AssignableDisposable.toDisposable;
-       })
+    scheduler(() => {
+      let lock = Concurrency.Lock.create();
+      let value0 = MutableOption.empty();
+      let value1 = MutableOption.empty();
+      let parentSubscription = AssignableDisposable.create();
+      let onComplete = exn =>
+        Concurrency.Lock.execute(
+          () =>
+            switch (exn) {
+            | Some(_) =>
+              observer |> Observer.complete(~exn);
+              parentSubscription
+              |> AssignableDisposable.toDisposable
+              |> Disposable.dispose;
+            | _ => ()
+            },
+          lock,
+        );
+      let onNext = (value, next) =>
+        Concurrency.Lock.execute(
+          Functions.earlyReturnsUnit(() => {
+            MutableOption.set(next, value);
+            if (value0
+                |> MutableOption.isNotEmpty
+                && value1
+                |> MutableOption.isNotEmpty) {
+              let mapped =
+                try (
+                  selector(
+                    MutableOption.firstOrRaise(value0),
+                    MutableOption.firstOrRaise(value1),
+                  )
+                ) {
+                | exn =>
+                  onComplete(Some(exn));
+                  Functions.returnUnit();
+                };
+              observer |> Observer.next(mapped);
+            };
+          }),
+          lock,
+        );
+      let subscription0 = observable0 |> subscribe(~onNext=onNext(value0));
+      let subscription1 = observable1 |> subscribe(~onNext=onNext(value1));
+      parentSubscription
+      |> AssignableDisposable.assign(
+           Disposable.compose([subscription0, subscription1]),
+         )
+      |> AssignableDisposable.toDisposable;
+    })
   );
 
 let combineLatest3 =

@@ -10,5 +10,5 @@ let create = (~now: unit => float, ~schedule: DelayScheduler.t) : t => {
 
 let now = (scheduler: t) : float => scheduler.now();
 
-let toDelayScheduler = (delay: float, {schedule}: t) : Scheduler.t =>
-  schedule(delay);
+let toDelayScheduler = ({schedule}: t) : DelayScheduler.t =>
+  schedule;

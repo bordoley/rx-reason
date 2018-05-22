@@ -22,7 +22,7 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
 
 let mapTo = (value: 'b) : Operator.t('a, 'b) => map((_) => value);
 
-let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
+let doOnNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
   map(next => {
     onNext(next);
     next;
@@ -99,7 +99,9 @@ let last: Operator.t('a, 'a) =
     );
   };
 
-let scan = (scanner: ('acc, 'a) => 'acc, initialValue: 'acc) : Operator.t('a, 'acc) =>
+let scan =
+    (scanner: ('acc, 'a) => 'acc, initialValue: 'acc)
+    : Operator.t('a, 'acc) =>
   observer => {
     let acc = ref(initialValue);
     let mapper = next => {
@@ -166,8 +168,9 @@ let switchMap = (mapper: 'a => Observable.t('b)) : Operator.t('a, 'b) =>
   map(mapper) << switch_;
 
 /* FIXME: Should define a sane default DelayScheduler */
-let debounceTime = (~scheduler: DelayScheduler.t, duration: float) : Operator.t('a, 'a) => {
-  let scheduler = scheduler |> DelayScheduler.toSchedulerWithDelay(duration);
+let debounceTime =
+    (~scheduler: DelayScheduler.t, duration: float)
+    : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.empty();
     let debounceSubscription = ref(Disposable.disposed);
@@ -198,15 +201,12 @@ let debounceTime = (~scheduler: DelayScheduler.t, duration: float) : Operator.t(
         next => {
           clearDebounce();
           lastValue := next;
-          debounceSubscription :=
-            scheduler |> Scheduler.schedule(debouncedNext);
+          debounceSubscription := scheduler(~delay=duration, debouncedNext);
         },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
       (),
     );
   };
-};
-
 /* bufferCount */
 /* BufferSkipCount */
 /* BufferTime */
