@@ -1,3 +1,3 @@
-type t = (int) => Scheduler.t;
-let toSchedulerWithDelay=(delay:int, scheduler: t): Scheduler.t => 
+type t = (float) => Scheduler.t;
+let toSchedulerWithDelay=(delay:float, scheduler: t): Scheduler.t => 
   scheduler(delay);

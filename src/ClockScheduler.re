@@ -1,14 +1,14 @@
 type t = {
-  now: unit => int,
+  now: unit => float,
   schedule: DelayScheduler.t,
 };
 
-let create = (~now: unit => int, ~schedule: DelayScheduler.t) : t => {
+let create = (~now: unit => float, ~schedule: DelayScheduler.t) : t => {
   now,
   schedule,
 };
 
-let now = (scheduler: t) : int => scheduler.now();
+let now = (scheduler: t) : float => scheduler.now();
 
-let toDelayScheduler = (delay: int, {schedule}: t) : Scheduler.t =>
+let toDelayScheduler = (delay: float, {schedule}: t) : Scheduler.t =>
   schedule(delay);

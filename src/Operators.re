@@ -166,7 +166,7 @@ let switchMap = (mapper: 'a => Observable.t('b)) : Operator.t('a, 'b) =>
   map(mapper) << switch_;
 
 /* FIXME: Should define a sane default DelayScheduler */
-let debounceTime = (~scheduler: DelayScheduler.t, duration: int) : Operator.t('a, 'a) => {
+let debounceTime = (~scheduler: DelayScheduler.t, duration: float) : Operator.t('a, 'a) => {
   let scheduler = scheduler |> DelayScheduler.toSchedulerWithDelay(duration);
   observer => {
     let lastValue = MutableOption.empty();
