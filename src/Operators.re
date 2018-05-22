@@ -73,6 +73,21 @@ let first: Operator.t('a, 'a) =
       Observer.t('a)
   );
 
+let maybeFirst: Operator.t('a, 'a) =
+  observer => (
+    Observer.create(
+      ~onNext=
+        next => {
+          observer |> Observer.next(next);
+          observer |> Observer.complete;
+        },
+      ~onComplete=exn => observer |> Observer.complete(~exn),
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      (),
+    ):
+      Observer.t('a)
+  );
+
 let last: Operator.t('a, 'a) =
   observer => {
     let last = MutableOption.empty();
@@ -91,6 +106,31 @@ let last: Operator.t('a, 'a) =
                 observer |> Observer.next(lastValue);
                 None;
               }
+            };
+          observer |> Observer.complete(~exn);
+        },
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      (),
+    );
+  };
+
+let maybeLast: Operator.t('a, 'a) =
+  observer => {
+    let last = MutableOption.empty();
+    Observer.create(
+      ~onNext=next => MutableOption.set(next, last),
+      ~onComplete=
+        exn => {
+          let exn =
+            switch (exn) {
+            | Some(_) => exn
+            | _ =>
+              if (MutableOption.isNotEmpty(last)) {
+                let lastValue = MutableOption.firstOrRaise(last);
+                MutableOption.unset(last);
+                observer |> Observer.next(lastValue);
+              };
+              None;
             };
           observer |> Observer.complete(~exn);
         },

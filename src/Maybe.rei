@@ -4,6 +4,8 @@ let create: (Observer.t('a) => Disposable.t) => t('a);
 
 let defer: (unit => t('a)) => t('a);
 
+let empty: (~scheduler: Rx.Scheduler.t=?, unit) => t('a);
+
 let first: Observable.t('a) => t('a);
 
 let last: Observable.t('a) => t('a);
