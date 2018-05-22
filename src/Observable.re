@@ -117,9 +117,49 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
     );
 
 let merge =
+    /* FIXME: Should use a trampoline scheduler as the default for this function */
     (~scheduler=Scheduler.immediate, observables: list(t('a)))
-    : t('a) =>
-  create(observer => Disposable.disposed);
+    : t('a) => {
+  let count = List.length(observables);
+  count === 0 ?
+    empty(~scheduler, ()) :
+    create(observer => {
+      let active = ref(count);
+      let subscriptions = Array.make(count, Disposable.disposed);
+      let subscription =
+        Disposable.create(() => {
+          Array.iter(Disposable.dispose, subscriptions);
+          active := 0;
+        });
+      let childObserver = index =>
+        Observer.create(
+          ~onNext=next => Observer.next(next, observer),
+          ~onComplete=
+            exn =>
+              switch (exn) {
+              | Some(_) =>
+                observer |> Observer.complete(~exn);
+                subscription |> Disposable.dispose;
+              | None =>
+                active := active^ - 1;
+                if (active^ === 0) {
+                  subscription |> Disposable.dispose;
+                };
+              },
+          ~onDispose=() => subscriptions[index] |> Disposable.dispose,
+          (),
+        );
+      observables
+      |> List.iteri((index, observable) =>
+           subscriptions[index] =
+             scheduler
+             |> Scheduler.schedule(() =>
+                  observable |> subscribeObserver(childObserver(index))
+                )
+         );
+      subscription;
+    });
+};
 
 let never = () : t('a) => create((_) => Disposable.empty());
 
@@ -167,6 +207,50 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
               });
          })
     );
+
+let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
+  create(observer => {
+    let subscription = AssignableDisposable.create();
+    let dispose = () =>
+      subscription |> AssignableDisposable.toDisposable |> Disposable.dispose;
+    let observer = {
+      let pipedObserver = operator(observer);
+      Observer.create(
+        ~onComplete=
+          exn => {
+            pipedObserver |> Observer.complete(~exn);
+            dispose();
+          },
+        ~onNext=
+          next => {
+            pipedObserver |> Observer.next(next);
+            if (pipedObserver |> Observer.toDisposable |> Disposable.isDisposed) {
+              dispose();
+            };
+          },
+        ~onDispose=
+          () => pipedObserver |> Observer.toDisposable |> Disposable.dispose,
+        (),
+      );
+    };
+    let sourceSubscription = subscribeObserver(observer, observable);
+    subscription
+    |> AssignableDisposable.assign(
+         Disposable.compose([
+           sourceSubscription,
+           Observer.toDisposable(observer),
+         ]),
+       )
+    |> AssignableDisposable.toDisposable;
+  });
+
+let startWithValue =
+    (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
+  concat([ofValue(~scheduler, value), observable]);
+
+let startWithList =
+    (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>
+  concat([ofList(~scheduler, values), observable]);
 
 let combineLatest2 =
     (

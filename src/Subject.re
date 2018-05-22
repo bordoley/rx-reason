@@ -63,3 +63,54 @@ let createWithCallbacks =
 let create = () => createWithCallbacks();
 
 /* let createWithReplay */
+let share =
+    (~createSubject=create, source: Observable.t('a))
+    : Observable.t('a) => {
+  let subject = MutableOption.empty();
+  let sourceSubscription = ref(Disposable.disposed);
+  let refCount = ref(0);
+  let reset = () => {
+    sourceSubscription^ |> Disposable.dispose;
+    subject |> MutableOption.unset;
+    refCount := 0;
+  };
+  Observable.create((observer: Observer.t('a)) => {
+    let currentSubject = {
+      if (refCount^ === 0) {
+        MutableOption.set(createSubject(), subject);
+      };
+      subject |> MutableOption.firstOrRaise;
+    };
+    let subjectObservable = toObservable(currentSubject);
+    let subjectObserver = toObserver(currentSubject);
+    let observerSubscription =
+      subjectObservable |> Observable.subscribeObserver(observer);
+    if (refCount^ === 0) {
+      sourceSubscription :=
+        source
+        |> Observable.subscribe(
+             ~onNext=next => subjectObserver |> Observer.next(next),
+             ~onComplete=
+               exn => {
+                 subjectObserver |> Observer.complete(~exn);
+                 reset();
+               },
+           );
+    };
+    if (subjectObserver |> Observer.toDisposable |> Disposable.isDisposed) {
+      /* The source completed synchronously and reset */
+      observerSubscription |> Disposable.dispose;
+      Disposable.disposed;
+    } else {
+      refCount := refCount^ + 1;
+      Disposable.create(() => {
+        refCount := refCount^ > 0 ? refCount^ - 1 : 0;
+        if (refCount^ === 0) {
+          reset();
+        };
+        observerSubscription |> Disposable.dispose;
+      });
+    };
+  });
+};
+/* shareReplay */

@@ -1,7 +1,7 @@
 open Functions.Operators;
 
 type t = {
-  dispose: unit => unit,
+  mutable dispose: unit => unit,
   isDisposed: ref(bool),
 };
 
@@ -12,10 +12,11 @@ let create = (dispose: unit => unit) : t => {
   isDisposed: ref(false),
 };
 
-let disposeWithResult = ({dispose, isDisposed}: t) : bool => {
+let disposeWithResult = ({dispose, isDisposed} as disposable: t) : bool => {
   let shouldDispose = ! Concurrency.interlockedExchange(true, isDisposed);
   if (shouldDispose) {
     dispose();
+    disposable.dispose = Functions.alwaysUnit;
   };
   shouldDispose;
 };
