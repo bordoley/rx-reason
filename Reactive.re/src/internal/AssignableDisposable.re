@@ -11,7 +11,7 @@ let create = () => {
 
 let assign = (disposable: Disposable.t, assignable: t): t => {
   /* FIXME: what happens if assignable is already disposed? */
-  Concurrency.volatileWrite(disposable, assignable.reference);
+  Volatile.write(disposable, assignable.reference);
   assignable;
 };
 

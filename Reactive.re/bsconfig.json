@@ -10,7 +10,17 @@
         {
           "dir": "internal",
           "public": "none"
-        }
+        }, 
+        {
+          "dir": "platform",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "js",
+              "public": "none"
+            }
+          ]
+        } 
       ]
     },
     {

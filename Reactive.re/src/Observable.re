@@ -257,47 +257,46 @@ let combineLatest2 =
     : t('c) =>
   create(observer =>
     scheduler(() => {
-      let lock = Concurrency.Lock.create();
+      let lock = Lock.create();
       let value0 = MutableOption.empty();
       let value1 = MutableOption.empty();
       let parentSubscription = AssignableDisposable.create();
-      let onComplete = exn =>
-        Concurrency.Lock.execute(
-          () =>
-            switch (exn) {
-            | Some(_) =>
-              observer |> Observer.complete(~exn);
-              parentSubscription
-              |> AssignableDisposable.toDisposable
-              |> Disposable.dispose;
-            | _ => ()
-            },
-          lock,
-        );
-      let onNext = (value, next) =>
-        Concurrency.Lock.execute(
-          Functions.earlyReturnsUnit(() => {
-            MutableOption.set(next, value);
-            if (value0
-                |> MutableOption.isNotEmpty
-                && value1
-                |> MutableOption.isNotEmpty) {
-              let mapped =
-                try (
-                  selector(
-                    MutableOption.firstOrRaise(value0),
-                    MutableOption.firstOrRaise(value1),
-                  )
-                ) {
-                | exn =>
-                  onComplete(Some(exn));
-                  Functions.returnUnit();
-                };
-              observer |> Observer.next(mapped);
-            };
-          }),
-          lock,
-        );
+      let onComplete = exn => {
+        Lock.aquire(lock);
+        switch (exn) {
+          | Some(_) =>
+            observer |> Observer.complete(~exn);
+            parentSubscription
+            |> AssignableDisposable.toDisposable
+            |> Disposable.dispose;
+          | _ => ()
+          };
+       Lock.release(lock);
+      };
+      let onNext = (value, next) => {
+        Lock.aquire(lock);
+        Functions.earlyReturnsUnit(() => {
+          MutableOption.set(next, value);
+          if (value0
+              |> MutableOption.isNotEmpty
+              && value1
+              |> MutableOption.isNotEmpty) {
+            let mapped =
+              try (
+                selector(
+                  MutableOption.firstOrRaise(value0),
+                  MutableOption.firstOrRaise(value1),
+                )
+              ) {
+              | exn =>
+                onComplete(Some(exn));
+                Functions.returnUnit();
+              };
+            observer |> Observer.next(mapped);
+          };
+        });
+        Lock.release(lock);
+      };
       let subscription0 = observable0 |> subscribe(~onNext=onNext(value0));
       let subscription1 = observable1 |> subscribe(~onNext=onNext(value1));
       parentSubscription

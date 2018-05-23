@@ -13,7 +13,7 @@ let create = (onDispose: unit => unit) : t => {
 };
 
 let disposeWithResult = ({onDispose, isDisposed} as disposable: t) : bool => {
-  let shouldDispose = ! Concurrency.interlockedExchange(true, isDisposed);
+  let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
     onDispose();
     disposable.onDispose = Functions.alwaysUnit;
@@ -25,7 +25,7 @@ let dispose = (disposable: t) : unit =>
   disposable |> disposeWithResult |> ignore;
 
 let isDisposed = ({isDisposed}: t) : bool =>
-  Concurrency.volatileRead(isDisposed);
+  Volatile.read(isDisposed);
 
 let empty = () => create(Functions.alwaysUnit);
 
