@@ -48,7 +48,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
       (),
     );
 
-exception EmptyError;
+exception EmptyException;
 
 let first: Operator.t('a, 'a) =
   observer => (
@@ -63,7 +63,7 @@ let first: Operator.t('a, 'a) =
           let exn =
             switch (exn) {
             | Some(_) => exn
-            | _ => Some(EmptyError)
+            | _ => Some(EmptyException)
             };
           observer |> Observer.complete(~exn);
         },
@@ -84,10 +84,13 @@ let firstOrNone = observer : Observer.t('a) =>
       exn => {
         let exn =
           switch (exn) {
+          | Some(EmptyException) =>
+            observer |> Observer.next(None);
+            None;
           | Some(_) => exn
           | _ =>
             observer |> Observer.next(None);
-            None;
+            exn;
           };
         observer |> Observer.complete(~exn);
       },
@@ -103,7 +106,15 @@ let maybeFirst: Operator.t('a, 'a) =
           observer |> Observer.next(next);
           observer |> Observer.complete;
         },
-      ~onComplete=exn => observer |> Observer.complete(~exn),
+      ~onComplete=
+        exn => {
+          let exn =
+            switch (exn) {
+            | Some(EmptyException) => None
+            | _ => exn
+            };
+          observer |> Observer.complete(~exn);
+        },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
       (),
     ):
@@ -122,7 +133,7 @@ let last: Operator.t('a, 'a) =
             | Some(_) => exn
             | _ =>
               if (MutableOption.isEmpty(last)) {
-                Some(EmptyError);
+                Some(EmptyException);
               } else {
                 let lastValue = MutableOption.firstOrRaise(last);
                 observer |> Observer.next(lastValue);
@@ -145,10 +156,14 @@ let lastOrNone: Operator.t('a, 'a) =
         exn => {
           let exn =
             switch (exn) {
+            | Some(EmptyException) =>
+              observer |> Observer.next(None);
+              None;
             | Some(_) => exn
             | _ =>
               observer |> Observer.next(last^);
-              None;
+              last := None;
+              exn;
             };
           observer |> Observer.complete(~exn);
         },
@@ -166,6 +181,7 @@ let maybeLast: Operator.t('a, 'a) =
         exn => {
           let exn =
             switch (exn) {
+            | Some(EmptyException) => None
             | Some(_) => exn
             | _ =>
               if (MutableOption.isNotEmpty(last)) {
@@ -173,7 +189,7 @@ let maybeLast: Operator.t('a, 'a) =
                 MutableOption.unset(last);
                 observer |> Observer.next(lastValue);
               };
-              None;
+              exn;
             };
           observer |> Observer.complete(~exn);
         },
