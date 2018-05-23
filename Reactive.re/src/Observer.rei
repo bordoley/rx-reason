@@ -13,6 +13,14 @@ let create:
   ) =>
   t('a);
 
+let createWithCallbacks:
+  (
+    ~onComplete: option(exn) => unit,
+    ~onNext: 'a => unit,
+    ~onDispose: unit => unit,
+  ) =>
+  t('a);
+
 let next: ('a, t('a)) => unit;
 
 let toDisposable: t('a) => Disposable.t;

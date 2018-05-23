@@ -18,7 +18,7 @@ let createWithCallbacks =
     : t('a) => {
   let subscribers = ref(CopyOnWriteArray.empty());
   let subjectObserver =
-    Observer.create(
+    Observer.createWithCallbacks(
       ~onComplete=
         exn => {
           let currentSubscribers = subscribers^;
@@ -38,7 +38,6 @@ let createWithCallbacks =
           onDispose();
           subscribers := CopyOnWriteArray.empty();
         },
-      (),
     );
   let observable =
     Observable.create(observer => {

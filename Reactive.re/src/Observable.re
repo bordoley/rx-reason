@@ -121,7 +121,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
       subscription |> AssignableDisposable.toDisposable |> Disposable.dispose;
     let observer = {
       let pipedObserver = operator(observer);
-      Observer.create(
+      Observer.createWithCallbacks(
         ~onComplete=
           exn => {
             pipedObserver |> Observer.complete(~exn);
@@ -136,7 +136,6 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
           },
         ~onDispose=
           () => pipedObserver |> Observer.toDisposable |> Disposable.dispose,
-        (),
       );
     };
     let sourceSubscription = subscribeObserver(observer, observable);
@@ -166,7 +165,7 @@ let merge =
           active := 0;
         });
       let childObserver = index =>
-        Observer.create(
+        Observer.createWithCallbacks(
           ~onNext=next => Observer.next(next, observer),
           ~onComplete=
             exn =>
@@ -181,7 +180,6 @@ let merge =
                 };
               },
           ~onDispose=() => subscriptions[index] |> Disposable.dispose,
-          (),
         );
       observables
       |> List.iteri((index, observable) =>

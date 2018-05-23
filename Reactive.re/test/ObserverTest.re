@@ -42,12 +42,7 @@ let test =
             |> Disposable.isDisposed
             |> Expect.toBeEqualToFalse;
             observer |> Observer.complete(~exn=Some(Division_by_zero));
-            observedExn^
-            |> Expect.toBeEqualToSomeWith(
-                 ~equals=Functions.referenceEquality,
-                 ~toString=(_) => "exception",
-                 Division_by_zero,
-               );
+            observedExn^ === None |> Expect.toBeEqualToFalse;
             observer
             |> Observer.toDisposable
             |> Disposable.isDisposed
@@ -70,12 +65,7 @@ let test =
               observer
               |> Observer.completeWithResult(~exn=Some(Division_by_zero));
             result |> Expect.toBeEqualToTrue;
-            observedExn^
-            |> Expect.toBeEqualToSomeWith(
-                 ~equals=Functions.referenceEquality,
-                 ~toString=(_) => "exception",
-                 Division_by_zero,
-               );
+            observedExn^ === None |> Expect.toBeEqualToFalse;
             observer
             |> Observer.toDisposable
             |> Disposable.isDisposed
