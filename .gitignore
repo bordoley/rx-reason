@@ -8,6 +8,9 @@
 *.cmxs
 *.cmxa
 .DS_Store
+.nyc_output
+.merlin
+
 # ocamlbuild working directory
 _build/
 
@@ -19,5 +22,5 @@ _build/
 lib/
 
 node_modules/
-
+coverage/
 npm-debug.log

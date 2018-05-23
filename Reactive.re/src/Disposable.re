@@ -1,22 +1,22 @@
 open Functions.Operators;
 
 type t = {
-  mutable dispose: unit => unit,
+  mutable onDispose: unit => unit,
   isDisposed: ref(bool),
 };
 
 exception DisposedException;
 
-let create = (dispose: unit => unit) : t => {
-  dispose,
+let create = (onDispose: unit => unit) : t => {
+  onDispose,
   isDisposed: ref(false),
 };
 
-let disposeWithResult = ({dispose, isDisposed} as disposable: t) : bool => {
+let disposeWithResult = ({onDispose, isDisposed} as disposable: t) : bool => {
   let shouldDispose = ! Concurrency.interlockedExchange(true, isDisposed);
   if (shouldDispose) {
-    dispose();
-    disposable.dispose = Functions.alwaysUnit;
+    onDispose();
+    disposable.onDispose = Functions.alwaysUnit;
   };
   shouldDispose;
 };
