@@ -1,22 +1,22 @@
 open Functions.Operators;
 
 type t = {
-  mutable onDispose: unit => unit,
+  onDispose: ref(unit => unit),
   isDisposed: ref(bool),
 };
 
 exception DisposedException;
 
 let create = (onDispose: unit => unit) : t => {
-  onDispose,
+  onDispose: ref(onDispose),
   isDisposed: ref(false),
 };
 
 let disposeWithResult = ({onDispose, isDisposed} as disposable: t) : bool => {
   let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
+    let onDispose = Interlocked.exchange(Functions.alwaysUnit,disposable.onDispose);
     onDispose();
-    disposable.onDispose = Functions.alwaysUnit;
   };
   shouldDispose;
 };
