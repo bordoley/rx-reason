@@ -6,7 +6,7 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "test": "node lib/js/test/TestRunner.bs.js",
+    "test": "npm run build && node lib/js/test/TestRunner.bs.js",
     "test-coverage": "npm run build && nyc node lib/js/test/TestRunner.bs.js && nyc report --reporter=html && open coverage/index.html"
   },
   "keywords": [
