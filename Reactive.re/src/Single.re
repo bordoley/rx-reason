@@ -22,4 +22,13 @@ let last = (observable: Observable.t('a)) : t('a) =>
 let lift = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
   single |> Observable.lift(operator << Operators.first);
 
+let reduce =
+    (
+      reducer: ('acc, 'a) => 'acc,
+      initialValue: 'acc,
+      observable: Observable.t('a),
+    )
+    : t('acc) =>
+  observable |> lift(Operators.scan(reducer, initialValue));
+
 let toObservable = (single: t('a)) : Observable.t('a) => single;

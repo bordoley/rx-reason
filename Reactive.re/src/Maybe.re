@@ -24,6 +24,15 @@ let last = (observable: Observable.t('a)) : t('a) =>
 let lift = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
   maybe |> Observable.lift(operator << Operators.maybeFirst);
 
+let reduce =
+    (
+      reducer: ('acc, 'a) => 'acc,
+      initialValue: 'acc,
+      observable: Observable.t('a),
+    )
+    : t('acc) =>
+  observable |> lift(Operators.scan(reducer, initialValue));
+
 let toObservable = (maybe: t('a)) : Observable.t('a) => maybe;
 
 let toSingle = (maybe: t('a)) : Single.t(option('a)) =>

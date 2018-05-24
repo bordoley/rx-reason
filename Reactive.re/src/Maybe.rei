@@ -14,6 +14,8 @@ let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
+
 let subscribe:
   (~onComplete: option(exn) => unit=?, ~onNext: 'a => unit=?, t('a)) =>
   Disposable.t;

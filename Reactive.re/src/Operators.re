@@ -60,6 +60,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
     outerObserver;
   };
 
+/* Only public for testing, should rework the tests to avoid needing to expose this publicly in order to maintain the contract. */  
 exception EmptyException;
 
 let first: Operator.t('a, 'a) =
@@ -103,13 +104,11 @@ let firstOrNone = observer : Observer.t('a) => {
         exn => {
           let exn =
             switch (exn) {
-            | Some(EmptyException) =>
+            | Some(EmptyException)
+            | None =>
               observer |> Observer.next(None);
               None;
             | Some(_) => exn
-            | _ =>
-              observer |> Observer.next(None);
-              exn;
             };
           observer |> Observer.complete(~exn);
         },
@@ -146,60 +145,58 @@ let maybeFirst: Operator.t('a, 'a) =
     outerObserver;
   };
 
-let last: Operator.t('a, 'a) =
-  observer => {
-    let last = MutableOption.empty();
-    Observer.createWithCallbacks(
-      ~onNext=next => MutableOption.set(next, last),
-      ~onComplete=
-        exn => {
-          let exn =
-            switch (exn) {
-            | Some(_) => exn
-            | _ =>
-              if (MutableOption.isEmpty(last)) {
-                Some(EmptyException);
-              } else {
-                let lastValue = MutableOption.firstOrRaise(last);
-                observer |> Observer.next(lastValue);
-                None;
-              }
-            };
-          observer |> Observer.complete(~exn);
-        },
-      ~onDispose=() => {
-        MutableOption.unset(last);
-        observer |> Observer.toDisposable |> Disposable.dispose
-      },
-    );
-  };
-
-let lastOrNone: Operator.t('a, 'a) =
-  observer => {
-    let last = ref(None);
-    Observer.createWithCallbacks(
-      ~onNext=next => last := next,
-      ~onComplete=
-        exn => {
-          let exn =
-            switch (exn) {
-            | Some(EmptyException) =>
-              observer |> Observer.next(None);
+let last = observer => {
+  let last = MutableOption.empty();
+  Observer.createWithCallbacks(
+    ~onNext=next => MutableOption.set(next, last),
+    ~onComplete=
+      exn => {
+        let exn =
+          switch (exn) {
+          | Some(_) => exn
+          | None =>
+            if (MutableOption.isEmpty(last)) {
+              Some(EmptyException);
+            } else {
+              let lastValue = MutableOption.firstOrRaise(last);
+              observer |> Observer.next(lastValue);
               None;
-            | Some(_) => exn
-            | _ =>
-              observer |> Observer.next(last^);
-              last := None;
-              exn;
-            };
-          observer |> Observer.complete(~exn);
-        },
-      ~onDispose=() => {
-        last := None;
-        observer |> Observer.toDisposable |> Disposable.dispose
+            }
+          };
+        observer |> Observer.complete(~exn);
       },
-    );
-  };
+    ~onDispose=
+      () => {
+        MutableOption.unset(last);
+        observer |> Observer.toDisposable |> Disposable.dispose;
+      },
+  );
+};
+
+let lastOrNone = observer => {
+  let last = ref(None);
+  Observer.createWithCallbacks(
+    ~onNext=next => last := Some(next),
+    ~onComplete=
+      exn => {
+        let exn =
+          switch (exn) {
+          | Some(EmptyException)
+          | None =>
+            observer |> Observer.next(last^);
+            last := None;
+            None;
+          | Some(_) => exn
+          };
+        observer |> Observer.complete(~exn);
+      },
+    ~onDispose=
+      () => {
+        last := None;
+        observer |> Observer.toDisposable |> Disposable.dispose;
+      },
+  );
+};
 
 let maybeLast: Operator.t('a, 'a) =
   observer => {
@@ -210,22 +207,23 @@ let maybeLast: Operator.t('a, 'a) =
         exn => {
           let exn =
             switch (exn) {
-            | Some(EmptyException) => None
-            | Some(_) => exn
-            | _ =>
+            | Some(EmptyException)
+            | None =>
               if (MutableOption.isNotEmpty(last)) {
                 let lastValue = MutableOption.firstOrRaise(last);
                 MutableOption.unset(last);
                 observer |> Observer.next(lastValue);
               };
-              exn;
+              None;
+            | Some(_) => exn
             };
           observer |> Observer.complete(~exn);
         },
-      ~onDispose=() => {
-        MutableOption.unset(last);
-        observer |> Observer.toDisposable |> Disposable.dispose
-      },
+      ~onDispose=
+        () => {
+          MutableOption.unset(last);
+          observer |> Observer.toDisposable |> Disposable.dispose;
+        },
     );
   };
 
