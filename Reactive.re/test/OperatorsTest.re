@@ -159,7 +159,7 @@ let test =
         })
       ]),
       describe("firstOrNone", [
-        it("publishes the Some of the first observed value and disposes", () => {
+        it("publishes Some of the first observed value and disposes", () => {
           let observedValue = ref(None);
           let completed = ref(false);
           let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());

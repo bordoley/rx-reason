@@ -60,8 +60,40 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
     outerObserver;
   };
 
-/* Only public for testing, should rework the tests to avoid needing to expose this publicly in order to maintain the contract. */  
+/* Only public for testing, should rework the tests to avoid needing to expose this publicly in order to maintain the contract. */
 exception EmptyException;
+
+let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
+  (observer: Observer.t('a)) => {
+    let isEmpty = ref(true);
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.createWithCallbacks(
+        ~onNext=
+          next => {
+            observer |> Observer.next(next);
+            isEmpty := false;
+          },
+        ~onComplete=
+          exn => {
+            let exn =
+              switch (exn) {
+              | Some(EmptyException)
+              | None =>
+                if (isEmpty^) {
+                  observer |> Observer.next(default);
+                };
+                None;
+              | Some(_) => exn
+              };
+            observer |> Observer.complete(~exn);
+          },
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
+  };
 
 let first: Operator.t('a, 'a) =
   observer => {
@@ -90,33 +122,8 @@ let first: Operator.t('a, 'a) =
     outerObserver;
   };
 
-let firstOrNone = observer : Observer.t('a) => {
-  let outerDisposable = ref(Disposable.disposed);
-  let outerObserver =
-    Observer.createWithCallbacks(
-      ~onNext=
-        next => {
-          observer |> Observer.next(Some(next));
-          observer |> Observer.complete;
-          outerDisposable^ |> Disposable.dispose;
-        },
-      ~onComplete=
-        exn => {
-          let exn =
-            switch (exn) {
-            | Some(EmptyException)
-            | None =>
-              observer |> Observer.next(None);
-              None;
-            | Some(_) => exn
-            };
-          observer |> Observer.complete(~exn);
-        },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-    );
-  outerDisposable := outerObserver |> Observer.toDisposable;
-  outerObserver;
-};
+let firstOrNone = observer =>
+  observer |> (first << map(a => Some(a)) << defaultIfEmpty(None));
 
 let maybeFirst: Operator.t('a, 'a) =
   observer => {
@@ -173,30 +180,8 @@ let last = observer => {
   );
 };
 
-let lastOrNone = observer => {
-  let last = ref(None);
-  Observer.createWithCallbacks(
-    ~onNext=next => last := Some(next),
-    ~onComplete=
-      exn => {
-        let exn =
-          switch (exn) {
-          | Some(EmptyException)
-          | None =>
-            observer |> Observer.next(last^);
-            last := None;
-            None;
-          | Some(_) => exn
-          };
-        observer |> Observer.complete(~exn);
-      },
-    ~onDispose=
-      () => {
-        last := None;
-        observer |> Observer.toDisposable |> Disposable.dispose;
-      },
-  );
-};
+let lastOrNone = observer =>
+  observer |> (last << map(a => Some(a)) << defaultIfEmpty(None));
 
 let maybeLast: Operator.t('a, 'a) =
   observer => {

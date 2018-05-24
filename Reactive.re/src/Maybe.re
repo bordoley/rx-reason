@@ -22,7 +22,7 @@ let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.maybeLast);
 
 let lift = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
-  maybe |> Observable.lift(operator << Operators.maybeFirst);
+  maybe |> Observable.lift(Operators.maybeFirst <<  operator);
 
 let reduce =
     (

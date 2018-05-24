@@ -20,7 +20,7 @@ let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.last);
 
 let lift = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
-  single |> Observable.lift(operator << Operators.first);
+  single |> Observable.lift(Operators.first << operator);
 
 let reduce =
     (
