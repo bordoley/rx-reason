@@ -30,7 +30,7 @@ let test =
             mappingObserver
             |> Observer.toDisposable
             |> Disposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            |> Expect.toBeEqualToTrue;
             observer
             |> Observer.toDisposable
             |> Disposable.isDisposed

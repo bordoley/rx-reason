@@ -4,20 +4,26 @@ let identity: Operator.t('a, 'a) = observer => observer;
 
 let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
   observer => {
-    Observer.createWithCallbacks(
-      ~onNext=
-        Functions.earlyReturnsUnit1(next => {
-          let mapped =
-            try (mapper(next)) {
-            | exn =>
-              observer |> Observer.complete(~exn=Some(exn));
-              Functions.returnUnit();
-            };
-          observer |> Observer.next(mapped);
-        }),
-      ~onComplete=exn => observer |> Observer.complete(~exn),
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-    );
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.createWithCallbacks(
+        ~onNext=
+          Functions.earlyReturnsUnit1(next => {
+            let mapped =
+              try (mapper(next)) {
+              | exn =>
+                observer |> Observer.complete(~exn=Some(exn));
+                outerDisposable^ |> Disposable.dispose;
+                Functions.returnUnit();
+              };
+            observer |> Observer.next(mapped);
+          }),
+        ~onComplete=exn => observer |> Observer.complete(~exn),
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
   };
 
 let mapTo = (value: 'b) : Operator.t('a, 'b) => map((_) => value);
@@ -29,93 +35,116 @@ let doOnNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
   });
 
 let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
-  observer =>
-    Observer.createWithCallbacks(
-      ~onNext=
-        Functions.earlyReturnsUnit1(next => {
-          let shouldKeep =
-            try (predicate(next)) {
-            | exn =>
-              observer |> Observer.complete(~exn=Some(exn));
-              Functions.returnUnit();
+  observer => {
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.createWithCallbacks(
+        ~onNext=
+          Functions.earlyReturnsUnit1(next => {
+            let shouldKeep =
+              try (predicate(next)) {
+              | exn =>
+                observer |> Observer.complete(~exn=Some(exn));
+                outerDisposable^ |> Disposable.dispose;
+                Functions.returnUnit();
+              };
+            if (shouldKeep) {
+              observer |> Observer.next(next);
             };
-          if (shouldKeep) {
-            observer |> Observer.next(next);
-          };
-        }),
-      ~onComplete=exn => observer |> Observer.complete(~exn),
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-    );
+          }),
+        ~onComplete=exn => observer |> Observer.complete(~exn),
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
+  };
 
 exception EmptyException;
 
 let first: Operator.t('a, 'a) =
-  observer => (
+  observer => {
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.createWithCallbacks(
+        ~onNext=
+          next => {
+            observer |> Observer.next(next);
+            observer |> Observer.complete;
+            outerDisposable^ |> Disposable.dispose;
+          },
+        ~onComplete=
+          exn => {
+            let exn =
+              switch (exn) {
+              | Some(_) => exn
+              | _ => Some(EmptyException)
+              };
+            observer |> Observer.complete(~exn);
+          },
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
+  };
+
+let firstOrNone = observer : Observer.t('a) => {
+  let outerDisposable = ref(Disposable.disposed);
+  let outerObserver =
     Observer.createWithCallbacks(
       ~onNext=
         next => {
-          observer |> Observer.next(next);
+          observer |> Observer.next(Some(next));
           observer |> Observer.complete;
+          outerDisposable^ |> Disposable.dispose;
         },
       ~onComplete=
         exn => {
           let exn =
             switch (exn) {
+            | Some(EmptyException) =>
+              observer |> Observer.next(None);
+              None;
             | Some(_) => exn
-            | _ => Some(EmptyException)
+            | _ =>
+              observer |> Observer.next(None);
+              exn;
             };
           observer |> Observer.complete(~exn);
         },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-    ):
-      Observer.t('a)
-  );
-
-let firstOrNone = observer : Observer.t('a) =>
-  Observer.createWithCallbacks(
-    ~onNext=
-      next => {
-        observer |> Observer.next(Some(next));
-        observer |> Observer.complete;
-      },
-    ~onComplete=
-      exn => {
-        let exn =
-          switch (exn) {
-          | Some(EmptyException) =>
-            observer |> Observer.next(None);
-            None;
-          | Some(_) => exn
-          | _ =>
-            observer |> Observer.next(None);
-            exn;
-          };
-        observer |> Observer.complete(~exn);
-      },
-    ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-  );
+    );
+  outerDisposable := outerObserver |> Observer.toDisposable;
+  outerObserver;
+};
 
 let maybeFirst: Operator.t('a, 'a) =
-  observer => (
-    Observer.createWithCallbacks(
-      ~onNext=
-        next => {
-          observer |> Observer.next(next);
-          observer |> Observer.complete;
-        },
-      ~onComplete=
-        exn => {
-          let exn =
-            switch (exn) {
-            | Some(EmptyException) => None
-            | _ => exn
-            };
-          observer |> Observer.complete(~exn);
-        },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
-    ):
-      Observer.t('a)
-  );
+  observer => {
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.createWithCallbacks(
+        ~onNext=
+          next => {
+            observer |> Observer.next(next);
+            observer |> Observer.complete;
+            outerDisposable^ |> Disposable.dispose;
+          },
+        ~onComplete=
+          exn => {
+            let exn =
+              switch (exn) {
+              | Some(EmptyException) => None
+              | _ => exn
+              };
+            observer |> Observer.complete(~exn);
+          },
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
+  };
 
 let last: Operator.t('a, 'a) =
   observer => {
@@ -138,7 +167,10 @@ let last: Operator.t('a, 'a) =
             };
           observer |> Observer.complete(~exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => {
+        MutableOption.unset(last);
+        observer |> Observer.toDisposable |> Disposable.dispose
+      },
     );
   };
 
@@ -162,7 +194,10 @@ let lastOrNone: Operator.t('a, 'a) =
             };
           observer |> Observer.complete(~exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => {
+        last := None;
+        observer |> Observer.toDisposable |> Disposable.dispose
+      },
     );
   };
 
@@ -187,7 +222,10 @@ let maybeLast: Operator.t('a, 'a) =
             };
           observer |> Observer.complete(~exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => {
+        MutableOption.unset(last);
+        observer |> Observer.toDisposable |> Disposable.dispose
+      },
     );
   };
 
@@ -206,7 +244,9 @@ let scan =
     map(mapper, observer);
   };
 
-let distinctUntilChanged = (~comparer=Functions.referenceEquality) : Operator.t('a, 'a) => {
+let distinctUntilChanged =
+    (~comparer=Functions.referenceEquality)
+    : Operator.t('a, 'a) => {
   let shouldUpdate = (a, b) => ! comparer(a, b);
   observer => {
     let state = MutableOption.empty();
@@ -246,12 +286,11 @@ let switch_: Operator.t(Observable.t('a), 'a) =
     Observer.createWithCallbacks(
       ~onComplete,
       ~onNext,
-      ~onDispose=
-        () => {
-          innerObserver |> Observer.toDisposable |> Disposable.dispose;
-          innerSubscription^ |> Disposable.dispose;
-          innerSubscription := Disposable.disposed;
-        },
+      ~onDispose=() => {
+        innerObserver |> Observer.toDisposable |> Disposable.dispose;
+        innerSubscription^ |> Disposable.dispose;
+        innerSubscription := Disposable.disposed;
+      },
     );
   };
 
