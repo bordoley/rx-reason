@@ -64,59 +64,45 @@ exception EmptyException;
 let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
   (observer: Observer.t('a)) => {
     let isEmpty = ref(true);
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
-      Observer.createWithCallbacks(
-        ~onNext=
-          next => {
-            observer |> Observer.next(next);
-            isEmpty := false;
-          },
-        ~onComplete=
-          exn => {
-            let exn =
-              switch (exn) {
-              | Some(EmptyException)
-              | None =>
-                if (isEmpty^) {
-                  observer |> Observer.next(default);
-                };
-                None;
-              | Some(_) => exn
+    Observer.createWithCallbacks(
+      ~onNext=
+        next => {
+          observer |> Observer.next(next);
+          isEmpty := false;
+        },
+      ~onComplete=
+        exn => {
+          let exn =
+            switch (exn) {
+            | Some(EmptyException)
+            | None =>
+              if (isEmpty^) {
+                observer |> Observer.next(default);
               };
-            observer |> Observer.complete(~exn);
-          },
-        ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
-      );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
+              None;
+            | Some(_) => exn
+            };
+          observer |> Observer.complete(~exn);
+        },
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+    );
   };
 
 let maybe: Operator.t('a, 'a) =
-  observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
-      Observer.createWithCallbacks(
-        ~onNext=
-          next => {
-            observer |> Observer.next(next);
-          },
-        ~onComplete=
-          exn => {
-            let exn =
-              switch (exn) {
-              | Some(EmptyException) => None
-              | _ => exn
-              };
-            observer |> Observer.complete(~exn);
-          },
-        ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
-      );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
-  };
+  observer =>
+    Observer.createWithCallbacks(
+      ~onNext=next => observer |> Observer.next(next),
+      ~onComplete=
+        exn => {
+          let exn =
+            switch (exn) {
+            | Some(EmptyException) => None
+            | _ => exn
+            };
+          observer |> Observer.complete(~exn);
+        },
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+    );
 
 let first: Operator.t('a, 'a) =
   observer => {
@@ -148,8 +134,7 @@ let first: Operator.t('a, 'a) =
 let firstOrNone = observer =>
   first @@ map(a => Some(a)) @@ defaultIfEmpty(None) @@ observer;
 
-let maybeFirst = observer =>
-  first @@ maybe @@ observer;
+let maybeFirst = observer => first @@ maybe @@ observer;
 
 let last = observer => {
   let last = MutableOption.empty();
@@ -182,8 +167,7 @@ let last = observer => {
 let lastOrNone = observer =>
   last @@ map(a => Some(a)) @@ defaultIfEmpty(None) @@ observer;
 
-let maybeLast = observer =>
-  last @@ maybe @@ observer;
+let maybeLast = observer => last @@ maybe @@ observer;
 
 let scan =
     (scanner: ('acc, 'a) => 'acc, initialValue: 'acc)
@@ -250,8 +234,8 @@ let switch_: Operator.t(Observable.t('a), 'a) =
     );
   };
 
-let switchMap = (mapper: 'a => Observable.t('b)) : Operator.t('a, 'b) => observer =>
-  map(mapper) @@ switch_ @@ observer;
+let switchMap = (mapper: 'a => Observable.t('b)) : Operator.t('a, 'b) =>
+  observer => map(mapper) @@ switch_ @@ observer;
 
 /* FIXME: Should define a sane default DelayScheduler */
 let debounceTime =

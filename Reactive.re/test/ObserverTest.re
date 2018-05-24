@@ -4,7 +4,7 @@ open ReUnit.Test;
 
 let test =
   describe(
-    "observer",
+    "Observer",
     [
       describe(
         "next",

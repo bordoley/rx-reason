@@ -10,7 +10,9 @@ let first: Observable.t('a) => t('a);
 
 let last: Observable.t('a) => t('a);
 
-let lift: (Operator.t('a, 'b), t('a)) => t('b);
+let liftFirst: (Operator.t('a, 'b), t('a)) => t('b);
+
+let liftLast: (Operator.t('a, 'b), t('a)) => t('b);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 

@@ -21,8 +21,11 @@ let first = (observable: Observable.t('a)) : t('a) =>
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.maybeLast);
 
-let lift = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
+let liftFirst = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
   maybe |> Observable.lift(Operators.maybeFirst <<  operator);
+
+let liftLast = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
+  maybe |> Observable.lift(Operators.maybeLast <<  operator);
 
 let reduce =
     (
@@ -31,7 +34,7 @@ let reduce =
       observable: Observable.t('a),
     )
     : t('acc) =>
-  observable |> lift(Operators.scan(reducer, initialValue));
+  observable |> liftLast(Operators.scan(reducer, initialValue));
 
 let toObservable = (maybe: t('a)) : Observable.t('a) => maybe;
 

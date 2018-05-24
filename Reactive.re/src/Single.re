@@ -19,8 +19,11 @@ let first = (observable: Observable.t('a)) : t('a) =>
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.last);
 
-let lift = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
+let liftFirst = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
   single |> Observable.lift(Operators.first << operator);
+
+let liftLast = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
+  single |> Observable.lift(Operators.last << operator);
 
 let reduce =
     (
@@ -29,6 +32,6 @@ let reduce =
       observable: Observable.t('a),
     )
     : t('acc) =>
-  observable |> lift(Operators.scan(reducer, initialValue));
+  observable |> liftLast(Operators.scan(reducer, initialValue));
 
 let toObservable = (single: t('a)) : Observable.t('a) => single;
