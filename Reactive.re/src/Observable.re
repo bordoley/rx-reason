@@ -1,28 +1,25 @@
-type t('a) = Observer.t('a) => Disposable.t;
+type t('a) =
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t;
+
+let subscribe = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
+  observable(~onNext, ~onComplete);
 
 let subscribeObserver =
-    (observer: Observer.t('a), subscribe: t('a))
+    (observer: Observer.t('a), observable: t('a))
     : Disposable.t =>
-  subscribe(observer);
-
-let subscribe =
-    (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
-      observable: t('a),
-    )
-    : Disposable.t => {
-  let observer = Observer.create(~onComplete, ~onNext, ());
-  observable |> subscribeObserver(observer);
-};
+  subscribe(
+    ~onNext=next => observer |> Observer.next(next),
+    ~onComplete=exn => observer |> Observer.complete(~exn),
+    observable,
+  );
 
 let create = subscribe : t('a) =>
-  observer => {
+  (~onNext, ~onComplete) => {
     let subscription = ref(Disposable.disposed);
     let delegateObserver =
-      Observer.createWithCallbacks(
-        ~onComplete=exn => observer |> Observer.complete(~exn),
-        ~onNext=next => observer |> Observer.next(next),
+      Observer.create(
+        ~onComplete=exn => onComplete(exn),
+        ~onNext=next => onNext(next),
         ~onDispose=
           () =>
             Interlocked.exchange(Disposable.disposed, subscription)
@@ -32,13 +29,15 @@ let create = subscribe : t('a) =>
       (
         try (
           subscribe(
-            ~next=next => delegateObserver |> Observer.next(next),
-            ~complete=exn => delegateObserver |> Observer.complete(~exn),
+            ~onNext=next => delegateObserver |> Observer.next(next),
+            ~onComplete=exn => delegateObserver |> Observer.complete(~exn),
           )
         ) {
         | exn =>
           let shouldRaise =
-            observer |> Observer.completeWithResult(~exn=Some(exn)) |> (!);
+            delegateObserver
+            |> Observer.completeWithResult(~exn=Some(exn))
+            |> (!);
           if (shouldRaise) {
             /* This could happen when the onComplete is called synchronously in the
              * subscribe function which also throws.
@@ -54,10 +53,14 @@ let create = subscribe : t('a) =>
   };
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
-  create((~next, ~complete) => {
-    let observer = Observer.create(~onNext=next, ~onComplete=complete, ());
+  create((~onNext, ~onComplete) => {
+    let observer = Observer.create(~onNext, ~onComplete, ~onDispose=Functions.alwaysUnit);
     let lifted = operator(observer);
-    observable |> subscribeObserver(lifted);
+    observable
+    |> subscribe(
+         ~onNext=next => lifted |> Observer.next(next),
+         ~onComplete=exn => lifted |> Observer.complete(~exn),
+       );
   });
 
 /*
@@ -94,20 +97,17 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
      scheduleSubscription();
    });*/
 let defer = (f: unit => t('a)) : t('a) =>
-  create((~next, ~complete) => {
-    let observer = Observer.create(~onNext=next, ~onComplete=complete, ());
-    f() |> subscribeObserver(observer);
-  });
+  create((~onNext, ~onComplete) => f() |> subscribe(~onNext, ~onComplete));
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
-    create((~next as _, ~complete) => {
-      complete(None);
+    create((~onNext as _, ~onComplete) => {
+      onComplete(None);
       Disposable.disposed;
     }) :
-    create((~next as _, ~complete) =>
+    create((~onNext as _, ~onComplete) =>
       scheduler(() => {
-        complete(None);
+        onComplete(None);
         Disposable.disposed;
       })
     );
@@ -129,7 +129,7 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
            active := 0;
          });
        let childObserver = index =>
-         Observer.createWithCallbacks(
+         Observer.create(
            ~onNext=next => Observer.next(next, observer),
            ~onComplete=
              exn =>
@@ -156,29 +156,29 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
      });
  };*/
 let never = () : t('a) =>
-  create((~next as _, ~complete as _) => Disposable.empty());
+  create((~onNext as _, ~onComplete as _) => Disposable.empty());
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
-    create((~next, ~complete) => {
+    create((~onNext, ~onComplete) => {
       let rec loop = list =>
         switch (list) {
         | [hd, ...tail] =>
-          next(hd);
+          onNext(hd);
           loop(tail);
-        | [] => complete(None)
+        | [] => onComplete(None)
         };
       loop(list);
       Disposable.disposed;
     }) :
-    create((~next, ~complete) => {
+    create((~onNext, ~onComplete) => {
       let rec loop = (list, ()) =>
         switch (list) {
         | [hd, ...tail] =>
-          next(hd);
+          onNext(hd);
           scheduler(loop(tail));
         | [] =>
-          complete(None);
+          onComplete(None);
           Disposable.disposed;
         };
       scheduler(loop(list));
@@ -186,16 +186,16 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
   scheduler === Scheduler.immediate ?
-    create((~next, ~complete) => {
-      next(value);
-      complete(None);
+    create((~onNext, ~onComplete) => {
+      onNext(value);
+      onComplete(None);
       Disposable.disposed;
     }) :
-    create((~next, ~complete) =>
+    create((~onNext, ~onComplete) =>
       scheduler(() => {
-        next(value);
+        onNext(value);
         scheduler(() => {
-          complete(None);
+          onComplete(None);
           Disposable.disposed;
         });
       })

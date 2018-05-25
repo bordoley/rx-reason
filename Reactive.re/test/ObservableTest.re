@@ -11,14 +11,17 @@ let test =
         [
           it("", () => {
             let observable =
-              Observable.create((~next, ~complete) => {
-                next(5);
-                next(10);
-                complete(None);
+              Observable.create((~onNext, ~onComplete) => {
+                onNext(5);
+                onNext(10);
+                onComplete(None);
                 Disposable.disposed;
               });
             let subscription =
-              observable |> Observable.subscribe(~onNext=next => Js.log(next));
+              observable |> Observable.subscribe(
+                ~onNext=next => Js.log(next),
+                ~onComplete=Functions.alwaysUnit,
+              );
             ();
           }),
         ],

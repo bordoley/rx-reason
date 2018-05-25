@@ -4,7 +4,7 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
   observer => {
     let outerDisposable = ref(Disposable.disposed);
     let outerObserver =
-      Observer.createWithCallbacks(
+      Observer.create(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             let mapped =
@@ -36,7 +36,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
   observer => {
     let outerDisposable = ref(Disposable.disposed);
     let outerObserver =
-      Observer.createWithCallbacks(
+      Observer.create(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             let shouldKeep =
@@ -64,7 +64,7 @@ exception EmptyException;
 let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
   (observer: Observer.t('a)) => {
     let isEmpty = ref(true);
-    Observer.createWithCallbacks(
+    Observer.create(
       ~onNext=
         next => {
           observer |> Observer.next(next);
@@ -90,7 +90,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
 
 let maybe: Operator.t('a, 'a) =
   observer =>
-    Observer.createWithCallbacks(
+    Observer.create(
       ~onNext=next => observer |> Observer.next(next),
       ~onComplete=
         exn => {
@@ -108,7 +108,7 @@ let first: Operator.t('a, 'a) =
   observer => {
     let outerDisposable = ref(Disposable.disposed);
     let outerObserver =
-      Observer.createWithCallbacks(
+      Observer.create(
         ~onNext=
           next => {
             observer |> Observer.next(next);
@@ -138,7 +138,7 @@ let maybeFirst = observer => first @@ maybe @@ observer;
 
 let last = observer => {
   let last = MutableOption.empty();
-  Observer.createWithCallbacks(
+  Observer.create(
     ~onNext=next => MutableOption.set(next, last),
     ~onComplete=
       exn => {
@@ -211,7 +211,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
             | Some(_) => onComplete(exn)
             | None => innerSubscription^ |> Disposable.dispose
             },
-        (),
+        ~onDispose=Functions.alwaysUnit,
       );
     let onNext = next =>
       try (
@@ -223,7 +223,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
       ) {
       | exn => onComplete(Some(exn))
       };
-    Observer.createWithCallbacks(
+    Observer.create(
       ~onComplete,
       ~onNext,
       ~onDispose=() => {
@@ -258,7 +258,7 @@ let debounceTime =
       };
       Disposable.disposed;
     };
-    Observer.createWithCallbacks(
+    Observer.create(
       ~onComplete=
         exn => {
           switch (exn) {

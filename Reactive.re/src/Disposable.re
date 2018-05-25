@@ -12,10 +12,10 @@ let create = (onDispose: unit => unit) : t => {
   isDisposed: ref(false),
 };
 
-let disposeWithResult = ({onDispose, isDisposed} as disposable: t) : bool => {
+let disposeWithResult = ({onDispose, isDisposed}: t) : bool => {
   let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
-    let onDispose = Interlocked.exchange(Functions.alwaysUnit,disposable.onDispose);
+    let onDispose = Interlocked.exchange(Functions.alwaysUnit, onDispose);
     onDispose();
   };
   shouldDispose;

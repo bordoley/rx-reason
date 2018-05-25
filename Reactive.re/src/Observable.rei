@@ -67,10 +67,7 @@ type t('a);
 
  let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);*/
 let create:
-  (
-    (~next: 'a => unit, ~complete: (option(exn)) => unit) =>
-    Disposable.t
-  ) =>
+  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
 let defer: (unit => t('a)) => t('a);
@@ -80,7 +77,6 @@ let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
 /*let merge: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);*/
-
 let never: unit => t('a);
 
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
@@ -93,7 +89,7 @@ let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
  let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
  */
 let subscribe:
-  ( ~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
   Disposable.t;
 
 let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;

@@ -10,7 +10,11 @@ let test =
         "identity",
         [
           it("returns the observer provided as an argument", () => {
-            let observer = Observer.create();
+            let observer = Observer.create(
+              ~onNext=Functions.alwaysUnit,
+              ~onComplete=Functions.alwaysUnit,
+              ~onDispose=Functions.alwaysUnit,
+            );
             let identityObserver = Operators.identity(observer);
             observer === identityObserver |> Expect.toBeEqualToTrue;
           }),
@@ -22,7 +26,11 @@ let test =
           it("completes the observer when the mapper throws an exception", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn, 
+                ~onDispose=Functions.alwaysUnit,
+              );
             let mapper = (_) => raise(Division_by_zero);
             let mappingObserver = Operators.map(mapper, observer);
             mappingObserver |> Observer.next(1);
@@ -40,7 +48,11 @@ let test =
             "completes the observer when the mapping observer is completed", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
             let mappingObserver = Operators.map(a => a + 1, observer);
             mappingObserver |> Observer.completeWithResult(~exn=Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
             observedExn^ === None |> Expect.toBeEqualToFalse;
@@ -61,7 +73,7 @@ let test =
           it("maps any input to value", () => {
             let observedNext = ref("");
             let observer =
-              Observer.create(~onNext=next => observedNext := next, ());
+              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
             let mappingObserver = Operators.mapTo("a", observer);
             mappingObserver |> Observer.next(1);
             observedNext^ |> Expect.toBeEqualToString("a");
@@ -75,7 +87,7 @@ let test =
             let sideEffectCalled = ref(false);
             let observedNext = ref(0);
             let observer =
-              Observer.create(~onNext=next => observedNext := next, ());
+              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
             let doObserver =
               Operators.doOnNext((_) => sideEffectCalled := true, observer);
             doObserver |> Observer.next(1);
@@ -88,7 +100,7 @@ let test =
           it("completes the observer when the mapper throws an exception", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
             let mapper = (_) => raise(Division_by_zero);
             let keepObserver = Operators.keep(mapper, observer);
             keepObserver |> Observer.next(1);
@@ -106,7 +118,7 @@ let test =
             "completes the observer when the mapping observer is completed", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
             let keepObserver = Operators.keep(_ => true, observer);
             keepObserver |> Observer.completeWithResult(~exn=Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
             observedExn^ === None |> Expect.toBeEqualToFalse;
@@ -124,7 +136,7 @@ let test =
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let firstObserver = Operators.first(observer);
           firstObserver |> Observer.next(2);
           firstObserver |> Observer.next(3);
@@ -135,7 +147,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstObserver = Operators.first(observer);
           firstObserver |> Observer.complete(~exn=Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -147,7 +159,7 @@ let test =
         }),
         it("completes with exception if no values are produced", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstObserver = Operators.first(observer);
           firstObserver |> Observer.complete;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -162,7 +174,7 @@ let test =
         it("publishes Some of the first observed value and disposes", () => {
           let observedValue = ref(None);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let firstOrNoneObserver = Operators.firstOrNone(observer);
           firstOrNoneObserver |> Observer.next(2);
           observedValue^ |> Expect.toBeEqualToSomeOfInt(2);
@@ -172,7 +184,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstOrNoneObserver = Operators.firstOrNone(observer);
           firstOrNoneObserver |> Observer.complete(~exn=Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -184,7 +196,7 @@ let test =
         }),
         it("ignores EmptyException, publishes None, and completes normally", () => {
           let observedValue = ref(Some(1));
-          let observer = Observer.create(~onNext=next => observedValue := next, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
           let firstOrNoneObserver = Operators.firstOrNone(observer);
           firstOrNoneObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
@@ -196,7 +208,7 @@ let test =
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let maybeFirstObserver = Operators.maybeFirst(observer);
           maybeFirstObserver |> Observer.next(2);
           observedValue^ |> Expect.toBeEqualToInt(2);
@@ -206,7 +218,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeFirstObserver = Operators.maybeFirst(observer);
           maybeFirstObserver |> Observer.complete(~exn=Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -218,7 +230,7 @@ let test =
         }),
         it("ignores EmptyException and completes normally", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeFirstObserver = Operators.maybeFirst(observer);
           maybeFirstObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -230,7 +242,7 @@ let test =
         it("publishes the last observed value and disposes", () => {
           let observedValue = ref(0);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let lastObserver = Operators.last(observer);
           lastObserver |> Observer.next(2);
           observedValue^ |> Expect.toBeEqualToInt(0);
@@ -246,7 +258,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let lastObserver = Operators.last(observer);
           lastObserver |> Observer.next(2);
           lastObserver |> Observer.next(3);
@@ -260,7 +272,7 @@ let test =
         }),
         it("completes with exception if no values are produced", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let lastObserver = Operators.last(observer);
           lastObserver |> Observer.complete;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -275,7 +287,7 @@ let test =
         it("publishes the Some of the last observed value and disposes", () => {
           let observedValue = ref(None);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let lastOrNoneObserver = Operators.lastOrNone(observer);
           lastOrNoneObserver |> Observer.next(3);
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
@@ -289,7 +301,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let lastOrNoneObserver = Operators.lastOrNone(observer);
           lastOrNoneObserver |> Observer.complete(~exn=Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -301,7 +313,7 @@ let test =
         }),
         it("ignores EmptyException, publishes None, and completes normally", () => {
           let observedValue = ref(Some(1));
-          let observer = Observer.create(~onNext=next => observedValue := next, ());
+          let observer = Observer.create(~onNext=next => observedValue := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
           let lastOrNoneObserver = Operators.lastOrNone(observer);
           lastOrNoneObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
@@ -313,7 +325,8 @@ let test =
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
           let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ());
+          let observer = Observer.create(
+            ~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
           let maybeLastObserver = Operators.maybeLast(observer);
           maybeLastObserver |> Observer.next(2);
           observedValue^ |> Expect.toBeEqualToInt(0);
@@ -328,7 +341,7 @@ let test =
         }),
         it("passes through completed exceptions", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeLastObserver = Operators.maybeLast(observer);
           maybeLastObserver |> Observer.complete(~exn=Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -340,7 +353,11 @@ let test =
         }),
         it("ignores EmptyException and completes normally", () => {
           let observedExn = ref(None);
-          let observer = Observer.create(~onComplete=exn=>observedExn := exn, ());
+          let observer = Observer.create(
+            ~onNext=Functions.alwaysUnit,
+            ~onComplete=exn=>observedExn := exn,
+            ~onDispose=Functions.alwaysUnit,
+          );
           let maybeLastObserver = Operators.maybeLast(observer);
           maybeLastObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -351,7 +368,11 @@ let test =
       describe("scan", [
         it("publishes all intermediate values, including the initial accumulator value", () => {
           let result = ref([]);
-          let observer = Observer.create(~onNext=next => result := [next, ...(result^)], ());
+          let observer = Observer.create(
+            ~onNext=next => result := [next, ...(result^)],
+            ~onComplete=Functions.alwaysUnit,
+            ~onDispose=Functions.alwaysUnit,
+          );
           let scanObserver = Operators.scan((acc, next) => acc + next, 0, observer);
           scanObserver |> Observer.next(2);
           scanObserver |> Observer.next(3);
@@ -363,7 +384,11 @@ let test =
       describe("distinctUntilChanged", [
         it("removes duplicates", () => {
           let result = ref([]);
-          let observer = Observer.create(~onNext=next => result := [next, ...(result^)], ());
+          let observer = Observer.create(
+            ~onNext=next => result := [next, ...(result^)], 
+            ~onComplete=Functions.alwaysUnit,
+            ~onDispose=Functions.alwaysUnit,
+          );
           let distinctObserver = Operators.distinctUntilChanged(observer);
           distinctObserver |> Observer.next(1);
           distinctObserver |> Observer.next(1);

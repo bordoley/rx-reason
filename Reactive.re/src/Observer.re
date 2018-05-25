@@ -5,7 +5,7 @@ type t('a) = {
   disposable: Disposable.t,
 };
 
-let createWithCallbacks = (~onNext, ~onComplete, ~onDispose) : t('a) => {
+let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   let isStopped = ref(false);
   {
     isStopped,
@@ -18,16 +18,6 @@ let createWithCallbacks = (~onNext, ~onComplete, ~onDispose) : t('a) => {
       }),
   };
 };
-
-let create =
-    (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
-      ~onDispose=Functions.alwaysUnit,
-      (),
-    )
-    : t('a) =>
-  createWithCallbacks(~onComplete, ~onNext, ~onDispose);
 
 let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
 

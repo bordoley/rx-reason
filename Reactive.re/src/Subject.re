@@ -12,13 +12,13 @@ let createWithCallbacks =
       ~onNext=Functions.alwaysUnit,
       ~onComplete=Functions.alwaysUnit,
       ~onDispose=Functions.alwaysUnit,
-      ~onSubscribe=(~onNext, ~onComplete) => Disposable.disposed,
+      ~onSubscribe=(~onNext as _, ~onComplete as _) => Disposable.disposed,
       (),
     )
     : t('a) => {
   let subscribers = ref(CopyOnWriteArray.empty());
   let subjectObserver =
-    Observer.createWithCallbacks(
+    Observer.create(
       ~onComplete=
         exn => {
           let currentSubscribers = subscribers^;
@@ -30,7 +30,8 @@ let createWithCallbacks =
         next => {
           onNext(next);
           let currentSubscribers = subscribers^;
-          currentSubscribers |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
+          currentSubscribers
+          |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
           ();
         },
       ~onDispose=
@@ -40,10 +41,10 @@ let createWithCallbacks =
         },
     );
   let observable =
-    Observable.create((~next, ~complete) => {
+    Observable.create((~onNext, ~onComplete) => {
       subjectObserver |> Observer.toDisposable |> Disposable.raiseIfDisposed;
       let currentSubscribers = subscribers^;
-      let observer = (next, complete);
+      let observer = (onNext, onComplete);
       subscribers := currentSubscribers |> CopyOnWriteArray.addLast(observer);
       let onSubscribeDisposable = onSubscribe(~onNext, ~onComplete);
       Disposable.create(() => {
@@ -74,7 +75,7 @@ let share =
     subject |> MutableOption.unset;
     refCount := 0;
   };
-  Observable.create((~next, ~complete) => {
+  Observable.create((~onNext, ~onComplete) => {
     let currentSubject = {
       if (refCount^ === 0) {
         MutableOption.set(createSubject(), subject);
@@ -84,7 +85,7 @@ let share =
     let subjectObservable = toObservable(currentSubject);
     let subjectObserver = toObserver(currentSubject);
     let observerSubscription =
-      subjectObservable |> Observable.subscribe(~onNext=next, ~onComplete=complete);
+      subjectObservable |> Observable.subscribe(~onNext, ~onComplete);
     if (refCount^ === 0) {
       sourceSubscription :=
         source

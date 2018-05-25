@@ -12,7 +12,11 @@ let test =
           it("call onNext if not disposed", () => {
             let observedNext = ref(0);
             let observer =
-              Observer.create(~onNext=next => observedNext := next, ());
+              Observer.create(
+                ~onNext=next => observedNext := next,
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
             observer |> Observer.next(6);
@@ -21,7 +25,11 @@ let test =
           it("will not call onNext if disposed", () => {
             let observedNext = ref(0);
             let observer =
-              Observer.create(~onNext=next => observedNext := next, ());
+              Observer.create(
+                ~onNext=next => observedNext := next,
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
             observer |> Observer.toDisposable |> Disposable.dispose;
@@ -30,7 +38,11 @@ let test =
           }),
           it("disposes the observer if onNext throws", () => {
             let observer =
-              Observer.create(~onNext=_ => raise(Division_by_zero), ());
+              Observer.create(
+                ~onNext=_ => raise(Division_by_zero),
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
             Expect.shouldRaise(() => observer |> Observer.next(4));
             observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -42,7 +54,11 @@ let test =
           it("will complete and dispose the observer if not dispose", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
             observer
             |> Observer.toDisposable
             |> Disposable.isDisposed
@@ -56,7 +72,11 @@ let test =
           }),
           it("disposes the observer if onComplete throws", () => {
             let observer =
-              Observer.create(~onComplete=_ => raise(Division_by_zero), ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=_ => raise(Division_by_zero), 
+                ~onDispose=Functions.alwaysUnit
+              );
             Expect.shouldRaise(() => observer |> Observer.complete);
             observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -68,7 +88,11 @@ let test =
           it("will complete and dispose the observer if not dispose", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
             observer
             |> Observer.toDisposable
             |> Disposable.isDisposed
@@ -86,7 +110,11 @@ let test =
           it("will not call onComplete if disposed", () => {
             let observedExn = ref(None);
             let observer =
-              Observer.create(~onComplete=exn => observedExn := exn, ());
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
             observer |> Observer.toDisposable |> Disposable.dispose;
             let result =
               observer
