@@ -10,13 +10,13 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
             let mapped =
               try (mapper(next)) {
               | exn =>
-                observer |> Observer.complete(~exn=Some(exn));
+                observer |> Observer.complete(Some(exn));
                 outerDisposable^ |> Disposable.dispose;
                 Functions.returnUnit();
               };
             observer |> Observer.next(mapped);
           }),
-        ~onComplete=exn => observer |> Observer.complete(~exn),
+        ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=
           () => observer |> Observer.toDisposable |> Disposable.dispose,
       );
@@ -42,7 +42,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
             let shouldKeep =
               try (predicate(next)) {
               | exn =>
-                observer |> Observer.complete(~exn=Some(exn));
+                observer |> Observer.complete(Some(exn));
                 outerDisposable^ |> Disposable.dispose;
                 Functions.returnUnit();
               };
@@ -50,7 +50,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
               observer |> Observer.next(next);
             };
           }),
-        ~onComplete=exn => observer |> Observer.complete(~exn),
+        ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=
           () => observer |> Observer.toDisposable |> Disposable.dispose,
       );
@@ -82,7 +82,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
               None;
             | Some(_) => exn
             };
-          observer |> Observer.complete(~exn);
+          observer |> Observer.complete(exn);
         },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
     );
@@ -99,7 +99,7 @@ let maybe: Operator.t('a, 'a) =
             | Some(EmptyException) => None
             | _ => exn
             };
-          observer |> Observer.complete(~exn);
+          observer |> Observer.complete(exn);
         },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
     );
@@ -112,7 +112,7 @@ let first: Operator.t('a, 'a) =
         ~onNext=
           next => {
             observer |> Observer.next(next);
-            observer |> Observer.complete;
+            observer |> Observer.complete(None);
             outerDisposable^ |> Disposable.dispose;
           },
         ~onComplete=
@@ -122,7 +122,7 @@ let first: Operator.t('a, 'a) =
               | Some(_) => exn
               | _ => Some(EmptyException)
               };
-            observer |> Observer.complete(~exn);
+            observer |> Observer.complete(exn);
           },
         ~onDispose=
           () => observer |> Observer.toDisposable |> Disposable.dispose,
@@ -154,7 +154,7 @@ let last = observer => {
               None;
             }
           };
-        observer |> Observer.complete(~exn);
+        observer |> Observer.complete(exn);
       },
     ~onDispose=
       () => {
@@ -199,7 +199,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
   observer => {
     let innerSubscription = ref(Disposable.disposed);
     let onComplete = exn => {
-      observer |> Observer.complete(~exn);
+      observer |> Observer.complete(exn);
       innerSubscription^ |> Disposable.dispose;
     };
     let innerObserver =
@@ -265,7 +265,7 @@ let debounceTime =
           | Some(_) => clearDebounce()
           | None => debouncedNext() |> ignore
           };
-          observer |> Observer.complete(~exn);
+          observer |> Observer.complete(exn);
         },
       ~onNext=
         next => {

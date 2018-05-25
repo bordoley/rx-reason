@@ -22,7 +22,7 @@ let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
 let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
 
 let completeWithResult =
-    (~exn=None, {isStopped, onComplete, disposable}: t('a))
+    (exn: option(exn), {isStopped, onComplete, disposable}: t('a))
     : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
@@ -36,8 +36,8 @@ let completeWithResult =
   shouldComplete;
 };
 
-let complete = (~exn=None, observer: t('a)) : unit =>
-  observer |> completeWithResult(~exn) |> ignore;
+let complete = (exn: option(exn), observer: t('a)) : unit =>
+  observer |> completeWithResult(exn) |> ignore;
 
 let next = (next: 'a, {onNext, isStopped, disposable}: t('a)) : unit => {
   let isStopped = Volatile.read(isStopped);

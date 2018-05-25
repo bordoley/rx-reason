@@ -93,7 +93,7 @@ let share =
              ~onNext=next => subjectObserver |> Observer.next(next),
              ~onComplete=
                exn => {
-                 subjectObserver |> Observer.complete(~exn);
+                 subjectObserver |> Observer.complete(exn);
                  reset();
                },
            );

@@ -66,7 +66,7 @@ let test =
           it("subscribe rethrows exceptions from onSubscribe if the observer is already completed", () => {
             let observable =
               Observable.createWithObserver(observer => {
-                observer |> Observer.complete(~exn=None);
+                observer |> Observer.complete(None);
                 raise(Division_by_zero);
                 Disposable.disposed;
               });

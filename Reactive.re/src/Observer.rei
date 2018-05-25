@@ -1,8 +1,8 @@
 type t('a);
 
-let complete: (~exn: option(exn)=?, t('a)) => unit;
+let complete: (option(exn), t('a)) => unit;
 
-let completeWithResult: (~exn: option(exn)=?, t('a)) => bool;
+let completeWithResult: (option(exn), t('a)) => bool;
 
 let create:
   (

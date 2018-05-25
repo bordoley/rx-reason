@@ -9,7 +9,7 @@ let subscribeObserver =
     : Disposable.t =>
   subscribe(
     ~onNext=next => observer |> Observer.next(next),
-    ~onComplete=exn => observer |> Observer.complete(~exn),
+    ~onComplete=exn => observer |> Observer.complete(exn),
     observable,
   );
 
@@ -28,7 +28,7 @@ let createWithObserver =
         try (onSubscribe(observer)) {
         | exn =>
           let shouldRaise =
-            observer |> Observer.completeWithResult(~exn=Some(exn)) |> (!);
+            observer |> Observer.completeWithResult(Some(exn)) |> (!);
           if (shouldRaise) {
             /* This could happen when the onComplete is called synchronously in the
              * subscribe function which also throws.
@@ -76,7 +76,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
               ~onComplete=
                 exn =>
                   switch (exn) {
-                  | Some(_) => observer |> Observer.complete(~exn)
+                  | Some(_) => observer |> Observer.complete(exn)
                   | None =>
                     /*subscription |> Disposable.dispose;*/
                     scheduleSubscription() |> ignore
@@ -125,7 +125,7 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
              exn =>
                switch (exn) {
                | Some(_) =>
-                 observer |> Observer.complete(~exn);
+                 observer |> Observer.complete(exn);
                  subscription |> Disposable.dispose;
                | None =>
                  active := active^ - 1;
@@ -217,7 +217,7 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
          Lock.aquire(lock);
          switch (exn) {
          | Some(_) =>
-           observer |> Observer.complete(~exn);
+           observer |> Observer.complete(exn);
            parentSubscription
            |> AssignableDisposable.toDisposable
            |> Disposable.dispose;

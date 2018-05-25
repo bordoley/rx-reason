@@ -63,7 +63,7 @@ let test =
             |> Observer.toDisposable
             |> Disposable.isDisposed
             |> Expect.toBeEqualToFalse;
-            observer |> Observer.complete(~exn=Some(Division_by_zero));
+            observer |> Observer.complete(Some(Division_by_zero));
             observedExn^ === None |> Expect.toBeEqualToFalse;
             observer
             |> Observer.toDisposable
@@ -77,7 +77,7 @@ let test =
                 ~onComplete=_ => raise(Division_by_zero), 
                 ~onDispose=Functions.alwaysUnit
               );
-            Expect.shouldRaise(() => observer |> Observer.complete);
+            Expect.shouldRaise(() => observer |> Observer.complete(None));
             observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -99,7 +99,7 @@ let test =
             |> Expect.toBeEqualToFalse;
             let result =
               observer
-              |> Observer.completeWithResult(~exn=Some(Division_by_zero));
+              |> Observer.completeWithResult(Some(Division_by_zero));
             result |> Expect.toBeEqualToTrue;
             observedExn^ === None |> Expect.toBeEqualToFalse;
             observer
@@ -118,7 +118,7 @@ let test =
             observer |> Observer.toDisposable |> Disposable.dispose;
             let result =
               observer
-              |> Observer.completeWithResult(~exn=Some(Division_by_zero));
+              |> Observer.completeWithResult(Some(Division_by_zero));
             result |> Expect.toBeEqualToFalse;
             observedExn^
             |> Expect.toBeEqualToNoneWith(~toString=(_) => "exception");

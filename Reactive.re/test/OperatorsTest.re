@@ -54,7 +54,7 @@ let test =
                 ~onDispose=Functions.alwaysUnit,
               );
             let mappingObserver = Operators.map(a => a + 1, observer);
-            mappingObserver |> Observer.completeWithResult(~exn=Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
+            mappingObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
             observedExn^ === None |> Expect.toBeEqualToFalse;
             mappingObserver
             |> Observer.toDisposable
@@ -120,7 +120,7 @@ let test =
             let observer =
               Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
             let keepObserver = Operators.keep(_ => true, observer);
-            keepObserver |> Observer.completeWithResult(~exn=Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
+            keepObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
             observedExn^ === None |> Expect.toBeEqualToFalse;
             keepObserver
             |> Observer.toDisposable
@@ -149,7 +149,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstObserver = Operators.first(observer);
-          firstObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          firstObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           firstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -161,7 +161,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstObserver = Operators.first(observer);
-          firstObserver |> Observer.complete;
+          firstObserver |> Observer.complete(None);
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           firstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -186,7 +186,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let firstOrNoneObserver = Operators.firstOrNone(observer);
-          firstOrNoneObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          firstOrNoneObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           firstOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -198,7 +198,7 @@ let test =
           let observedValue = ref(Some(1));
           let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
           let firstOrNoneObserver = Operators.firstOrNone(observer);
-          firstOrNoneObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
+          firstOrNoneObserver |> Observer.complete(Some(Operators.EmptyException));
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           firstOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -220,7 +220,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeFirstObserver = Operators.maybeFirst(observer);
-          maybeFirstObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          maybeFirstObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -232,7 +232,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeFirstObserver = Operators.maybeFirst(observer);
-          maybeFirstObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
+          maybeFirstObserver |> Observer.complete(Some(Operators.EmptyException));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           observedExn^ === None |> Expect.toBeEqualToTrue;
@@ -250,7 +250,7 @@ let test =
           lastObserver |> Observer.next(3);
           observedValue^ |> Expect.toBeEqualToInt(0);
           completed^ |> Expect.toBeEqualToFalse;
-          lastObserver |> Observer.complete;
+          lastObserver |> Observer.complete(None);
           observedValue^ |> Expect.toBeEqualToInt(3);
           completed^ |> Expect.toBeEqualToTrue;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -262,7 +262,7 @@ let test =
           let lastObserver = Operators.last(observer);
           lastObserver |> Observer.next(2);
           lastObserver |> Observer.next(3);
-          lastObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          lastObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           lastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -274,7 +274,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let lastObserver = Operators.last(observer);
-          lastObserver |> Observer.complete;
+          lastObserver |> Observer.complete(None);
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           lastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -293,7 +293,7 @@ let test =
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
           lastOrNoneObserver |> Observer.next(2);
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
-          lastOrNoneObserver |> Observer.complete;
+          lastOrNoneObserver |> Observer.complete(None);
           observedValue^ |> Expect.toBeEqualToSomeOfInt(2);
           completed^ |> Expect.toBeEqualToTrue;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -303,7 +303,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let lastOrNoneObserver = Operators.lastOrNone(observer);
-          lastOrNoneObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          lastOrNoneObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           lastOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -315,7 +315,7 @@ let test =
           let observedValue = ref(Some(1));
           let observer = Observer.create(~onNext=next => observedValue := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
           let lastOrNoneObserver = Operators.lastOrNone(observer);
-          lastOrNoneObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
+          lastOrNoneObserver |> Observer.complete(Some(Operators.EmptyException));
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           lastOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -333,7 +333,7 @@ let test =
           maybeLastObserver |> Observer.next(4);
           observedValue^ |> Expect.toBeEqualToInt(0);
           maybeLastObserver |> Observer.next(6);
-          maybeLastObserver |> Observer.complete;
+          maybeLastObserver |> Observer.complete(None);
           observedValue^ |> Expect.toBeEqualToInt(6);
           completed^ |> Expect.toBeEqualToTrue;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -343,7 +343,7 @@ let test =
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
           let maybeLastObserver = Operators.maybeLast(observer);
-          maybeLastObserver |> Observer.complete(~exn=Some(Division_by_zero));
+          maybeLastObserver |> Observer.complete(Some(Division_by_zero));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeLastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
@@ -359,7 +359,7 @@ let test =
             ~onDispose=Functions.alwaysUnit,
           );
           let maybeLastObserver = Operators.maybeLast(observer);
-          maybeLastObserver |> Observer.complete(~exn=Some(Operators.EmptyException));
+          maybeLastObserver |> Observer.complete(Some(Operators.EmptyException));
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeLastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           observedExn^ === None |> Expect.toBeEqualToTrue;
