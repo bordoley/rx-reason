@@ -64,8 +64,10 @@ type t('a);
      t('g)
    ) =>
    t('h);
+*/
+ 
+let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 
- let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);*/
 let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);

@@ -53,39 +53,46 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
     Disposable.compose([subscription, lifted |> Observer.toDisposable]);
   });
 
-/*
- let concat =
-     (~scheduler=Scheduler.immediate, observables: list(t('a)))
-     : t('a) =>
-   create(observer => {
-     let remaining = ref(observables);
-     let rec scheduleSubscription = () =>
-       scheduler(() =>
-         switch (remaining^) {
-         | [hd, ...tail] =>
-           remaining := tail;
-           doSubscribe(hd);
-         | [] => Disposable.disposed
-         }
-       )
-     and doSubscribe = observable => {
-       let subscription =
-         observable
-         |> subscribe(
-              ~onNext=next => observer |> Observer.next(next),
-              ~onComplete=
-                exn =>
-                  switch (exn) {
-                  | Some(_) => observer |> Observer.complete(exn)
-                  | None =>
-                    /*subscription |> Disposable.dispose;*/
-                    scheduleSubscription() |> ignore
-                  },
-            );
-       subscription;
-     };
-     scheduleSubscription();
-   });*/
+let concat =
+    (~scheduler=Scheduler.immediate, observables: list(t('a)))
+    : t('a) =>
+  create((~onNext, ~onComplete) => {
+    let remaining = ref(observables);
+    let innerSubscription = ref(Disposable.disposed);
+    let rec scheduleSubscription = () =>
+      scheduler(() =>
+        switch (remaining^) {
+        | [hd, ...tail] =>
+          remaining := tail;
+          doSubscribe(hd);
+        | [] => 
+          onComplete(None);
+          Disposable.disposed
+        }
+      )
+    and doSubscribe = observable => {
+      let subscription =
+        observable
+        |> subscribe(~onNext, ~onComplete=exn =>
+             switch (exn) {
+             | Some(_) => 
+                onComplete(exn);
+             | None =>
+               Interlocked.exchange(
+                 scheduleSubscription(),
+                 innerSubscription,
+               )|> Disposable.dispose
+             }
+           );
+      subscription;
+    };
+    innerSubscription := scheduleSubscription();
+    Disposable.create(() =>
+      Interlocked.exchange(Disposable.disposed, innerSubscription)
+      |> Disposable.dispose
+    );
+  });
+
 let defer = (f: unit => t('a)) : t('a) =>
   create((~onNext, ~onComplete) => f() |> subscribe(~onNext, ~onComplete));
 
