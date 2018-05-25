@@ -65,27 +65,21 @@ let concat =
         | [hd, ...tail] =>
           remaining := tail;
           doSubscribe(hd);
-        | [] => 
+        | [] =>
           onComplete(None);
-          Disposable.disposed
+          Disposable.disposed;
         }
       )
-    and doSubscribe = observable => {
-      let subscription =
-        observable
-        |> subscribe(~onNext, ~onComplete=exn =>
-             switch (exn) {
-             | Some(_) => 
-                onComplete(exn);
-             | None =>
-               Interlocked.exchange(
-                 scheduleSubscription(),
-                 innerSubscription,
-               )|> Disposable.dispose
-             }
-           );
-      subscription;
-    };
+    and doSubscribe = observable =>
+      observable
+      |> subscribe(~onNext, ~onComplete=exn =>
+           switch (exn) {
+           | Some(_) => onComplete(exn)
+           | None =>
+             Interlocked.exchange(scheduleSubscription(), innerSubscription)
+             |> Disposable.dispose
+           }
+         );
     innerSubscription := scheduleSubscription();
     Disposable.create(() =>
       Interlocked.exchange(Disposable.disposed, innerSubscription)
