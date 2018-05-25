@@ -54,13 +54,18 @@ let create = subscribe : t('a) =>
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   create((~onNext, ~onComplete) => {
-    let observer = Observer.create(~onNext, ~onComplete, ~onDispose=Functions.alwaysUnit);
+    let subscription = ref(Disposable.disposed);
+    let observer = Observer.create(~onNext, ~onComplete, ~onDispose=() =>
+      Interlocked.exchange(Disposable.disposed, subscription)
+      |> Disposable.dispose,
+    );
     let lifted = operator(observer);
-    observable
+    subscription := observable
     |> subscribe(
          ~onNext=next => lifted |> Observer.next(next),
          ~onComplete=exn => lifted |> Observer.complete(~exn),
        );
+    lifted |> Observer.toDisposable;
   });
 
 /*
