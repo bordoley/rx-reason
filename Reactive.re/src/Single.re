@@ -22,7 +22,7 @@ let liftFirst = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
 let liftLast = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
   single |> Observable.lift(Operators.last << operator);
 
-let create = subscribe : t('a) => Observable.create(subscribe) |> first;
+let create = subscribe => Observable.create(subscribe) |> first;
 
 let reduce =
     (

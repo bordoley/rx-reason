@@ -24,7 +24,7 @@ let liftFirst = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
 let liftLast = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
   maybe |> Observable.lift(Operators.maybeLast << operator);
 
-let create = subscribe : t('a) => Observable.create(subscribe) |> first;
+let create = subscribe => Observable.create(subscribe) |> first;
 
 let reduce =
     (

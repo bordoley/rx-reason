@@ -13,26 +13,17 @@ let subscribeObserver =
     observable,
   );
 
-let create = subscribe : t('a) =>
+let createWithObserver = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
   (~onNext, ~onComplete) => {
     let subscription = ref(Disposable.disposed);
     let delegateObserver =
-      Observer.create(
-        ~onComplete=exn => onComplete(exn),
-        ~onNext=next => onNext(next),
-        ~onDispose=
-          () =>
-            Interlocked.exchange(Disposable.disposed, subscription)
-            |> Disposable.dispose,
+      Observer.create(~onNext, ~onComplete, ~onDispose=() =>
+        Interlocked.exchange(Disposable.disposed, subscription)
+        |> Disposable.dispose
       );
     subscription :=
       (
-        try (
-          subscribe(
-            ~onNext=next => delegateObserver |> Observer.next(next),
-            ~onComplete=exn => delegateObserver |> Observer.complete(~exn),
-          )
-        ) {
+        try (subscribe(delegateObserver)) {
         | exn =>
           let shouldRaise =
             delegateObserver
@@ -52,20 +43,22 @@ let create = subscribe : t('a) =>
     delegateObserver |> Observer.toDisposable;
   };
 
+let create = subscribe : t('a) =>
+  createWithObserver(observer =>
+    subscribe(
+      ~onNext=next => observer |> Observer.next(next),
+      ~onComplete=exn => observer |> Observer.complete(~exn),
+    )
+  );
+
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
-  create((~onNext, ~onComplete) => {
-    let subscription = ref(Disposable.disposed);
-    let observer = Observer.create(~onNext, ~onComplete, ~onDispose=() =>
-      Interlocked.exchange(Disposable.disposed, subscription)
-      |> Disposable.dispose,
-    );
+  createWithObserver(observer => {
     let lifted = operator(observer);
-    subscription := observable
+    observable
     |> subscribe(
          ~onNext=next => lifted |> Observer.next(next),
          ~onComplete=exn => lifted |> Observer.complete(~exn),
        );
-    lifted |> Observer.toDisposable;
   });
 
 /*
