@@ -54,11 +54,12 @@ let create = subscribe : t('a) =>
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   createWithObserver(observer => {
     let lifted = operator(observer);
-    observable
+    let subscription = observable
     |> subscribe(
          ~onNext=next => lifted |> Observer.next(next),
          ~onComplete=exn => lifted |> Observer.complete(~exn),
        );
+    Disposable.compose([subscription, lifted |> Observer.toDisposable]);
   });
 
 /*
