@@ -6,9 +6,6 @@ let subscribeObserver = Observable.subscribeObserver;
 
 let subscribe = Observable.subscribe;
 
-let create = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
-  Observable.create(observer => observer |> Operators.first |> subscribe);
-
 let defer = Observable.defer;
 
 let ofValue = Observable.ofValue;
@@ -24,6 +21,8 @@ let liftFirst = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
 
 let liftLast = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
   single |> Observable.lift(Operators.last << operator);
+
+let create = subscribe : t('a) => Observable.create(subscribe) |> first;
 
 let reduce =
     (

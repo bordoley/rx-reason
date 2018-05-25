@@ -6,9 +6,6 @@ let subscribeObserver = Observable.subscribeObserver;
 
 let subscribe = Observable.subscribe;
 
-let create = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
-  Observable.create(observer => observer |> Operators.maybeFirst |> subscribe);
-
 let defer = Observable.defer;
 
 let empty = Observable.empty;
@@ -22,10 +19,12 @@ let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.maybeLast);
 
 let liftFirst = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
-  maybe |> Observable.lift(Operators.maybeFirst <<  operator);
+  maybe |> Observable.lift(Operators.maybeFirst << operator);
 
 let liftLast = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
-  maybe |> Observable.lift(Operators.maybeLast <<  operator);
+  maybe |> Observable.lift(Operators.maybeLast << operator);
+
+let create = subscribe : t('a) => Observable.create(subscribe) |> first;
 
 let reduce =
     (

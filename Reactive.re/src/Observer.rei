@@ -6,8 +6,8 @@ let completeWithResult: (~exn: option(exn)=?, t('a)) => bool;
 
 let create:
   (
-    ~onComplete: option(exn) => unit=?,
     ~onNext: 'a => unit=?,
+    ~onComplete: option(exn) => unit=?,
     ~onDispose: unit => unit=?,
     unit
   ) =>
@@ -15,8 +15,8 @@ let create:
 
 let createWithCallbacks:
   (
-    ~onComplete: option(exn) => unit,
     ~onNext: 'a => unit,
+    ~onComplete: option(exn) => unit,
     ~onDispose: unit => unit,
   ) =>
   t('a);

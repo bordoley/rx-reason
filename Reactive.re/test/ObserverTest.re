@@ -28,6 +28,12 @@ let test =
             observer |> Observer.next(6);
             observedNext^ |> Expect.toBeEqualToInt(5);
           }),
+          it("disposes the observer if onNext throws", () => {
+            let observer =
+              Observer.create(~onNext=_ => raise(Division_by_zero), ());
+            Expect.shouldRaise(() => observer |> Observer.next(4));
+            observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
         ],
       ),
       describe(
@@ -47,6 +53,12 @@ let test =
             |> Observer.toDisposable
             |> Disposable.isDisposed
             |> Expect.toBeEqualToTrue;
+          }),
+          it("disposes the observer if onComplete throws", () => {
+            let observer =
+              Observer.create(~onComplete=_ => raise(Division_by_zero), ());
+            Expect.shouldRaise(() => observer |> Observer.complete);
+            observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
         ],
       ),

@@ -1,6 +1,11 @@
 type t('a);
 
-let create: (Observer.t('a) => Disposable.t) => t('a);
+let create:
+  (
+    (~next: 'a => unit, ~complete: (option(exn)) => unit) =>
+    Disposable.t
+  ) =>
+  t('a);
 
 let defer: (unit => t('a)) => t('a);
 
@@ -19,7 +24,7 @@ let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
 
 let subscribe:
-  (~onComplete: option(exn) => unit=?, ~onNext: 'a => unit=?, t('a)) =>
+  (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
   Disposable.t;
 
 let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
