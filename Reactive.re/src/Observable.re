@@ -13,22 +13,22 @@ let subscribeObserver =
     observable,
   );
 
-let createWithObserver = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
+let createWithObserver =
+    (onSubscribe: Observer.t('a) => Disposable.t)
+    : t('a) =>
   (~onNext, ~onComplete) => {
     let subscription = ref(Disposable.disposed);
-    let delegateObserver =
+    let observer =
       Observer.create(~onNext, ~onComplete, ~onDispose=() =>
         Interlocked.exchange(Disposable.disposed, subscription)
         |> Disposable.dispose
       );
     subscription :=
       (
-        try (subscribe(delegateObserver)) {
+        try (onSubscribe(observer)) {
         | exn =>
           let shouldRaise =
-            delegateObserver
-            |> Observer.completeWithResult(~exn=Some(exn))
-            |> (!);
+            observer |> Observer.completeWithResult(~exn=Some(exn)) |> (!);
           if (shouldRaise) {
             /* This could happen when the onComplete is called synchronously in the
              * subscribe function which also throws.
@@ -40,13 +40,11 @@ let createWithObserver = (subscribe: Observer.t('a) => Disposable.t) : t('a) =>
           Disposable.disposed;
         }
       );
-    delegateObserver |> Observer.toDisposable;
+    observer |> Observer.toDisposable;
   };
 
 let create = onSubscribe : t('a) =>
-  createWithObserver(observer =>
-    subscribeObserver(observer, onSubscribe),
-  );
+  createWithObserver(observer => subscribeObserver(observer, onSubscribe));
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   createWithObserver(observer => {

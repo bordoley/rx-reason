@@ -70,6 +70,8 @@ let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
+let createWithObserver: (Observer.t('a) => Disposable.t) => t('a);
+
 let defer: (unit => t('a)) => t('a);
 
 let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
