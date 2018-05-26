@@ -2,9 +2,17 @@ open Functions.Operators;
 
 type t('a) = Observable.t('a);
 
-let subscribeObserver = Observable.subscribeObserver;
-
-let subscribe = Observable.subscribe;
+let create = subscribe =>
+  Observable.create((~onNext, ~onComplete) =>
+    subscribe(
+      ~onSuccess=
+        result => {
+          onNext(result);
+          onComplete(None);
+        },
+      ~onError=exn => onComplete(Some(exn)),
+    )
+  );
 
 let defer = Observable.defer;
 
@@ -21,8 +29,6 @@ let liftFirst = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
 
 let liftLast = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
   single |> Observable.lift(Operators.last << operator);
-
-let create = subscribe => Observable.create(subscribe) |> first;
 
 let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.every(predicate));
@@ -44,5 +50,35 @@ let reduce =
 
 let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.some(predicate));
+
+  exception InvalidState;
+
+let subscribe =
+    (~onSuccess: 'a => unit, ~onError: exn => unit, single)
+    : Disposable.t => {
+  let subscription = ref(Disposable.disposed);
+  subscription :=
+    single
+    |> Observable.subscribe(
+          ~onNext=
+            next => {
+              onSuccess(next);
+              Interlocked.exchange(Disposable.disposed, subscription)
+              |> Disposable.dispose;
+            },
+          ~onComplete=
+            exn =>
+              switch (exn) {
+              | Some(exn) => onError(exn)
+              | None =>
+                /* This case should never happen due to how the constructors of Single
+                * instances  protect against it. Ideally, we would error with EmptyError,
+                * but Operators hides that exception from it's public api.
+                */
+                onError(InvalidState)
+              },
+        );
+  subscription^;
+};
 
 let toObservable = (single: t('a)) : Observable.t('a) => single;

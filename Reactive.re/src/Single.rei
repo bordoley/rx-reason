@@ -2,7 +2,7 @@ type t('a);
 
 let create:
   (
-    (~onNext: 'a => unit, ~onComplete: (option(exn)) => unit) =>
+    (~onSuccess: 'a => unit, ~onError: exn => unit) =>
     Disposable.t
   ) =>
   t('a);
@@ -30,9 +30,7 @@ let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
 let some: ('a => bool, Observable.t('a)) => t(bool);
 
 let subscribe:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) =>
   Disposable.t;
-
-let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
 
 let toObservable: t('a) => Observable.t('a);

@@ -8,6 +8,7 @@ let bufferTime:
     ~scheduler: DelayScheduler.t=?,
     ~timespan: float,
   ) =>
+  /* FIXME: Is list really the right return type... */
   Operator.t('a, list('a));
 
 let debounceTime:
