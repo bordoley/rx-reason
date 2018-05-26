@@ -89,7 +89,7 @@ let test =
             let observer =
               Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
             let doObserver =
-              Operators.doOnNext((_) => sideEffectCalled := true, observer);
+              Operators.onNext((_) => sideEffectCalled := true, observer);
             doObserver |> Observer.next(1);
             sideEffectCalled^ |> Expect.toBeEqualToTrue;
             observedNext^ |> Expect.toBeEqualToInt(1);

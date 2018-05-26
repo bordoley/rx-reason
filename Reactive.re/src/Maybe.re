@@ -26,6 +26,15 @@ let liftLast = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
 
 let create = subscribe => Observable.create(subscribe) |> first;
 
+let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
+  observable |> liftFirst(Operators.every(predicate));
+
+let find = (predicate: 'a => bool, observable: Observable.t('a)) : t('a) =>
+  observable |> liftFirst(Operators.find(predicate));
+
+let none = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
+  observable |> liftFirst(Operators.none(predicate));
+
 let reduce =
     (
       reducer: ('acc, 'a) => 'acc,
@@ -34,6 +43,9 @@ let reduce =
     )
     : t('acc) =>
   observable |> liftLast(Operators.scan(reducer, initialValue));
+
+let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
+  observable |> liftFirst(Operators.some(predicate));
 
 let toObservable = (maybe: t('a)) : Observable.t('a) => maybe;
 

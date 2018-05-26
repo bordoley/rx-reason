@@ -86,6 +86,8 @@ let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+let retry: (~attempts: int=?, t('a)) => t('a);
+
 let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);

@@ -11,6 +11,10 @@ let defer: (unit => t('a)) => t('a);
 
 let empty: (~scheduler: Rx.Scheduler.t=?, unit) => t('a);
 
+let every: ('a => bool, Observable.t('a)) => t(bool);
+
+let find: ('a => bool, Observable.t('a)) => t('a);
+
 let first: Observable.t('a) => t('a);
 
 let last: Observable.t('a) => t('a);
@@ -19,9 +23,13 @@ let liftFirst: (Operator.t('a, 'b), t('a)) => t('b);
 
 let liftLast: (Operator.t('a, 'b), t('a)) => t('b);
 
+let none: ('a => bool, Observable.t('a)) => t(bool);
+
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
 let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
+
+let some: ('a => bool, Observable.t('a)) => t(bool);
 
 let subscribe:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
