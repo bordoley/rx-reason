@@ -239,7 +239,7 @@ let switchMap = (mapper: 'a => Observable.t('b)) : Operator.t('a, 'b) =>
 
 /* FIXME: Should define a sane default DelayScheduler */
 let debounceTime =
-    (~scheduler: DelayScheduler.t, duration: float)
+    (~scheduler=DelayScheduler.default, duration: float)
     : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.empty();
@@ -252,7 +252,7 @@ let debounceTime =
     let debouncedNext = () => {
       clearDebounce();
       if (MutableOption.isNotEmpty(lastValue)) {
-        let next = lastValue^;
+        let next = MutableOption.firstOrRaise(lastValue);
         MutableOption.unset(lastValue);
         observer |> Observer.next(next);
       };
@@ -270,7 +270,7 @@ let debounceTime =
       ~onNext=
         next => {
           clearDebounce();
-          lastValue := next;
+          MutableOption.set(next, lastValue);
           debounceSubscription := scheduler(~delay=duration, debouncedNext);
         },
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
@@ -296,7 +296,6 @@ let synchronize : Operator.t('a, 'a) = observer => {
     ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
   );
 };
-
 
 /* bufferCount */
 /* BufferSkipCount */

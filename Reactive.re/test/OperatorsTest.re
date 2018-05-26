@@ -166,7 +166,7 @@ let test =
           firstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
           | None => failwith("expected observedExn to be not be None");
-          | Some(x) => x === Operators.EmptyException |> Expect.toBeEqualToTrue;
+          | Some(_) => ();
           };
         })
       ]),
@@ -197,8 +197,8 @@ let test =
         it("ignores EmptyException, publishes None, and completes normally", () => {
           let observedValue = ref(Some(1));
           let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
-          let firstOrNoneObserver = Operators.firstOrNone(observer);
-          firstOrNoneObserver |> Observer.complete(Some(Operators.EmptyException));
+          let firstOrNoneObserver = Operators.first @@ Operators.firstOrNone @@ observer;
+          firstOrNoneObserver |> Observer.complete(None);
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           firstOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -231,8 +231,8 @@ let test =
         it("ignores EmptyException and completes normally", () => {
           let observedExn = ref(None);
           let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
-          let maybeFirstObserver = Operators.maybeFirst(observer);
-          maybeFirstObserver |> Observer.complete(Some(Operators.EmptyException));
+          let maybeFirstObserver = Operators.first @@ Operators.maybeFirst @@ observer;
+          maybeFirstObserver |> Observer.complete(None);
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           observedExn^ === None |> Expect.toBeEqualToTrue;
@@ -279,7 +279,7 @@ let test =
           lastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           switch(observedExn^){
           | None => failwith("expected observedExn to be not be None");
-          | Some(x) => x === Operators.EmptyException |> Expect.toBeEqualToTrue;
+          | Some(_) => ();
           };
         })
       ]),
@@ -314,8 +314,8 @@ let test =
         it("ignores EmptyException, publishes None, and completes normally", () => {
           let observedValue = ref(Some(1));
           let observer = Observer.create(~onNext=next => observedValue := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
-          let lastOrNoneObserver = Operators.lastOrNone(observer);
-          lastOrNoneObserver |> Observer.complete(Some(Operators.EmptyException));
+          let lastOrNoneObserver = Operators.first @@ Operators.lastOrNone @@ observer;
+          lastOrNoneObserver |> Observer.complete(None);
           observedValue^ |> Expect.toBeEqualToNoneOfInt;
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           lastOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
@@ -358,8 +358,8 @@ let test =
             ~onComplete=exn=>observedExn := exn,
             ~onDispose=Functions.alwaysUnit,
           );
-          let maybeLastObserver = Operators.maybeLast(observer);
-          maybeLastObserver |> Observer.complete(Some(Operators.EmptyException));
+          let maybeLastObserver = Operators.first @@ Operators.maybeLast @@ observer;
+          maybeLastObserver |> Observer.complete(None);
           observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           maybeLastObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           observedExn^ === None |> Expect.toBeEqualToTrue;

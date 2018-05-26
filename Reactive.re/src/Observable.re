@@ -13,6 +13,9 @@ let subscribeObserver =
     observable,
   );
 
+let subscribeOn = (_: Scheduler.t, _: t('a)) : t('a) =>
+  failwith("Not implemented");
+
 let createWithObserver =
     (onSubscribe: Observer.t('a) => Disposable.t)
     : t('a) =>
@@ -103,46 +106,12 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
       })
     );
 
-/*
- let merge =
-     /* FIXME: Should use a trampoline scheduler as the default for this function */
-     (~scheduler=Scheduler.immediate, observables: list(t('a)))
-     : t('a) => {
-   let count = List.length(observables);
-   count === 0 ?
-     empty(~scheduler, ()) :
-     create((~onNext, ~onComplete) => {
-       let active = ref(count);
-       let subscriptions = Array.make(count, Disposable.disposed);
-       let subscription =
-          Disposable.create(() => {
-            Array.iter(Disposable.dispose, subscriptions);
-            active := 0;
-          });
+let merge =
+    /* FIXME: Should use a trampoline scheduler as the default for this function */
+    (~scheduler as _=Scheduler.immediate, _: list(t('a)))
+    : t('a) =>
+  failwith("Not implemented");
 
-      let scheduler scheduler(() =>
-        observables
-          |> List.iteri((index, observable) => observable |> subscribe(
-            ~onNext,
-            ~onComplete=exn => switch (exn) {
-              | Some(_) =>
-                onComplete(exn);
-                subscription |> Disposable.dispose;
-              | None =>
-                active := active^ - 1;
-                subscriptions[index] |> Disposable.dispose,
-                subscriptions[index] = Disposable.disposed,
-                if (active^ === 0) {
-                  subscription |> Disposable.dispose;
-                };
-              },
-          )
-          Disposable.disposed;
-        )
-
-       subscription;
-     });
-     };*/
 let never = () : t('a) =>
   create((~onNext as _, ~onComplete as _) => Disposable.empty());
 
@@ -196,129 +165,78 @@ let startWithList =
 let startWithValue =
     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
   concat([ofValue(~scheduler, value), observable]);
-/*
- let combineLatest2 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b) => 'c,
-       observable0: t('a),
-       observable1: t('b),
-     )
-     : t('c) =>
-   create(observer =>
-     scheduler(() => {
-       let lock = Lock.create();
-       let value0 = MutableOption.empty();
-       let value1 = MutableOption.empty();
-       let parentSubscription = AssignableDisposable.create();
-       let onComplete = exn => {
-         Lock.aquire(lock);
-         switch (exn) {
-         | Some(_) =>
-           observer |> Observer.complete(exn);
-           parentSubscription
-           |> AssignableDisposable.toDisposable
-           |> Disposable.dispose;
-         | _ => ()
-         };
-         Lock.release(lock);
-       };
-       let onNext = (value, next) => {
-         Lock.aquire(lock);
-         Functions.earlyReturnsUnit(() => {
-           MutableOption.set(next, value);
-           if (value0
-               |> MutableOption.isNotEmpty
-               && value1
-               |> MutableOption.isNotEmpty) {
-             let mapped =
-               try (
-                 selector(
-                   MutableOption.firstOrRaise(value0),
-                   MutableOption.firstOrRaise(value1),
-                 )
-               ) {
-               | exn =>
-                 onComplete(Some(exn));
-                 Functions.returnUnit();
-               };
-             observer |> Observer.next(mapped);
-           };
-         });
-         Lock.release(lock);
-       };
-       let subscription0 = observable0 |> subscribe(~onNext=onNext(value0));
-       let subscription1 = observable1 |> subscribe(~onNext=onNext(value1));
-       parentSubscription
-       |> AssignableDisposable.assign(
-            Disposable.compose([subscription0, subscription1]),
-          )
-       |> AssignableDisposable.toDisposable;
-     })
-   );
 
- let combineLatest3 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b, 'c) => 'd,
-       observable0: t('a),
-       observable1: t('b),
-       observable2: t('c),
-     )
-     : t('d) =>
-   create(observer => Disposable.disposed);
+let combineLatest2 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b) => 'c,
+      observable0: t('a),
+      observable1: t('b),
+    )
+    : t('c) =>
+  failwith("Not implemented");
 
- let combineLatest4 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b, 'c, 'd) => 'e,
-       observable0: t('a),
-       observable1: t('b),
-       observable2: t('c),
-       observable3: t('d),
-     )
-     : t('e) =>
-   create(observer => Disposable.disposed);
+let combineLatest3 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b, 'c) => 'd,
+      observable0: t('a),
+      observable1: t('b),
+      observable2: t('c),
+    )
+    : t('d) =>
+  failwith("Not implemented");
 
- let combineLatest5 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
-       observable0: t('a),
-       observable1: t('b),
-       observable2: t('c),
-       observable3: t('d),
-       observable4: t('e),
-     )
-     : t('f) =>
-   create(observer => Disposable.disposed);
+let combineLatest4 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b, 'c, 'd) => 'e,
+      observable0: t('a),
+      observable1: t('b),
+      observable2: t('c),
+      observable3: t('d),
+    )
+    : t('e) =>
+  failwith("Not implemented");
 
- let combineLatest6 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
-       observable0: t('a),
-       observable1: t('b),
-       observable2: t('c),
-       observable3: t('d),
-       observable4: t('e),
-       observable5: t('f),
-     )
-     : t('g) =>
-   create(observer => Disposable.disposed);
+let combineLatest5 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
+      observable0: t('a),
+      observable1: t('b),
+      observable2: t('c),
+      observable3: t('d),
+      observable4: t('e),
+    )
+    : t('f) =>
+  failwith("Not implemented");
 
- let combineLatest7 =
-     (
-       ~scheduler=Scheduler.immediate,
-       ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
-       observable0: t('a),
-       observable1: t('b),
-       observable2: t('c),
-       observable3: t('d),
-       observable4: t('e),
-       observable5: t('f),
-       observable6: t('g),
-     )
-     : t('h) =>
-   create(observer => Disposable.disposed);
-   */
+let combineLatest6 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
+      observable0: t('a),
+      observable1: t('b),
+      observable2: t('c),
+      observable3: t('d),
+      observable4: t('e),
+      observable5: t('f),
+    )
+    : t('g) =>
+  failwith("Not implemented");
+
+let combineLatest7 =
+    (
+      ~scheduler=Scheduler.immediate,
+      ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
+      observable0: t('a),
+      observable1: t('b),
+      observable2: t('c),
+      observable3: t('d),
+      observable4: t('e),
+      observable5: t('f),
+      observable6: t('g),
+    )
+    : t('h) =>
+  failwith("Not implemented");
