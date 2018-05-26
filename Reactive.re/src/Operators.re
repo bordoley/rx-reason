@@ -61,7 +61,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
       ~onNext=
         next => {
           observer |> Observer.next(next);
-          isEmpty := false;
+          Volatile.write(false, isEmpty);
         },
       ~onComplete=
         exn => {
@@ -69,7 +69,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
             switch (exn) {
             | Some(EmptyException)
             | None =>
-              if (isEmpty^) {
+              if (Volatile.read(isEmpty)) {
                 observer |> Observer.next(default);
               };
               None;
@@ -81,8 +81,17 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
     );
   };
 
-let dispose = (f: unit => unit) : Operator.t('a, 'a) =>
-  failwith("Not Implemented");
+let dispose = (disposable: Disposable.t) : Operator.t('a, 'a) =>
+  observer =>
+    Observer.create(
+      ~onNext=next => observer |> Observer.next(next),
+      ~onComplete=exn => observer |> Observer.complete(exn),
+      ~onDispose=
+        () => {
+          disposable |> Disposable.dispose;
+          observer |> Observer.toDisposable |> Disposable.dispose;
+        },
+    );
 
 let every = (_: 'a => bool) => failwith("Not Implemented");
 
@@ -121,7 +130,12 @@ let first: Operator.t('a, 'a) =
 let identity: Operator.t('a, 'a) = observer => observer;
 
 let ignoreElements: Operator.t('a, unit) =
-  (_) => failwith("Not Implemented");
+  observer =>
+    Observer.create(
+      ~onNext=Functions.alwaysUnit,
+      ~onComplete=exn => observer |> Observer.complete(exn),
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+    );
 
 let isEmpty: Operator.t('a, bool) = (_) => failwith("Not Implemented");
 
@@ -242,17 +256,80 @@ let maybeFirst = observer => first @@ maybe @@ observer;
 
 let maybeLast = observer => last @@ maybe @@ observer;
 
-let none = (_: 'a => bool) : Operator.t('a, bool) =>
-  failwith("Not Implemented");
+let none = (predicate: 'a => bool) : Operator.t('a, bool) =>
+  observer => map(predicate) @@ keep (x => x) @@ isEmpty @@ observer;
 
-let observe = (~onNext as _: 'a => unit, ~onComplete as _: exn => unit) =>
-  failwith("Not Implemented");
+let observe =
+    (~onNext: 'a => unit, ~onComplete: option(exn) => unit)
+    : Operator.t('a, 'a) =>
+  observer => {
+    let outerDisposable = ref(Disposable.disposed);
+    let outerObserver =
+      Observer.create(
+        ~onNext=
+          Functions.earlyReturnsUnit1(next => {
+            try (onNext(next)) {
+            | exn =>
+              observer |> Observer.complete(Some(exn));
+              outerDisposable^ |> Disposable.dispose;
+              Functions.returnUnit();
+            };
+            observer |> Observer.next(next);
+          }),
+        ~onComplete=
+          exn => {
+            let exn =
+              try (
+                {
+                  onComplete(exn);
+                  exn;
+                }
+              ) {
+              | exn => Some(exn)
+              };
+            observer |> Observer.complete(exn);
+          },
+        ~onDispose=
+          () => observer |> Observer.toDisposable |> Disposable.dispose,
+      );
+    outerDisposable := outerObserver |> Observer.toDisposable;
+    outerObserver;
+  };
 
 let observeOn = (_: Scheduler.t) : Operator.t('a, 'a) =>
   failwith("Not Implemented");
 
-let onComplete = (_: exn => unit) : Operator.t('a, 'a) =>
-  failwith("Not Implemented");
+let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
+  observer =>
+    Observer.create(
+      ~onNext=next => observer |> Observer.next(next),
+      ~onComplete=
+        exn => {
+          let exn =
+            try (
+              {
+                onComplete(exn);
+                exn;
+              }
+            ) {
+            | exn => Some(exn)
+            };
+          observer |> Observer.complete(exn);
+        },
+      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+    );
+
+let onDispose = (dispose: unit => unit) : Operator.t('a, 'a) =>
+  observer =>
+    Observer.create(
+      ~onNext=next => observer |> Observer.next(next),
+      ~onComplete=exn => observer |> Observer.complete(exn),
+      ~onDispose=
+        () => {
+          dispose();
+          observer |> Observer.toDisposable |> Disposable.dispose;
+        },
+    );
 
 let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
   map(next => {
