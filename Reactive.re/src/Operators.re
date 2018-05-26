@@ -276,6 +276,28 @@ let debounceTime =
       ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
     );
   };
+
+let synchronize : Operator.t('a, 'a) = observer => {
+  let gate = Lock.create();
+
+  Observer.create(
+    ~onComplete=
+      exn => {
+        Lock.aquire(gate);
+        observer |> Observer.complete(exn);
+        Lock.release(gate);
+      },
+    ~onNext=
+      next => {
+        Lock.aquire(gate);
+        observer |> Observer.next(next);
+        Lock.release(gate);
+      },
+    ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+  );
+};
+
+
 /* bufferCount */
 /* BufferSkipCount */
 /* BufferTime */

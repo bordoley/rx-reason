@@ -111,41 +111,38 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
    let count = List.length(observables);
    count === 0 ?
      empty(~scheduler, ()) :
-     create(observer => {
+     create((~onNext, ~onComplete) => {
        let active = ref(count);
        let subscriptions = Array.make(count, Disposable.disposed);
        let subscription =
-         Disposable.create(() => {
-           Array.iter(Disposable.dispose, subscriptions);
-           active := 0;
-         });
-       let childObserver = index =>
-         Observer.create(
-           ~onNext=next => Observer.next(next, observer),
-           ~onComplete=
-             exn =>
-               switch (exn) {
-               | Some(_) =>
-                 observer |> Observer.complete(exn);
-                 subscription |> Disposable.dispose;
-               | None =>
-                 active := active^ - 1;
-                 if (active^ === 0) {
-                   subscription |> Disposable.dispose;
-                 };
-               },
-           ~onDispose=() => subscriptions[index] |> Disposable.dispose,
-         );
-       observables
-       |> List.iteri((index, observable) =>
-            subscriptions[index] =
-              scheduler(() =>
-                observable |> subscribeObserver(childObserver(index))
-              )
-          );
+          Disposable.create(() => {
+            Array.iter(Disposable.dispose, subscriptions);
+            active := 0;
+          });
+
+      let scheduler scheduler(() =>
+        observables
+          |> List.iteri((index, observable) => observable |> subscribe(
+            ~onNext,
+            ~onComplete=exn => switch (exn) {
+              | Some(_) =>
+                onComplete(exn);
+                subscription |> Disposable.dispose;
+              | None =>
+                active := active^ - 1;
+                subscriptions[index] |> Disposable.dispose,
+                subscriptions[index] = Disposable.disposed,
+                if (active^ === 0) {
+                  subscription |> Disposable.dispose;
+                };
+              },
+          )
+          Disposable.disposed;
+        )
+
        subscription;
      });
- };*/
+     };*/
 let never = () : t('a) =>
   create((~onNext as _, ~onComplete as _) => Disposable.empty());
 
@@ -191,15 +188,15 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
         });
       })
     );
+
+let startWithList =
+    (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>
+  concat([ofList(~scheduler, values), observable]);
+
+let startWithValue =
+    (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
+  concat([ofValue(~scheduler, value), observable]);
 /*
- let startWithList =
-     (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>
-   concat([ofList(~scheduler, values), observable]);
-
- let startWithValue =
-     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
-   concat([ofValue(~scheduler, value), observable]);
-
  let combineLatest2 =
      (
        ~scheduler=Scheduler.immediate,
