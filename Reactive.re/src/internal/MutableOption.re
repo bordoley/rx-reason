@@ -8,11 +8,9 @@
  */
 type t('a) = ref(array('a));
 
-let create = (value: 'a) : t('a) => ref([|value|]);
+let create = () : t('a) => ref([||]);
 
-let empty = () : t('a) => ref([||]);
-
-let firstOrRaise = (opt: t('a)) : 'a => opt^[0];
+let get = (opt: t('a)) : 'a => opt^[0];
 
 let isEmpty = (opt: t('a)) : bool => Array.length(opt^) === 0;
 
@@ -34,7 +32,7 @@ let setIf = (
     opt := [|value|];
     true;
   } else {
-    let old = opt |> firstOrRaise;
+    let old = opt |> get;
     let shouldUpdate = test(old, value);
     if(shouldUpdate) {
       opt^[0] = value;

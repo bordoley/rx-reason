@@ -17,7 +17,7 @@ let createWithCallbacks =
     )
     : t('a) => {
   let subscribers = ref(CopyOnWriteArray.empty());
-  let subjectObserver =
+  let observer =
     Observer.create(
       ~onComplete=
         exn => {
@@ -42,10 +42,10 @@ let createWithCallbacks =
     );
   let observable =
     Observable.create((~onNext, ~onComplete) => {
-      subjectObserver |> Observer.toDisposable |> Disposable.raiseIfDisposed;
+      observer |> Observer.toDisposable |> Disposable.raiseIfDisposed;
       let currentSubscribers = subscribers^;
-      let observer = (onNext, onComplete);
-      subscribers := currentSubscribers |> CopyOnWriteArray.addLast(observer);
+      let subscriber = (onNext, onComplete);
+      subscribers := currentSubscribers |> CopyOnWriteArray.addLast(subscriber);
       let onSubscribeDisposable = onSubscribe(~onNext, ~onComplete);
       Disposable.create(() => {
         Disposable.dispose(onSubscribeDisposable);
@@ -54,11 +54,11 @@ let createWithCallbacks =
           currentSubscribers
           |> CopyOnWriteArray.findAndRemove(
                Functions.referenceEquality,
-               observer,
+               subscriber,
              );
       });
     });
-  {observer: subjectObserver, observable};
+  {observer, observable};
 };
 
 let create = () => createWithCallbacks();
@@ -67,7 +67,7 @@ let create = () => createWithCallbacks();
 let share =
     (~createSubject=create, source: Observable.t('a))
     : Observable.t('a) => {
-  let subject = MutableOption.empty();
+  let subject = MutableOption.create();
   let sourceSubscription = ref(Disposable.disposed);
   let refCount = ref(0);
   let reset = () => {
@@ -80,7 +80,7 @@ let share =
       if (refCount^ === 0) {
         MutableOption.set(createSubject(), subject);
       };
-      subject |> MutableOption.firstOrRaise;
+      subject |> MutableOption.get;
     };
     let subjectObservable = toObservable(currentSubject);
     let subjectObserver = toObserver(currentSubject);

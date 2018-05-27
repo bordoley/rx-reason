@@ -59,7 +59,7 @@ let test =
           it(
             "the observer instance passed to the onSubscribe function is returned as the subscription",
             () => {
-              let observerInstance = MutableOption.empty();
+              let observerInstance = MutableOption.create();
               let observable =
                 Observable.createWithObserver(observer => {
                   MutableOption.set(observer, observerInstance);
@@ -73,7 +73,7 @@ let test =
                    );
               let observer =
                 observerInstance
-                |> MutableOption.firstOrRaise
+                |> MutableOption.get
                 |> Observer.toDisposable;
               subscription === observer |> Expect.toBeEqualToTrue;
             },

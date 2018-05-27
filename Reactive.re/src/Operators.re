@@ -19,7 +19,7 @@ let debounceTime =
     (~scheduler=DelayScheduler.default, duration: float)
     : Operator.t('a, 'a) =>
   observer => {
-    let lastValue = MutableOption.empty();
+    let lastValue = MutableOption.create();
     let debounceSubscription = ref(Disposable.disposed);
     let clearDebounce = () => {
       let currentDebounceSubscription = debounceSubscription^;
@@ -29,7 +29,7 @@ let debounceTime =
     let debouncedNext = () => {
       clearDebounce();
       if (MutableOption.isNotEmpty(lastValue)) {
-        let next = MutableOption.firstOrRaise(lastValue);
+        let next = MutableOption.get(lastValue);
         MutableOption.unset(lastValue);
         observer |> Observer.next(next);
       };
@@ -170,14 +170,14 @@ let distinctUntilChanged =
     : Operator.t('a, 'a) => {
   let shouldUpdate = (a, b) => ! comparer(a, b);
   observer => {
-    let state = MutableOption.empty();
+    let state = MutableOption.create();
     let predicate = next => MutableOption.setIf(shouldUpdate, next, state);
     keep(predicate, observer);
   };
 };
 
 let last = observer => {
-  let last = MutableOption.empty();
+  let last = MutableOption.create();
   Observer.create(
     ~onNext=next => MutableOption.set(next, last),
     ~onComplete=
@@ -189,7 +189,7 @@ let last = observer => {
             if (MutableOption.isEmpty(last)) {
               Some(EmptyException);
             } else {
-              let lastValue = MutableOption.firstOrRaise(last);
+              let lastValue = MutableOption.get(last);
               observer |> Observer.next(lastValue);
               None;
             }
@@ -423,14 +423,14 @@ let withLatestFrom =
     (~selector: ('a, 'b) => 'c, other: Observable.t('b))
     : Operator.t('a, 'c) =>
   observer => {
-    let otherLatest = MutableOption.empty();
+    let otherLatest = MutableOption.create();
     let otherSubscription = AssignableDisposable.create();
 
     let withLatestObserver =
       Observer.create(
         ~onNext=next => {
           if(MutableOption.isNotEmpty(otherLatest)) {
-            let latest = otherLatest |> MutableOption.firstOrRaise;
+            let latest = otherLatest |> MutableOption.get;
             let nextWithLatest = selector(next, latest);
             observer |> Observer.next(nextWithLatest);
           }

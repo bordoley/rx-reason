@@ -55,8 +55,8 @@ let combineLatest2 =
     (~selector: ('a, 'b) => 'c, observable0: t('a), observable1: t('b))
     : t('c) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -73,8 +73,8 @@ let combineLatest2 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
           ),
         );
       };
@@ -129,9 +129,9 @@ let combineLatest3 =
     )
     : t('d) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
-    let v2 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
+    let v2 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -154,9 +154,9 @@ let combineLatest3 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
-            v2 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
+            v2 |> MutableOption.get,
           ),
         );
       };
@@ -233,10 +233,10 @@ let combineLatest4 =
     )
     : t('e) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
-    let v2 = MutableOption.empty();
-    let v3 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
+    let v2 = MutableOption.create();
+    let v3 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -262,10 +262,10 @@ let combineLatest4 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
-            v2 |> MutableOption.firstOrRaise,
-            v3 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
+            v2 |> MutableOption.get,
+            v3 |> MutableOption.get,
           ),
         );
       };
@@ -355,11 +355,11 @@ let combineLatest5 =
     )
     : t('f) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
-    let v2 = MutableOption.empty();
-    let v3 = MutableOption.empty();
-    let v4 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
+    let v2 = MutableOption.create();
+    let v3 = MutableOption.create();
+    let v4 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -388,11 +388,11 @@ let combineLatest5 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
-            v2 |> MutableOption.firstOrRaise,
-            v3 |> MutableOption.firstOrRaise,
-            v4 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
+            v2 |> MutableOption.get,
+            v3 |> MutableOption.get,
+            v4 |> MutableOption.get,
           ),
         );
       };
@@ -495,12 +495,12 @@ let combineLatest6 =
     )
     : t('g) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
-    let v2 = MutableOption.empty();
-    let v3 = MutableOption.empty();
-    let v4 = MutableOption.empty();
-    let v5 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
+    let v2 = MutableOption.create();
+    let v3 = MutableOption.create();
+    let v4 = MutableOption.create();
+    let v5 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -532,12 +532,12 @@ let combineLatest6 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
-            v2 |> MutableOption.firstOrRaise,
-            v3 |> MutableOption.firstOrRaise,
-            v4 |> MutableOption.firstOrRaise,
-            v5 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
+            v2 |> MutableOption.get,
+            v3 |> MutableOption.get,
+            v4 |> MutableOption.get,
+            v5 |> MutableOption.get,
           ),
         );
       };
@@ -653,13 +653,13 @@ let combineLatest7 =
     )
     : t('h) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.empty();
-    let v1 = MutableOption.empty();
-    let v2 = MutableOption.empty();
-    let v3 = MutableOption.empty();
-    let v4 = MutableOption.empty();
-    let v5 = MutableOption.empty();
-    let v6 = MutableOption.empty();
+    let v0 = MutableOption.create();
+    let v1 = MutableOption.create();
+    let v2 = MutableOption.create();
+    let v3 = MutableOption.create();
+    let v4 = MutableOption.create();
+    let v5 = MutableOption.create();
+    let v6 = MutableOption.create();
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
@@ -694,13 +694,13 @@ let combineLatest7 =
       if (haveValues) {
         onNext(
           selector(
-            v0 |> MutableOption.firstOrRaise,
-            v1 |> MutableOption.firstOrRaise,
-            v2 |> MutableOption.firstOrRaise,
-            v3 |> MutableOption.firstOrRaise,
-            v4 |> MutableOption.firstOrRaise,
-            v5 |> MutableOption.firstOrRaise,
-            v6 |> MutableOption.firstOrRaise,
+            v0 |> MutableOption.get,
+            v1 |> MutableOption.get,
+            v2 |> MutableOption.get,
+            v3 |> MutableOption.get,
+            v4 |> MutableOption.get,
+            v5 |> MutableOption.get,
+            v6 |> MutableOption.get,
           ),
         );
       };
