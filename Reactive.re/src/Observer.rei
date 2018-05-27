@@ -12,6 +12,8 @@ let create:
   ) =>
   t('a);
 
+let dispose: t('a) => unit;
+
 let next: ('a, t('a)) => unit;
 
 let toDisposable: t('a) => Disposable.t;

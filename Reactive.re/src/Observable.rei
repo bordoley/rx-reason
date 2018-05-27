@@ -73,7 +73,7 @@ let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
-let merge: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
+let merge: (list(t('a))) => t('a);
 
 let never: unit => t('a);
 

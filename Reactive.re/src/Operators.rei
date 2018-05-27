@@ -85,4 +85,4 @@ let synchronize: Operator.t('a, 'a);
 let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);
 
 let withLatestFrom:
-  (~selector: ('a, 'b) => 'c, Observable.t('c)) => Operator.t('a, 'c);
+  (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

@@ -39,6 +39,8 @@ let completeWithResult =
 let complete = (exn: option(exn), observer: t('a)) : unit =>
   observer |> completeWithResult(exn) |> ignore;
 
+let dispose = ({disposable}) => disposable |> Disposable.dispose;
+
 let next = (next: 'a, {onNext, isStopped, disposable}: t('a)) : unit => {
   let isStopped = Volatile.read(isStopped);
   if (! isStopped) {

@@ -50,7 +50,7 @@ let debounceTime =
           MutableOption.set(next, lastValue);
           debounceSubscription := scheduler(~delay=duration, debouncedNext);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
   };
 
@@ -77,7 +77,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
             };
           observer |> Observer.complete(exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
   };
 
@@ -89,14 +89,14 @@ let dispose = (disposable: Disposable.t) : Operator.t('a, 'a) =>
       ~onDispose=
         () => {
           disposable |> Disposable.dispose;
-          observer |> Observer.toDisposable |> Disposable.dispose;
+          observer |> Observer.dispose;
         },
     );
 
-let every = (_: 'a => bool) => failwith("Not Implemented");
+let every = (predicate: 'a => bool) => failwith("Not Implemented");
 
 let exhaust: Operator.t(Observable.t('a), 'a) =
-  (_) => failwith("Not Implemented");
+  _ => failwith("Not Implemented");
 
 let find = (_: 'a => bool) => failwith("Not Implemented");
 
@@ -121,7 +121,7 @@ let first: Operator.t('a, 'a) =
             observer |> Observer.complete(exn);
           },
         ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
+          () => observer |> Observer.dispose,
       );
     outerDisposable := outerObserver |> Observer.toDisposable;
     outerObserver;
@@ -134,10 +134,10 @@ let ignoreElements: Operator.t('a, unit) =
     Observer.create(
       ~onNext=Functions.alwaysUnit,
       ~onComplete=exn => observer |> Observer.complete(exn),
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
 
-let isEmpty: Operator.t('a, bool) = (_) => failwith("Not Implemented");
+let isEmpty: Operator.t('a, bool) = _ => failwith("Not Implemented");
 
 let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
   observer => {
@@ -159,7 +159,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
           }),
         ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
+          () => observer |> Observer.dispose,
       );
     outerDisposable := outerObserver |> Observer.toDisposable;
     outerObserver;
@@ -199,7 +199,7 @@ let last = observer => {
     ~onDispose=
       () => {
         MutableOption.unset(last);
-        observer |> Observer.toDisposable |> Disposable.dispose;
+        observer |> Observer.dispose;
       },
   );
 };
@@ -222,13 +222,13 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
           }),
         ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
+          () => observer |> Observer.dispose,
       );
     outerDisposable := outerObserver |> Observer.toDisposable;
     outerObserver;
   };
 
-let mapTo = (value: 'b) : Operator.t('a, 'b) => map((_) => value);
+let mapTo = (value: 'b) : Operator.t('a, 'b) => map(_ => value);
 
 let firstOrNone = observer =>
   first @@ map(a => Some(a)) @@ defaultIfEmpty(None) @@ observer;
@@ -249,7 +249,7 @@ let maybe: Operator.t('a, 'a) =
             };
           observer |> Observer.complete(exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
 
 let maybeFirst = observer => first @@ maybe @@ observer;
@@ -257,7 +257,7 @@ let maybeFirst = observer => first @@ maybe @@ observer;
 let maybeLast = observer => last @@ maybe @@ observer;
 
 let none = (predicate: 'a => bool) : Operator.t('a, bool) =>
-  observer => map(predicate) @@ keep (x => x) @@ isEmpty @@ observer;
+  observer => map(predicate) @@ keep(x => x) @@ isEmpty @@ observer;
 
 let observe =
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit)
@@ -290,7 +290,7 @@ let observe =
             observer |> Observer.complete(exn);
           },
         ~onDispose=
-          () => observer |> Observer.toDisposable |> Disposable.dispose,
+          () => observer |> Observer.dispose,
       );
     outerDisposable := outerObserver |> Observer.toDisposable;
     outerObserver;
@@ -316,7 +316,7 @@ let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
             };
           observer |> Observer.complete(exn);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
 
 let onDispose = (dispose: unit => unit) : Operator.t('a, 'a) =>
@@ -327,7 +327,7 @@ let onDispose = (dispose: unit => unit) : Operator.t('a, 'a) =>
       ~onDispose=
         () => {
           dispose();
-          observer |> Observer.toDisposable |> Disposable.dispose;
+          observer |> Observer.dispose;
         },
     );
 
@@ -387,7 +387,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
       ~onComplete,
       ~onNext,
       ~onDispose=() => {
-        innerObserver |> Observer.toDisposable |> Disposable.dispose;
+        innerObserver |> Observer.dispose;
         innerSubscription^ |> Disposable.dispose;
         innerSubscription := Disposable.disposed;
       },
@@ -410,7 +410,7 @@ let synchronize: Operator.t('a, 'a) =
           observer |> Observer.next(next);
           Lock.release(gate);
         },
-      ~onDispose=() => observer |> Observer.toDisposable |> Disposable.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
   };
 
@@ -420,6 +420,40 @@ let timeout =
   failwith("Not Implemented");
 
 let withLatestFrom =
-    (~selector as _: ('a, 'b) => 'c, _: Observable.t('c))
+    (~selector: ('a, 'b) => 'c, other: Observable.t('b))
     : Operator.t('a, 'c) =>
-  failwith("Not Implemented");
+  observer => {
+    let otherLatest = MutableOption.empty();
+    let otherSubscription = AssignableDisposable.create();
+
+    let withLatestObserver =
+      Observer.create(
+        ~onNext=next => {
+          if(MutableOption.isNotEmpty(otherLatest)) {
+            let latest = otherLatest |> MutableOption.firstOrRaise;
+            let nextWithLatest = selector(next, latest);
+            observer |> Observer.next(nextWithLatest);
+          }
+        },
+        ~onComplete=exn => observer |> Observer.complete(exn),
+        ~onDispose=() => {
+          otherSubscription |> AssignableDisposable.dispose;
+          observer |> Observer.dispose;
+        },
+      );
+    AssignableDisposable.set(
+      other
+      |> Observable.subscribe(
+           ~onNext=next => otherLatest |> MutableOption.set(next),
+           ~onComplete=
+             exn =>
+               switch (exn) {
+               | Some(_) => observer |> Observer.complete(exn)
+               | _ => otherSubscription |> AssignableDisposable.dispose
+               },
+         ),
+      otherSubscription,
+    );
+
+    withLatestObserver;
+  };

@@ -32,7 +32,7 @@ let test =
               );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
-            observer |> Observer.toDisposable |> Disposable.dispose;
+            observer |> Observer.dispose;
             observer |> Observer.next(6);
             observedNext^ |> Expect.toBeEqualToInt(5);
           }),
@@ -115,7 +115,7 @@ let test =
                 ~onComplete=exn => observedExn := exn,
                 ~onDispose=Functions.alwaysUnit,
               );
-            observer |> Observer.toDisposable |> Disposable.dispose;
+            observer |> Observer.dispose;
             let result =
               observer
               |> Observer.completeWithResult(Some(Division_by_zero));

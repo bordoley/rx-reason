@@ -875,10 +875,47 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   });
 
 let merge =
-    /* FIXME: Should use a trampoline scheduler as the default for this function */
-    (~scheduler as _=Scheduler.immediate, _: list(t('a)))
-    : t('a) =>
-  failwith("Not implemented");
+    (observables: list(t('a)))
+    : t('a) => {
+  let count = observables |> List.length;
+
+  create((~onNext, ~onComplete) => {
+    let activeCount = ref(count);
+    let lock = Lock.create();
+    let subscription = AssignableDisposable.create();
+    let innerSubscription =
+      observables
+      |> List.map(
+           subscribe(
+             ~onNext=
+               next => {
+                 Lock.acquire(lock);
+                 onNext(next);
+                 Lock.release(lock);
+               },
+             ~onComplete=
+               exn => {
+                 Lock.acquire(lock);
+                 let shouldComplete =
+                   switch (exn) {
+                   | Some(_) => true
+                   | None =>
+                     let oldActiveCount = Interlocked.decrement(activeCount);
+                     oldActiveCount <= 1;
+                   };
+                 if (shouldComplete) {
+                   onComplete(exn);
+                   subscription |> AssignableDisposable.dispose;
+                 };
+                 Lock.release(lock);
+               },
+           ),
+         )
+      |> Disposable.compose;
+    subscription |> AssignableDisposable.set(innerSubscription);
+    subscription |> AssignableDisposable.toDisposable;
+  });
+};
 
 let never = () : t('a) =>
   create((~onNext as _, ~onComplete as _) => Disposable.empty());
