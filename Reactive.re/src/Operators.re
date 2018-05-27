@@ -400,13 +400,13 @@ let synchronize: Operator.t('a, 'a) =
     Observer.create(
       ~onComplete=
         exn => {
-          Lock.aquire(gate);
+          Lock.acquire(gate);
           observer |> Observer.complete(exn);
           Lock.release(gate);
         },
       ~onNext=
         next => {
-          Lock.aquire(gate);
+          Lock.acquire(gate);
           observer |> Observer.next(next);
           Lock.release(gate);
         },

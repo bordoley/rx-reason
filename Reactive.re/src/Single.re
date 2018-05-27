@@ -51,34 +51,37 @@ let reduce =
 let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.some(predicate));
 
-  exception InvalidState;
+exception InvalidState;
 
 let subscribe =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
     : Disposable.t => {
-  let subscription = ref(Disposable.disposed);
-  subscription :=
+  let innerSubscription = ref(Disposable.disposed);
+  let subscription = Disposable.create(() =>
+    Interlocked.exchange(Disposable.disposed, innerSubscription)
+    |> Disposable.dispose
+  );
+  innerSubscription :=
     single
     |> Observable.subscribe(
-          ~onNext=
-            next => {
-              onSuccess(next);
-              Interlocked.exchange(Disposable.disposed, subscription)
-              |> Disposable.dispose;
-            },
-          ~onComplete=
-            exn =>
-              switch (exn) {
-              | Some(exn) => onError(exn)
-              | None =>
-                /* This case should never happen due to how the constructors of Single
+         ~onNext=
+           next => {
+             onSuccess(next);
+             subscription |> Disposable.dispose;
+           },
+         ~onComplete=
+           exn =>
+             switch (exn) {
+             | Some(exn) => onError(exn)
+             | None =>
+               /* This case should never happen due to how the constructors of Single
                 * instances  protect against it. Ideally, we would error with EmptyError,
                 * but Operators hides that exception from it's public api.
                 */
-                onError(InvalidState)
-              },
-        );
-  subscription^;
+               onError(InvalidState)
+             },
+       );
+    subscription;
 };
 
 let toObservable = (single: t('a)) : Observable.t('a) => single;

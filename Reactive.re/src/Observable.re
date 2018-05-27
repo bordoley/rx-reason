@@ -13,9 +13,6 @@ let subscribeObserver =
     observable,
   );
 
-let subscribeOn = (_: Scheduler.t, _: t('a)) : t('a) =>
-  failwith("Not implemented");
-
 let createWithObserver =
     (onSubscribe: Observer.t('a) => Disposable.t)
     : t('a) =>
@@ -49,30 +46,185 @@ let createWithObserver =
 let create = onSubscribe : t('a) =>
   createWithObserver(observer => subscribeObserver(observer, onSubscribe));
 
+let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
+  create((~onNext, ~onComplete) =>
+    scheduler(() => observable |> subscribe(~onNext, ~onComplete))
+  );
+
 let combineLatest2 =
-    (
-      ~scheduler=Scheduler.immediate,
-      ~selector: ('a, 'b) => 'c,
-      observable0: t('a),
-      observable1: t('b),
-    )
+    (~selector: ('a, 'b) => 'c, observable0: t('a), observable1: t('b))
     : t('c) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0 |> MutableOption.isNotEmpty && v1 |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (other, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete = other |> AssignableDisposable.isDisposed;
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1)),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0)),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let combineLatest3 =
     (
-      ~scheduler=Scheduler.immediate,
       ~selector: ('a, 'b, 'c) => 'd,
       observable0: t('a),
       observable1: t('b),
       observable2: t('c),
     )
     : t('d) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+    let v2 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let s2 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0
+        |> MutableOption.isNotEmpty
+        && v1
+        |> MutableOption.isNotEmpty
+        && v2
+        |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+            v2 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (d0, d1, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete =
+          d0
+          |> AssignableDisposable.isDisposed
+          && d1
+          |> AssignableDisposable.isDisposed;
+
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(
+              ~onNext=doOnNext(v0),
+              ~onComplete=doOnComplete(s1, s2),
+            ),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(
+              ~onNext=doOnNext(v1),
+              ~onComplete=doOnComplete(s0, s2),
+            ),
+       );
+    s2
+    |> AssignableDisposable.set(
+         observable2
+         |> subscribe(
+              ~onNext=doOnNext(v2),
+              ~onComplete=doOnComplete(s0, s1),
+            ),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           s2 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+           MutableOption.unset(v2);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let combineLatest4 =
     (
-      ~scheduler=Scheduler.immediate,
       ~selector: ('a, 'b, 'c, 'd) => 'e,
       observable0: t('a),
       observable1: t('b),
@@ -80,11 +232,120 @@ let combineLatest4 =
       observable3: t('d),
     )
     : t('e) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+    let v2 = MutableOption.empty();
+    let v3 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let s2 = AssignableDisposable.create();
+    let s3 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0
+        |> MutableOption.isNotEmpty
+        && v1
+        |> MutableOption.isNotEmpty
+        && v2
+        |> MutableOption.isNotEmpty
+        && v3
+        |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+            v2 |> MutableOption.firstOrRaise,
+            v3 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (d0, d1, d2, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete =
+          d0
+          |> AssignableDisposable.isDisposed
+          && d1
+          |> AssignableDisposable.isDisposed
+          && d2
+          |> AssignableDisposable.isDisposed;
+
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(
+              ~onNext=doOnNext(v0),
+              ~onComplete=doOnComplete(s1, s2, s3),
+            ),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(
+              ~onNext=doOnNext(v1),
+              ~onComplete=doOnComplete(s0, s2, s3),
+            ),
+       );
+    s2
+    |> AssignableDisposable.set(
+         observable2
+         |> subscribe(
+              ~onNext=doOnNext(v2),
+              ~onComplete=doOnComplete(s0, s1, s3),
+            ),
+       );
+    s3
+    |> AssignableDisposable.set(
+         observable3
+         |> subscribe(
+              ~onNext=doOnNext(v3),
+              ~onComplete=doOnComplete(s0, s1, s2),
+            ),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           s2 |> AssignableDisposable.dispose;
+           s3 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+           MutableOption.unset(v2);
+           MutableOption.unset(v3);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let combineLatest5 =
     (
-      ~scheduler=Scheduler.immediate,
       ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
       observable0: t('a),
       observable1: t('b),
@@ -93,11 +354,137 @@ let combineLatest5 =
       observable4: t('e),
     )
     : t('f) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+    let v2 = MutableOption.empty();
+    let v3 = MutableOption.empty();
+    let v4 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let s2 = AssignableDisposable.create();
+    let s3 = AssignableDisposable.create();
+    let s4 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0
+        |> MutableOption.isNotEmpty
+        && v1
+        |> MutableOption.isNotEmpty
+        && v2
+        |> MutableOption.isNotEmpty
+        && v3
+        |> MutableOption.isNotEmpty
+        && v4
+        |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+            v2 |> MutableOption.firstOrRaise,
+            v3 |> MutableOption.firstOrRaise,
+            v4 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (d0, d1, d2, d3, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete =
+          d0
+          |> AssignableDisposable.isDisposed
+          && d1
+          |> AssignableDisposable.isDisposed
+          && d2
+          |> AssignableDisposable.isDisposed
+          && d3
+          |> AssignableDisposable.isDisposed;
+
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(
+              ~onNext=doOnNext(v0),
+              ~onComplete=doOnComplete(s1, s2, s3, s4),
+            ),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(
+              ~onNext=doOnNext(v1),
+              ~onComplete=doOnComplete(s0, s2, s3, s4),
+            ),
+       );
+    s2
+    |> AssignableDisposable.set(
+         observable2
+         |> subscribe(
+              ~onNext=doOnNext(v2),
+              ~onComplete=doOnComplete(s0, s1, s3, s4),
+            ),
+       );
+    s3
+    |> AssignableDisposable.set(
+         observable3
+         |> subscribe(
+              ~onNext=doOnNext(v3),
+              ~onComplete=doOnComplete(s0, s1, s2, s4),
+            ),
+       );
+    s4
+    |> AssignableDisposable.set(
+         observable4
+         |> subscribe(
+              ~onNext=doOnNext(v4),
+              ~onComplete=doOnComplete(s0, s1, s2, s3),
+            ),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           s2 |> AssignableDisposable.dispose;
+           s3 |> AssignableDisposable.dispose;
+           s4 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+           MutableOption.unset(v2);
+           MutableOption.unset(v3);
+           MutableOption.unset(v4);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let combineLatest6 =
     (
-      ~scheduler=Scheduler.immediate,
       ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
       observable0: t('a),
       observable1: t('b),
@@ -107,11 +494,154 @@ let combineLatest6 =
       observable5: t('f),
     )
     : t('g) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+    let v2 = MutableOption.empty();
+    let v3 = MutableOption.empty();
+    let v4 = MutableOption.empty();
+    let v5 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let s2 = AssignableDisposable.create();
+    let s3 = AssignableDisposable.create();
+    let s4 = AssignableDisposable.create();
+    let s5 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0
+        |> MutableOption.isNotEmpty
+        && v1
+        |> MutableOption.isNotEmpty
+        && v2
+        |> MutableOption.isNotEmpty
+        && v3
+        |> MutableOption.isNotEmpty
+        && v4
+        |> MutableOption.isNotEmpty
+        && v5
+        |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+            v2 |> MutableOption.firstOrRaise,
+            v3 |> MutableOption.firstOrRaise,
+            v4 |> MutableOption.firstOrRaise,
+            v5 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (d0, d1, d2, d3, d4, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete =
+          d0
+          |> AssignableDisposable.isDisposed
+          && d1
+          |> AssignableDisposable.isDisposed
+          && d2
+          |> AssignableDisposable.isDisposed
+          && d3
+          |> AssignableDisposable.isDisposed
+          && d4
+          |> AssignableDisposable.isDisposed;
+
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(
+              ~onNext=doOnNext(v0),
+              ~onComplete=doOnComplete(s1, s2, s3, s4, s5),
+            ),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(
+              ~onNext=doOnNext(v1),
+              ~onComplete=doOnComplete(s0, s2, s3, s4, s5),
+            ),
+       );
+    s2
+    |> AssignableDisposable.set(
+         observable2
+         |> subscribe(
+              ~onNext=doOnNext(v2),
+              ~onComplete=doOnComplete(s0, s1, s3, s4, s5),
+            ),
+       );
+    s3
+    |> AssignableDisposable.set(
+         observable3
+         |> subscribe(
+              ~onNext=doOnNext(v3),
+              ~onComplete=doOnComplete(s0, s1, s2, s4, s5),
+            ),
+       );
+    s4
+    |> AssignableDisposable.set(
+         observable4
+         |> subscribe(
+              ~onNext=doOnNext(v4),
+              ~onComplete=doOnComplete(s0, s1, s2, s3, s5),
+            ),
+       );
+    s5
+    |> AssignableDisposable.set(
+         observable5
+         |> subscribe(
+              ~onNext=doOnNext(v5),
+              ~onComplete=doOnComplete(s0, s1, s2, s3, s4),
+            ),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           s2 |> AssignableDisposable.dispose;
+           s3 |> AssignableDisposable.dispose;
+           s4 |> AssignableDisposable.dispose;
+           s5 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+           MutableOption.unset(v2);
+           MutableOption.unset(v3);
+           MutableOption.unset(v4);
+           MutableOption.unset(v5);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let combineLatest7 =
     (
-      ~scheduler=Scheduler.immediate,
       ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
       observable0: t('a),
       observable1: t('b),
@@ -122,40 +652,203 @@ let combineLatest7 =
       observable6: t('g),
     )
     : t('h) =>
-  failwith("Not implemented");
+  create((~onNext, ~onComplete) => {
+    let v0 = MutableOption.empty();
+    let v1 = MutableOption.empty();
+    let v2 = MutableOption.empty();
+    let v3 = MutableOption.empty();
+    let v4 = MutableOption.empty();
+    let v5 = MutableOption.empty();
+    let v6 = MutableOption.empty();
+
+    let s0 = AssignableDisposable.create();
+    let s1 = AssignableDisposable.create();
+    let s2 = AssignableDisposable.create();
+    let s3 = AssignableDisposable.create();
+    let s4 = AssignableDisposable.create();
+    let s5 = AssignableDisposable.create();
+    let s6 = AssignableDisposable.create();
+    let subscription = AssignableDisposable.create();
+
+    let lock = Lock.create();
+
+    let doOnNext = (v, next) => {
+      Lock.acquire(lock);
+      MutableOption.set(next, v);
+
+      let haveValues =
+        v0
+        |> MutableOption.isNotEmpty
+        && v1
+        |> MutableOption.isNotEmpty
+        && v2
+        |> MutableOption.isNotEmpty
+        && v3
+        |> MutableOption.isNotEmpty
+        && v4
+        |> MutableOption.isNotEmpty
+        && v5
+        |> MutableOption.isNotEmpty
+        && v6
+        |> MutableOption.isNotEmpty;
+      if (haveValues) {
+        onNext(
+          selector(
+            v0 |> MutableOption.firstOrRaise,
+            v1 |> MutableOption.firstOrRaise,
+            v2 |> MutableOption.firstOrRaise,
+            v3 |> MutableOption.firstOrRaise,
+            v4 |> MutableOption.firstOrRaise,
+            v5 |> MutableOption.firstOrRaise,
+            v6 |> MutableOption.firstOrRaise,
+          ),
+        );
+      };
+      Lock.release(lock);
+    };
+
+    let doOnComplete = (d0, d1, d2, d3, d4, d5, exn) => {
+      Lock.acquire(lock);
+      switch (exn) {
+      | Some(_) =>
+        onComplete(exn);
+        subscription |> AssignableDisposable.dispose;
+      | None =>
+        let shouldComplete =
+          d0
+          |> AssignableDisposable.isDisposed
+          && d1
+          |> AssignableDisposable.isDisposed
+          && d2
+          |> AssignableDisposable.isDisposed
+          && d3
+          |> AssignableDisposable.isDisposed
+          && d4
+          |> AssignableDisposable.isDisposed
+          && d5
+          |> AssignableDisposable.isDisposed;
+
+        if (shouldComplete) {
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+        };
+      };
+      Lock.release(lock);
+    };
+
+    s0
+    |> AssignableDisposable.set(
+         observable0
+         |> subscribe(
+              ~onNext=doOnNext(v0),
+              ~onComplete=doOnComplete(s1, s2, s3, s4, s5, s6),
+            ),
+       );
+    s1
+    |> AssignableDisposable.set(
+         observable1
+         |> subscribe(
+              ~onNext=doOnNext(v1),
+              ~onComplete=doOnComplete(s0, s2, s3, s4, s5, s6),
+            ),
+       );
+    s2
+    |> AssignableDisposable.set(
+         observable2
+         |> subscribe(
+              ~onNext=doOnNext(v2),
+              ~onComplete=doOnComplete(s0, s1, s3, s4, s5, s6),
+            ),
+       );
+    s3
+    |> AssignableDisposable.set(
+         observable3
+         |> subscribe(
+              ~onNext=doOnNext(v3),
+              ~onComplete=doOnComplete(s0, s1, s2, s4, s5, s6),
+            ),
+       );
+    s4
+    |> AssignableDisposable.set(
+         observable4
+         |> subscribe(
+              ~onNext=doOnNext(v4),
+              ~onComplete=doOnComplete(s0, s1, s2, s3, s5, s6),
+            ),
+       );
+    s5
+    |> AssignableDisposable.set(
+         observable5
+         |> subscribe(
+              ~onNext=doOnNext(v5),
+              ~onComplete=doOnComplete(s0, s1, s2, s3, s4, s6),
+            ),
+       );
+    s6
+    |> AssignableDisposable.set(
+         observable6
+         |> subscribe(
+              ~onNext=doOnNext(v6),
+              ~onComplete=doOnComplete(s0, s1, s2, s3, s4, s5),
+            ),
+       );
+
+    subscription
+    |> AssignableDisposable.set(
+         Disposable.create(() => {
+           s0 |> AssignableDisposable.dispose;
+           s1 |> AssignableDisposable.dispose;
+           s2 |> AssignableDisposable.dispose;
+           s3 |> AssignableDisposable.dispose;
+           s4 |> AssignableDisposable.dispose;
+           s5 |> AssignableDisposable.dispose;
+           s6 |> AssignableDisposable.dispose;
+           MutableOption.unset(v0);
+           MutableOption.unset(v1);
+           MutableOption.unset(v2);
+           MutableOption.unset(v3);
+           MutableOption.unset(v4);
+           MutableOption.unset(v5);
+           MutableOption.unset(v6);
+         }),
+       );
+    subscription |> AssignableDisposable.toDisposable;
+  });
 
 let concat =
+    /* FIXME: The default scheduler here should be a trampoline */
     (~scheduler=Scheduler.immediate, observables: list(t('a)))
     : t('a) =>
   create((~onNext, ~onComplete) => {
     let remaining = ref(observables);
-    let innerSubscription = ref(Disposable.disposed);
-    let rec scheduleSubscription = () =>
-      scheduler(() =>
-        switch (remaining^) {
-        | [hd, ...tail] =>
-          remaining := tail;
-          doSubscribe(hd);
-        | [] =>
-          onComplete(None);
-          Disposable.disposed;
-        }
-      )
+    let subscription = AssignableDisposable.create();
+    let rec scheduleSubscription = () => {
+      let newSubscription =
+        scheduler(() =>
+          switch (remaining^) {
+          | [hd, ...tail] =>
+            Volatile.write(tail, remaining);
+            doSubscribe(hd);
+          | [] =>
+            onComplete(None);
+            subscription |> AssignableDisposable.dispose;
+            Disposable.disposed;
+          }
+        );
+      subscription |> AssignableDisposable.set(newSubscription);
+    }
     and doSubscribe = observable =>
       observable
       |> subscribe(~onNext, ~onComplete=exn =>
            switch (exn) {
-           | Some(_) => onComplete(exn)
-           | None =>
-             Interlocked.exchange(scheduleSubscription(), innerSubscription)
-             |> Disposable.dispose
+           | Some(_) =>
+             onComplete(exn);
+             subscription |> AssignableDisposable.dispose;
+           | None => scheduleSubscription()
            }
          );
-    innerSubscription := scheduleSubscription();
-    Disposable.create(() =>
-      Interlocked.exchange(Disposable.disposed, innerSubscription)
-      |> Disposable.dispose
-    );
+    scheduleSubscription();
+    subscription |> AssignableDisposable.toDisposable;
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
@@ -233,8 +926,34 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
-let retry = (~attempts as _: int=(-1), _:t('a)): t('a) => 
-  failwith("Not Implemented");
+let retry = (shouldRetry, observable: t('a)) : t('a) =>
+  (~onNext, ~onComplete) => {
+    let subscription = AssignableDisposable.create();
+
+    let rec setupSubscription = () => {
+      let alreadyDisposed = subscription |> AssignableDisposable.isDisposed;
+
+      if (! alreadyDisposed) {
+        let newSubscription =
+          observable
+          |> subscribe(
+               ~onNext,
+               ~onComplete=exn => {
+                 let shouldComplete =
+                   switch (exn) {
+                   | None => true
+                   | Some(exn) => ! shouldRetry(exn)
+                   };
+
+                 shouldComplete ? onComplete(exn) : setupSubscription();
+               },
+             );
+        subscription |> AssignableDisposable.set(newSubscription);
+      };
+    };
+    setupSubscription();
+    subscription |> AssignableDisposable.toDisposable;
+  };
 
 let startWithList =
     (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>

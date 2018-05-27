@@ -1,12 +1,11 @@
 type t('a);
 
 let combineLatest2:
-  (~scheduler: Scheduler.t=?, ~selector: ('a, 'b) => 'c, t('a), t('b)) =>
+  (~selector: ('a, 'b) => 'c, t('a), t('b)) =>
   t('c);
 
 let combineLatest3:
   (
-    ~scheduler: Scheduler.t=?,
     ~selector: ('a, 'b, 'c) => 'd,
     t('a),
     t('b),
@@ -16,7 +15,6 @@ let combineLatest3:
 
 let combineLatest4:
   (
-    ~scheduler: Scheduler.t=?,
     ~selector: ('a, 'b, 'c, 'd) => 'e,
     t('a),
     t('b),
@@ -27,7 +25,6 @@ let combineLatest4:
 
 let combineLatest5:
   (
-    ~scheduler: Scheduler.t=?,
     ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
     t('a),
     t('b),
@@ -39,7 +36,6 @@ let combineLatest5:
 
 let combineLatest6:
   (
-    ~scheduler: Scheduler.t=?,
     ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
     t('a),
     t('b),
@@ -52,7 +48,6 @@ let combineLatest6:
 
 let combineLatest7:
   (
-    ~scheduler: Scheduler.t=?,
     ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
     t('a),
     t('b),
@@ -86,7 +81,7 @@ let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
-let retry: (~attempts: int=?, t('a)) => t('a);
+let retry: (exn => bool, t('a)) => t('a);
 
 let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 

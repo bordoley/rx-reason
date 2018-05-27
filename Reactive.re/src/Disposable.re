@@ -12,6 +12,7 @@ let create = (onDispose: unit => unit) : t => {
   isDisposed: ref(false),
 };
 
+
 let disposeWithResult = ({onDispose, isDisposed}: t) : bool => {
   let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
@@ -24,8 +25,10 @@ let disposeWithResult = ({onDispose, isDisposed}: t) : bool => {
 let dispose = (disposable: t) : unit =>
   disposable |> disposeWithResult |> ignore;
 
-let isDisposed = ({isDisposed}: t) : bool =>
-  Volatile.read(isDisposed);
+let compose = (disposables: list(t)) : t => {
+  let dispose = () => disposables |> List.iter(dispose >> ignore);
+  create(dispose);
+};
 
 let empty = () => create(Functions.alwaysUnit);
 
@@ -35,10 +38,14 @@ let disposed: t = {
   retval;
 };
 
-let compose = (disposables: list(t)) : t => {
-  let dispose = () => disposables |> List.iter(dispose >> ignore);
-  create(dispose);
-};
+let createWithRef = (disposableRef: ref(t)) =>
+  create(() => {
+    Interlocked.exchange(disposed, disposableRef)
+    |> dispose
+  });
+
+let isDisposed = ({isDisposed}: t) : bool =>
+  Volatile.read(isDisposed);
 
 let raiseIfDisposed = (disposable: t) : unit =>
   if (isDisposed(disposable)) {

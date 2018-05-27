@@ -33,7 +33,7 @@
     "url": "https://github.com/bordoley/Reactive.re.git"
   },
   "devDependencies": {
-    "bs-platform": "^3.1.3",
+    "bs-platform": "^3.1.4",
     "nyc": "^11.8.0",
     "reunit": "../reUnit"
   }

@@ -7,6 +7,24 @@ let test =
     "Disposable",
     [
       describe(
+        "compose",
+        [
+          it("should dispose all children disposables once", () => {
+            let count = ref(0);
+            let onDispose = () => {count := count ^ + 1};
+            let composed = Disposable.compose([
+              Disposable.create(onDispose),
+              Disposable.create(onDispose),
+              Disposable.create(onDispose),
+            ]);
+            composed |> Disposable.dispose;
+            count^ |> Expect.toBeEqualToInt(3);
+            composed |> Disposable.dispose;
+            count^ |> Expect.toBeEqualToInt(3);
+          }),
+        ],
+      ),
+      describe(
         "disposeWithResult",
         [
           it("only disposes once", () => {
@@ -46,24 +64,6 @@ let test =
           it("should not raise if disposable not disposed", () => {
             let disposable = Disposable.empty();
             Disposable.raiseIfDisposed(disposable);
-          }),
-        ],
-      ),
-      describe(
-        "compose",
-        [
-          it("should dispose all children disposables once", () => {
-            let count = ref(0);
-            let onDispose = () => {count := count ^ + 1};
-            let composed = Disposable.compose([
-              Disposable.create(onDispose),
-              Disposable.create(onDispose),
-              Disposable.create(onDispose),
-            ]);
-            composed |> Disposable.dispose;
-            count^ |> Expect.toBeEqualToInt(3);
-            composed |> Disposable.dispose;
-            count^ |> Expect.toBeEqualToInt(3);
           }),
         ],
       ),
