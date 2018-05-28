@@ -1,4 +1,4 @@
-# Reactive Extension for Reason/OCaml 
+# Reactive Extensions for Reason/OCaml 
 
 An implementation of Rx for Reason/OCaml that is designed with the goal of providing a minimum base line feature set to support asynchronous dataflow patterns. Currently development is focused on bucklescript, but support for native ocaml is intended and desirable.
 
