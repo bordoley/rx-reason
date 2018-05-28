@@ -15,3 +15,5 @@ let enqueue = (scheduledItem, queue) =>
   queue |> Js.Array.push(scheduledItem) |> ignore;
 
 let isEmpty = queue => Js.Array.length(queue) === 0;
+
+let peek = queue => queue[0];
