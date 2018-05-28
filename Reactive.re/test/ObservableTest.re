@@ -340,8 +340,7 @@ let test =
             observer |> Observer.next(4);
             observer |> Observer.next(5);
             observer |> Observer.complete(None);
-            Js.log(result^);
-            /*result^ |> Expect.toBeEqualToListOfInt([5, 4, 1, 2, 3]);*/
+            result^ |> Expect.toBeEqualToListOfInt([5, 4, 1, 2, 3]);
           }),
         ],
       ),
