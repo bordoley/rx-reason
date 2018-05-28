@@ -59,7 +59,6 @@ let combineLatest2 =
 
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -78,14 +77,11 @@ let combineLatest2 =
     let doOnComplete = (other, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete = other |> AssignableDisposable.isDisposed;
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -102,16 +98,12 @@ let combineLatest2 =
          |> subscribe(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0)),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+    });
   });
 
 let combineLatest3 =
@@ -130,7 +122,6 @@ let combineLatest3 =
     let s0 = AssignableDisposable.create();
     let s1 = AssignableDisposable.create();
     let s2 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -160,9 +151,7 @@ let combineLatest3 =
     let doOnComplete = (d0, d1, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
           d0
@@ -172,7 +161,6 @@ let combineLatest3 =
 
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -203,18 +191,14 @@ let combineLatest3 =
             ),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           s2 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-           MutableOption.unset(v2);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      s2 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+      MutableOption.unset(v2);
+    });
   });
 
 let combineLatest4 =
@@ -236,7 +220,6 @@ let combineLatest4 =
     let s1 = AssignableDisposable.create();
     let s2 = AssignableDisposable.create();
     let s3 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -269,9 +252,7 @@ let combineLatest4 =
     let doOnComplete = (d0, d1, d2, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
           d0
@@ -283,7 +264,6 @@ let combineLatest4 =
 
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -322,20 +302,16 @@ let combineLatest4 =
             ),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           s2 |> AssignableDisposable.dispose;
-           s3 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-           MutableOption.unset(v2);
-           MutableOption.unset(v3);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      s2 |> AssignableDisposable.dispose;
+      s3 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+      MutableOption.unset(v2);
+      MutableOption.unset(v3);
+    });
   });
 
 let combineLatest5 =
@@ -360,7 +336,6 @@ let combineLatest5 =
     let s2 = AssignableDisposable.create();
     let s3 = AssignableDisposable.create();
     let s4 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -396,9 +371,7 @@ let combineLatest5 =
     let doOnComplete = (d0, d1, d2, d3, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
           d0
@@ -412,7 +385,6 @@ let combineLatest5 =
 
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -459,22 +431,18 @@ let combineLatest5 =
             ),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           s2 |> AssignableDisposable.dispose;
-           s3 |> AssignableDisposable.dispose;
-           s4 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-           MutableOption.unset(v2);
-           MutableOption.unset(v3);
-           MutableOption.unset(v4);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      s2 |> AssignableDisposable.dispose;
+      s3 |> AssignableDisposable.dispose;
+      s4 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+      MutableOption.unset(v2);
+      MutableOption.unset(v3);
+      MutableOption.unset(v4);
+    });
   });
 
 let combineLatest6 =
@@ -502,7 +470,6 @@ let combineLatest6 =
     let s3 = AssignableDisposable.create();
     let s4 = AssignableDisposable.create();
     let s5 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -541,9 +508,7 @@ let combineLatest6 =
     let doOnComplete = (d0, d1, d2, d3, d4, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
           d0
@@ -559,7 +524,6 @@ let combineLatest6 =
 
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -614,24 +578,20 @@ let combineLatest6 =
             ),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           s2 |> AssignableDisposable.dispose;
-           s3 |> AssignableDisposable.dispose;
-           s4 |> AssignableDisposable.dispose;
-           s5 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-           MutableOption.unset(v2);
-           MutableOption.unset(v3);
-           MutableOption.unset(v4);
-           MutableOption.unset(v5);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      s2 |> AssignableDisposable.dispose;
+      s3 |> AssignableDisposable.dispose;
+      s4 |> AssignableDisposable.dispose;
+      s5 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+      MutableOption.unset(v2);
+      MutableOption.unset(v3);
+      MutableOption.unset(v4);
+      MutableOption.unset(v5);
+    });
   });
 
 let combineLatest7 =
@@ -662,7 +622,6 @@ let combineLatest7 =
     let s4 = AssignableDisposable.create();
     let s5 = AssignableDisposable.create();
     let s6 = AssignableDisposable.create();
-    let subscription = AssignableDisposable.create();
 
     let lock = Lock.create();
 
@@ -704,9 +663,7 @@ let combineLatest7 =
     let doOnComplete = (d0, d1, d2, d3, d4, d5, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) =>
-        onComplete(exn);
-        subscription |> AssignableDisposable.dispose;
+      | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
           d0
@@ -724,7 +681,6 @@ let combineLatest7 =
 
         if (shouldComplete) {
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
         };
       };
       Lock.release(lock);
@@ -787,26 +743,22 @@ let combineLatest7 =
             ),
        );
 
-    subscription
-    |> AssignableDisposable.set(
-         Disposable.create(() => {
-           s0 |> AssignableDisposable.dispose;
-           s1 |> AssignableDisposable.dispose;
-           s2 |> AssignableDisposable.dispose;
-           s3 |> AssignableDisposable.dispose;
-           s4 |> AssignableDisposable.dispose;
-           s5 |> AssignableDisposable.dispose;
-           s6 |> AssignableDisposable.dispose;
-           MutableOption.unset(v0);
-           MutableOption.unset(v1);
-           MutableOption.unset(v2);
-           MutableOption.unset(v3);
-           MutableOption.unset(v4);
-           MutableOption.unset(v5);
-           MutableOption.unset(v6);
-         }),
-       );
-    subscription |> AssignableDisposable.toDisposable;
+    Disposable.create(() => {
+      s0 |> AssignableDisposable.dispose;
+      s1 |> AssignableDisposable.dispose;
+      s2 |> AssignableDisposable.dispose;
+      s3 |> AssignableDisposable.dispose;
+      s4 |> AssignableDisposable.dispose;
+      s5 |> AssignableDisposable.dispose;
+      s6 |> AssignableDisposable.dispose;
+      MutableOption.unset(v0);
+      MutableOption.unset(v1);
+      MutableOption.unset(v2);
+      MutableOption.unset(v3);
+      MutableOption.unset(v4);
+      MutableOption.unset(v5);
+      MutableOption.unset(v6);
+    });
   });
 
 let concat =
@@ -823,7 +775,6 @@ let concat =
           scheduler(() => doSubscribe(hd));
         | [] =>
           onComplete(None);
-          subscription |> AssignableDisposable.dispose;
           Disposable.disposed;
         };
 
@@ -835,7 +786,6 @@ let concat =
            switch (exn) {
            | Some(_) =>
              onComplete(exn);
-             subscription |> AssignableDisposable.dispose;
            | None => scheduleSubscription()
            }
          );
