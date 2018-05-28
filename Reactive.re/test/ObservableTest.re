@@ -318,7 +318,66 @@ let test =
       describe("never", []),
       describe("ofList", []),
       describe("ofValue", []),
-      describe("retry", []),
+      describe(
+        "retry",
+        [
+          it("with cold observable", () => {
+            let result = ref([]);
+            let retryCount = ref(0);
+            let shouldRetry = _ => {
+              let retry = retryCount^ < 2;
+              if (retry) {
+                Interlocked.increment(retryCount) |> ignore;
+              };
+              retry;
+            };
+
+            Observable.create((~onNext, ~onComplete) => {
+              onNext(1);
+              onNext(2);
+              onComplete(Some(Division_by_zero));
+              Disposable.disposed;
+            })
+            |> Observable.retry(shouldRetry)
+            |> Observable.subscribe(
+                 ~onNext=x => result := [x, ...result^],
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+            result^ |> Expect.toBeEqualToListOfInt([2, 1, 2, 1, 2, 1]);
+          }),
+          it("with hot observable", () => {
+            let result = ref([]);
+            let subject = ref(Subject.create());
+
+            let subscription =
+              Observable.create((~onNext, ~onComplete) => {
+                subject := Subject.create();
+                let observable = subject^ |> Subject.toObservable;
+                observable |> Observable.subscribe(~onNext, ~onComplete);
+              })
+              |> Observable.retry(_ => true)
+              |> Observable.subscribe(
+                   ~onNext=x => result := [x, ...result^],
+                   ~onComplete=Functions.alwaysUnit,
+                 );
+
+            let observer = subject^ |> Subject.toObserver;
+            observer |> Observer.next(1);
+            observer |> Observer.next(2);
+            observer |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            let observer = subject^ |> Subject.toObserver;
+            observer |> Observer.next(3);
+            observer |> Observer.next(4);
+            observer |> Observer.complete(None);
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+
+            result^ |> Expect.toBeEqualToListOfInt([4, 3, 2, 1]);
+          }),
+        ],
+      ),
       describe(
         "startWithlist",
         [

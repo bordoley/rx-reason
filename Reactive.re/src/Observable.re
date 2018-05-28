@@ -17,29 +17,28 @@ let createWithObserver =
     (onSubscribe: Observer.t('a) => Disposable.t)
     : t('a) =>
   (~onNext, ~onComplete) => {
-    let subscription = ref(Disposable.disposed);
+    let subscription = AssignableDisposable.create();
     let observer =
       Observer.create(~onNext, ~onComplete, ~onDispose=() =>
-        Interlocked.exchange(Disposable.disposed, subscription)
-        |> Disposable.dispose
+        subscription |> AssignableDisposable.dispose
       );
-    subscription :=
-      (
-        try (onSubscribe(observer)) {
-        | exn =>
-          let shouldRaise =
-            observer |> Observer.completeWithResult(Some(exn)) |> (!);
-          if (shouldRaise) {
-            /* This could happen when the onComplete is called synchronously in the
-             * subscribe function which also throws.
-             */
-            raise(
-              exn,
-            );
-          };
-          Disposable.disposed;
-        }
-      );
+    subscription
+    |> AssignableDisposable.set(
+         try (onSubscribe(observer)) {
+         | exn =>
+           let shouldRaise =
+             observer |> Observer.completeWithResult(Some(exn)) |> (!);
+           if (shouldRaise) {
+             /* This could happen when the onComplete is called synchronously in the
+              * subscribe function which also throws.
+              */
+             raise(
+               exn,
+             );
+           };
+           Disposable.disposed;
+         },
+       );
     observer |> Observer.toDisposable;
   };
 
@@ -955,7 +954,7 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
     );
 
 let retry = (shouldRetry, observable: t('a)) : t('a) =>
-  (~onNext, ~onComplete) => {
+  create((~onNext, ~onComplete) => {
     let subscription = AssignableDisposable.create();
 
     let rec setupSubscription = () => {
@@ -981,7 +980,7 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
     };
     setupSubscription();
     subscription |> AssignableDisposable.toDisposable;
-  };
+  });
 
 let startWithList =
     (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>
