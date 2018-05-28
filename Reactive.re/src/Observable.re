@@ -702,13 +702,13 @@ let combineLatest7 =
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s5^),
          );
 
-         let s0 = s0^;
-         let s1 = s1^;
-         let s2 = s2^;
-         let s3 = s3^;
-         let s4 = s4^;
-         let s5 = s5^;
-         let s6 = s6^;
+    let s0 = s0^;
+    let s1 = s1^;
+    let s2 = s2^;
+    let s3 = s3^;
+    let s4 = s4^;
+    let s5 = s5^;
+    let s6 = s6^;
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -732,30 +732,38 @@ let concat =
     (~scheduler=Scheduler.immediate, observables: list(t('a)))
     : t('a) =>
   create((~onNext, ~onComplete) => {
-    let remaining = ref(observables);
     let subscription = AssignableDisposable.create();
-    let rec scheduleSubscription = () => {
+
+    let rec scheduleSubscription = observables => {
       let newSubscription =
-        switch (remaining^) {
+        switch (observables) {
         | [hd, ...tail] =>
-          Volatile.write(tail, remaining);
-          scheduler(() => doSubscribe(hd));
+          scheduler(() =>
+            hd
+            |> subscribe(~onNext, ~onComplete=exn =>
+                 switch (exn) {
+                 | Some(_) => onComplete(exn)
+                 | None =>
+                    /* Cancel the current subscription here */ 
+                    subscription |> AssignableDisposable.set(Disposable.disposed);
+                    scheduleSubscription(tail)
+                 }
+               )
+          )
         | [] =>
           onComplete(None);
           Disposable.disposed;
         };
 
-      subscription |> AssignableDisposable.set(newSubscription);
-    }
-    and doSubscribe = observable =>
-      observable
-      |> subscribe(~onNext, ~onComplete=exn =>
-           switch (exn) {
-           | Some(_) => onComplete(exn)
-           | None => scheduleSubscription()
-           }
-         );
-    scheduleSubscription();
+      /* An observable may complete synchronously and continue with an 
+       * async observable. Avoid canceling the async observable in that case.
+       */
+      if (! Disposable.isDisposed(newSubscription)) {
+        subscription |> AssignableDisposable.set(newSubscription);
+      };
+    };
+
+    scheduleSubscription(observables);
     subscription |> AssignableDisposable.toDisposable;
   });
 

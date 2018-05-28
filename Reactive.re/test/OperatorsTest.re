@@ -10,7 +10,24 @@ let test =
       describe("bufferTime", []),
       describe("debounceTime", []),
       describe("defaultIfEmpty", []),
-      describe("dispose", []),
+      describe(
+        "dispose",
+        [
+          it("call the dispose function when the observer is disposes", () => {
+            let observer =
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let disposedCalled = ref(false);
+            let disposable = Disposable.create(() => disposedCalled := true);
+            let disposingObserver = observer |> Operators.dispose(disposable);
+            disposingObserver |> Observer.dispose;
+            disposedCalled^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
       describe(
         "distinctUntilChanged",
         [
@@ -38,7 +55,33 @@ let test =
       ),
       describe("every", []),
       describe("exhaust", []),
-      describe("find", []),
+      describe(
+        "find",
+        [
+          it("finds the first matching element and completes", () => {
+            let observedValue = ref(0);
+            let completed = ref(false);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedValue := next,
+                ~onComplete=_ => completed := true,
+                ~onDispose=Functions.alwaysUnit,
+              );
+
+            let findObserver = observer |> Operators.find(x => x mod 2 === 0);
+            findObserver |> Observer.next(1);
+            observedValue^ |> Expect.toBeEqualToInt(0);
+            completed^ |> Expect.toBeEqualToFalse;
+
+            findObserver |> Observer.next(3);
+            observedValue^ |> Expect.toBeEqualToInt(0);
+            completed^ |> Expect.toBeEqualToFalse;
+            findObserver |> Observer.next(10);
+            observedValue^ |> Expect.toBeEqualToInt(10);
+            completed^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
       describe(
         "first",
         [
@@ -201,7 +244,33 @@ let test =
           }),
         ],
       ),
-      describe("ignoreElements", []),
+      describe(
+        "ignoreElements",
+        [
+          it("ignores all elements and publishes an exception", () => {
+            let observedValues = ref([]);
+            let completed = ref(None);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedValues := [next, ...observedValues^],
+                ~onComplete=exn => completed := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
+
+            let ignoreObserver = observer |> Operators.ignoreElements;
+            ignoreObserver |> Observer.next(1);
+            ignoreObserver |> Observer.next(2);
+            ignoreObserver |> Observer.next(3);
+            ignoreObserver |> Observer.complete(Some(Division_by_zero));
+
+            observedValues^ === [] |> Expect.toBeEqualToTrue;
+            switch (completed^) {
+            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
+            | _ => failwith("expected a division by zero exception")
+            };
+          }),
+        ],
+      ),
       describe("isEmpty", []),
       describe(
         "keep",
