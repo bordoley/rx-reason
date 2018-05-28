@@ -391,41 +391,66 @@ let some = (_: 'a => bool) : Operator.t('a, bool) =>
 
 let switch_: Operator.t(Observable.t('a), 'a) =
   observer => {
-    let innerSubscription = ref(Disposable.disposed);
-    let onComplete = exn => {
-      observer |> Observer.complete(exn);
-      innerSubscription^ |> Disposable.dispose;
+    let innerSubscription = AssignableDisposable.create();
+    let outerSubscription = ref(Disposable.disposed);
+    let latest = ref(0);
+    let lock = Lock.create();
+
+    let doSubscribeInner = (id, next) => {
+      innerSubscription |> AssignableDisposable.set(Disposable.disposed);
+      let newInnerSubscription =
+        next
+        |> Observable.subscribe(
+             ~onNext=
+               next => {
+                 lock |> Lock.acquire;
+                 if (latest^ === id) {
+                   observer |> Observer.next(next);
+                 };
+                 lock |> Lock.release;
+               },
+             ~onComplete=
+               exn =>
+                 switch (exn) {
+                 | Some(_) =>
+                   lock |> Lock.acquire;
+                   if (latest^ === id) {
+                     observer |> Observer.complete(exn);
+                     outerSubscription^ |> Disposable.dispose;
+                   };
+                   lock |> Lock.release;
+                 | None => ()
+                 },
+           );
+      innerSubscription |> AssignableDisposable.set(newInnerSubscription);
     };
-    let innerObserver =
+
+    let observer =
       Observer.create(
-        ~onNext=next => observer |> Observer.next(next),
         ~onComplete=
-          exn =>
-            switch (exn) {
-            | Some(_) => onComplete(exn)
-            | None => innerSubscription^ |> Disposable.dispose
-            },
-        ~onDispose=Functions.alwaysUnit,
+          exn => {
+            lock |> Lock.acquire;
+            observer |> Observer.complete(exn);
+            lock |> Lock.release;
+          },
+        ~onNext=
+          next => {
+            lock |> Lock.acquire;
+            latest := latest^ + 1;
+            let id = latest^;
+            lock |> Lock.release;
+
+            doSubscribeInner(id, next);
+          },
+        ~onDispose=
+          () => {
+            innerSubscription |> AssignableDisposable.dispose;
+            observer |> Observer.dispose;
+          },
       );
-    let onNext = next =>
-      try (
-        {
-          innerSubscription^ |> Disposable.dispose;
-          innerSubscription :=
-            next |> Observable.subscribeObserver(innerObserver);
-        }
-      ) {
-      | exn => onComplete(Some(exn))
-      };
-    Observer.create(
-      ~onComplete,
-      ~onNext,
-      ~onDispose=() => {
-        innerObserver |> Observer.dispose;
-        innerSubscription^ |> Disposable.dispose;
-        innerSubscription := Disposable.disposed;
-      },
-    );
+
+    outerSubscription := observer |> Observer.toDisposable;
+    observer;
   };
 
 let synchronize: Operator.t('a, 'a) =
