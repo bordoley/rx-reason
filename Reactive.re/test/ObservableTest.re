@@ -79,9 +79,9 @@ let test =
 
           subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
           result^ |> Expect.toBeEqualToFalse;
-          let observer1 = subject1 |>  Subject.toObserver;
+          let observer0 = subject0 |>  Subject.toObserver;
 
-          observer1 |> Observer.complete(Some(Division_by_zero));
+          observer0 |> Observer.complete(Some(Division_by_zero));
           subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           result^ |> Expect.toBeEqualToTrue;
         }),
