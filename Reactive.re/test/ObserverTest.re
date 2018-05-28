@@ -7,48 +7,6 @@ let test =
     "Observer",
     [
       describe(
-        "next",
-        [
-          it("call onNext if not disposed", () => {
-            let observedNext = ref(0);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedNext := next,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            observer |> Observer.next(5);
-            observedNext^ |> Expect.toBeEqualToInt(5);
-            observer |> Observer.next(6);
-            observedNext^ |> Expect.toBeEqualToInt(6);
-          }),
-          it("will not call onNext if disposed", () => {
-            let observedNext = ref(0);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedNext := next,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            observer |> Observer.next(5);
-            observedNext^ |> Expect.toBeEqualToInt(5);
-            observer |> Observer.dispose;
-            observer |> Observer.next(6);
-            observedNext^ |> Expect.toBeEqualToInt(5);
-          }),
-          it("disposes the observer if onNext throws", () => {
-            let observer =
-              Observer.create(
-                ~onNext=_ => raise(Division_by_zero),
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            Expect.shouldRaise(() => observer |> Observer.next(4));
-            observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
-        ],
-      ),
-      describe(
         "complete",
         [
           it("will complete and dispose the observer if not dispose", () => {
@@ -122,6 +80,48 @@ let test =
             result |> Expect.toBeEqualToFalse;
             observedExn^
             |> Expect.toBeEqualToNoneWith(~toString=(_) => "exception");
+          }),
+        ],
+      ),
+      describe(
+        "next",
+        [
+          it("call onNext if not disposed", () => {
+            let observedNext = ref(0);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedNext := next,
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            observer |> Observer.next(5);
+            observedNext^ |> Expect.toBeEqualToInt(5);
+            observer |> Observer.next(6);
+            observedNext^ |> Expect.toBeEqualToInt(6);
+          }),
+          it("will not call onNext if disposed", () => {
+            let observedNext = ref(0);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedNext := next,
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            observer |> Observer.next(5);
+            observedNext^ |> Expect.toBeEqualToInt(5);
+            observer |> Observer.dispose;
+            observer |> Observer.next(6);
+            observedNext^ |> Expect.toBeEqualToInt(5);
+          }),
+          it("disposes the observer if onNext throws", () => {
+            let observer =
+              Observer.create(
+                ~onNext=_ => raise(Division_by_zero),
+                ~onComplete=Functions.alwaysUnit,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            Expect.shouldRaise(() => observer |> Observer.next(4));
+            observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
         ],
       ),

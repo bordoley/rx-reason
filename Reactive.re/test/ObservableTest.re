@@ -6,6 +6,12 @@ let test =
   describe(
     "Observable",
     [
+      describe("combineLatest2", []),
+      describe("combineLatest3", []),
+      describe("combineLatest4", []),
+      describe("combineLatest5", []),
+      describe("combineLatest6", []),
+      describe("combineLatest7", []),
       describe(
         "concat",
         [
@@ -170,6 +176,7 @@ let test =
           }),
         ],
       ),
+      describe("empty", []),
       describe(
         "lift",
         [
@@ -189,6 +196,11 @@ let test =
           ),
         ],
       ),
+
+      describe("merge", []),
+      describe("never", []),
+      describe("ofList", []),
+      describe("ofValue", []),
       describe("retry", []),
       describe("startWithlist", []),
       describe("startWithValue", []),

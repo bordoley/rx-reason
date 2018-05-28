@@ -6,131 +6,27 @@ let test =
   describe(
     "Operators",
     [
-      describe(
-        "identity",
-        [
-          it("returns the observer provided as an argument", () => {
-            let observer = Observer.create(
-              ~onNext=Functions.alwaysUnit,
-              ~onComplete=Functions.alwaysUnit,
-              ~onDispose=Functions.alwaysUnit,
-            );
-            let identityObserver = Operators.identity(observer);
-            observer === identityObserver |> Expect.toBeEqualToTrue;
-          }),
-        ],
-      ),
-      describe(
-        "map",
-        [
-          it("completes the observer when the mapper throws an exception", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn, 
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let mapper = (_) => raise(Division_by_zero);
-            let mappingObserver = Operators.map(mapper, observer);
-            mappingObserver |> Observer.next(1);
-            observedExn^ === None |> Expect.toBeEqualToFalse;
-            mappingObserver
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-            observer
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes the observer when the mapping observer is completed", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let mappingObserver = Operators.map(a => a + 1, observer);
-            mappingObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
-            observedExn^ === None |> Expect.toBeEqualToFalse;
-            mappingObserver
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-            observer
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-          }),
-        ],
-      ),
-      describe(
-        "mapTo",
-        [
-          it("maps any input to value", () => {
-            let observedNext = ref("");
-            let observer =
-              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
-            let mappingObserver = Operators.mapTo("a", observer);
-            mappingObserver |> Observer.next(1);
-            observedNext^ |> Expect.toBeEqualToString("a");
-          }),
-        ],
-      ),
-      describe(
-        "doOnNext",
-        [
-          it("calls the side effect function on next", () => {
-            let sideEffectCalled = ref(false);
-            let observedNext = ref(0);
-            let observer =
-              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
-            let doObserver =
-              Operators.onNext((_) => sideEffectCalled := true, observer);
-            doObserver |> Observer.next(1);
-            sideEffectCalled^ |> Expect.toBeEqualToTrue;
-            observedNext^ |> Expect.toBeEqualToInt(1);
-          }),
-        ],
-      ),
-      describe("keep", [
-          it("completes the observer when the mapper throws an exception", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
-            let mapper = (_) => raise(Division_by_zero);
-            let keepObserver = Operators.keep(mapper, observer);
-            keepObserver |> Observer.next(1);
-            observedExn^ === None |> Expect.toBeEqualToFalse;
-            keepObserver
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-            observer
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes the observer when the mapping observer is completed", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
-            let keepObserver = Operators.keep(_ => true, observer);
-            keepObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
-            observedExn^ === None |> Expect.toBeEqualToFalse;
-            keepObserver
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-            observer
-            |> Observer.toDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-          }),
+      describe("debounceTime", []),
+      describe("distinctUntilChanged", [
+        it("removes duplicates", () => {
+          let result = ref([]);
+          let observer = Observer.create(
+            ~onNext=next => result := [next, ...(result^)], 
+            ~onComplete=Functions.alwaysUnit,
+            ~onDispose=Functions.alwaysUnit,
+          );
+          let distinctObserver = Operators.distinctUntilChanged(observer);
+          distinctObserver |> Observer.next(1);
+          distinctObserver |> Observer.next(1);
+          distinctObserver |> Observer.next(1);
+          distinctObserver |> Observer.next(3);
+          distinctObserver |> Observer.next(5);
+          distinctObserver |> Observer.next(3);
+          distinctObserver |> Observer.next(3);
+          distinctObserver |> Observer.next(1);
+
+          result^ |> Expect.toBeEqualToListOfInt([1, 3, 5, 3, 1]);
+        }),
       ]),
       describe("first", [
         it("publishes the first observed value and disposes", () => {
@@ -204,39 +100,55 @@ let test =
           firstOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
         }),
       ]),
-      describe("maybeFirst", [
-        it("publishes the first observed value and disposes", () => {
-          let observedValue = ref(0);
-          let completed = ref(false);
-          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
-          let maybeFirstObserver = Operators.maybeFirst(observer);
-          maybeFirstObserver |> Observer.next(2);
-          observedValue^ |> Expect.toBeEqualToInt(2);
-          completed^ |> Expect.toBeEqualToTrue;
-          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-        }),
-        it("passes through completed exceptions", () => {
-          let observedExn = ref(None);
-          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
-          let maybeFirstObserver = Operators.maybeFirst(observer);
-          maybeFirstObserver |> Observer.complete(Some(Division_by_zero));
-          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          switch(observedExn^){
-          | None => failwith("expected observedExn to be not be None");
-          | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue;
-          };
-        }),
-        it("ignores EmptyException and completes normally", () => {
-          let observedExn = ref(None);
-          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
-          let maybeFirstObserver = Operators.first @@ Operators.maybeFirst @@ observer;
-          maybeFirstObserver |> Observer.complete(None);
-          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          observedExn^ === None |> Expect.toBeEqualToTrue;
-        }),
+      describe(
+        "identity",
+        [
+          it("returns the observer provided as an argument", () => {
+            let observer = Observer.create(
+              ~onNext=Functions.alwaysUnit,
+              ~onComplete=Functions.alwaysUnit,
+              ~onDispose=Functions.alwaysUnit,
+            );
+            let identityObserver = Operators.identity(observer);
+            observer === identityObserver |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe("keep", [
+          it("completes the observer when the mapper throws an exception", () => {
+            let observedExn = ref(None);
+            let observer =
+              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
+            let mapper = (_) => raise(Division_by_zero);
+            let keepObserver = Operators.keep(mapper, observer);
+            keepObserver |> Observer.next(1);
+            observedExn^ === None |> Expect.toBeEqualToFalse;
+            keepObserver
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+            observer
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes the observer when the mapping observer is completed", () => {
+            let observedExn = ref(None);
+            let observer =
+              Observer.create(~onNext=Functions.alwaysUnit, ~onComplete=exn => observedExn := exn, ~onDispose=Functions.alwaysUnit);
+            let keepObserver = Operators.keep(_ => true, observer);
+            keepObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
+            observedExn^ === None |> Expect.toBeEqualToFalse;
+            keepObserver
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+            observer
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+          }),
       ]),
       describe("last", [
         it("publishes the last observed value and disposes", () => {
@@ -321,6 +233,100 @@ let test =
           lastOrNoneObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
         }),
       ]),
+      describe(
+        "map",
+        [
+          it("completes the observer when the mapper throws an exception", () => {
+            let observedExn = ref(None);
+            let observer =
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn, 
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let mapper = (_) => raise(Division_by_zero);
+            let mappingObserver = Operators.map(mapper, observer);
+            mappingObserver |> Observer.next(1);
+            observedExn^ === None |> Expect.toBeEqualToFalse;
+            mappingObserver
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+            observer
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes the observer when the mapping observer is completed", () => {
+            let observedExn = ref(None);
+            let observer =
+              Observer.create(
+                ~onNext=Functions.alwaysUnit,
+                ~onComplete=exn => observedExn := exn,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let mappingObserver = Operators.map(a => a + 1, observer);
+            mappingObserver |> Observer.completeWithResult(Some(Division_by_zero)) |> Expect.toBeEqualToTrue;
+            observedExn^ === None |> Expect.toBeEqualToFalse;
+            mappingObserver
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+            observer
+            |> Observer.toDisposable
+            |> Disposable.isDisposed
+            |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe(
+        "mapTo",
+        [
+          it("maps any input to value", () => {
+            let observedNext = ref("");
+            let observer =
+              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
+            let mappingObserver = Operators.mapTo("a", observer);
+            mappingObserver |> Observer.next(1);
+            observedNext^ |> Expect.toBeEqualToString("a");
+          }),
+        ],
+      ),
+      describe("maybeFirst", [
+        it("publishes the first observed value and disposes", () => {
+          let observedValue = ref(0);
+          let completed = ref(false);
+          let observer = Observer.create(~onNext=next => observedValue := next,~onComplete=_=>completed := true, ~onDispose=Functions.alwaysUnit);
+          let maybeFirstObserver = Operators.maybeFirst(observer);
+          maybeFirstObserver |> Observer.next(2);
+          observedValue^ |> Expect.toBeEqualToInt(2);
+          completed^ |> Expect.toBeEqualToTrue;
+          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+        }),
+        it("passes through completed exceptions", () => {
+          let observedExn = ref(None);
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
+          let maybeFirstObserver = Operators.maybeFirst(observer);
+          maybeFirstObserver |> Observer.complete(Some(Division_by_zero));
+          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          switch(observedExn^){
+          | None => failwith("expected observedExn to be not be None");
+          | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue;
+          };
+        }),
+        it("ignores EmptyException and completes normally", () => {
+          let observedExn = ref(None);
+          let observer = Observer.create(~onNext=Functions.alwaysUnit,~onComplete=exn=>observedExn := exn, ~onDispose=Functions.alwaysUnit);
+          let maybeFirstObserver = Operators.first @@ Operators.maybeFirst @@ observer;
+          maybeFirstObserver |> Observer.complete(None);
+          observer |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          maybeFirstObserver |> Observer.toDisposable |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          observedExn^ === None |> Expect.toBeEqualToTrue;
+        }),
+      ]),
       describe("maybeLast", [
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
@@ -365,6 +371,22 @@ let test =
           observedExn^ === None |> Expect.toBeEqualToTrue;
         }),
       ]),
+      describe(
+        "onNext",
+        [
+          it("calls the side effect function on next", () => {
+            let sideEffectCalled = ref(false);
+            let observedNext = ref(0);
+            let observer =
+              Observer.create(~onNext=next => observedNext := next, ~onComplete=Functions.alwaysUnit, ~onDispose=Functions.alwaysUnit);
+            let doObserver =
+              Operators.onNext((_) => sideEffectCalled := true, observer);
+            doObserver |> Observer.next(1);
+            sideEffectCalled^ |> Expect.toBeEqualToTrue;
+            observedNext^ |> Expect.toBeEqualToInt(1);
+          }),
+        ],
+      ),
       describe("scan", [
         it("publishes all intermediate values, including the initial accumulator value", () => {
           let result = ref([]);
@@ -381,29 +403,6 @@ let test =
           result^ |> Expect.toBeEqualToListOfInt([9,5, 2, 0]);
         }),
       ]),
-      describe("distinctUntilChanged", [
-        it("removes duplicates", () => {
-          let result = ref([]);
-          let observer = Observer.create(
-            ~onNext=next => result := [next, ...(result^)], 
-            ~onComplete=Functions.alwaysUnit,
-            ~onDispose=Functions.alwaysUnit,
-          );
-          let distinctObserver = Operators.distinctUntilChanged(observer);
-          distinctObserver |> Observer.next(1);
-          distinctObserver |> Observer.next(1);
-          distinctObserver |> Observer.next(1);
-          distinctObserver |> Observer.next(3);
-          distinctObserver |> Observer.next(5);
-          distinctObserver |> Observer.next(3);
-          distinctObserver |> Observer.next(3);
-          distinctObserver |> Observer.next(1);
-
-          result^ |> Expect.toBeEqualToListOfInt([1, 3, 5, 3, 1]);
-        }),
-      ]),
       describe("switch_", []),
-      describe("switchMap", []),
-      describe("debounceTime", []),
     ],
   );
