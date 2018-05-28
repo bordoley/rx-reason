@@ -703,6 +703,48 @@ let test =
       ),
       describe("synchronize", []),
       describe("timeout", []),
-      describe("withLatestFrom", []),
+      describe(
+        "withLatestFrom",
+        [
+          it("drops values from the source, if there is no latest value", () => {
+            let source = Subject.create();
+            let latest = Subject.create();
+
+            let result = ref([]);
+            source
+            |> Subject.toObservable
+            |> Observable.lift(
+                 Operators.withLatestFrom(
+                   ~selector=(a, b) => [a, b],
+                   latest |> Subject.toObservable,
+                 ),
+               )
+            |> Observable.subscribe(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            source |> Subject.toObserver |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+
+            source |> Subject.toObserver |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+
+            latest |> Subject.toObserver |> Observer.next(1);
+            source |> Subject.toObserver |> Observer.next(3);
+            result^ |> Expect.toBeEqualToListOfInt([3, 1]);
+
+            source |> Subject.toObserver |> Observer.next(4);
+            result^ |> Expect.toBeEqualToListOfInt([4, 1]);
+
+            latest |> Subject.toObserver |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([4, 1]);
+
+            source |> Subject.toObserver |> Observer.next(5);
+            result^ |> Expect.toBeEqualToListOfInt([5, 2]);
+          }),
+        ],
+      ),
     ],
   );
