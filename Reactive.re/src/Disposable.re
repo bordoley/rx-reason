@@ -38,12 +38,6 @@ let disposed: t = {
   retval;
 };
 
-let createWithRef = (disposableRef: ref(t)) =>
-  create(() => {
-    Interlocked.exchange(disposed, disposableRef)
-    |> dispose
-  });
-
 let isDisposed = ({isDisposed}: t) : bool =>
   Volatile.read(isDisposed);
 
