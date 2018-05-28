@@ -71,12 +71,7 @@ let combineLatest2 =
       let haveValues =
         v0 |> MutableOption.isNotEmpty && v1 |> MutableOption.isNotEmpty;
       if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-          ),
-        );
+        onNext(selector(v0 |> MutableOption.get, v1 |> MutableOption.get));
       };
       Lock.release(lock);
     };
@@ -816,7 +811,6 @@ let combineLatest7 =
   });
 
 let concat =
-    /* FIXME: The default scheduler here should be a trampoline */
     (~scheduler=Scheduler.immediate, observables: list(t('a)))
     : t('a) =>
   create((~onNext, ~onComplete) => {
@@ -824,17 +818,16 @@ let concat =
     let subscription = AssignableDisposable.create();
     let rec scheduleSubscription = () => {
       let newSubscription =
-        scheduler(() =>
-          switch (remaining^) {
-          | [hd, ...tail] =>
-            Volatile.write(tail, remaining);
-            doSubscribe(hd);
-          | [] =>
-            onComplete(None);
-            subscription |> AssignableDisposable.dispose;
-            Disposable.disposed;
-          }
-        );
+        switch (remaining^) {
+        | [hd, ...tail] =>
+          Volatile.write(tail, remaining);
+          scheduler(() => doSubscribe(hd));
+        | [] =>
+          onComplete(None);
+          subscription |> AssignableDisposable.dispose;
+          Disposable.disposed;
+        };
+
       subscription |> AssignableDisposable.set(newSubscription);
     }
     and doSubscribe = observable =>
@@ -874,9 +867,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
     Disposable.compose([subscription, lifted |> Observer.toDisposable]);
   });
 
-let merge =
-    (observables: list(t('a)))
-    : t('a) => {
+let merge = (observables: list(t('a))) : t('a) => {
   let count = observables |> List.length;
 
   create((~onNext, ~onComplete) => {
@@ -901,7 +892,7 @@ let merge =
                    | Some(_) => true
                    | None =>
                      let oldActiveCount = Interlocked.decrement(activeCount);
-                     oldActiveCount <= 1;
+                     oldActiveCount <= 0;
                    };
                  if (shouldComplete) {
                    onComplete(exn);

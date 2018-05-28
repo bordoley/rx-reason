@@ -78,9 +78,7 @@ let test =
                      ~onComplete=Functions.alwaysUnit,
                    );
               let observer =
-                observerInstance
-                |> MutableOption.get
-                |> Observer.toDisposable;
+                observerInstance |> MutableOption.get |> Observer.toDisposable;
               subscription === observer |> Expect.toBeEqualToTrue;
             },
           ),
@@ -196,13 +194,157 @@ let test =
           ),
         ],
       ),
+      describe(
+        "merge",
+        [
+          it("merges host and cold observables", () => {
+            let result = ref([]);
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            Observable.merge([
+              subject1 |> Subject.toObservable,
+              Observable.ofList([1, 2, 3]),
+              subject2 |> Subject.toObservable,
+              Observable.ofList([4, 5, 6]),
+            ])
+            |> Observable.subscribe(
+                 ~onNext=x => result := [x, ...result^],
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
 
-      describe("merge", []),
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+
+            observer1 |> Observer.next(7);
+            observer2 |> Observer.next(8);
+            observer1 |> Observer.next(9);
+            result^
+            |> Expect.toBeEqualToListOfInt([9, 8, 7, 6, 5, 4, 3, 2, 1]);
+          }),
+          it("merges hot observables", () => {
+            let result = ref([]);
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            Observable.merge([
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+              subject3 |> Subject.toObservable,
+            ])
+            |> Observable.subscribe(
+                 ~onNext=x => result := [x, ...result^],
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+
+            observer1 |> Observer.next(1);
+            observer2 |> Observer.next(2);
+            observer1 |> Observer.next(3);
+            observer2 |> Observer.next(4);
+            observer1 |> Observer.complete(None);
+            observer2 |> Observer.next(5);
+            observer2 |> Observer.complete(None);
+            observer3 |> Observer.next(6);
+            observer3 |> Observer.complete(None);
+
+            result^ |> Expect.toBeEqualToListOfInt([6, 5, 4, 3, 2, 1]);
+          }),
+          it("completes when the last observable completes", () => {
+            let result = ref(false);
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+
+            let subscription =
+              Observable.merge([
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+              ])
+              |> Observable.subscribe(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            observer3 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes early if any observable completes with an exception", () => {
+            let result = ref(false);
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+
+            let subscription =
+              Observable.merge([
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+              ])
+              |> Observable.subscribe(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            observer2 |> Observer.complete(Some(Division_by_zero));
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
       describe("never", []),
       describe("ofList", []),
       describe("ofValue", []),
       describe("retry", []),
-      describe("startWithlist", []),
+      describe(
+        "startWithlist",
+        [
+          it("", () => {
+            let result = ref([]);
+            let subject = Subject.create();
+            let subscription =
+              Observable.startWithList(
+                [1, 2, 3],
+                subject |> Subject.toObservable,
+              )
+              |> Observable.subscribe(
+                   ~onNext=x => result := [x, ...result^],
+                   ~onComplete=Functions.alwaysUnit,
+                 );
+            result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
+
+            let observer = subject |> Subject.toObserver;
+            observer |> Observer.next(4);
+            observer |> Observer.next(5);
+            observer |> Observer.complete(None);
+            Js.log(result^);
+            /*result^ |> Expect.toBeEqualToListOfInt([5, 4, 1, 2, 3]);*/
+          }),
+        ],
+      ),
       describe("startWithValue", []),
       describe("subscribe", []),
       describe("subscribeObserver", []),

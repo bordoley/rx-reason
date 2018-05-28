@@ -19,11 +19,12 @@ let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
 let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
-let set = (newDisposable, {disposableRef, disposable}) =>
-  if (disposable |> Disposable.isDisposed) {
-    disposable |> Disposable.dispose;
+let set = (newDisposable, assignableDisposable) =>
+  if (assignableDisposable |> isDisposed) {
+    newDisposable |> Disposable.dispose;
   } else {
-    Interlocked.exchange(newDisposable, disposableRef) |> Disposable.dispose;
+    Interlocked.exchange(newDisposable, assignableDisposable.disposableRef)
+    |> Disposable.dispose;
   };
 
 let toDisposable = ({disposable}) => disposable;

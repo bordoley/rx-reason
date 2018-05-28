@@ -6,7 +6,11 @@ let test =
   describe(
     "Operators",
     [
+      describe("bufferCount", []),
+      describe("bufferTime", []),
       describe("debounceTime", []),
+      describe("defaultIfEmpty", []),
+      describe("dispose",[]),
       describe("distinctUntilChanged", [
         it("removes duplicates", () => {
           let result = ref([]);
@@ -28,6 +32,9 @@ let test =
           result^ |> Expect.toBeEqualToListOfInt([1, 3, 5, 3, 1]);
         }),
       ]),
+      describe("every",[]),
+      describe("exhaust", []),
+      describe("find",[]),
       describe("first", [
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
@@ -114,6 +121,8 @@ let test =
           }),
         ],
       ),
+      describe("ignoreElements", []),
+      describe("isEmpty", []),
       describe("keep", [
           it("completes the observer when the mapper throws an exception", () => {
             let observedExn = ref(None);
@@ -293,6 +302,7 @@ let test =
           }),
         ],
       ),
+      describe("maybe", []),
       describe("maybeFirst", [
         it("publishes the first observed value and disposes", () => {
           let observedValue = ref(0);
@@ -371,6 +381,11 @@ let test =
           observedExn^ === None |> Expect.toBeEqualToTrue;
         }),
       ]),
+      describe("none", []),
+      describe("observe", []),
+      describe("observeOn", []),
+      describe("onComplete", []),
+      describe("onDispose", []),
       describe(
         "onNext",
         [
@@ -403,6 +418,10 @@ let test =
           result^ |> Expect.toBeEqualToListOfInt([9,5, 2, 0]);
         }),
       ]),
+      describe("some", []),
       describe("switch_", []),
+      describe("synchronize", []),
+      describe("timeout", []),
+      describe("withLatestFrom", []),
     ],
   );
