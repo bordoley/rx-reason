@@ -12,7 +12,7 @@ let createWithCallbacks =
       ~onNext=Functions.alwaysUnit,
       ~onComplete=Functions.alwaysUnit,
       ~onDispose=Functions.alwaysUnit,
-      ~onSubscribe=(~onNext as _, ~onComplete as _) => Disposable.disposed,
+      ~onSubscribe=(~onNext as _, ~onComplete as _) => (),
       (),
     )
     : t('a) => {
@@ -45,10 +45,10 @@ let createWithCallbacks =
       observer |> Observer.toDisposable |> Disposable.raiseIfDisposed;
       let currentSubscribers = subscribers^;
       let subscriber = (onNext, onComplete);
-      subscribers := currentSubscribers |> CopyOnWriteArray.addLast(subscriber);
-      let onSubscribeDisposable = onSubscribe(~onNext, ~onComplete);
+      subscribers :=
+        currentSubscribers |> CopyOnWriteArray.addLast(subscriber);
+      onSubscribe(~onNext, ~onComplete);
       Disposable.create(() => {
-        Disposable.dispose(onSubscribeDisposable);
         let currentSubscribers = subscribers^;
         subscribers :=
           currentSubscribers
@@ -63,9 +63,43 @@ let createWithCallbacks =
 
 let create = () => createWithCallbacks();
 
-/* let createWithReplay */
-let share =
-    (~createSubject=create, source: Observable.t('a))
+let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
+  let buffer = ref(CopyOnWriteArray.empty());
+  let completed = ref(false);
+  let completedValue = ref(None);
+
+  createWithCallbacks(
+    ~onNext=
+      next => {
+        let currentBuffer = buffer^;
+        let nextBuffer =
+          if (CopyOnWriteArray.count(currentBuffer) === maxBufferCount) {
+            currentBuffer |> CopyOnWriteArray.removeAt(0);
+          } else {
+            currentBuffer;
+          };
+        buffer := nextBuffer |> CopyOnWriteArray.addLast(next);
+      },
+    ~onComplete=
+      exn => {
+        completed := true;
+        completedValue := exn;
+      },
+    ~onDispose=() => buffer := CopyOnWriteArray.empty(),
+    ~onSubscribe=
+      (~onNext, ~onComplete) => {
+        let currentBuffer = buffer^;
+        CopyOnWriteArray.forEach(onNext, currentBuffer);
+        if (completed^) {
+          onComplete(completedValue^);
+        };
+      },
+    (),
+  );
+};
+
+let shareInternal =
+    (~createSubject, source: Observable.t('a))
     : Observable.t('a) => {
   let subject = MutableOption.create();
   let sourceSubscription = ref(Disposable.disposed);
@@ -114,4 +148,8 @@ let share =
     };
   });
 };
-/* shareReplay */
+
+let share = obs => shareInternal(~createSubject=create, obs);
+
+let shareWithReplayBuffer = (count: int, obs) =>
+  shareInternal(~createSubject=() => createWithReplayBuffer(count), obs);
