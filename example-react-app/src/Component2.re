@@ -35,12 +35,24 @@ type actions =
   | Toggle
   | SetTitle(string);
 
+let reducer = (state, action) =>
+  switch (action) {
+  | Click => {...state, count: state.count + 1}
+  | Toggle => {...state, show: ! state.show}
+  | SetTitle(greeting) => {...state, greeting}
+  };
+
 let render = ({count, greeting, incrementCount, show, toggle}: state) =>
   <InnerComponent count greeting incrementCount show toggle />;
 
 let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
   let subject = Rx.Subject.create();
+
   let actions = subject |> Rx.Subject.toObservable;
+  let propsActions =
+    props
+    |> Rx.Observable.lift(Rx.Operators.map(greeting => SetTitle(greeting)));
+
   let dispatch = (action, _) =>
     subject |> Rx.Subject.toObserver |> Rx.Observer.next(action);
 
@@ -52,22 +64,8 @@ let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
     toggle: dispatch(Toggle),
   };
 
-  Rx.Observable.merge([
-    actions,
-    props
-    |> Rx.Observable.lift(Rx.Operators.map(greeting => SetTitle(greeting))),
-  ])
-  |> Rx.Observable.lift(
-       Rx.Operators.scan(
-         (state, action) =>
-           switch (action) {
-           | Click => {...state, count: state.count + 1}
-           | Toggle => {...state, show: ! state.show}
-           | SetTitle(greeting) => {...state, greeting}
-           },
-         initialState,
-       )
-     );
+  Rx.Observable.merge([actions, propsActions])
+  |> Rx.Observable.lift(Rx.Operators.scan(reducer, initialState));
 };
 
 let component = RxReactComponent.create(~name="Example", ~state, ~render);
