@@ -31,23 +31,20 @@ let make =
       ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
     ) => {
   let component = ReasonReact.reducerComponentWithRetainedProps(name);
-  let componentWithLifecyclesAndReducer = {
-    ...component,
-    reducer,
-    didMount: ({send, state: {propsSubject}, onUnmount}) => {
-      let subscription = propsSubject
-        |> Rx.Subject.toObservable
-        |> createStore
-        |> Rx.Observable.lift(
-              Rx.Operators.observe(
-                ~onNext=next => send(Next(next)),
-                ~onComplete=exn => send(Completed(exn))
-              ),
-            )
-        |> Rx.Observable.subscribe;
-      onUnmount(() => subscription |> Rx.Disposable.dispose);
-    },
-    shouldUpdate,
+  let didMount = (
+    {send, state: {propsSubject}, onUnmount}: ReasonReact.self(state('props, 'state), ReasonReact.noRetainedProps, action('state))
+  ) => {
+    let subscription = propsSubject
+      |> Rx.Subject.toObservable
+      |> createStore
+      |> Rx.Observable.lift(
+            Rx.Operators.observe(
+              ~onNext=next => send(Next(next)),
+              ~onComplete=exn => send(Completed(exn))
+            ),
+          )
+      |> Rx.Observable.subscribe;
+    onUnmount(() => subscription |> Rx.Disposable.dispose);
   };
 
   (
@@ -55,7 +52,10 @@ let make =
    ~props: 'props, 
    children: array(ReasonReact.reactElement)
   ) => {
-    ...componentWithLifecyclesAndReducer,
+    ...component,
+    reducer,
+    didMount,
+    shouldUpdate,
     initialState: () => {
       let propsSubject = Rx.Subject.createWithReplayBuffer(1);
       propsSubject |> Rx.Subject.toObserver |> Rx.Observer.next(props);
