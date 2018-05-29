@@ -20,6 +20,7 @@ _build/
 
 # bsb build directory
 lib/
+build/
 
 node_modules/
 coverage/
