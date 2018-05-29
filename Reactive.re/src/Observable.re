@@ -1,13 +1,19 @@
 type t('a) =
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t;
 
-let subscribe = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
+let subscribeWithCallbacks = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
   observable(~onNext, ~onComplete);
+
+let subscribe = observable =>
+  observable |> subscribeWithCallbacks(
+    ~onNext=Functions.alwaysUnit,
+    ~onComplete=Functions.alwaysUnit,
+  );
 
 let subscribeObserver =
     (observer: Observer.t('a), observable: t('a))
     : Disposable.t =>
-  subscribe(
+  subscribeWithCallbacks(
     ~onNext=next => observer |> Observer.next(next),
     ~onComplete=exn => observer |> Observer.complete(exn),
     observable,
@@ -47,7 +53,7 @@ let create = onSubscribe : t('a) =>
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) =>
-    scheduler(() => observable |> subscribe(~onNext, ~onComplete))
+    scheduler(() => observable |> subscribeWithCallbacks(~onNext, ~onComplete))
   );
 
 let combineLatest2 =
@@ -89,10 +95,10 @@ let combineLatest2 =
 
     s0 :=
       observable0
-      |> subscribe(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^));
+      |> subscribeWithCallbacks(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^));
     s1 :=
       observable1
-      |> subscribe(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^));
+      |> subscribeWithCallbacks(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^));
 
     let s0 = s0^;
     let s1 = s1^;
@@ -164,13 +170,13 @@ let combineLatest3 =
 
     s0 :=
       observable0
-      |> subscribe(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^, s2^));
+      |> subscribeWithCallbacks(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^, s2^));
     s1 :=
       observable1
-      |> subscribe(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^, s2^));
+      |> subscribeWithCallbacks(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^, s2^));
     s2 :=
       observable2
-      |> subscribe(~onNext=doOnNext(v2), ~onComplete=doOnComplete(s0^, s1^));
+      |> subscribeWithCallbacks(~onNext=doOnNext(v2), ~onComplete=doOnComplete(s0^, s1^));
 
     let s0 = s0^;
     let s1 = s1^;
@@ -256,25 +262,25 @@ let combineLatest4 =
 
     s0 :=
       observable0
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v0),
            ~onComplete=doOnComplete(s1^, s2^, s3^),
          );
     s1 :=
       observable1
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v1),
            ~onComplete=doOnComplete(s0^, s2^, s3^),
          );
     s2 :=
       observable2
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v2),
            ~onComplete=doOnComplete(s0^, s1^, s3^),
          );
     s3 :=
       observable3
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v3),
            ~onComplete=doOnComplete(s0^, s1^, s2^),
          );
@@ -374,31 +380,31 @@ let combineLatest5 =
 
     s0 :=
       observable0
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v0),
            ~onComplete=doOnComplete(s1^, s2^, s3^, s4^),
          );
     s1 :=
       observable1
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v1),
            ~onComplete=doOnComplete(s0^, s2^, s3^, s4^),
          );
     s2 :=
       observable2
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v2),
            ~onComplete=doOnComplete(s0^, s1^, s3^, s4^),
          );
     s3 :=
       observable3
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v3),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s4^),
          );
     s4 :=
       observable4
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v4),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^),
          );
@@ -509,37 +515,37 @@ let combineLatest6 =
 
     s0 :=
       observable0
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v0),
            ~onComplete=doOnComplete(s1^, s2^, s3^, s4^, s5^),
          );
     s1 :=
       observable1
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v1),
            ~onComplete=doOnComplete(s0^, s2^, s3^, s4^, s5^),
          );
     s2 :=
       observable2
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v2),
            ~onComplete=doOnComplete(s0^, s1^, s3^, s4^, s5^),
          );
     s3 :=
       observable3
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v3),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s4^, s5^),
          );
     s4 :=
       observable4
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v4),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s5^),
          );
     s5 :=
       observable5
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v5),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^),
          );
@@ -661,43 +667,43 @@ let combineLatest7 =
 
     s0 :=
       observable0
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v0),
            ~onComplete=doOnComplete(s1^, s2^, s3^, s4^, s5^, s6^),
          );
     s1 :=
       observable1
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v1),
            ~onComplete=doOnComplete(s0^, s2^, s3^, s4^, s5^, s6^),
          );
     s2 :=
       observable2
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v2),
            ~onComplete=doOnComplete(s0^, s1^, s3^, s4^, s5^, s6^),
          );
     s3 :=
       observable3
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v3),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s4^, s5^, s6^),
          );
     s4 :=
       observable4
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v4),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s5^, s6^),
          );
     s5 :=
       observable5
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v5),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s6^),
          );
     s6 :=
       observable6
-      |> subscribe(
+      |> subscribeWithCallbacks(
            ~onNext=doOnNext(v6),
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s5^),
          );
@@ -740,7 +746,7 @@ let concat =
         | [hd, ...tail] =>
           scheduler(() =>
             hd
-            |> subscribe(~onNext, ~onComplete=exn =>
+            |> subscribeWithCallbacks(~onNext, ~onComplete=exn =>
                  switch (exn) {
                  | Some(_) => onComplete(exn)
                  | None =>
@@ -768,7 +774,7 @@ let concat =
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
-  create((~onNext, ~onComplete) => f() |> subscribe(~onNext, ~onComplete));
+  create((~onNext, ~onComplete) => f() |> subscribeWithCallbacks(~onNext, ~onComplete));
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
@@ -798,7 +804,7 @@ let merge = (observables: list(t('a))) : t('a) => {
     let lock = Lock.create();
     observables
     |> List.map(
-         subscribe(
+         subscribeWithCallbacks(
            ~onNext=
              next => {
                Lock.acquire(lock);
@@ -882,7 +888,7 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
       if (! alreadyDisposed) {
         let newSubscription =
           observable
-          |> subscribe(
+          |> subscribeWithCallbacks(
                ~onNext,
                ~onComplete=exn => {
                  let shouldComplete =

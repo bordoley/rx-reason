@@ -400,7 +400,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
       innerSubscription |> AssignableDisposable.set(Disposable.disposed);
       let newInnerSubscription =
         next
-        |> Observable.subscribe(
+        |> Observable.subscribeWithCallbacks(
              ~onNext=
                next => {
                  lock |> Lock.acquire;
@@ -503,7 +503,7 @@ let withLatestFrom =
       );
     AssignableDisposable.set(
       other
-      |> Observable.subscribe(
+      |> Observable.subscribeWithCallbacks(
            ~onNext=next => otherLatest |> MutableOption.set(next),
            ~onComplete=
              exn =>

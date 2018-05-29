@@ -1,20 +1,17 @@
 type state('props);
 type action;
 
-type t('props) =
-  'props =>
-  ReasonReact.componentSpec(
+let make:
+  (
+    ~name: string,
+    ~state: Rx.Observable.t('props) => Rx.Observable.t('state),
+    ~render: 'state => ReasonReact.reactElement,
+    ~props: 'props,
+    array(ReasonReact.reactElement),
+  ) => ReasonReact.componentSpec(
     state('props),
     state('props),
     ReasonReact.noRetainedProps,
     ReasonReact.noRetainedProps,
     action,
   );
-
-let create:
-  (
-    ~name: string,
-    ~state: Rx.Observable.t('props) => Rx.Observable.t('state),
-    ~render: 'state => ReasonReact.reactElement,
-  ) =>
-  t('props);

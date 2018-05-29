@@ -53,7 +53,9 @@ let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
 
 exception InvalidState;
 
-let subscribe =
+let subscribe = Observable.subscribe;
+
+let subscribeWithCallbacks =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
     : Disposable.t => {
   let innerSubscription = ref(Disposable.disposed);
@@ -63,7 +65,7 @@ let subscribe =
   );
   innerSubscription :=
     single
-    |> Observable.subscribe(
+    |> Observable.subscribeWithCallbacks(
          ~onNext=
            next => {
              onSuccess(next);

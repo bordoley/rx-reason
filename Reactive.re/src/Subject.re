@@ -119,11 +119,11 @@ let shareInternal =
     let subjectObservable = toObservable(currentSubject);
     let subjectObserver = toObserver(currentSubject);
     let observerSubscription =
-      subjectObservable |> Observable.subscribe(~onNext, ~onComplete);
+      subjectObservable |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
     if (refCount^ === 0) {
       sourceSubscription :=
         source
-        |> Observable.subscribe(
+        |> Observable.subscribeWithCallbacks(
              ~onNext=next => subjectObserver |> Observer.next(next),
              ~onComplete=
                exn => {

@@ -20,7 +20,7 @@ let test =
               subject0 |> Subject.toObservable,
               subject1 |> Subject.toObservable,
             )
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=next => result := next,
                  ~onComplete=Functions.alwaysUnit,
                )
@@ -50,7 +50,7 @@ let test =
                 subject0 |> Subject.toObservable,
                 subject1 |> Subject.toObservable,
               )
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
                    result := true
                  );
@@ -82,7 +82,7 @@ let test =
                 subject0 |> Subject.toObservable,
                 subject1 |> Subject.toObservable,
               )
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
                    result := true
                  );
@@ -117,7 +117,7 @@ let test =
                 Observable.ofList([7, 8, 9]),
                 subject1 |> Subject.toObservable,
               ])
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=x => result := [x, ...result^],
                    ~onComplete=Functions.alwaysUnit,
                  );
@@ -167,7 +167,7 @@ let test =
             let complete = ref(false);
             let subscription =
               observable
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=next => value := next,
                    ~onComplete=_ => complete := true,
                  );
@@ -192,10 +192,7 @@ let test =
                 });
               let subscription =
                 observable
-                |> Observable.subscribe(
-                     ~onNext=Functions.alwaysUnit,
-                     ~onComplete=Functions.alwaysUnit,
-                   );
+                |> Observable.subscribe;
               let observer =
                 observerInstance |> MutableOption.get |> Observer.toDisposable;
               subscription === observer |> Expect.toBeEqualToTrue;
@@ -207,10 +204,7 @@ let test =
               Observable.createWithObserver(_ => returnedDisposable);
             let subscription =
               observable
-              |> Observable.subscribe(
-                   ~onNext=Functions.alwaysUnit,
-                   ~onComplete=Functions.alwaysUnit,
-                 );
+              |> Observable.subscribe;
 
             Disposable.dispose(subscription);
             returnedDisposable
@@ -225,7 +219,7 @@ let test =
 
             let completed = ref(None);
             observable
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=Functions.alwaysUnit, ~onComplete=exn =>
                  completed := exn
                )
@@ -245,10 +239,7 @@ let test =
                 });
               Expect.shouldRaise(() =>
                 observable
-                |> Observable.subscribe(
-                     ~onNext=Functions.alwaysUnit,
-                     ~onComplete=Functions.alwaysUnit,
-                   )
+                |> Observable.subscribe
               );
             },
           ),
@@ -268,25 +259,16 @@ let test =
 
             let subscription =
               observable
-              |> Observable.subscribe(
-                   ~onNext=Functions.alwaysUnit,
-                   ~onComplete=Functions.alwaysUnit,
-                 );
+              |> Observable.subscribe;
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
 
             observable
-            |> Observable.subscribe(
-                 ~onNext=Functions.alwaysUnit,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe
             |> ignore;
 
             observable
-            |> Observable.subscribe(
-                 ~onNext=Functions.alwaysUnit,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe
             |> ignore;
 
             count^ |> Expect.toBeEqualToInt(3);
@@ -304,7 +286,7 @@ let test =
                  << Operators.map(string_of_int)
                  << Operators.last,
                )
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=Expect.toBeEqualToString("6"),
                  ~onComplete=Functions.alwaysUnit,
                )
@@ -326,7 +308,7 @@ let test =
               subject2 |> Subject.toObservable,
               Observable.ofList([4, 5, 6]),
             ])
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=x => result := [x, ...result^],
                  ~onComplete=Functions.alwaysUnit,
                )
@@ -351,7 +333,7 @@ let test =
               subject2 |> Subject.toObservable,
               subject3 |> Subject.toObservable,
             ])
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=x => result := [x, ...result^],
                  ~onComplete=Functions.alwaysUnit,
                )
@@ -385,7 +367,7 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               ])
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
                    result := true
                  );
@@ -417,7 +399,7 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               ])
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
                    result := true
                  );
@@ -458,7 +440,7 @@ let test =
               Disposable.disposed;
             })
             |> Observable.retry(shouldRetry)
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=x => result := [x, ...result^],
                  ~onComplete=Functions.alwaysUnit,
                )
@@ -473,10 +455,10 @@ let test =
               Observable.create((~onNext, ~onComplete) => {
                 subject := Subject.create();
                 let observable = subject^ |> Subject.toObservable;
-                observable |> Observable.subscribe(~onNext, ~onComplete);
+                observable |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
               })
               |> Observable.retry(_ => true)
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=x => result := [x, ...result^],
                    ~onComplete=Functions.alwaysUnit,
                  );
@@ -508,7 +490,7 @@ let test =
                 [1, 2, 3],
                 subject |> Subject.toObservable,
               )
-              |> Observable.subscribe(
+              |> Observable.subscribeWithCallbacks(
                    ~onNext=x => result := [x, ...result^],
                    ~onComplete=Functions.alwaysUnit,
                  );
@@ -529,7 +511,7 @@ let test =
           it("prepends the value", () => {
             let result = ref([]);
             Observable.startWithValue(1, Observable.ofList([2, 3]))
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=x => result := [x, ...result^],
                  ~onComplete=Functions.alwaysUnit,
                )

@@ -2,9 +2,11 @@ open Functions.Operators;
 
 type t('a) = Observable.t('a);
 
+let subscribe = Observable.subscribe;
+
 let subscribeObserver = Observable.subscribeObserver;
 
-let subscribe = Observable.subscribe;
+let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
 
 let defer = Observable.defer;
 

@@ -1,5 +1,5 @@
 module InnerComponent = {
-  let make = (~count, ~greeting, ~incrementCount, ~show, ~toggle, _children) => {
+  let make = (~count, ~greeting, ~incrementCount, ~show, ~toggle, _) => {
     ...ReasonReact.statelessComponent("InnerComponent"),
     render: _ => {
       let message =
@@ -65,5 +65,5 @@ let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
   |> Rx.Observable.lift(Rx.Operators.scan(reducer, initialState));
 };
 
-let component = RxReactComponent.create(~name="Example", ~state, ~render);
-let make = (~greeting: string, _children) => component(greeting);
+let component = RxReactComponent.make(~name="Example", ~state, ~render);
+let make = (~greeting as props: string) => component(~props);

@@ -87,10 +87,12 @@ let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
 
-let subscribe:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-  Disposable.t;
+let subscribe: t('a) => Disposable.t;
 
 let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
+
+let subscribeWithCallbacks:
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+  Disposable.t;
 
 let subscribeOn: (Scheduler.t, t('a)) => t('a);

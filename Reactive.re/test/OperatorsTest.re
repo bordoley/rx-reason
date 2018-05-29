@@ -788,7 +788,7 @@ let test =
                    latest |> Subject.toObservable,
                  ),
                )
-            |> Observable.subscribe(
+            |> Observable.subscribeWithCallbacks(
                  ~onNext=next => result := next,
                  ~onComplete=Functions.alwaysUnit,
                )
