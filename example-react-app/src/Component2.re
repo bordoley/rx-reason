@@ -1,6 +1,7 @@
 module InnerComponent = {
+  let component = ReasonReact.statelessComponent("InnerComponent");
   let make = (~count, ~greeting, ~incrementCount, ~show, ~toggle, _) => {
-    ...ReasonReact.statelessComponent("InnerComponent"),
+    ...component,
     render: _ => {
       let message =
         "You've clicked this " ++ string_of_int(count) ++ " times(s)";
