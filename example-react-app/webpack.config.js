@@ -10,5 +10,5 @@ module.exports = {
     path: outputDir,
     publicPath: outputDir,
     filename: 'Index.js',
-  }
+  },
 };

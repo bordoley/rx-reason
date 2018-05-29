@@ -13,7 +13,8 @@ type t('props) =
 
 let create:
   (
-    string,
-    Rx.Observable.t('props) => Rx.Observable.t(ReasonReact.reactElement)
+    ~name: string,
+    ~state: Rx.Observable.t('props) => Rx.Observable.t('state),
+    ~render: 'state => ReasonReact.reactElement,
   ) =>
   t('props);

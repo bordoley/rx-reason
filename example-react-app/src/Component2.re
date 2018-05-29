@@ -1,8 +1,6 @@
 module InnerComponent = {
-  let component = ReasonReact.statelessComponent("InnerComponent");
-
   let make = (~count, ~greeting, ~incrementCount, ~show, ~toggle, _children) => {
-    ...component,
+    ...ReasonReact.statelessComponent("InnerComponent"),
     render: _ => {
       let message =
         "You've clicked this " ++ string_of_int(count) ++ " times(s)";
@@ -19,10 +17,10 @@ module InnerComponent = {
   };
 };
 
-type action =
-  | Click
-  | Toggle
-  | SetTitle(string);
+let (<<) = (f1: 'b => 'a, f2: 'c => 'b) : ('c => 'a) =>
+  (c: 'c) => f1(f2(c));
+
+type props = string;
 
 type state = {
   count: int,
@@ -32,26 +30,33 @@ type state = {
   toggle: ReactEventRe.Mouse.t => unit,
 };
 
-type props = action;
+type actions =
+  | Click
+  | Toggle
+  | SetTitle(string);
 
-let (<<) = (f1: 'b => 'a, f2: 'c => 'b) : ('c => 'a) =>
-  (c: 'c) => f1(f2(c));
+let render = ({count, greeting, incrementCount, show, toggle}: state) =>
+  <InnerComponent count greeting incrementCount show toggle />;
 
-let stateTransform =
-    (obs: Rx.Observable.t(props))
-    : Rx.Observable.t(ReasonReact.reactElement) => {
+let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
   let subject = Rx.Subject.create();
+  let actions = subject |> Rx.Subject.toObservable;
+  let dispatch = (action, _) =>
+    subject |> Rx.Subject.toObserver |> Rx.Observer.next(action);
 
   let initialState: state = {
     count: 0,
     greeting: "",
-    incrementCount: _ =>
-      subject |> Rx.Subject.toObserver |> Rx.Observer.next(Click),
+    incrementCount: dispatch(Click),
     show: false,
-    toggle: _ => subject |> Rx.Subject.toObserver |> Rx.Observer.next(Toggle),
+    toggle: dispatch(Toggle),
   };
 
-  Rx.Observable.merge([subject |> Rx.Subject.toObservable, obs])
+  Rx.Observable.merge([
+    actions,
+    props
+    |> Rx.Observable.lift(Rx.Operators.map(greeting => SetTitle(greeting))),
+  ])
   |> Rx.Observable.lift(
        Rx.Operators.scan(
          (state, action) =>
@@ -62,11 +67,8 @@ let stateTransform =
            },
          initialState,
        )
-       << Rx.Operators.map(({count, greeting, incrementCount, show, toggle}) =>
-            <InnerComponent count greeting incrementCount show toggle />
-          ),
      );
 };
 
-let component = RxReactComponent.create("Example", stateTransform);
-let make = (~greeting: string, _children) => component(SetTitle(greeting));
+let component = RxReactComponent.create(~name="Example", ~state, ~render);
+let make = (~greeting: string, _children) => component(greeting);
