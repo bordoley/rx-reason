@@ -4,9 +4,9 @@ type action('state) =
   | Completed(option(exn));
 
 let actionsEqual = (oldProps, newProps) => switch(oldProps, newProps) {
-  | (None, None) => false
-  | (Next(oldState), Next(newState)) => oldState !== newState
-  | (Completed(oldException), Completed(newException)) => oldException !== newException
+  | (None, None) => true
+  | (Next(oldState), Next(newState)) => oldState === newState
+  | (Completed(oldException), Completed(newException)) => oldException === newException
   | _ => false
   };
 
@@ -22,7 +22,7 @@ let shouldUpdate = (
 ) => {
     let oldAction = oldSelf.state.action;
     let newAction = newSelf.state.action;
-    actionsEqual(oldAction, newAction);
+    !actionsEqual(oldAction, newAction);
   };
 
 let make =
