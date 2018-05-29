@@ -10,10 +10,5 @@ module.exports = {
     path: outputDir,
     publicPath: outputDir,
     filename: 'Index.js',
-  },
-  resolve: {
-    alias: {
-         "reactive.re": root("node_modules/reactive.re/lib/js/src")
-     }
   }
 };
