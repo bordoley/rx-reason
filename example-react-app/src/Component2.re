@@ -39,8 +39,16 @@ let reducer = (state, action) =>
   | SetTitle(greeting) => {...state, greeting}
   };
 
-let render = ({count, greeting, incrementCount, show, toggle}: state) =>
+let render = (~props as {count, greeting, incrementCount, show, toggle}: state, _) =>
   <InnerComponent count greeting incrementCount show toggle />;
+
+let initialState: state = {
+  count: 0,
+  greeting: "",
+  incrementCount: _ => (),
+  show: false,
+  toggle: _ => (),
+};
 
 let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
   let subject = Rx.Subject.create();
@@ -53,17 +61,13 @@ let state = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
   let dispatch = (action, _) =>
     subject |> Rx.Subject.toObserver |> Rx.Observer.next(action);
 
-  let initialState: state = {
-    count: 0,
-    greeting: "",
-    incrementCount: dispatch(Click),
-    show: false,
-    toggle: dispatch(Toggle),
-  };
-
   Rx.Observable.merge([actions, propsActions])
-  |> Rx.Observable.lift(Rx.Operators.scan(reducer, initialState));
+  |> Rx.Observable.lift(Rx.Operators.scan(reducer, {
+    ...initialState,
+    incrementCount: dispatch(Click),
+    toggle: dispatch(Toggle),
+  }));
 };
 
-let component = RxReactComponent.make(~name="Example", ~state, ~render);
+let component = RxReactComponent.make(~name="Example", ~state, ~initialState, ~render);
 let make = (~greeting as props: string) => component(~props);
