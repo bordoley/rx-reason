@@ -17,6 +17,16 @@ let reducer =(action, state) =>
   | Render(reactElement) => ReasonReact.Update({...state, reactElement})
   };
 
+let shouldUpdate = (
+  {oldSelf, newSelf}: ReasonReact.oldNewSelf(state('props), ReasonReact.noRetainedProps, action)
+) => {
+    let oldState = oldSelf.state;
+    let newState = newSelf.state;
+
+    oldState.reactElement !== newState.reactElement
+    || oldState.exn !== newState.exn;
+  };
+
 let make =
     (
       ~name: string,
@@ -44,13 +54,7 @@ let make =
         |> Rx.Observable.subscribe;
       onUnmount(() => subscription |> Rx.Disposable.dispose);
     },  
-    shouldUpdate: ({oldSelf, newSelf}) => {
-      let oldState = oldSelf.state;
-      let newState = newSelf.state;
-
-      oldState.reactElement !== newState.reactElement
-      || oldState.exn !== newState.exn;
-    },
+    shouldUpdate,
     render: ({state: {exn, reactElement}}) =>
       switch (exn) {
       | Some(exn) => raise(exn)
