@@ -17,9 +17,6 @@ module InnerComponent = {
   };
 };
 
-let (<<) = (f1: 'b => 'a, f2: 'c => 'b) : ('c => 'a) =>
-  (c: 'c) => f1(f2(c));
-
 type props = string;
 
 type state = {
