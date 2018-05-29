@@ -1,0 +1,42 @@
+{
+  "name": "rx-react.re",
+  "version": "0.0.0",
+  "description": "Reactive Extensions bindings for ReactReason",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "reason",
+    "reasonml",
+    "ocaml",
+    "reactive",
+    "rx",
+    "BuckleScript"
+  ],
+  "author": {
+    "name": "David Bordoley",
+    "email": "bordoley@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "David Bordoley",
+      "email": "bordoley@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordoley/Reactive.re.git"
+  },
+  "dependencies": {
+    "reactive.re": "../Reactive.re",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "reason-react": ">=0.4.0"
+  },
+  "devDependencies": {
+    "bs-platform": "^3.1.4"
+  }
+}
