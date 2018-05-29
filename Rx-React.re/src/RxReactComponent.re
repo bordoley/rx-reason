@@ -1,37 +1,34 @@
+type action('state) =
+  | None
+  | Next('state)
+  | Completed(option(exn));
+
+let actionsEqual = (oldProps, newProps) => switch(oldProps, newProps) {
+  | (None, None) => false
+  | (Next(oldState), Next(newState)) => oldState !== newState
+  | (Completed(oldException), Completed(newException)) => oldException !== newException
+  | _ => false
+  };
+
 type state('props, 'state) = {
-  props: 'state,
-  exn: option(exn),
+  action: action('state),
   propsSubject: Rx.Subject.t('props),
 };
 
-type action('state) =
-  | Next('state)
-  | Complete(option(exn));
-
-let (<<) = (f1: 'b => 'a, f2: 'c => 'b) : ('c => 'a) =>
-  (c: 'c) => f1(f2(c));
-
-let reducer =(action, state) =>
-  switch (action) {
-  | Next(props) => ReasonReact.Update({...state, props})
-  | Complete(exn) => ReasonReact.Update({...state, exn})
-  };
+let reducer = (action, state) => ReasonReact.Update({...state, action});
 
 let shouldUpdate = (
   {oldSelf, newSelf}: ReasonReact.oldNewSelf(state('props, 'state), ReasonReact.noRetainedProps, action('state))
 ) => {
-    let oldState = oldSelf.state;
-    let newState = newSelf.state;
-
-    oldState.props !== newState.props
-    || oldState.exn !== newState.exn;
+    let oldAction = oldSelf.state.action;
+    let newAction = newSelf.state.action;
+    actionsEqual(oldAction, newAction);
   };
 
 let make =
     (
       ~name: string,
-      ~state: Rx.Observable.t('props) => Rx.Observable.t('state),
-      ~initialState: 'state,
+      ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
     ) => {
   let component = ReasonReact.reducerComponentWithRetainedProps(name);
   let componentWithLifecyclesAndReducer = {
@@ -40,10 +37,12 @@ let make =
     didMount: ({send, state: {propsSubject}, onUnmount}) => {
       let subscription = propsSubject
         |> Rx.Subject.toObservable
-        |> state
+        |> createStore
         |> Rx.Observable.lift(
-              Rx.Operators.onNext(next => send(Next(next)))
-              << Rx.Operators.onComplete(exn =>send(Complete(exn))),
+              Rx.Operators.observe(
+                ~onNext=next => send(Next(next)),
+                ~onComplete=exn => send(Completed(exn))
+              ),
             )
         |> Rx.Observable.subscribe;
       onUnmount(() => subscription |> Rx.Disposable.dispose);
@@ -61,21 +60,20 @@ let make =
       let propsSubject = Rx.Subject.createWithReplayBuffer(1);
       propsSubject |> Rx.Subject.toObserver |> Rx.Observer.next(props);
       {
-        props: initialState,
-        exn: None,
+        action: None,
         propsSubject,
       }
     },
-
     willReceiveProps: ({state}) => {
       let {propsSubject} = state;
       propsSubject |> Rx.Subject.toObserver |> Rx.Observer.next(props);
       state;
     },
-    render: ({state: {exn, props}}) =>
-      switch (exn) {
-      | Some(exn) => raise(exn)
-      | None => render(~props, children)
+    render: ({state: { action }}) =>
+      switch (action) {
+      | Next(props) => render(~props, children)
+      | Completed(Some(exn)) => raise(exn)
+      | _ => ReasonReact.null
       },
   };
 };
