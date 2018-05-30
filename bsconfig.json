@@ -7,6 +7,7 @@
   "bs-dependencies": [
     "reunit",
     "rx-reason",
+    "rx-reason-js",
     "rx-reason-react",
     "rx-reason-react-example",
     "reason-react"
@@ -52,6 +53,9 @@
           ]
         } 
       ]
+    },
+    {
+      "dir": "packages/rx-reason-js/src"
     },
     {
       "dir": "packages/rx-reason-react/src"

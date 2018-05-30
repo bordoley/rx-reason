@@ -331,7 +331,13 @@ let observe =
   };
 
 let observeOn = (_: Scheduler.t) : Operator.t('a, 'a) =>
-  failwith("Not Implemented");
+  observer => {
+    Observer.create(
+      ~onNext=_=>(), 
+      ~onComplete=_=>(), 
+      ~onDispose=() => (),
+    )
+  };
 
 let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
   observer =>
