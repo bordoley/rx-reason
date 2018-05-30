@@ -1,3 +1,5 @@
+let module Rx = RxReason;
+
 type action('state) =
   | None
   | Next('state)
@@ -12,7 +14,7 @@ let actionsEqual = (oldProps, newProps) => switch(oldProps, newProps) {
 
 type state('props, 'state) = {
   action: action('state),
-  propsSubject: RxReason.Subject.t('props),
+  propsSubject: Rx.Subject.t('props),
 };
 
 let reducer = (action, state) => ReasonReact.Update({...state, action});
@@ -28,7 +30,7 @@ let shouldUpdate = (
 let make =
     (
       ~name: string,
-      ~createStore: RxReason.Observable.t('props) => RxReason.Observable.t('state),
+      ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
     ) => {
   let component = ReasonReact.reducerComponentWithRetainedProps(name);
   let didMount = (

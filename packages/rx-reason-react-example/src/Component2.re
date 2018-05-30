@@ -68,5 +68,5 @@ let createStore = (props: RxReason.Observable.t(props)) : RxReason.Observable.t(
     );
 };
 
-let component = RxReactComponent.make(~name="Example", ~createStore, ~render);
+let component = RxReasonReact.Component.make(~name="Example", ~createStore, ~render);
 let make = (~greeting as props: string) => component(~props);

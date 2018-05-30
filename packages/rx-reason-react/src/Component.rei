@@ -1,10 +1,12 @@
 type action('state);
 type state('props, 'state);
 
+let module Rx = RxReason;
+
 let make:
   (
     ~name: string,
-    ~createStore: RxReason.Observable.t('props) => RxReason.Observable.t('state),
+    ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
     ~render: (~props: 'state, array(ReasonReact.reactElement)) => ReasonReact.reactElement,
     ~props: 'props,
     array(ReasonReact.reactElement),
