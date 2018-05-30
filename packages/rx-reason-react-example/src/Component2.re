@@ -43,16 +43,16 @@ let reducer = (state, action) =>
 let render = (~props as {count, greeting, incrementCount, show, toggle}: state, _) =>
   <InnerComponent count greeting incrementCount show toggle />;
 
-let createStore = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
-  let subject = Rx.Subject.create();
+let createStore = (props: RxReason.Observable.t(props)) : RxReason.Observable.t(state) => {
+  let subject = RxReason.Subject.create();
 
-  let actions = subject |> Rx.Subject.toObservable;
+  let actions = subject |> RxReason.Subject.toObservable;
   let propsActions =
     props
-    |> Rx.Observable.lift(Rx.Operators.map(greeting => SetTitle(greeting)));
+    |> RxReason.Observable.lift(RxReason.Operators.map(greeting => SetTitle(greeting)));
 
   let dispatch = (action, _) =>
-    subject |> Rx.Subject.toObserver |> Rx.Observer.next(action);
+    subject |> RxReason.Subject.toObserver |> RxReason.Observer.next(action);
 
   let initialState: state = {
     count: 0,
@@ -62,9 +62,9 @@ let createStore = (props: Rx.Observable.t(props)) : Rx.Observable.t(state) => {
     toggle: dispatch(Toggle),
   };
 
-  Rx.Observable.merge([actions, propsActions])
-  |> Rx.Observable.lift(
-      Rx.Operators.scan(reducer, initialState),
+  RxReason.Observable.merge([actions, propsActions])
+  |> RxReason.Observable.lift(
+      RxReason.Operators.scan(reducer, initialState),
     );
 };
 

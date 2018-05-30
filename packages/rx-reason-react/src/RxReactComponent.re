@@ -12,7 +12,7 @@ let actionsEqual = (oldProps, newProps) => switch(oldProps, newProps) {
 
 type state('props, 'state) = {
   action: action('state),
-  propsSubject: Rx.Subject.t('props),
+  propsSubject: RxReason.Subject.t('props),
 };
 
 let reducer = (action, state) => ReasonReact.Update({...state, action});
@@ -28,23 +28,23 @@ let shouldUpdate = (
 let make =
     (
       ~name: string,
-      ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
+      ~createStore: RxReason.Observable.t('props) => RxReason.Observable.t('state),
     ) => {
   let component = ReasonReact.reducerComponentWithRetainedProps(name);
   let didMount = (
     {send, state: {propsSubject}, onUnmount}: ReasonReact.self(state('props, 'state), ReasonReact.noRetainedProps, action('state))
   ) => {
     let subscription = propsSubject
-      |> Rx.Subject.toObservable
+      |> RxReason.Subject.toObservable
       |> createStore
-      |> Rx.Observable.lift(
-            Rx.Operators.observe(
+      |> RxReason.Observable.lift(
+            RxReason.Operators.observe(
               ~onNext=next => send(Next(next)),
               ~onComplete=exn => send(Completed(exn))
             ),
           )
-      |> Rx.Observable.subscribe;
-    onUnmount(() => subscription |> Rx.Disposable.dispose);
+      |> RxReason.Observable.subscribe;
+    onUnmount(() => subscription |> RxReason.Disposable.dispose);
   };
 
   (
@@ -57,8 +57,8 @@ let make =
     didMount,
     shouldUpdate,
     initialState: () => {
-      let propsSubject = Rx.Subject.createWithReplayBuffer(1);
-      propsSubject |> Rx.Subject.toObserver |> Rx.Observer.next(props);
+      let propsSubject = RxReason.Subject.createWithReplayBuffer(1);
+      propsSubject |> RxReason.Subject.toObserver |> RxReason.Observer.next(props);
       {
         action: None,
         propsSubject,
@@ -66,7 +66,7 @@ let make =
     },
     willReceiveProps: ({state}) => {
       let {propsSubject} = state;
-      propsSubject |> Rx.Subject.toObserver |> Rx.Observer.next(props);
+      propsSubject |> RxReason.Subject.toObserver |> RxReason.Observer.next(props);
       state;
     },
     render: ({state: { action }}) =>

@@ -1,0 +1,40 @@
+{
+  "name": "rx-reason",
+  "package-specs": {
+    "module": "commonjs"
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [],
+  "bs-dev-dependencies": ["reunit"],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "namespace": true,
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": [
+        {
+          "dir": "internal",
+          "public": "none"
+        }, 
+        {
+          "dir": "platform",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "js",
+              "public": "none"
+            }
+          ]
+        } 
+      ]
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ]
+}

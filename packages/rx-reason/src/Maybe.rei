@@ -9,7 +9,7 @@ let create:
 
 let defer: (unit => t('a)) => t('a);
 
-let empty: (~scheduler: Rx.Scheduler.t=?, unit) => t('a);
+let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
 let every: ('a => bool, Observable.t('a)) => t(bool);
 

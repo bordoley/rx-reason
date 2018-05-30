@@ -5,14 +5,10 @@
   "author": "facebook",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "bs-platform": "^3.1.4"
+    "bs-platform": "^3.1.5"
   },
   "scripts": {
     "build": "bsb -make-world",
     "clean": "bsb -clean-world"
-  },
-  "files": [
-    "bsconfig.json",
-    "src"
-  ]
+  }
 }

@@ -10,6 +10,7 @@
 .DS_Store
 .nyc_output
 .merlin
+.bs.js
 
 # ocamlbuild working directory
 _build/
@@ -25,3 +26,4 @@ build/
 node_modules/
 coverage/
 npm-debug.log
+lerna-debug.log

@@ -4,7 +4,7 @@ type state('props, 'state);
 let make:
   (
     ~name: string,
-    ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
+    ~createStore: RxReason.Observable.t('props) => RxReason.Observable.t('state),
     ~render: (~props: 'state, array(ReasonReact.reactElement)) => ReasonReact.reactElement,
     ~props: 'props,
     array(ReasonReact.reactElement),

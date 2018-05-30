@@ -1,20 +1,18 @@
 {
-  "name": "reactive.re",
+  "name": "rx-reason-react",
   "version": "0.0.0",
-  "description": "Reactive Extensions for Reason and OCaml",
+  "description": "rx-reason bindings for ReasonReact",
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
-    "clean": "bsb -clean-world",
-    "test": "npm run build && node lib/js/test/TestRunner.bs.js",
-    "test-debug": "npm run build && node --inspect-brk lib/js/test/TestRunner.bs.js",
-    "test-coverage": "npm run build && nyc node lib/js/test/TestRunner.bs.js && nyc report --reporter=html && open coverage/index.html"
+    "clean": "bsb -clean-world"
   },
   "keywords": [
+    "ocaml",
+    "react",
+    "reactive",
     "reason",
     "reasonml",
-    "ocaml",
-    "reactive",
     "rx",
     "BuckleScript"
   ],
@@ -33,9 +31,13 @@
     "type": "git",
     "url": "https://github.com/bordoley/Reactive.re.git"
   },
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "reason-react": ">=0.4.0",
+    "rx-reason": "^0.0.0"
+  },
   "devDependencies": {
-    "bs-platform": "^3.1.4",
-    "nyc": "^11.8.0",
-    "reunit": "../reUnit"
+    "bs-platform": "^3.1.5"
   }
 }

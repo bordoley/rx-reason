@@ -1,0 +1,30 @@
+{
+  "name": "reunit",
+  "package-specs": {
+    "module": "commonjs"
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [],
+  "bs-dev-dependencies": [],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": [
+        {
+          "dir": "platform",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "js",
+              "public": "none"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

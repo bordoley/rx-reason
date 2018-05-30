@@ -137,7 +137,7 @@ let run = (tests: Test.t) : unit => {
     switch result {
     | Some(exn) =>
       print_string("Test Failure!!!!\n");
-      Js.log(exn);
+      ExnHelpers.print(exn);
       /*
       Printexc.to_string(exn) |> print_string;
       print_newline();

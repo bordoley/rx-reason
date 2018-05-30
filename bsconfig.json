@@ -1,0 +1,63 @@
+{
+  "name": "reactive-re",
+  "package-specs": {
+    "module": "commonjs"
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "reunit",
+    "rx-reason",
+    "rx-reason-react",
+    "rx-reason-react-example",
+    "reason-react"
+  ],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "reason": {
+    "react-jsx": 2
+  },
+  "sources": [
+    {
+      "dir": "packages/reunit/src",
+      "subdirs": [
+        {
+          "dir": "platform",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "js",
+              "public": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dir": "packages/rx-reason/src",
+      "subdirs": [
+        {
+          "dir": "internal",
+          "public": "none"
+        }, 
+        {
+          "dir": "platform",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "js",
+              "public": "none"
+            }
+          ]
+        } 
+      ]
+    },
+    {
+      "dir": "packages/rx-reason-react/src"
+    },
+    {
+      "dir": "packages/rx-reason-react-example/src"
+    }
+  ]
+}
