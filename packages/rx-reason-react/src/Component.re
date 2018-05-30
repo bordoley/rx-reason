@@ -20,7 +20,7 @@ module type RxReasonReactComponentSpec = {
 
   let name: string;
   let createStore: Rx.Observable.t(props) => Rx.Observable.t(state);
-  let render: (~props: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
+  let render: (~state: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
 };
 
 module type RxReasonReactComponent = {
@@ -93,7 +93,7 @@ module Make = (ComponentSpec: RxReasonReactComponentSpec): (RxReasonReactCompone
     },
     render: ({state: { action }}) =>
       switch (action) {
-      | Next(props) => ComponentSpec.render(~props, children)
+      | Next(state) => ComponentSpec.render(~state, children)
       | Completed(Some(exn)) => raise(exn)
       | _ => ReasonReact.null
       },

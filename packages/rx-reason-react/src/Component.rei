@@ -4,7 +4,8 @@ module type RxReasonReactComponentSpec = {
 
   let name: string;
   let createStore: RxReason.Observable.t(props) => RxReason.Observable.t(state);
-  let render: (~props: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
+  let render: (~state: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
+
 };
 
 module type RxReasonReactComponent = {

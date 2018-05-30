@@ -4,7 +4,7 @@ let module StatefulComponent = RxReasonReact.Component.Make({
 
   let name = "RxReasonReactExampleContainer";
   let createStore = Store.create; 
-  let render = (~props as {count, greeting, incrementCount, show, toggle}: Store.State.t, _) =>
+  let render = (~state as {count, greeting, incrementCount, show, toggle}: Store.State.t, _) =>
     <GreetingComponent count greeting incrementCount show toggle />;
 });
 
