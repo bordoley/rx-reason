@@ -14,32 +14,45 @@ module Action = {
     };
 };
 
-type action('state)=Action.t('state);
+module type RxReasonReactComponentSpec = {
+  type props;
+  type state;
 
-type state('props, 'state) = {
-  action: Action.t('state),
-  propsSubject: Rx.Subject.t('props),
+  let name: string;
+  let createStore: Rx.Observable.t(props) => Rx.Observable.t(state);
+  let render: (~props: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
 };
 
-let reducer = (action, state) => ReasonReact.Update({...state, action});
+module type RxReasonReactComponent = {
+  type props;
+  type state;
+  type action;
 
-let shouldUpdate = (
-  {oldSelf, newSelf}: ReasonReact.oldNewSelf(state('props, 'state), ReasonReact.noRetainedProps, action('state))
-) => {
-    let oldAction = oldSelf.state.action;
-    let newAction = newSelf.state.action;
-    !Action.equal(oldAction, newAction);
+  let make: (~props: props, array(ReasonReact.reactElement)) =>ReasonReact.componentSpec(
+    state,
+    state,
+    ReasonReact.noRetainedProps,
+    ReasonReact.noRetainedProps,
+    action,
+  )
+};
+
+module Make = (ComponentSpec: RxReasonReactComponentSpec): (RxReasonReactComponent with type props := ComponentSpec.props) => {
+  type props = ComponentSpec.props;
+  type action = Action.t(ComponentSpec.state);
+  type state = {
+    action: action,
+    propsSubject: Rx.Subject.t(props),
   };
 
-let make =(~createStore: Rx.Observable.t('props) => Rx.Observable.t('state)) => {
-  let component = ReasonReact.reducerComponent("RxReasonReactComponent");
+  let component = ReasonReact.reducerComponent(ComponentSpec.name);
 
   let didMount = (
-    {send, state: {propsSubject}, onUnmount}: ReasonReact.self(state('props, 'state), ReasonReact.noRetainedProps, action('state))
+    {send, state: {propsSubject}, onUnmount}: ReasonReact.self(state, ReasonReact.noRetainedProps, action)
   ) => {
     let subscription = propsSubject
       |> RxReason.Subject.toObservable
-      |> createStore
+      |> ComponentSpec.createStore
       |> RxReason.Observable.lift(
             RxReason.Operators.observe(
               ~onNext=next => send(Next(next)),
@@ -50,11 +63,17 @@ let make =(~createStore: Rx.Observable.t('props) => Rx.Observable.t('state)) => 
     onUnmount(() => subscription |> RxReason.Disposable.dispose);
   };
 
-  (
-   ~render: (~props: 'state, array(ReasonReact.reactElement)) => ReasonReact.reactElement, 
-   ~props: 'props, 
-   children: array(ReasonReact.reactElement)
+  let reducer = (action, state) => ReasonReact.Update({...state, action});
+
+  let shouldUpdate = (
+    {oldSelf, newSelf}: ReasonReact.oldNewSelf(state, ReasonReact.noRetainedProps, action)
   ) => {
+      let oldAction = oldSelf.state.action;
+      let newAction = newSelf.state.action;
+      !Action.equal(oldAction, newAction);
+    };
+
+  let make = (~props: props, children) => {
     ...component,
     reducer,
     didMount,
@@ -74,7 +93,7 @@ let make =(~createStore: Rx.Observable.t('props) => Rx.Observable.t('state)) => 
     },
     render: ({state: { action }}) =>
       switch (action) {
-      | Next(props) => render(~props, children)
+      | Next(props) => ComponentSpec.render(~props, children)
       | Completed(Some(exn)) => raise(exn)
       | _ => ReasonReact.null
       },

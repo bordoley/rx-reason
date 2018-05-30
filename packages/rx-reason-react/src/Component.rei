@@ -1,18 +1,24 @@
-type action('state);
-type state('props, 'state);
+module type RxReasonReactComponentSpec = {
+  type props;
+  type state;
 
-let module Rx = RxReason;
+  let name: string;
+  let createStore: RxReason.Observable.t(props) => RxReason.Observable.t(state);
+  let render: (~props: state, array(ReasonReact.reactElement)) => ReasonReact.reactElement;
+};
 
-let make:
-  (
-    ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
-    ~render: (~props: 'state, array(ReasonReact.reactElement)) => ReasonReact.reactElement,
-    ~props: 'props,
-    array(ReasonReact.reactElement),
-  ) => ReasonReact.componentSpec(
-    state('props, 'state),
-    state('props, 'state),
+module type RxReasonReactComponent = {
+  type props;
+  type state;
+  type action;
+
+  let make: (~props: props, array(ReasonReact.reactElement)) => ReasonReact.componentSpec(
+    state,
+    state,
     ReasonReact.noRetainedProps,
     ReasonReact.noRetainedProps,
-    action('state),
-  );
+    action,
+  )
+};
+
+module Make: (ComponentSpec: RxReasonReactComponentSpec) => (RxReasonReactComponent with type props := ComponentSpec.props);
