@@ -1,19 +1,23 @@
 let module Rx = RxReason;
 
-type action('state) =
-  | None
-  | Next('state)
-  | Completed(option(exn));
+module Action = {
+  type t('state) =
+    | None
+    | Next('state)
+    | Completed(option(exn));
 
-let actionsEqual = (oldProps, newProps) => switch(oldProps, newProps) {
-  | (None, None) => true
-  | (Next(oldState), Next(newState)) => oldState === newState
-  | (Completed(oldException), Completed(newException)) => oldException === newException
-  | _ => false
-  };
+  let equal = (oldAction, newAction) => switch(oldAction, newAction) {
+    | (None, None) => true
+    | (Next(oldState), Next(newState)) => oldState === newState
+    | (Completed(oldException), Completed(newException)) => oldException === newException
+    | _ => false
+    };
+};
+
+type action('state)=Action.t('state);
 
 type state('props, 'state) = {
-  action: action('state),
+  action: Action.t('state),
   propsSubject: Rx.Subject.t('props),
 };
 
@@ -24,15 +28,12 @@ let shouldUpdate = (
 ) => {
     let oldAction = oldSelf.state.action;
     let newAction = newSelf.state.action;
-    !actionsEqual(oldAction, newAction);
+    !Action.equal(oldAction, newAction);
   };
 
-let make =
-    (
-      ~name: string,
-      ~createStore: Rx.Observable.t('props) => Rx.Observable.t('state),
-    ) => {
-  let component = ReasonReact.reducerComponentWithRetainedProps(name);
+let make =(~createStore: Rx.Observable.t('props) => Rx.Observable.t('state)) => {
+  let component = ReasonReact.reducerComponent("RxReasonReactComponent");
+
   let didMount = (
     {send, state: {propsSubject}, onUnmount}: ReasonReact.self(state('props, 'state), ReasonReact.noRetainedProps, action('state))
   ) => {

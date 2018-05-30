@@ -1076,7 +1076,7 @@ browserify-zlib@^0.2.0:
   dependencies:
     pako "~1.0.5"
 
-bs-platform@^3.1.4, bs-platform@^3.1.5:
+bs-platform@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-3.1.5.tgz#fb34ee4702bc9163848d5537096c4f31ebaeed40"
 
