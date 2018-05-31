@@ -1,17 +1,18 @@
+let resolveUnit = Js.Promise.resolve();
+
 let schedule: RxReason.Scheduler.t =
-  (work) => {
+  work => {
     let disposable = RxReason.AssignableDisposable.create();
     let run = () => {
       disposable
       |> RxReason.AssignableDisposable.set(RxReason.Disposable.disposed);
-      let isDisposed =
-        disposable |> RxReason.AssignableDisposable.isDisposed;
+      let isDisposed = disposable |> RxReason.AssignableDisposable.isDisposed;
       if (! isDisposed) {
         disposable |> RxReason.AssignableDisposable.set(work());
       };
-      Js.Promise.resolve(());
+      resolveUnit;
     };
-    Js.Promise.(resolve(()) |> then_(run)) |> ignore;
+    Js.Promise.(resolveUnit |> then_(run)) |> ignore;
     disposable |> RxReason.AssignableDisposable.toDisposable;
   };
 
