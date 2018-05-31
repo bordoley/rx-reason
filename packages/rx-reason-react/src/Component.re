@@ -58,7 +58,7 @@ module Make = (ComponentSpec: RxReasonReactComponentSpec): (RxReasonReactCompone
            * We should schedule using that instead of our home rolled eventloop.
            * https://github.com/facebook/react/tree/master/packages/react-scheduler
            */
-          @@ RxReason.Operators.observeOn(RxReasonJs.JSScheduler.eventloop)
+          @@ RxReason.Operators.observeOn(RxReasonJs.JSEventLoop.schedule)
           @@ observer,
         )
       |> ComponentSpec.createStore
