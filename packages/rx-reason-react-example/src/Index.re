@@ -8,4 +8,15 @@ let module StatefulComponent = RxReasonReact.Component.Make({
     <GreetingComponent count greeting incrementCount show toggle />;
 });
 
-ReactDOMRe.renderToElementWithId(<StatefulComponent props="Hello!" />, "index2");
+let state = ref(true);
+Js.Global.setInterval(
+  () => {
+    Js.log("settting props");
+    ReactDOMRe.renderToElementWithId(
+      <StatefulComponent props=(state^ ? "true" : "false") />, 
+      "index2",
+    );
+    state := state^ |> (!); 
+  },
+  5000,
+)|> ignore;

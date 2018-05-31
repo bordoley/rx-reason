@@ -330,12 +330,41 @@ let observe =
     outerObserver;
   };
 
-let observeOn = (_: Scheduler.t) : Operator.t('a, 'a) =>
+/* Intentionally half baked implementation here
+ * 1) Assumes that the scheduler actually schedules work in order
+ * 2) Doesn't keep track of scheduled work, which it should cancel
+ *    when disposed.
+ * 3) Risks unbounded buffers due to the API definition. Should better define
+ *    the api contract.
+ * See the following:
+ * https://github.com/dotnet/reactive/blob/ceee7a7742f97bfb9c283d5835161ddf8565d398/Rx.NET/Source/src/System.Reactive/Internal/ScheduledObserver.cs
+ * 
+ */
+let observeOn = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     Observer.create(
-      ~onNext=_=>(), 
-      ~onComplete=_=>(), 
-      ~onDispose=() => (),
+      ~onNext=next => {
+        let disposable = AssignableDisposable.create();
+        let scheduledDisposable = scheduler(() => {
+          observer |> Observer.next(next);
+          disposable |> AssignableDisposable.toDisposable;
+        });
+        disposable |> AssignableDisposable.set(scheduledDisposable);
+        /* FIXME: Queue the disposable and remove it from the queue in the callback */
+      }, 
+      ~onComplete=exn=> {
+        let disposable = AssignableDisposable.create();
+        let scheduledDisposable = scheduler(() => {
+          observer |> Observer.complete(exn);
+          disposable |> AssignableDisposable.toDisposable;
+        });
+        disposable |> AssignableDisposable.set(scheduledDisposable);
+        /* FIXME: Queue the disposable and remove it from the queue in the callback */
+      },
+      ~onDispose=() => {
+        /* FIXME: Should dispose any outstanding requests for notification here. */
+        observer |> Observer.dispose;
+      },
     )
   };
 

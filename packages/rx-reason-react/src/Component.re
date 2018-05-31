@@ -52,6 +52,15 @@ module Make = (ComponentSpec: RxReasonReactComponentSpec): (RxReasonReactCompone
   ) => {
     let subscription = propsSubject
       |> RxReason.Subject.toObservable
+      |> RxReason.Observable.lift(observer =>
+          RxReason.Operators.distinctUntilChanged
+          /* FIXME: In the future React will expose it's scheduler via an api.
+           * We should schedule using that instead of our home rolled eventloop.
+           * https://github.com/facebook/react/tree/master/packages/react-scheduler
+           */
+          @@ RxReason.Operators.observeOn(RxReasonJs.JSScheduler.eventloop)
+          @@ observer,
+        )
       |> ComponentSpec.createStore
       |> RxReason.Observable.lift(
             RxReason.Operators.observe(
