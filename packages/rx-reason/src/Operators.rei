@@ -1,6 +1,7 @@
 let bufferCount:
   (~size: int, ~startEvery: int=?) => Operator.t('a, array('a));
 
+  /*
 let bufferTime:
   (
     ~bufferCreationInterval: float=?,
@@ -9,21 +10,12 @@ let bufferTime:
     ~timespan: float,
   ) =>
   /* FIXME: Is list really the right return type... */
-  Operator.t('a, list('a));
+  Operator.t('a, list('a));*/
 
 let debounceTime:
-  (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);
+  (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
-
-/* delay:
- * The issue with delay is that for observables it can result
- * in unbounded buffers. Therefore the API needs to support
- * the concept of a buffer strategy, such as
- * BufferUpToAndDrop or BufferUpToAndThrow
- * 
- * Punting for now.
- */
 
 let dispose: (Disposable.t) => Operator.t('a, 'a);
 
@@ -81,8 +73,8 @@ let some: ('a => bool) => Operator.t('a, bool);
 let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
-
-let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);
+/*
+let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);*/
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

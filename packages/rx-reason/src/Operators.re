@@ -4,7 +4,7 @@ let bufferCount =
     (~size as _: int, ~startEvery as _: int=0)
     : Operator.t('a, array('a)) =>
   failwith("Not Implemented");
-
+/*
 let bufferTime =
     (
       ~bufferCreationInterval as _: float=0.0,
@@ -13,10 +13,10 @@ let bufferTime =
       ~timespan as _: float,
     )
     : Operator.t('a, list('a)) =>
-  failwith("Not Implemented");
+  failwith("Not Implemented");*/
 
 let debounceTime =
-    (~scheduler=DelayScheduler.default, duration: float)
+    (~scheduler, duration: float)
     : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
@@ -507,11 +507,12 @@ let synchronize: Operator.t('a, 'a) =
       ~onDispose=() => observer |> Observer.dispose,
     );
   };
-
+/*
 let timeout =
-    (~scheduler as _: DelayScheduler.t=DelayScheduler.default, _: float)
+    (~scheduler as _: DelayScheduler.t, _: float)
     : Operator.t('a, 'a) =>
   failwith("Not Implemented");
+  */
 
 let withLatestFrom =
     (~selector: ('a, 'b) => 'c, other: Observable.t('b))
