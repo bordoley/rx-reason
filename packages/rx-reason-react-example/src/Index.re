@@ -8,6 +8,19 @@ let module StatefulComponent = RxReasonReact.Component.Make({
     <GreetingComponent count greeting incrementCount show toggle />;
 });
 
+let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
+let single = promise |> RxReasonJs.JSPromise.toSingle;
+single |> RxReason.Single.subscribeWithCallbacks(
+  ~onSuccess=Js.log,
+  ~onError=Js.log,
+) |> ignore;
+
+let promise = single 
+  |> RxReason.Single.toObservable 
+  |> RxReason.Single.liftFirst(RxReason.Operators.mapTo("b")) 
+  |> RxReasonJs.JSPromise.fromSingle
+  |> Js.Promise.then_(a => { Js.log(a); Js.Promise.resolve(())});
+
 let state = ref(true);
 Js.Global.setInterval(
   () => {

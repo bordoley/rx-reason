@@ -20,11 +20,11 @@ let first = (observable: Observable.t('a)) : t('a) =>
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.maybeLast);
 
-let liftFirst = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
-  maybe |> Observable.lift(Operators.maybeFirst << operator);
+let liftFirst = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
+  observable |> Observable.lift(Operators.maybeFirst << operator);
 
-let liftLast = (operator: Operator.t('a, 'b), maybe: t('a)) : t('b) =>
-  maybe |> Observable.lift(Operators.maybeLast << operator);
+let liftLast = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
+  observable |> Observable.lift(Operators.maybeLast << operator);
 
 let create = subscribe => Observable.create(subscribe) |> first;
 

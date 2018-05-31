@@ -24,11 +24,11 @@ let first = (observable: Observable.t('a)) : t('a) =>
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.last);
 
-let liftFirst = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
-  single |> Observable.lift(Operators.first << operator);
+let liftFirst = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
+  observable |> Observable.lift(Operators.first << operator);
 
-let liftLast = (operator: Operator.t('a, 'b), single: t('a)) : t('b) =>
-  single |> Observable.lift(Operators.last << operator);
+let liftLast = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
+  observable |> Observable.lift(Operators.last << operator);
 
 let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.every(predicate));

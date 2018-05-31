@@ -17,9 +17,9 @@ let first: Observable.t('a) => t('a);
 
 let last: Observable.t('a) => t('a);
 
-let liftFirst: (Operator.t('a, 'b), t('a)) => t('b);
+let liftFirst: (Operator.t('a, 'b), Observable.t('a)) => t('b);
 
-let liftLast: (Operator.t('a, 'b), t('a)) => t('b);
+let liftLast: (Operator.t('a, 'b), Observable.t('a)) => t('b);
 
 let none: ('a => bool, Observable.t('a)) => t(bool);
 
