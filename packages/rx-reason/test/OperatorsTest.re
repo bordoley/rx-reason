@@ -53,7 +53,66 @@ let test =
           }),
         ],
       ),
-      describe("every", []),
+      describe("every", 
+        [
+          it("returns true for an observer that completes without producing values", () => {
+            let observedValue = ref(false);
+            let completed = ref(false);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedValue := next,
+                ~onComplete=_ => completed := true,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let everyObserver = observer |> Operators.every(i => i > 10);
+            everyObserver |> Observer.complete(None);
+            observedValue^ |> Expect.toBeEqualToTrue;
+            completed^ |> Expect.toBeEqualToTrue;
+          }),
+          it("it completes with false on the first observed value that fails the predicate", () => {
+            let observedValue = ref(true);
+            let completed = ref(false);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedValue := next,
+                ~onComplete=_ => completed := true,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let everyObserver = observer |> Operators.every(i => i > 10);
+            everyObserver |> Observer.next(12);
+            observedValue^ |> Expect.toBeEqualToTrue;
+            completed^ |> Expect.toBeEqualToFalse;
+
+            everyObserver |> Observer.next(10);
+            observedValue^ |> Expect.toBeEqualToFalse;
+            completed^ |> Expect.toBeEqualToTrue;
+
+            everyObserver |> Observer.complete(None);
+          }),
+
+          it("it completes with true if all values pass the predicate", () => {
+            let observedValue = ref(false);
+            let completed = ref(false);
+            let observer =
+              Observer.create(
+                ~onNext=next => observedValue := next,
+                ~onComplete=_ => completed := true,
+                ~onDispose=Functions.alwaysUnit,
+              );
+            let everyObserver = observer |> Operators.every(i => i > 10);
+            everyObserver |> Observer.next(12);
+            observedValue^ |> Expect.toBeEqualToFalse;
+            completed^ |> Expect.toBeEqualToFalse;
+
+            everyObserver |> Observer.next(13);
+            observedValue^ |> Expect.toBeEqualToFalse;
+            completed^ |> Expect.toBeEqualToFalse;
+
+            everyObserver |> Observer.complete(None);
+            observedValue^ |> Expect.toBeEqualToTrue;
+            completed^ |> Expect.toBeEqualToTrue;            
+          }),
+        ]),
       describe("exhaust", []),
       describe(
         "find",

@@ -91,8 +91,6 @@ let dispose = (disposable: Disposable.t) : Operator.t('a, 'a) =>
         },
     );
 
-let every = (predicate: 'a => bool) => failwith("Not Implemented");
-
 let exhaust: Operator.t(Observable.t('a), 'a) =
   _ => failwith("Not Implemented");
 
@@ -336,10 +334,11 @@ let observeOn =
     )
     : Operator.t('a, 'a) =>
   observer => {
-    let queue = QueueWithBackPressureStrategy.create(
-      ~backPressureStrategy,
-      ~maxSize=bufferSize,
-    );
+    let queue =
+      QueueWithBackPressureStrategy.create(
+        ~backPressureStrategy,
+        ~maxSize=bufferSize,
+      );
     let shouldComplete = ref(false);
     let completedState = ref(None);
 
@@ -439,6 +438,31 @@ let scan =
     observer |> Observer.next(initialValue);
     map(mapper, observer);
   };
+
+let every = (predicate: 'a => bool, observer) => {
+  let filteringDisposable = AssignableDisposable.create();
+  let filteringObserver =
+    Observer.create(
+      ~onNext=
+        next =>
+          if (! next) {
+            observer |> Observer.next(next);
+            observer |> Observer.complete(None);
+            filteringDisposable |> AssignableDisposable.dispose;
+          },
+      ~onComplete=
+        exn => {
+          if (exn === None) {
+            observer |> Observer.next(true);
+          };
+          observer |> Observer.complete(exn);
+        },
+      ~onDispose=() => observer |> Observer.dispose,
+    );
+  filteringDisposable
+  |> AssignableDisposable.set(filteringObserver |> Observer.toDisposable);
+  filteringObserver |> map(next => predicate(next));
+};
 
 let some = (_: 'a => bool) : Operator.t('a, bool) =>
   failwith("Not Implemented");
