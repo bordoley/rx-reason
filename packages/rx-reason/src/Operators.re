@@ -5,19 +5,17 @@ let bufferCount =
     : Operator.t('a, array('a)) =>
   failwith("Not Implemented");
 /*
-let bufferTime =
-    (
-      ~bufferCreationInterval as _: float=0.0,
-      ~maxBufferSize as _: int,
-      ~scheduler as _: DelayScheduler.t=DelayScheduler.default,
-      ~timespan as _: float,
-    )
-    : Operator.t('a, list('a)) =>
-  failwith("Not Implemented");*/
+ let bufferTime =
+     (
+       ~bufferCreationInterval as _: float=0.0,
+       ~maxBufferSize as _: int,
+       ~scheduler as _: DelayScheduler.t=DelayScheduler.default,
+       ~timespan as _: float,
+     )
+     : Operator.t('a, list('a)) =>
+   failwith("Not Implemented");*/
 
-let debounceTime =
-    (~scheduler, duration: float)
-    : Operator.t('a, 'a) =>
+let debounceTime = (~scheduler, duration: float) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
     let debounceSubscription = ref(Disposable.disposed);
@@ -330,42 +328,63 @@ let observe =
     outerObserver;
   };
 
-/* Intentionally half baked implementation here
- * 1) Assumes that the scheduler actually schedules work in order
- * 2) Doesn't keep track of scheduled work, which it should cancel
- *    when disposed.
- * 3) Risks unbounded buffers due to the API definition. Should better define
- *    the api contract.
- * See the following:
- * https://github.com/dotnet/reactive/blob/ceee7a7742f97bfb9c283d5835161ddf8565d398/Rx.NET/Source/src/System.Reactive/Internal/ScheduledObserver.cs
- * 
- */
-let observeOn = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
-  observer => {
-    Observer.create(
-      ~onNext=next => {
-        let disposable = AssignableDisposable.create();
-        let scheduledDisposable = scheduler(() => {
-          observer |> Observer.next(next);
-          disposable |> AssignableDisposable.toDisposable;
-        });
-        disposable |> AssignableDisposable.set(scheduledDisposable);
-        /* FIXME: Queue the disposable and remove it from the queue in the callback */
-      }, 
-      ~onComplete=exn=> {
-        let disposable = AssignableDisposable.create();
-        let scheduledDisposable = scheduler(() => {
-          observer |> Observer.complete(exn);
-          disposable |> AssignableDisposable.toDisposable;
-        });
-        disposable |> AssignableDisposable.set(scheduledDisposable);
-        /* FIXME: Queue the disposable and remove it from the queue in the callback */
-      },
-      ~onDispose=() => {
-        /* FIXME: Should dispose any outstanding requests for notification here. */
-        observer |> Observer.dispose;
-      },
+let observeOn =
+    (
+      ~backPressureStrategy=BackPressureStrategy.Throw,
+      ~bufferSize=(-1),
+      scheduler: Scheduler.t,
     )
+    : Operator.t('a, 'a) =>
+  observer => {
+    let queue = QueueWithBackPressureStrategy.create(
+      ~backPressureStrategy,
+      ~maxSize=bufferSize,
+    );
+    let shouldComplete = ref(false);
+    let completedState = ref(None);
+
+    let wip = ref(0);
+    let innerSubscription = Disposable.empty();
+
+    let rec doWorkStep = () =>
+      switch (QueueWithBackPressureStrategy.tryDeque(queue)) {
+      | Some(next) =>
+        observer |> Observer.next(next);
+        Interlocked.decrement(wip) !== 0 ?
+          scheduler(doWorkStep) : Disposable.disposed;
+      | _ when Interlocked.exchange(false, shouldComplete) =>
+        Volatile.write(0, wip);
+        observer |> Observer.complete(completedState^);
+        Disposable.disposed;
+      | _ when innerSubscription |> Disposable.isDisposed =>
+        Volatile.write(0, wip);
+        observer |> Observer.dispose;
+        Disposable.disposed;
+      | _ => Disposable.disposed
+      };
+
+    let schedule = () =>
+      if (Interlocked.increment(wip) === 1) {
+        scheduler(doWorkStep) |> ignore;
+      };
+
+    Observer.create(
+      ~onNext=
+        next => {
+          queue |> QueueWithBackPressureStrategy.enqueue(next);
+          schedule();
+        },
+      ~onComplete=
+        exn => {
+          shouldComplete := true;
+          completedState := exn;
+        },
+      ~onDispose=
+        () => {
+          innerSubscription |> Disposable.dispose;
+          schedule();
+        },
+    );
   };
 
 let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
@@ -508,11 +527,11 @@ let synchronize: Operator.t('a, 'a) =
     );
   };
 /*
-let timeout =
-    (~scheduler as _: DelayScheduler.t, _: float)
-    : Operator.t('a, 'a) =>
-  failwith("Not Implemented");
-  */
+ let timeout =
+     (~scheduler as _: DelayScheduler.t, _: float)
+     : Operator.t('a, 'a) =>
+   failwith("Not Implemented");
+   */
 
 let withLatestFrom =
     (~selector: ('a, 'b) => 'c, other: Observable.t('b))

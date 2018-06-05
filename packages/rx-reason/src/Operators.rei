@@ -1,23 +1,22 @@
 let bufferCount:
   (~size: int, ~startEvery: int=?) => Operator.t('a, array('a));
 
-  /*
-let bufferTime:
-  (
-    ~bufferCreationInterval: float=?,
-    ~maxBufferSize: int,
-    ~scheduler: DelayScheduler.t=?,
-    ~timespan: float,
-  ) =>
-  /* FIXME: Is list really the right return type... */
-  Operator.t('a, list('a));*/
+/*
+ let bufferTime:
+   (
+     ~bufferCreationInterval: float=?,
+     ~maxBufferSize: int,
+     ~scheduler: DelayScheduler.t=?,
+     ~timespan: float,
+   ) =>
+   /* FIXME: Is list really the right return type... */
+   Operator.t('a, list('a));*/
 
-let debounceTime:
-  (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
+let debounceTime: (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
-let dispose: (Disposable.t) => Operator.t('a, 'a);
+let dispose: Disposable.t => Operator.t('a, 'a);
 
 let distinctUntilChanged:
   (~comparer: ('a, 'a) => bool=?) => Operator.t('a, 'a);
@@ -56,15 +55,23 @@ let maybeLast: Operator.t('a, 'a);
 
 let none: ('a => bool) => Operator.t('a, bool);
 
-let observe: (~onNext: 'a=>unit, ~onComplete: option(exn)=>unit) => Operator.t('a, 'a);
+let observe:
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit) =>
+  Operator.t('a, 'a);
 
-let observeOn: Scheduler.t => Operator.t('a, 'a);
+let observeOn:
+  (
+    ~backPressureStrategy: BackPressureStrategy.t=?,
+    ~bufferSize: int=?,
+    Scheduler.t
+  ) =>
+  Operator.t('a, 'a);
 
 let onComplete: (option(exn) => unit) => Operator.t('a, 'a);
 
 let onDispose: (unit => unit) => Operator.t('a, 'a);
 
-let onNext: ('a=>unit) => Operator.t('a, 'a);
+let onNext: ('a => unit) => Operator.t('a, 'a);
 
 let scan: (('acc, 'a) => 'acc, 'acc) => Operator.t('a, 'acc);
 
@@ -74,7 +81,7 @@ let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
 /*
-let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);*/
+ let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);*/
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

@@ -11,6 +11,8 @@ let create = () : t('a) => [||];
 
 let dequeue = queue => shiftUnsafe(queue);
 
+let tryDeque = Js.Array.shift;
+
 let enqueue = (scheduledItem, queue) =>
   queue |> Js.Array.push(scheduledItem) |> ignore;
 
