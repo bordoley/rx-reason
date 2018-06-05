@@ -800,7 +800,61 @@ let test =
           }),
         ],
       ),
-      describe("some", []),
+      describe("some", [
+        it("returns false for an observer that completes without producing values", () => {
+          let observedValue = ref(true);
+          let completed = ref(false);
+          let observer =
+            Observer.create(
+              ~onNext=next => observedValue := next,
+              ~onComplete=_ => completed := true,
+              ~onDispose=Functions.alwaysUnit,
+            );
+          let someObserver = observer |> Operators.some(i => i > 10);
+          someObserver |> Observer.complete(None);
+          observedValue^ |> Expect.toBeEqualToFalse;
+          completed^ |> Expect.toBeEqualToTrue;
+        }),
+        it("returns false for an observer for which no value passes the predicate", () => {
+          let observedValue = ref(true);
+          let completed = ref(false);
+          let observer =
+            Observer.create(
+              ~onNext=next => observedValue := next,
+              ~onComplete=_ => completed := true,
+              ~onDispose=Functions.alwaysUnit,
+            );
+          let someObserver = observer |> Operators.some(i => i > 10);
+
+          someObserver |> Observer.next(5);
+          observedValue^ |> Expect.toBeEqualToTrue;
+          completed^ |> Expect.toBeEqualToFalse;
+
+          someObserver |> Observer.complete(None);
+          observedValue^ |> Expect.toBeEqualToFalse;
+          completed^ |> Expect.toBeEqualToTrue;
+        }),
+        it("returns true for the first observed value that passed the predicate", () => {
+          let observedValue = ref(false);
+          let completed = ref(false);
+
+          let observer =
+            Observer.create(
+              ~onNext=next => observedValue := next,
+              ~onComplete=_ => completed := true,
+              ~onDispose=Functions.alwaysUnit,
+            );
+          let someObserver = observer |> Operators.some(i => i > 10);
+
+          someObserver |> Observer.next(5);
+          observedValue^ |> Expect.toBeEqualToFalse;
+          completed^ |> Expect.toBeEqualToFalse;
+
+          someObserver |> Observer.next(11);
+          observedValue^ |> Expect.toBeEqualToTrue;
+          completed^ |> Expect.toBeEqualToTrue;
+        }),
+      ]),
       describe(
         "switch_",
         [

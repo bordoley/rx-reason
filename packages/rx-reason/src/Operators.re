@@ -440,15 +440,15 @@ let scan =
   };
 
 let every = (predicate: 'a => bool, observer) => {
-  let filteringDisposable = AssignableDisposable.create();
-  let filteringObserver =
+  let everyTrueDisposable = AssignableDisposable.create();
+  let everyTrueObserver =
     Observer.create(
       ~onNext=
         next =>
           if (! next) {
             observer |> Observer.next(next);
             observer |> Observer.complete(None);
-            filteringDisposable |> AssignableDisposable.dispose;
+            everyTrueDisposable |> AssignableDisposable.dispose;
           },
       ~onComplete=
         exn => {
@@ -459,13 +459,36 @@ let every = (predicate: 'a => bool, observer) => {
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
-  filteringDisposable
-  |> AssignableDisposable.set(filteringObserver |> Observer.toDisposable);
-  filteringObserver |> map(next => predicate(next));
+  everyTrueDisposable
+  |> AssignableDisposable.set(everyTrueObserver |> Observer.toDisposable);
+  everyTrueObserver |> map(next => predicate(next));
 };
 
-let some = (_: 'a => bool) : Operator.t('a, bool) =>
-  failwith("Not Implemented");
+let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
+  observer => {
+    let someTrueDisposable = AssignableDisposable.create();
+    let someTrueObserver =
+      Observer.create(
+        ~onNext=
+          next =>
+            if (next) {
+              observer |> Observer.next(next);
+              observer |> Observer.complete(None);
+              someTrueDisposable |> AssignableDisposable.dispose;
+            },
+        ~onComplete=
+          exn => {
+            if (exn === None) {
+              observer |> Observer.next(false);
+            };
+            observer |> Observer.complete(exn);
+          },
+        ~onDispose=() => observer |> Observer.dispose,
+      );
+    someTrueDisposable
+    |> AssignableDisposable.set(someTrueObserver |> Observer.toDisposable);
+    someTrueObserver |> map(next => predicate(next));
+  };
 
 let switch_: Operator.t(Observable.t('a), 'a) =
   observer => {
