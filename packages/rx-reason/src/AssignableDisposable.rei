@@ -1,11 +1,7 @@
 type t;
 
-let create: unit =>t;
+include Disposable.S with type t := t;
 
-let dispose: t => unit;
-
-let isDisposed: t => bool;
+let create: unit => t;
 
 let set: (Disposable.t, t) => unit;
-
-let toDisposable: t => Disposable.t;

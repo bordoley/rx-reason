@@ -179,73 +179,6 @@ let test =
         ],
       ),
       describe(
-        "createWithObserver",
-        [
-          it(
-            "the observer instance passed to the onSubscribe function is returned as the subscription",
-            () => {
-              let observerInstance = MutableOption.create();
-              let observable =
-                Observable.createWithObserver(observer => {
-                  MutableOption.set(observer, observerInstance);
-                  Disposable.disposed;
-                });
-              let subscription =
-                observable
-                |> Observable.subscribe;
-              let observer =
-                observerInstance |> MutableOption.get |> Observer.toDisposable;
-              subscription === observer |> Expect.toBeEqualToTrue;
-            },
-          ),
-          it("disposing the subscription disposes the returned observable", () => {
-            let returnedDisposable = Disposable.empty();
-            let observable =
-              Observable.createWithObserver(_ => returnedDisposable);
-            let subscription =
-              observable
-              |> Observable.subscribe;
-
-            Disposable.dispose(subscription);
-            returnedDisposable
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "onSubscribe raising an exception is caught and completes the observer",
-            () => {
-            let observable =
-              Observable.createWithObserver(_ => raise(Division_by_zero));
-
-            let completed = ref(None);
-            observable
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=Functions.alwaysUnit, ~onComplete=exn =>
-                 completed := exn
-               )
-            |> ignore;
-            switch (completed^) {
-            | Some(Division_by_zero) => ()
-            | _ => failwith("expected exception to be thrown")
-            };
-          }),
-          it(
-            "subscribe rethrows exceptions from onSubscribe if the observer is already completed",
-            () => {
-              let observable =
-                Observable.createWithObserver(observer => {
-                  observer |> Observer.complete(None);
-                  raise(Division_by_zero);
-                });
-              Expect.shouldRaise(() =>
-                observable
-                |> Observable.subscribe
-              );
-            },
-          ),
-        ],
-      ),
-      describe(
         "defer",
         [
           it("calls the observable factory on subscribe", () => {
@@ -521,7 +454,6 @@ let test =
         ],
       ),
       describe("subscribe", []),
-      describe("subscribeObserver", []),
       describe("subscribeOn", []),
     ],
   );

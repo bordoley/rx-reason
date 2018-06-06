@@ -65,8 +65,6 @@ let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
-let createWithObserver: (Observer.t('a) => Disposable.t) => t('a);
-
 let defer: (unit => t('a)) => t('a);
 
 let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
@@ -90,8 +88,6 @@ let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
 
 let subscribe: t('a) => Disposable.t;
-
-let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
 
 let subscribeWithCallbacks:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>

@@ -16,11 +16,11 @@ let subscribe = observable =>
 let subscribeObserver =
     (observer: Observer.t('a), observable: t('a))
     : Disposable.t =>
-  subscribeWithCallbacks(
-    ~onNext=next => observer |> Observer.next(next),
-    ~onComplete=exn => observer |> Observer.complete(exn),
-    observable,
-  );
+  observable
+  |> subscribeWithCallbacks(
+       ~onNext=next => observer |> Observer.next(next),
+       ~onComplete=exn => observer |> Observer.complete(exn),
+     );
 
 let createWithObserver =
     (onSubscribe: Observer.t('a) => Disposable.t)
@@ -28,26 +28,26 @@ let createWithObserver =
   (~onNext, ~onComplete) => {
     let subscription = AssignableDisposable.create();
     let observer =
-      Observer.create(~onNext, ~onComplete, ~onDispose=() =>
+      Observer.createAutoDisposing(~onNext, ~onComplete, ~onDispose=() =>
         subscription |> AssignableDisposable.dispose
       );
-    subscription
-    |> AssignableDisposable.set(
-         try (onSubscribe(observer)) {
-         | exn =>
-           let shouldRaise =
-             observer |> Observer.completeWithResult(Some(exn)) |> (!);
-           if (shouldRaise) {
-             /* This could happen when the onComplete is called synchronously in the
-              * subscribe function which also throws.
-              */
-             raise(
-               exn,
-             );
-           };
-           Disposable.disposed;
-         },
-       );
+    let innerSubscription =
+      try (onSubscribe(observer)) {
+      | exn =>
+        let shouldRaise =
+          observer |> Observer.completeWithResult(Some(exn)) |> (!);
+        if (shouldRaise) {
+          /* This could happen when the onComplete is called synchronously in the
+           * subscribe function which also throws.
+           */
+          raise(
+            exn,
+          );
+        };
+        Disposable.disposed;
+      };
+
+    subscription |> AssignableDisposable.set(innerSubscription);
     observer |> Observer.toDisposable;
   };
 
@@ -73,7 +73,7 @@ let combineLatest2 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0 |> MutableOption.isNotEmpty && v1 |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0) && MutableOption.isNotEmpty(v1);
       if (haveValues) {
         onNext(selector(v0 |> MutableOption.get, v1 |> MutableOption.get));
       };
@@ -85,7 +85,7 @@ let combineLatest2 =
       switch (exn) {
       | Some(_) => onComplete(exn)
       | None =>
-        let shouldComplete = other |> Disposable.isDisposed;
+        let shouldComplete = Disposable.isDisposed(other^);
         if (shouldComplete) {
           onComplete(None);
         };
@@ -93,21 +93,16 @@ let combineLatest2 =
       Lock.release(lock);
     };
 
-    let (s0, s1) = (ref(Disposable.disposed), ref(Disposable.disposed));
-
-    s0 :=
-      observable0
+    let doSubscribe = (observable, v, s) =>
+      observable
       |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^),
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s),
          );
 
+    let (s0, s1) = Disposable.(ref(disposed), ref(disposed));
+    s0 := doSubscribe(observable0, v0, s1);
+    s1 := doSubscribe(observable1, v1, s0);
     let (s0, s1) = (s0^, s1^);
 
     Disposable.create(() => {
@@ -139,12 +134,9 @@ let combineLatest3 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0
-        |> MutableOption.isNotEmpty
-        && v1
-        |> MutableOption.isNotEmpty
-        && v2
-        |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2);
       if (haveValues) {
         onNext(
           selector(
@@ -163,7 +155,7 @@ let combineLatest3 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          d0 |> Disposable.isDisposed && d1 |> Disposable.isDisposed;
+          Disposable.isDisposed(d0^) && Disposable.isDisposed(d1^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -172,30 +164,22 @@ let combineLatest3 =
       Lock.release(lock);
     };
 
+    let doSubscribe = (observable, v, s0, s1) =>
+      observable
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s0, s1),
+         );
+
     let (s0, s1, s2) = (
       ref(Disposable.disposed),
       ref(Disposable.disposed),
       ref(Disposable.disposed),
     );
 
-    s0 :=
-      observable0
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^, s2^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^, s2^),
-         );
-    s2 :=
-      observable2
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v2),
-           ~onComplete=doOnComplete(s0^, s1^),
-         );
+    s0 := doSubscribe(observable0, v0, s1, s2);
+    s1 := doSubscribe(observable1, v1, s0, s2);
+    s2 := doSubscribe(observable2, v2, s0, s1);
 
     let (s0, s1, s2) = (s0^, s1^, s2^);
 
@@ -232,14 +216,10 @@ let combineLatest4 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0
-        |> MutableOption.isNotEmpty
-        && v1
-        |> MutableOption.isNotEmpty
-        && v2
-        |> MutableOption.isNotEmpty
-        && v3
-        |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2)
+        && MutableOption.isNotEmpty(v3);
       if (haveValues) {
         onNext(
           selector(
@@ -259,12 +239,9 @@ let combineLatest4 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          d0
-          |> Disposable.isDisposed
-          && d1
-          |> Disposable.isDisposed
-          && d2
-          |> Disposable.isDisposed;
+          Disposable.isDisposed(d0^)
+          && Disposable.isDisposed(d1^)
+          && Disposable.isDisposed(d2^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -273,6 +250,13 @@ let combineLatest4 =
       Lock.release(lock);
     };
 
+    let doSubscribe = (observable, v, s0, s1, s2) =>
+      observable
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s0, s1, s2),
+         );
+
     let (s0, s1, s2, s3) = (
       ref(Disposable.disposed),
       ref(Disposable.disposed),
@@ -280,30 +264,10 @@ let combineLatest4 =
       ref(Disposable.disposed),
     );
 
-    s0 :=
-      observable0
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^, s2^, s3^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^, s2^, s3^),
-         );
-    s2 :=
-      observable2
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v2),
-           ~onComplete=doOnComplete(s0^, s1^, s3^),
-         );
-    s3 :=
-      observable3
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v3),
-           ~onComplete=doOnComplete(s0^, s1^, s2^),
-         );
+    s0 := doSubscribe(observable0, v0, s1, s2, s3);
+    s1 := doSubscribe(observable1, v1, s0, s2, s3);
+    s2 := doSubscribe(observable2, v2, s0, s1, s3);
+    s3 := doSubscribe(observable3, v3, s0, s1, s2);
 
     let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
@@ -344,16 +308,11 @@ let combineLatest5 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0
-        |> MutableOption.isNotEmpty
-        && v1
-        |> MutableOption.isNotEmpty
-        && v2
-        |> MutableOption.isNotEmpty
-        && v3
-        |> MutableOption.isNotEmpty
-        && v4
-        |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2)
+        && MutableOption.isNotEmpty(v3)
+        && MutableOption.isNotEmpty(v4);
       if (haveValues) {
         onNext(
           selector(
@@ -374,14 +333,10 @@ let combineLatest5 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          d0
-          |> Disposable.isDisposed
-          && d1
-          |> Disposable.isDisposed
-          && d2
-          |> Disposable.isDisposed
-          && d3
-          |> Disposable.isDisposed;
+          Disposable.isDisposed(d0^)
+          && Disposable.isDisposed(d1^)
+          && Disposable.isDisposed(d2^)
+          && Disposable.isDisposed(d3^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -389,6 +344,13 @@ let combineLatest5 =
       };
       Lock.release(lock);
     };
+
+    let doSubscribe = (observable, v, s0, s1, s2, s3) =>
+      observable
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s0, s1, s2, s3),
+         );
 
     let (s0, s1, s2, s3, s4) = (
       ref(Disposable.disposed),
@@ -398,36 +360,11 @@ let combineLatest5 =
       ref(Disposable.disposed),
     );
 
-    s0 :=
-      observable0
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^, s2^, s3^, s4^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^, s2^, s3^, s4^),
-         );
-    s2 :=
-      observable2
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v2),
-           ~onComplete=doOnComplete(s0^, s1^, s3^, s4^),
-         );
-    s3 :=
-      observable3
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v3),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s4^),
-         );
-    s4 :=
-      observable4
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v4),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^),
-         );
+    s0 := doSubscribe(observable0, v0, s1, s2, s3, s4);
+    s1 := doSubscribe(observable1, v1, s0, s2, s3, s4);
+    s2 := doSubscribe(observable2, v2, s0, s1, s3, s4);
+    s3 := doSubscribe(observable3, v3, s0, s1, s2, s4);
+    s4 := doSubscribe(observable4, v4, s0, s1, s2, s3);
 
     let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
@@ -472,18 +409,12 @@ let combineLatest6 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0
-        |> MutableOption.isNotEmpty
-        && v1
-        |> MutableOption.isNotEmpty
-        && v2
-        |> MutableOption.isNotEmpty
-        && v3
-        |> MutableOption.isNotEmpty
-        && v4
-        |> MutableOption.isNotEmpty
-        && v5
-        |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2)
+        && MutableOption.isNotEmpty(v3)
+        && MutableOption.isNotEmpty(v4)
+        && MutableOption.isNotEmpty(v5);
       if (haveValues) {
         onNext(
           selector(
@@ -505,16 +436,11 @@ let combineLatest6 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          d0
-          |> Disposable.isDisposed
-          && d1
-          |> Disposable.isDisposed
-          && d2
-          |> Disposable.isDisposed
-          && d3
-          |> Disposable.isDisposed
-          && d4
-          |> Disposable.isDisposed;
+          Disposable.isDisposed(d0^)
+          && Disposable.isDisposed(d1^)
+          && Disposable.isDisposed(d2^)
+          && Disposable.isDisposed(d3^)
+          && Disposable.isDisposed(d4^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -522,6 +448,13 @@ let combineLatest6 =
       };
       Lock.release(lock);
     };
+
+    let doSubscribe = (observable, v, s0, s1, s2, s3, s4) =>
+      observable
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s0, s1, s2, s3, s4),
+         );
 
     let (s0, s1, s2, s3, s4, s5) = (
       ref(Disposable.disposed),
@@ -532,42 +465,12 @@ let combineLatest6 =
       ref(Disposable.disposed),
     );
 
-    s0 :=
-      observable0
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^, s2^, s3^, s4^, s5^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^, s2^, s3^, s4^, s5^),
-         );
-    s2 :=
-      observable2
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v2),
-           ~onComplete=doOnComplete(s0^, s1^, s3^, s4^, s5^),
-         );
-    s3 :=
-      observable3
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v3),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s4^, s5^),
-         );
-    s4 :=
-      observable4
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v4),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s5^),
-         );
-    s5 :=
-      observable5
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v5),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^),
-         );
+    s0 := doSubscribe(observable0, v0, s1, s2, s3, s4, s5);
+    s1 := doSubscribe(observable1, v1, s0, s2, s3, s4, s5);
+    s2 := doSubscribe(observable2, v2, s0, s1, s3, s4, s5);
+    s3 := doSubscribe(observable3, v3, s0, s1, s2, s4, s5);
+    s4 := doSubscribe(observable4, v4, s0, s1, s2, s3, s5);
+    s5 := doSubscribe(observable5, v5, s0, s1, s2, s3, s4);
 
     let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
@@ -616,20 +519,13 @@ let combineLatest7 =
       MutableOption.set(next, v);
 
       let haveValues =
-        v0
-        |> MutableOption.isNotEmpty
-        && v1
-        |> MutableOption.isNotEmpty
-        && v2
-        |> MutableOption.isNotEmpty
-        && v3
-        |> MutableOption.isNotEmpty
-        && v4
-        |> MutableOption.isNotEmpty
-        && v5
-        |> MutableOption.isNotEmpty
-        && v6
-        |> MutableOption.isNotEmpty;
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2)
+        && MutableOption.isNotEmpty(v3)
+        && MutableOption.isNotEmpty(v4)
+        && MutableOption.isNotEmpty(v5)
+        && MutableOption.isNotEmpty(v6);
       if (haveValues) {
         onNext(
           selector(
@@ -652,18 +548,12 @@ let combineLatest7 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          d0
-          |> Disposable.isDisposed
-          && d1
-          |> Disposable.isDisposed
-          && d2
-          |> Disposable.isDisposed
-          && d3
-          |> Disposable.isDisposed
-          && d4
-          |> Disposable.isDisposed
-          && d5
-          |> Disposable.isDisposed;
+          Disposable.isDisposed(d0^)
+          && Disposable.isDisposed(d1^)
+          && Disposable.isDisposed(d2^)
+          && Disposable.isDisposed(d3^)
+          && Disposable.isDisposed(d4^)
+          && Disposable.isDisposed(d5^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -671,6 +561,13 @@ let combineLatest7 =
       };
       Lock.release(lock);
     };
+
+    let doSubscribe = (observable, v, s0, s1, s2, s3, s4, s5) =>
+      observable
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v),
+           ~onComplete=doOnComplete(s0, s1, s2, s3, s4, s5),
+         );
 
     let (s0, s1, s2, s3, s4, s5, s6) = (
       ref(Disposable.disposed),
@@ -682,48 +579,13 @@ let combineLatest7 =
       ref(Disposable.disposed),
     );
 
-    s0 :=
-      observable0
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v0),
-           ~onComplete=doOnComplete(s1^, s2^, s3^, s4^, s5^, s6^),
-         );
-    s1 :=
-      observable1
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v1),
-           ~onComplete=doOnComplete(s0^, s2^, s3^, s4^, s5^, s6^),
-         );
-    s2 :=
-      observable2
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v2),
-           ~onComplete=doOnComplete(s0^, s1^, s3^, s4^, s5^, s6^),
-         );
-    s3 :=
-      observable3
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v3),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s4^, s5^, s6^),
-         );
-    s4 :=
-      observable4
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v4),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s5^, s6^),
-         );
-    s5 :=
-      observable5
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v5),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s6^),
-         );
-    s6 :=
-      observable6
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v6),
-           ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s5^),
-         );
+    s0 := doSubscribe(observable0, v0, s1, s2, s3, s4, s5, s6);
+    s1 := doSubscribe(observable1, v1, s0, s2, s3, s4, s5, s6);
+    s2 := doSubscribe(observable2, v2, s0, s1, s3, s4, s5, s6);
+    s3 := doSubscribe(observable3, v3, s0, s1, s2, s4, s5, s6);
+    s4 := doSubscribe(observable4, v4, s0, s1, s2, s3, s5, s6);
+    s5 := doSubscribe(observable5, v5, s0, s1, s2, s3, s4, s6);
+    s6 := doSubscribe(observable6, v6, s0, s1, s2, s3, s4, s5);
 
     let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 

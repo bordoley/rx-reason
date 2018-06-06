@@ -1,1 +1,1 @@
-type t = (~delay:float) => Scheduler.t;
+type t = (~delay: float) => Scheduler.t;

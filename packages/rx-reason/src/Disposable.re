@@ -1,8 +1,24 @@
-open Functions.Operators;
-
 type t = {
   onDispose: ref(unit => unit),
   isDisposed: ref(bool),
+};
+
+type disposable = t;
+
+module type S = {
+  type t;
+
+  let dispose: t => unit;
+  let isDisposed: t => bool;
+  let toDisposable: t => disposable;
+};
+
+module type S1 = {
+  type t('a);
+
+  let dispose: t('a) => unit;
+  let isDisposed: t('a) => bool;
+  let toDisposable: t('a) => disposable;
 };
 
 let create = (onDispose: unit => unit) : t => {
@@ -19,7 +35,7 @@ let dispose = ({onDispose, isDisposed}: t) : unit => {
 };
 
 let compose = (disposables: list(t)) : t => {
-  let dispose = () => disposables |> List.iter(dispose >> ignore);
+  let dispose = () => disposables |> List.iter(Functions.(dispose >> ignore));
   create(dispose);
 };
 
@@ -31,5 +47,6 @@ let disposed: t = {
   retval;
 };
 
-let isDisposed = ({isDisposed}: t) : bool =>
-  Volatile.read(isDisposed);
+let isDisposed = ({isDisposed}: t) : bool => Volatile.read(isDisposed);
+
+let toDisposable = Functions.identity;

@@ -19,20 +19,41 @@ let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   };
 };
 
-let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
+let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) : t('a) => {
+  let isStopped = ref(false);
+  let disposable =
+    Disposable.create(() => {
+      Volatile.write(true, isStopped);
+      onDispose();
+    });
+
+  {
+    isStopped,
+    onComplete: exn => {
+      try (onComplete(exn)) {
+      | exn =>
+        disposable |> Disposable.dispose;
+        raise(exn);
+      };
+      disposable |> Disposable.dispose;
+    },
+    onNext: next =>
+      try (onNext(next)) {
+      | exn =>
+        disposable |> Disposable.dispose;
+        raise(exn);
+      },
+    disposable,
+  };
+};
 
 let completeWithResult =
-    (exn: option(exn), {isStopped, onComplete, disposable}: t('a))
+    (exn: option(exn), {isStopped, onComplete}: t('a))
     : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
-    try (onComplete(exn)) {
-    | exn =>
-      disposable |> Disposable.dispose;
-      raise(exn);
-    };
+    onComplete(exn);
   };
-  disposable |> Disposable.dispose;
   shouldComplete;
 };
 
@@ -41,13 +62,15 @@ let complete = (exn: option(exn), observer: t('a)) : unit =>
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
-let next = (next: 'a, {onNext, isStopped, disposable}: t('a)) : unit => {
+let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
+
+let isStopped = ({isStopped}) => Volatile.read(isStopped);
+
+let next = (next: 'a, {onNext, isStopped}: t('a)) : unit => {
   let isStopped = Volatile.read(isStopped);
   if (! isStopped) {
-    try (onNext(next)) {
-    | exn =>
-      disposable |> Disposable.dispose;
-      raise(exn);
-    };
+    onNext(next);
   };
 };
+
+let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;

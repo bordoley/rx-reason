@@ -10,6 +10,7 @@
 
     "bootstrap": "lerna bootstrap",
     "test": "lerna run test",
+    "test-coverage": "lerna run test-coverage",
     "prepare": "lerna run prepare",
     "cleanall": "rimraf packages/**/lib"
   },

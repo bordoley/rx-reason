@@ -25,8 +25,9 @@ let earlyReturnsUnit2 = (f: ('a, 'b) => unit, a: 'a, b: 'b) =>
   | ReturnUnitException => ()
   };
 
+let (>>) = (f1: 'a => 'b, f2: 'b => 'c) : ('a => 'c) => compose(f1, f2);
+
 module Operators = {
-  let (>>) = (f1: 'a => 'b, f2: 'b => 'c) : ('a => 'c) => compose(f1, f2);
   let (<<) = (f1: 'b => 'a, f2: 'c => 'b) : ('c => 'a) =>
       (c: 'c) => f1(f2(c));  
 };

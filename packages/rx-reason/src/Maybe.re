@@ -4,8 +4,6 @@ type t('a) = Observable.t('a);
 
 let subscribe = Observable.subscribe;
 
-let subscribeObserver = Observable.subscribeObserver;
-
 let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
 
 let defer = Observable.defer;
