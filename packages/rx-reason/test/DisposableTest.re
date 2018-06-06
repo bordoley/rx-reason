@@ -38,18 +38,5 @@ let test =
           }),
         ],
       ),
-      describe(
-        "raiseIfDisposed",
-        [
-          it("should raise if disposable disposed", () => {
-            let disposable = Disposable.disposed;
-            Expect.shouldRaise(() => Disposable.raiseIfDisposed(disposable));
-          }),
-          it("should not raise if disposable not disposed", () => {
-            let disposable = Disposable.empty();
-            Disposable.raiseIfDisposed(disposable);
-          }),
-        ],
-      ),
     ],
   );
