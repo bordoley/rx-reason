@@ -15,7 +15,7 @@ let bufferCount =
      : Operator.t('a, list('a)) =>
    failwith("Not Implemented");*/
 
-let debounceTime = (~scheduler, duration: float) : Operator.t('a, 'a) =>
+let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
     let debounceSubscription = ref(Disposable.disposed);
@@ -46,7 +46,7 @@ let debounceTime = (~scheduler, duration: float) : Operator.t('a, 'a) =>
         next => {
           clearDebounce();
           MutableOption.set(next, lastValue);
-          debounceSubscription := scheduler(~delay=duration, debouncedNext);
+          debounceSubscription := scheduler(debouncedNext);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -620,10 +620,8 @@ let synchronize: Operator.t('a, 'a) =
 
 exception TimeoutException;
 
-let timeout =
-    (~scheduler: DelayScheduler.t, delay: float)
-    : Operator.t('a, 'a) => {
-  let timeoutObservable = Observable.empty(~scheduler=scheduler(~delay), ());
+let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
+  let timeoutObservable = Observable.raise(~scheduler, TimeoutException);
   observer => {
     let timeoutSubscription = AssignableDisposable.create();
     let innerSubscription = AssignableDisposable.create();
@@ -636,11 +634,6 @@ let timeout =
              ~onNext=_ => (),
              ~onComplete=
                exn => {
-                 let exn =
-                   switch (exn) {
-                   | Some(_) => exn
-                   | None => Some(TimeoutException)
-                   };
                  observer |> Observer.complete(exn);
                  innerSubscription |> AssignableDisposable.dispose;
                },

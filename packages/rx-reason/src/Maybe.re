@@ -37,6 +37,8 @@ let find = (predicate: 'a => bool, observable: Observable.t('a)) : t('a) =>
 let none = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.none(predicate));
 
+let raise = Observable.raise;
+
 let reduce =
     (
       reducer: ('acc, 'a) => 'acc,

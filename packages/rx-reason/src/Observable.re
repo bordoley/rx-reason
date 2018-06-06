@@ -892,6 +892,24 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
+let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
+  let exn = Some(exn);
+
+  scheduler === Scheduler.immediate ?
+    create((~onNext as _, ~onComplete) => {
+      onComplete(exn);
+      Disposable.disposed;
+    }) :
+    create((~onNext as _, ~onComplete) =>
+      scheduler(() =>
+        scheduler(() => {
+          onComplete(exn);
+          Disposable.disposed;
+        })
+      )
+    );
+};
+
 let retry = (shouldRetry, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) => {
     let subscription = AssignableDisposable.create();

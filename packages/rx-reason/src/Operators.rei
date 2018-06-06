@@ -12,7 +12,7 @@ let bufferCount:
    /* FIXME: Is list really the right return type... */
    Operator.t('a, list('a));*/
 
-let debounceTime: (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
+let debounce: (~scheduler: Scheduler.t) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
@@ -81,7 +81,7 @@ let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
 
-let timeout: (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
+let timeout: Scheduler.t => Operator.t('a, 'a);
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

@@ -25,6 +25,8 @@ let none: ('a => bool, Observable.t('a)) => t(bool);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
+
 let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
 
 let some: ('a => bool, Observable.t('a)) => t(bool);
