@@ -12,7 +12,7 @@ let bufferCount:
    /* FIXME: Is list really the right return type... */
    Operator.t('a, list('a));*/
 
-let debounce: (~scheduler: Scheduler.t) => Operator.t('a, 'a);
+let debounce: (Scheduler.t) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
