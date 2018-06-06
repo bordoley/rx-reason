@@ -1,14 +1,17 @@
 type t('a) =
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t;
 
-let subscribeWithCallbacks = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
+let subscribeWithCallbacks =
+    (~onNext, ~onComplete, observable: t('a))
+    : Disposable.t =>
   observable(~onNext, ~onComplete);
 
 let subscribe = observable =>
-  observable |> subscribeWithCallbacks(
-    ~onNext=Functions.alwaysUnit,
-    ~onComplete=Functions.alwaysUnit,
-  );
+  observable
+  |> subscribeWithCallbacks(
+       ~onNext=Functions.alwaysUnit,
+       ~onComplete=Functions.alwaysUnit,
+     );
 
 let subscribeObserver =
     (observer: Observer.t('a), observable: t('a))
@@ -53,16 +56,16 @@ let create = onSubscribe : t('a) =>
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) =>
-    scheduler(() => observable |> subscribeWithCallbacks(~onNext, ~onComplete))
+    scheduler(() =>
+      observable |> subscribeWithCallbacks(~onNext, ~onComplete)
+    )
   );
 
 let combineLatest2 =
     (~selector: ('a, 'b) => 'c, observable0: t('a), observable1: t('b))
     : t('c) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-
+    let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -90,18 +93,22 @@ let combineLatest2 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
+    let (s0, s1) = (ref(Disposable.disposed), ref(Disposable.disposed));
 
     s0 :=
       observable0
-      |> subscribeWithCallbacks(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^));
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v0),
+           ~onComplete=doOnComplete(s1^),
+         );
     s1 :=
       observable1
-      |> subscribeWithCallbacks(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^));
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v1),
+           ~onComplete=doOnComplete(s0^),
+         );
 
-    let s0 = s0^;
-    let s1 = s1^;
+    let (s0, s1) = (s0^, s1^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -120,10 +127,11 @@ let combineLatest3 =
     )
     : t('d) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-    let v2 = MutableOption.create();
-
+    let (v0, v1, v2) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -164,23 +172,32 @@ let combineLatest3 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
-    let s2 = ref(Disposable.disposed);
+    let (s0, s1, s2) = (
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+    );
 
     s0 :=
       observable0
-      |> subscribeWithCallbacks(~onNext=doOnNext(v0), ~onComplete=doOnComplete(s1^, s2^));
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v0),
+           ~onComplete=doOnComplete(s1^, s2^),
+         );
     s1 :=
       observable1
-      |> subscribeWithCallbacks(~onNext=doOnNext(v1), ~onComplete=doOnComplete(s0^, s2^));
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v1),
+           ~onComplete=doOnComplete(s0^, s2^),
+         );
     s2 :=
       observable2
-      |> subscribeWithCallbacks(~onNext=doOnNext(v2), ~onComplete=doOnComplete(s0^, s1^));
+      |> subscribeWithCallbacks(
+           ~onNext=doOnNext(v2),
+           ~onComplete=doOnComplete(s0^, s1^),
+         );
 
-    let s0 = s0^;
-    let s1 = s1^;
-    let s2 = s2^;
+    let (s0, s1, s2) = (s0^, s1^, s2^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -202,11 +219,12 @@ let combineLatest4 =
     )
     : t('e) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-    let v2 = MutableOption.create();
-    let v3 = MutableOption.create();
-
+    let (v0, v1, v2, v3) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -255,10 +273,12 @@ let combineLatest4 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
-    let s2 = ref(Disposable.disposed);
-    let s3 = ref(Disposable.disposed);
+    let (s0, s1, s2, s3) = (
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+    );
 
     s0 :=
       observable0
@@ -285,10 +305,7 @@ let combineLatest4 =
            ~onComplete=doOnComplete(s0^, s1^, s2^),
          );
 
-    let s0 = s0^;
-    let s1 = s1^;
-    let s2 = s2^;
-    let s3 = s3^;
+    let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -313,12 +330,13 @@ let combineLatest5 =
     )
     : t('f) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-    let v2 = MutableOption.create();
-    let v3 = MutableOption.create();
-    let v4 = MutableOption.create();
-
+    let (v0, v1, v2, v3, v4) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -372,11 +390,13 @@ let combineLatest5 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
-    let s2 = ref(Disposable.disposed);
-    let s3 = ref(Disposable.disposed);
-    let s4 = ref(Disposable.disposed);
+    let (s0, s1, s2, s3, s4) = (
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+    );
 
     s0 :=
       observable0
@@ -409,11 +429,7 @@ let combineLatest5 =
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^),
          );
 
-    let s0 = s0^;
-    let s1 = s1^;
-    let s2 = s2^;
-    let s3 = s3^;
-    let s4 = s4^;
+    let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -441,13 +457,14 @@ let combineLatest6 =
     )
     : t('g) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-    let v2 = MutableOption.create();
-    let v3 = MutableOption.create();
-    let v4 = MutableOption.create();
-    let v5 = MutableOption.create();
-
+    let (v0, v1, v2, v3, v4, v5) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -506,12 +523,14 @@ let combineLatest6 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
-    let s2 = ref(Disposable.disposed);
-    let s3 = ref(Disposable.disposed);
-    let s4 = ref(Disposable.disposed);
-    let s5 = ref(Disposable.disposed);
+    let (s0, s1, s2, s3, s4, s5) = (
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+    );
 
     s0 :=
       observable0
@@ -550,12 +569,7 @@ let combineLatest6 =
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^),
          );
 
-    let s0 = s0^;
-    let s1 = s1^;
-    let s2 = s2^;
-    let s3 = s3^;
-    let s4 = s4^;
-    let s5 = s5^;
+    let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -586,14 +600,15 @@ let combineLatest7 =
     )
     : t('h) =>
   create((~onNext, ~onComplete) => {
-    let v0 = MutableOption.create();
-    let v1 = MutableOption.create();
-    let v2 = MutableOption.create();
-    let v3 = MutableOption.create();
-    let v4 = MutableOption.create();
-    let v5 = MutableOption.create();
-    let v6 = MutableOption.create();
-
+    let (v0, v1, v2, v3, v4, v5, v6) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
     let lock = Lock.create();
 
     let doOnNext = (v, next) => {
@@ -657,13 +672,15 @@ let combineLatest7 =
       Lock.release(lock);
     };
 
-    let s0 = ref(Disposable.disposed);
-    let s1 = ref(Disposable.disposed);
-    let s2 = ref(Disposable.disposed);
-    let s3 = ref(Disposable.disposed);
-    let s4 = ref(Disposable.disposed);
-    let s5 = ref(Disposable.disposed);
-    let s6 = ref(Disposable.disposed);
+    let (s0, s1, s2, s3, s4, s5, s6) = (
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+      ref(Disposable.disposed),
+    );
 
     s0 :=
       observable0
@@ -708,13 +725,7 @@ let combineLatest7 =
            ~onComplete=doOnComplete(s0^, s1^, s2^, s3^, s4^, s5^),
          );
 
-    let s0 = s0^;
-    let s1 = s1^;
-    let s2 = s2^;
-    let s3 = s3^;
-    let s4 = s4^;
-    let s5 = s5^;
-    let s6 = s6^;
+    let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 
     Disposable.create(() => {
       s0 |> Disposable.dispose;
@@ -750,9 +761,10 @@ let concat =
                  switch (exn) {
                  | Some(_) => onComplete(exn)
                  | None =>
-                    /* Cancel the current subscription here */ 
-                    subscription |> AssignableDisposable.set(Disposable.disposed);
-                    scheduleSubscription(tail)
+                   /* Cancel the current subscription here */
+                   subscription
+                   |> AssignableDisposable.set(Disposable.disposed);
+                   scheduleSubscription(tail);
                  }
                )
           )
@@ -761,7 +773,7 @@ let concat =
           Disposable.disposed;
         };
 
-      /* An observable may complete synchronously and continue with an 
+      /* An observable may complete synchronously and continue with an
        * async observable. Avoid canceling the async observable in that case.
        */
       if (! Disposable.isDisposed(newSubscription)) {
@@ -774,7 +786,9 @@ let concat =
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
-  create((~onNext, ~onComplete) => f() |> subscribeWithCallbacks(~onNext, ~onComplete));
+  create((~onNext, ~onComplete) =>
+    f() |> subscribeWithCallbacks(~onNext, ~onComplete)
+  );
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
