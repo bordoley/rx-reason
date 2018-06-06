@@ -12,18 +12,13 @@ let create = (onDispose: unit => unit) : t => {
   isDisposed: ref(false),
 };
 
-
-let disposeWithResult = ({onDispose, isDisposed}: t) : bool => {
+let dispose = ({onDispose, isDisposed}: t) : unit => {
   let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
     let onDispose = Interlocked.exchange(Functions.alwaysUnit, onDispose);
     onDispose();
   };
-  shouldDispose;
 };
-
-let dispose = (disposable: t) : unit =>
-  disposable |> disposeWithResult |> ignore;
 
 let compose = (disposables: list(t)) : t => {
   let dispose = () => disposables |> List.iter(dispose >> ignore);

@@ -8,8 +8,6 @@ let create: (unit => unit) => t;
 
 let dispose: t => unit;
 
-let disposeWithResult: t => bool;
-
 let disposed: t;
 
 let empty: unit => t;

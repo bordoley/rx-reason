@@ -25,22 +25,6 @@ let test =
         ],
       ),
       describe(
-        "disposeWithResult",
-        [
-          it("only disposes once", () => {
-            let count = ref(0);
-            let disposable = Disposable.create(() => count := count^ + 1);
-            disposable
-            |> Disposable.disposeWithResult
-            |> Expect.toBeEqualToTrue;
-            disposable
-            |> Disposable.disposeWithResult
-            |> Expect.toBeEqualToFalse;
-            count^ |> Expect.toBeEqualToInt(1);
-          }),
-        ],
-      ),
-      describe(
         "isDisposed",
         [
           it("is false if not disposed", () => {
