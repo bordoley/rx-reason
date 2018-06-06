@@ -80,8 +80,8 @@ let some: ('a => bool) => Operator.t('a, bool);
 let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
-/*
- let timeout: (~scheduler: DelayScheduler.t=?, float) => Operator.t('a, 'a);*/
+
+let timeout: (~scheduler: DelayScheduler.t, float) => Operator.t('a, 'a);
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);
