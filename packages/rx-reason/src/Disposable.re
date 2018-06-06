@@ -5,8 +5,6 @@ type t = {
   isDisposed: ref(bool),
 };
 
-exception DisposedException;
-
 let create = (onDispose: unit => unit) : t => {
   onDispose: ref(onDispose),
   isDisposed: ref(false),
@@ -35,8 +33,3 @@ let disposed: t = {
 
 let isDisposed = ({isDisposed}: t) : bool =>
   Volatile.read(isDisposed);
-
-let raiseIfDisposed = (disposable: t) : unit =>
-  if (isDisposed(disposable)) {
-    raise(DisposedException);
-  };
