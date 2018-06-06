@@ -8,7 +8,7 @@ let test =
     [
       describe("bufferCount", []),
       describe("bufferTime", []),
-      describe("debounceTime", []),
+      describe("debounce", []),
       describe("defaultIfEmpty", []),
       describe(
         "dispose",

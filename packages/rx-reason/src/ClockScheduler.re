@@ -1,6 +1,6 @@
 type t = (~computeDelay: float => float) => Scheduler.t;
 
-let make = (
+let create = (
   ~getTime: unit => float,
   ~scheduler: DelayScheduler.t,
 ) : t =>
