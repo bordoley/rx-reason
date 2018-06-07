@@ -771,6 +771,28 @@ let test =
                ]);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
+          it(
+            "completes with an exception when the first observable completes with an exception",
+            () => {
+              let result = ref([]);
+              let err = ref(None);
+              Observable.concat([
+                Observable.ofList([1, 2, 3]),
+                Observable.raise(Division_by_zero),
+                Observable.ofList([4, 5, 6]),
+              ])
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=x => result := [x, ...result^],
+                   ~onComplete=exn => err := exn,
+                 )
+              |> ignore;
+              result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
+              switch (err^) {
+              | Some(Division_by_zero) => ()
+              | _ => failwith("expected Division_by_zero exception")
+              };
+            },
+          ),
         ],
       ),
       describe(
@@ -1068,6 +1090,35 @@ let test =
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
 
             result^ |> Expect.toBeEqualToListOfInt([4, 3, 2, 1]);
+          }),
+          it("doesn't retry if unsubscribed in shouldRetry callback", () => {
+            let subscription = ref(Disposable.disposed);
+            let result = ref([]);
+            let subject = ref(Subject.create());
+
+            subscription :=
+              Observable.create((~onNext, ~onComplete) => {
+                subject := Subject.create();
+                let observable = subject^ |> Subject.toObservable;
+                observable
+                |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+              })
+              |> Observable.retry(_ => {
+                   subscription^ |> Disposable.dispose;
+                   true;
+                 })
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=x => result := [x, ...result^],
+                   ~onComplete=Functions.alwaysUnit,
+                 );
+
+            subject^ |> Subject.toObserver |> Observer.next(5);
+            subject^
+            |> Subject.toObserver
+            |> Observer.complete(Some(Division_by_zero));
+            subject^ |> Subject.toObserver |> Observer.next(6);
+
+            result^ |> Expect.toBeEqualToListOfInt([5]);
           }),
         ],
       ),
