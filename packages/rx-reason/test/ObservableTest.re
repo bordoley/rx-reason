@@ -13,7 +13,7 @@ let test =
             let subject0 = Subject.create();
             let subject1 = Subject.create();
 
-            let result = ref([0, 0]);
+            let result = ref([]);
 
             Observable.combineLatest2(
               ~selector=(a, b) => [a, b],
@@ -29,14 +29,10 @@ let test =
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
 
-            observer0 |> Observer.next(1);
-            result^ |> Expect.toBeEqualToListOfInt([0, 0]);
-            observer0 |> Observer.next(2);
-            result^ |> Expect.toBeEqualToListOfInt([0, 0]);
-            observer1 |> Observer.next(2);
-            result^ |> Expect.toBeEqualToListOfInt([2, 2]);
-            observer1 |> Observer.next(3);
-            result^ |> Expect.toBeEqualToListOfInt([2, 3]);
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1]);
           }),
           it("completes only when all observables complete", () => {
             let subject0 = Subject.create();
@@ -58,18 +54,16 @@ let test =
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
 
-            observer0 |> Observer.next(1);
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer1 |> Observer.complete(None);
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it(
-            "completes only when the first observables completes with an exception",
+            "completes when the first observable completes with an exception",
             () => {
             let subject0 = Subject.create();
             let subject1 = Subject.create();
@@ -97,11 +91,641 @@ let test =
           }),
         ],
       ),
-      describe("combineLatest3", []),
-      describe("combineLatest4", []),
-      describe("combineLatest5", []),
-      describe("combineLatest6", []),
-      describe("combineLatest7", []),
+      describe(
+        "combineLatest3",
+        [
+          it("combines latest values from each subject", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+
+            let result = ref([]);
+
+            Observable.combineLatest3(
+              ~selector=(a, b, c) => [a, b, c],
+              subject0 |> Subject.toObservable,
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+            )
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer2 |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2]);
+          }),
+          it("completes only when all observables complete", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest3(
+                ~selector=(a, b, c) => [a, b, c],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+
+            observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes when the first observable completes with an exception",
+            () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest3(
+                ~selector=(a, b, c) => [a, b, c],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            result^ |> Expect.toBeEqualToFalse;
+            let observer1 = subject1 |> Subject.toObserver;
+
+            observer1 |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+            result^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe(
+        "combineLatest4",
+        [
+          it("combines latest values from each subject", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+
+            let result = ref([]);
+
+            Observable.combineLatest4(
+              ~selector=(a, b, c, d) => [a, b, c, d],
+              subject0 |> Subject.toObservable,
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+              subject3 |> Subject.toObservable,
+            )
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer2 |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer3 |> Observer.next(3);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2, 3]);
+          }),
+          it("completes only when all observables complete", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest4(
+                ~selector=(a, b, c, d) => [a, b, c, d],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+
+            observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer3 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes when the first observable completes with an exception",
+            () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest4(
+                ~selector=(a, b, c, d) => [a, b, c, d],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            result^ |> Expect.toBeEqualToFalse;
+            let observer2 = subject2 |> Subject.toObserver;
+
+            observer2 |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+            result^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe(
+        "combineLatest5",
+        [
+          it("combines latest values from each subject", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+
+            let result = ref([]);
+
+            Observable.combineLatest5(
+              ~selector=(a, b, c, d, e) => [a, b, c, d, e],
+              subject0 |> Subject.toObservable,
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+              subject3 |> Subject.toObservable,
+              subject4 |> Subject.toObservable,
+            )
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer2 |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer3 |> Observer.next(3);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer4 |> Observer.next(4);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2, 3, 4]);
+          }),
+          it("completes only when all observables complete", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest5(
+                ~selector=(a, b, c, d, e) => [a, b, c, d, e],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+
+            observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer3 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer4 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes when the first observable completes with an exception",
+            () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest5(
+                ~selector=(a, b, c, d, e) => [a, b, c, d, e],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            result^ |> Expect.toBeEqualToFalse;
+            let observer3 = subject3 |> Subject.toObserver;
+
+            observer3 |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+            result^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe(
+        "combineLatest6",
+        [
+          it("combines latest values from each subject", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+
+            let result = ref([]);
+
+            Observable.combineLatest6(
+              ~selector=(a, b, c, d, e, f) => [a, b, c, d, e, f],
+              subject0 |> Subject.toObservable,
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+              subject3 |> Subject.toObservable,
+              subject4 |> Subject.toObservable,
+              subject5 |> Subject.toObservable,
+            )
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+            let observer5 = subject5 |> Subject.toObserver;
+
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer2 |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer3 |> Observer.next(3);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer4 |> Observer.next(4);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer5 |> Observer.next(5);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2, 3, 4, 5]);
+          }),
+          it("completes only when all observables complete", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest6(
+                ~selector=(a, b, c, d, e, f) => [a, b, c, d, e, f],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+                subject5 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+            let observer5 = subject5 |> Subject.toObserver;
+
+            observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer3 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer4 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer5 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes when the first observable completes with an exception",
+            () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest6(
+                ~selector=(a, b, c, d, e, f) => [a, b, c, d, e, f],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+                subject5 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            result^ |> Expect.toBeEqualToFalse;
+            let observer4 = subject4 |> Subject.toObserver;
+
+            observer4 |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+            result^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
+      describe(
+        "combineLatest7",
+        [
+          it("combines latest values from each subject", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+            let subject6 = Subject.create();
+
+            let result = ref([]);
+
+            Observable.combineLatest7(
+              ~selector=(a, b, c, d, e, f, g) => [a, b, c, d, e, f, g],
+              subject0 |> Subject.toObservable,
+              subject1 |> Subject.toObservable,
+              subject2 |> Subject.toObservable,
+              subject3 |> Subject.toObservable,
+              subject4 |> Subject.toObservable,
+              subject5 |> Subject.toObservable,
+              subject6 |> Subject.toObservable,
+            )
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=next => result := next,
+                 ~onComplete=Functions.alwaysUnit,
+               )
+            |> ignore;
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+            let observer5 = subject5 |> Subject.toObserver;
+            let observer6 = subject6 |> Subject.toObserver;
+
+            observer0 |> Observer.next(0);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer1 |> Observer.next(1);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer2 |> Observer.next(2);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer3 |> Observer.next(3);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer4 |> Observer.next(4);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer5 |> Observer.next(5);
+            result^ |> Expect.toBeEqualToListOfInt([]);
+            observer6 |> Observer.next(6);
+            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2, 3, 4, 5, 6]);
+          }),
+          it("completes only when all observables complete", () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+            let subject6 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest7(
+                ~selector=(a, b, c, d, e, f, g) => [a, b, c, d, e, f, g],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+                subject5 |> Subject.toObservable,
+                subject6 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            let observer0 = subject0 |> Subject.toObserver;
+            let observer1 = subject1 |> Subject.toObserver;
+            let observer2 = subject2 |> Subject.toObserver;
+            let observer3 = subject3 |> Subject.toObserver;
+            let observer4 = subject4 |> Subject.toObserver;
+            let observer5 = subject5 |> Subject.toObserver;
+            let observer6 = subject6 |> Subject.toObserver;
+
+            observer0 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer1 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer2 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer3 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer4 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer5 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+
+            observer6 |> Observer.complete(None);
+            result^ |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+          }),
+          it(
+            "completes when the first observable completes with an exception",
+            () => {
+            let subject0 = Subject.create();
+            let subject1 = Subject.create();
+            let subject2 = Subject.create();
+            let subject3 = Subject.create();
+            let subject4 = Subject.create();
+            let subject5 = Subject.create();
+            let subject6 = Subject.create();
+
+            let result = ref(false);
+
+            let subscription =
+              Observable.combineLatest7(
+                ~selector=(a, b, c, d, e, f, g) => [a, b, c, d, e, f, g],
+                subject0 |> Subject.toObservable,
+                subject1 |> Subject.toObservable,
+                subject2 |> Subject.toObservable,
+                subject3 |> Subject.toObservable,
+                subject4 |> Subject.toObservable,
+                subject5 |> Subject.toObservable,
+                subject6 |> Subject.toObservable,
+              )
+              |> Observable.subscribeWithCallbacks(
+                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+                   result := true
+                 );
+
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
+            result^ |> Expect.toBeEqualToFalse;
+            let observer5 = subject5 |> Subject.toObserver;
+
+            observer5 |> Observer.complete(Some(Division_by_zero));
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
+            result^ |> Expect.toBeEqualToTrue;
+          }),
+        ],
+      ),
       describe(
         "concat",
         [
@@ -176,6 +800,45 @@ let test =
             value^ |> Expect.toBeEqualToInt(20);
             complete^ |> Expect.toBeEqualToTrue;
           }),
+          it("onSubscribe throws synchronously before completing", () => {
+            let observable =
+              Observable.create((~onNext as _, ~onComplete as _) =>
+                raise(Division_by_zero)
+              );
+
+            let complete = ref(None);
+            observable
+            |> Observable.subscribeWithCallbacks(
+                 ~onNext=Functions.alwaysUnit, ~onComplete=exn =>
+                 complete := exn
+               )
+            |> ignore;
+
+            switch (complete^) {
+            | Some(Division_by_zero) => ()
+            | _ =>
+              failwith("expected subscription to complete with exception")
+            };
+          }),
+          it(
+            "throws when onSubscribe complete synchronously and then throws an exception",
+            () => {
+            let observable =
+              Observable.create((~onNext as _, ~onComplete) => {
+                onComplete(None);
+                raise(Division_by_zero);
+              });
+
+            (
+              () =>
+                observable
+                |> Observable.subscribeWithCallbacks(
+                     ~onNext=Functions.alwaysUnit,
+                     ~onComplete=Functions.alwaysUnit,
+                   )
+            )
+            |> Expect.shouldRaise;
+          }),
         ],
       ),
       describe(
@@ -190,19 +853,13 @@ let test =
                 Observable.empty();
               });
 
-            let subscription =
-              observable
-              |> Observable.subscribe;
+            let subscription = observable |> Observable.subscribe;
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
 
-            observable
-            |> Observable.subscribe
-            |> ignore;
+            observable |> Observable.subscribe |> ignore;
 
-            observable
-            |> Observable.subscribe
-            |> ignore;
+            observable |> Observable.subscribe |> ignore;
 
             count^ |> Expect.toBeEqualToInt(3);
           }),
@@ -352,6 +1009,7 @@ let test =
       describe("never", []),
       describe("ofList", []),
       describe("ofValue", []),
+      describe("raise", []),
       describe(
         "retry",
         [
@@ -388,7 +1046,8 @@ let test =
               Observable.create((~onNext, ~onComplete) => {
                 subject := Subject.create();
                 let observable = subject^ |> Subject.toObservable;
-                observable |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+                observable
+                |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
               })
               |> Observable.retry(_ => true)
               |> Observable.subscribeWithCallbacks(
