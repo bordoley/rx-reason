@@ -19,11 +19,13 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
     let debounceSubscription = ref(Disposable.disposed);
+
     let clearDebounce = () => {
       let currentDebounceSubscription = debounceSubscription^;
       currentDebounceSubscription |> Disposable.dispose;
       debounceSubscription := Disposable.disposed;
     };
+
     let debouncedNext = () => {
       clearDebounce();
       if (MutableOption.isNotEmpty(lastValue)) {
@@ -33,7 +35,14 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
       };
       Disposable.disposed;
     };
+
     Observer.create(
+      ~onNext=
+        next => {
+          clearDebounce();
+          MutableOption.set(next, lastValue);
+          debounceSubscription := scheduler(debouncedNext);
+        },
       ~onComplete=
         exn => {
           switch (exn) {
@@ -41,12 +50,6 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           | None => debouncedNext() |> ignore
           };
           observer |> Observer.complete(exn);
-        },
-      ~onNext=
-        next => {
-          clearDebounce();
-          MutableOption.set(next, lastValue);
-          debounceSubscription := scheduler(debouncedNext);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -78,18 +81,6 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
       ~onDispose=() => observer |> Observer.dispose,
     );
   };
-
-let dispose = (disposable: Disposable.t) : Operator.t('a, 'a) =>
-  observer =>
-    Observer.create(
-      ~onNext=next => observer |> Observer.next(next),
-      ~onComplete=exn => observer |> Observer.complete(exn),
-      ~onDispose=
-        () => {
-          disposable |> Disposable.dispose;
-          observer |> Observer.dispose;
-        },
-    );
 
 let exhaust: Operator.t(Observable.t('a), 'a) =
   observer => {

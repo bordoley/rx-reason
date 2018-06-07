@@ -16,8 +16,6 @@ let debounce: (Scheduler.t) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
-let dispose: Disposable.t => Operator.t('a, 'a);
-
 let distinctUntilChanged:
   (~comparer: ('a, 'a) => bool=?) => Operator.t('a, 'a);
 
