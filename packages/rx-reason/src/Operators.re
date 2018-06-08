@@ -148,30 +148,24 @@ let find = (predicate: 'a => bool, observer) => {
 };
 
 let first: Operator.t('a, 'a) =
-  observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
-      Observer.create(
-        ~onNext=
-          next => {
-            observer |> Observer.next(next);
-            observer |> Observer.complete(None);
-            outerDisposable^ |> Disposable.dispose;
-          },
-        ~onComplete=
-          exn => {
-            let exn =
-              switch (exn) {
-              | Some(_) => exn
-              | _ => Some(EmptyException)
-              };
-            observer |> Observer.complete(exn);
-          },
-        ~onDispose=() => observer |> Observer.dispose,
-      );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
-  };
+  observer =>
+    Observer.create(
+      ~onNext=
+        next => {
+          observer |> Observer.next(next);
+          observer |> Observer.complete(None);
+        },
+      ~onComplete=
+        exn => {
+          let exn =
+            switch (exn) {
+            | Some(_) => exn
+            | _ => Some(EmptyException)
+            };
+          observer |> Observer.complete(exn);
+        },
+      ~onDispose=() => observer |> Observer.dispose,
+    );
 
 let identity: Operator.t('a, 'a) = observer => observer;
 
