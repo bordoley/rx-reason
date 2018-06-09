@@ -563,7 +563,6 @@ let test =
       describe("observe", []),
       describe("observeOn", []),
       describe("onComplete", []),
-      describe("onDispose", []),
       describe(
         "onNext",
         [

@@ -10,7 +10,7 @@ exception ReturnUnitException;
 
 let returnUnit = () => raise(ReturnUnitException);
 
-let earlyReturnsUnit = (f: unit => unit) =>
+let earlyReturnsUnit = (f: unit => unit, ()) =>
   try (f()) {
   | ReturnUnitException => ()
   };

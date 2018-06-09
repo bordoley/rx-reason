@@ -419,18 +419,6 @@ let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
       ~onDispose=() => observer |> Observer.dispose,
     );
 
-let onDispose = (dispose: unit => unit) : Operator.t('a, 'a) =>
-  observer =>
-    Observer.create(
-      ~onNext=next => observer |> Observer.next(next),
-      ~onComplete=exn => observer |> Observer.complete(exn),
-      ~onDispose=
-        () => {
-          dispose();
-          observer |> Observer.dispose;
-        },
-    );
-
 let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
   map(next => {
     onNext(next);
@@ -481,7 +469,7 @@ let every = (predicate: 'a => bool, observer) => {
         },
       ~onDispose=_ => observer |> Observer.dispose,
     );
-  everyTrueObserver^ |> map(next => predicate(next));
+  everyTrueObserver^ |> map(predicate);
 };
 
 let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
@@ -510,7 +498,7 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
-    someTrueObserver^ |> map(next => predicate(next));
+    someTrueObserver^ |> map(predicate);
   };
 
 let switch_: Operator.t(Observable.t('a), 'a) =
@@ -647,8 +635,6 @@ let withLatestFrom =
           Functions.earlyReturnsUnit1(next => {
             if (MutableOption.isNotEmpty(otherLatest)) {
               let latest = otherLatest |> MutableOption.get;
-
-
               let nextWithLatest = try (selector(next, latest)) {
               | exn =>
               withLatestObserver^ |> Observer.complete(Some(exn));

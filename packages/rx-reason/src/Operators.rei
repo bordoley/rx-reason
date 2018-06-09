@@ -67,8 +67,6 @@ let observeOn:
 
 let onComplete: (option(exn) => unit) => Operator.t('a, 'a);
 
-let onDispose: (unit => unit) => Operator.t('a, 'a);
-
 let onNext: ('a => unit) => Operator.t('a, 'a);
 
 let scan: (('acc, 'a) => 'acc, 'acc) => Operator.t('a, 'acc);
