@@ -784,15 +784,21 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
           observable
           |> subscribeWithCallbacks(
                ~onNext,
-               ~onComplete=exn => {
-                 let shouldComplete =
-                   switch (exn) {
-                   | None => true
-                   | Some(exn) => ! shouldRetry(exn)
-                   };
+               ~onComplete=
+                 Functions.earlyReturnsUnit1(exn => {
+                   let shouldComplete =
+                     switch (exn) {
+                     | None => true
+                     | Some(exn) =>
+                       try (! shouldRetry(exn)) {
+                       | exn =>
+                         onComplete(Some(exn));
+                         Functions.returnUnit();
+                       }
+                     };
 
-                 shouldComplete ? onComplete(exn) : setupSubscription();
-               },
+                   shouldComplete ? onComplete(exn) : setupSubscription();
+                 }),
              );
         subscription |> AssignableDisposable.set(newSubscription);
       };

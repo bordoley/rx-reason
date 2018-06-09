@@ -124,11 +124,18 @@ let find = (predicate: 'a => bool, observer) => {
   findObserver :=
     Observer.create(
       ~onNext=
-        next =>
-          if (predicate(next)) {
+        Functions.earlyReturnsUnit1(next => {
+          let found =
+            try (predicate(next)) {
+            | exn =>
+              findObserver^ |> Observer.complete(Some(exn));
+              Functions.returnUnit();
+            };
+          if (found) {
             observer |> Observer.next(next);
             findObserver^ |> Observer.complete(None);
-          },
+          };
+        }),
       ~onComplete=exn => observer |> Observer.complete(exn),
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -632,17 +639,18 @@ let withLatestFrom =
     withLatestObserver :=
       Observer.create(
         ~onNext=
-          Functions.earlyReturnsUnit1(next => {
+          Functions.earlyReturnsUnit1(next =>
             if (MutableOption.isNotEmpty(otherLatest)) {
               let latest = otherLatest |> MutableOption.get;
-              let nextWithLatest = try (selector(next, latest)) {
-              | exn =>
-              withLatestObserver^ |> Observer.complete(Some(exn));
-              Functions.returnUnit();
-              };
+              let nextWithLatest =
+                try (selector(next, latest)) {
+                | exn =>
+                  withLatestObserver^ |> Observer.complete(Some(exn));
+                  Functions.returnUnit();
+                };
               observer |> Observer.next(nextWithLatest);
-            };
-          }),
+            }
+          ),
         ~onComplete=
           exn => {
             observer |> Observer.complete(exn);
