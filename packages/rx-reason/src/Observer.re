@@ -62,6 +62,14 @@ let complete = (exn: option(exn), observer: t('a)) : unit =>
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
+let disposedIsStopped = ref(true);
+let disposed = {
+  isStopped: disposedIsStopped,
+  onComplete: Functions.alwaysUnit,
+  onNext: Functions.alwaysUnit,
+  disposable: Disposable.disposed,
+};
+
 let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
 let isStopped = ({isStopped}) => Volatile.read(isStopped);

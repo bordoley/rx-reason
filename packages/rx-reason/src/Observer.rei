@@ -22,6 +22,8 @@ let createAutoDisposing:
   ) =>
   t('a);
 
+let disposed: t('a);
+
 let isStopped: t('a) => bool;
 
 let next: ('a, t('a)) => unit;

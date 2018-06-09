@@ -85,87 +85,79 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
 let exhaust: Operator.t(Observable.t('a), 'a) =
   observer => {
     let innerSubscription = ref(Disposable.disposed);
-    let outerSubscription = ref(Disposable.disposed);
-
-    let doSubscribeInner = next =>
-      innerSubscription :=
-        next
-        |> Observable.subscribeWithCallbacks(
-             ~onNext=next => observer |> Observer.next(next),
-             ~onComplete=
-               exn =>
-                 switch (exn) {
-                 | Some(_)
-                 | None when outerSubscription^ |> Disposable.isDisposed =>
-                   outerSubscription^ |> Disposable.dispose;
-                   observer |> Observer.complete(exn);
-                   observer |> Observer.dispose;
-                 | _ => ()
-                 },
-           );
-
-    let observer =
+    let exhaustObserver = ref(Observer.disposed);
+    exhaustObserver :=
       Observer.create(
         ~onNext=
           next =>
             if (Disposable.(innerSubscription^ |> isDisposed)) {
-              doSubscribeInner(next);
+              innerSubscription :=
+                Observable.subscribeWithCallbacks(
+                  ~onNext=next => observer |> Observer.next(next),
+                  ~onComplete=
+                    exn =>
+                      if (exhaustObserver^ |> Observer.isStopped) {
+                        observer |> Observer.complete(exn);
+                      } else if (exn !== None) {
+                        exhaustObserver^ |> Observer.complete(exn);
+                      },
+                  next,
+                );
             },
         ~onComplete=
           exn =>
             switch (exn) {
-            | Some(_)
-            | None when innerSubscription^ |> Disposable.isDisposed =>
-              innerSubscription^ |> Disposable.dispose;
+            | Some(_) =>
               observer |> Observer.complete(exn);
-              observer |> Observer.dispose;
+              innerSubscription^ |> Disposable.dispose;
+            | None when innerSubscription^ |> Disposable.isDisposed =>
+              observer |> Observer.complete(exn)
             | _ => ()
             },
-        /* FIXME: This is broken. If the observer is explicitly disposed we don't clean up resources */
-        ~onDispose=() => (),
+        ~onDispose=() => observer |> Observer.dispose,
       );
-
-    outerSubscription := observer |> Observer.toDisposable;
-    observer;
+    exhaustObserver^;
   };
 
 let find = (predicate: 'a => bool, observer) => {
-  let outerDisposable = ref(Disposable.disposed);
-  let outerObserver =
+  let findObserver = ref(Observer.disposed);
+  findObserver :=
     Observer.create(
       ~onNext=
         next =>
           if (predicate(next)) {
             observer |> Observer.next(next);
-            observer |> Observer.complete(None);
-            outerDisposable^ |> Disposable.dispose;
+            findObserver^ |> Observer.complete(None);
           },
       ~onComplete=exn => observer |> Observer.complete(exn),
       ~onDispose=() => observer |> Observer.dispose,
     );
-  outerDisposable := outerObserver |> Observer.toDisposable;
-  outerObserver;
+  findObserver^;
 };
 
 let first: Operator.t('a, 'a) =
-  observer =>
-    Observer.create(
-      ~onNext=
-        next => {
-          observer |> Observer.next(next);
-          observer |> Observer.complete(None);
-        },
-      ~onComplete=
-        exn => {
-          let exn =
-            switch (exn) {
-            | Some(_) => exn
-            | _ => Some(EmptyException)
-            };
-          observer |> Observer.complete(exn);
-        },
-      ~onDispose=() => observer |> Observer.dispose,
-    );
+  observer => {
+    let firstObserver = ref(Observer.disposed);
+    firstObserver :=
+      Observer.create(
+        ~onNext=
+          next => {
+            observer |> Observer.next(next);
+            firstObserver^ |> Observer.complete(None);
+          },
+        ~onComplete=
+          exn => {
+            let exn =
+              switch (exn) {
+              | Some(_) => exn
+              | _ => Some(EmptyException)
+              };
+            observer |> Observer.complete(exn);
+          },
+        ~onDispose=() => observer |> Observer.dispose,
+      );
+    firstObserver^;
+  };
 
 let identity: Operator.t('a, 'a) = observer => observer;
 
@@ -179,14 +171,13 @@ let ignoreElements: Operator.t('a, unit) =
 
 let isEmpty: Operator.t('a, bool) =
   observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
+    let isEmptyObserver = ref(Observer.disposed);
+    isEmptyObserver :=
       Observer.create(
         ~onNext=
           _ => {
             observer |> Observer.next(false);
-            observer |> Observer.complete(None);
-            outerDisposable^ |> Disposable.dispose;
+            isEmptyObserver^ |> Observer.complete(None);
           },
         ~onComplete=
           exn => {
@@ -197,22 +188,20 @@ let isEmpty: Operator.t('a, bool) =
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
+    isEmptyObserver^;
   };
 
 let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
   observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
+    let keepObserver = ref(Observer.disposed);
+    keepObserver :=
       Observer.create(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             let shouldKeep =
               try (predicate(next)) {
               | exn =>
-                observer |> Observer.complete(Some(exn));
-                outerDisposable^ |> Disposable.dispose;
+                keepObserver^ |> Observer.complete(Some(exn));
                 Functions.returnUnit();
               };
             if (shouldKeep) {
@@ -222,8 +211,7 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
         ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=() => observer |> Observer.dispose,
       );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
+    keepObserver^;
   };
 
 let distinctUntilChanged =
@@ -267,16 +255,15 @@ let last = observer => {
 
 let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
   observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
+    let mapObserver = ref(Observer.disposed);
+    mapObserver :=
       Observer.create(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             let mapped =
               try (mapper(next)) {
               | exn =>
-                observer |> Observer.complete(Some(exn));
-                outerDisposable^ |> Disposable.dispose;
+                mapObserver^ |> Observer.complete(Some(exn));
                 Functions.returnUnit();
               };
             observer |> Observer.next(mapped);
@@ -284,8 +271,7 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
         ~onComplete=exn => observer |> Observer.complete(exn),
         ~onDispose=() => observer |> Observer.dispose,
       );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
+    mapObserver^;
   };
 
 let mapTo = (value: 'b) : Operator.t('a, 'b) => map(_ => value);
@@ -323,15 +309,14 @@ let observe =
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit)
     : Operator.t('a, 'a) =>
   observer => {
-    let outerDisposable = ref(Disposable.disposed);
-    let outerObserver =
+    let observeObserver = ref(Observer.disposed);
+    observeObserver :=
       Observer.create(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             try (onNext(next)) {
             | exn =>
-              observer |> Observer.complete(Some(exn));
-              outerDisposable^ |> Disposable.dispose;
+              observeObserver^ |> Observer.complete(Some(exn));
               Functions.returnUnit();
             };
             observer |> Observer.next(next);
@@ -351,8 +336,7 @@ let observe =
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
-    outerDisposable := outerObserver |> Observer.toDisposable;
-    outerObserver;
+    observeObserver^;
   };
 
 let observeOn =
@@ -406,12 +390,12 @@ let observeOn =
         exn => {
           shouldComplete := true;
           completedState := exn;
-        },
-      ~onDispose=
-        () => {
-          innerSubscription |> Disposable.dispose;
           schedule();
         },
+      ~onDispose=
+        () =>
+          /* FIXME: Should this be async? */
+          innerSubscription |> Disposable.dispose,
     );
   };
 
@@ -468,61 +452,71 @@ let scan =
     map(mapper, observer);
   };
 
+exception EverySuccessException;
+let everySuccessExn = Some(EverySuccessException);
+
 let every = (predicate: 'a => bool, observer) => {
-  let everyTrueDisposable = AssignableDisposable.create();
-  let everyTrueObserver =
+  let everyTrueObserver = ref(Observer.disposed);
+  everyTrueObserver :=
     Observer.create(
       ~onNext=
         next =>
           if (! next) {
             observer |> Observer.next(next);
-            observer |> Observer.complete(None);
-            everyTrueDisposable |> AssignableDisposable.dispose;
+            everyTrueObserver^ |> Observer.complete(everySuccessExn);
           },
       ~onComplete=
         exn => {
-          if (exn === None) {
-            observer |> Observer.next(true);
-          };
+          let exn =
+            switch (exn) {
+            | Some(EverySuccessException) =>
+              observer |> Observer.next(false);
+              None;
+            | None =>
+              observer |> Observer.next(true);
+              None;
+            | _ => exn
+            };
           observer |> Observer.complete(exn);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=_ => observer |> Observer.dispose,
     );
-  everyTrueDisposable
-  |> AssignableDisposable.set(everyTrueObserver |> Observer.toDisposable);
-  everyTrueObserver |> map(next => predicate(next));
+  everyTrueObserver^ |> map(next => predicate(next));
 };
 
 let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
   observer => {
-    let someTrueDisposable = AssignableDisposable.create();
-    let someTrueObserver =
+    let someTrueObserver = ref(Observer.disposed);
+    someTrueObserver :=
       Observer.create(
         ~onNext=
           next =>
             if (next) {
-              observer |> Observer.next(next);
-              observer |> Observer.complete(None);
-              someTrueDisposable |> AssignableDisposable.dispose;
+              someTrueObserver^ |> Observer.complete(everySuccessExn);
             },
         ~onComplete=
           exn => {
-            if (exn === None) {
-              observer |> Observer.next(false);
-            };
+            let exn =
+              switch (exn) {
+              | Some(EverySuccessException) =>
+                observer |> Observer.next(true);
+                None;
+              | None =>
+                observer |> Observer.next(false);
+                None;
+              | _ => exn
+              };
             observer |> Observer.complete(exn);
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
-    someTrueDisposable
-    |> AssignableDisposable.set(someTrueObserver |> Observer.toDisposable);
-    someTrueObserver |> map(next => predicate(next));
+    someTrueObserver^ |> map(next => predicate(next));
   };
 
 let switch_: Operator.t(Observable.t('a), 'a) =
   observer => {
+    let switchObserver = ref(Observer.disposed);
     let innerSubscription = AssignableDisposable.create();
-    let outerSubscription = ref(Disposable.disposed);
     let latest = ref(0);
     let lock = Lock.create();
 
@@ -543,19 +537,16 @@ let switch_: Operator.t(Observable.t('a), 'a) =
                exn =>
                  switch (exn) {
                  | Some(_) =>
-                   lock |> Lock.acquire;
                    if (latest^ === id) {
-                     observer |> Observer.complete(exn);
-                     outerSubscription^ |> Disposable.dispose;
-                   };
-                   lock |> Lock.release;
+                     switchObserver^ |> Observer.complete(exn);
+                   }
                  | None => ()
                  },
            );
       innerSubscription |> AssignableDisposable.set(newInnerSubscription);
     };
 
-    let observer =
+    switchObserver :=
       Observer.create(
         ~onNext=
           next => {
@@ -569,18 +560,13 @@ let switch_: Operator.t(Observable.t('a), 'a) =
         ~onComplete=
           exn => {
             lock |> Lock.acquire;
+            innerSubscription |> AssignableDisposable.dispose;
             observer |> Observer.complete(exn);
             lock |> Lock.release;
           },
-        ~onDispose=
-          () => {
-            innerSubscription |> AssignableDisposable.dispose;
-            observer |> Observer.dispose;
-          },
+        ~onDispose=() => innerSubscription |> AssignableDisposable.dispose,
       );
-
-    outerSubscription := observer |> Observer.toDisposable;
-    observer;
+    switchObserver^;
   };
 
 let synchronize: Operator.t('a, 'a) =
@@ -609,7 +595,7 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
   let timeoutObservable = Observable.raise(~scheduler, TimeoutException);
   observer => {
     let timeoutSubscription = AssignableDisposable.create();
-    let innerSubscription = AssignableDisposable.create();
+    let timeOutObserver = ref(Observer.disposed);
 
     let subscribeToTimeout = () => {
       timeoutSubscription |> AssignableDisposable.set(Disposable.disposed);
@@ -617,34 +603,32 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
         timeoutObservable
         |> Observable.subscribeWithCallbacks(
              ~onNext=_ => (),
-             ~onComplete=
-               exn => {
-                 observer |> Observer.complete(exn);
-                 innerSubscription |> AssignableDisposable.dispose;
-               },
+             ~onComplete=exn => timeOutObserver^ |> Observer.complete(exn),
            );
       timeoutSubscription |> AssignableDisposable.set(subscription);
     };
 
-    let innerObserver =
+    timeOutObserver :=
       Observer.create(
         ~onNext=
           next => {
             observer |> Observer.next(next);
             subscribeToTimeout();
           },
-        ~onComplete=exn => observer |> Observer.complete(exn),
+        ~onComplete=
+          exn => {
+            timeoutSubscription |> AssignableDisposable.dispose;
+            observer |> Observer.complete(exn);
+          },
         ~onDispose=
-          () => {
+          _ => {
             timeoutSubscription |> AssignableDisposable.dispose;
             observer |> Observer.dispose;
           },
       );
 
-    innerSubscription
-    |> AssignableDisposable.set(innerObserver |> Observer.toDisposable);
     subscribeToTimeout();
-    innerObserver;
+    timeOutObserver^;
   };
 };
 
@@ -664,7 +648,11 @@ let withLatestFrom =
               let nextWithLatest = selector(next, latest);
               observer |> Observer.next(nextWithLatest);
             },
-        ~onComplete=exn => observer |> Observer.complete(exn),
+        ~onComplete=
+          exn => {
+            observer |> Observer.complete(exn);
+            otherSubscription |> AssignableDisposable.dispose;
+          },
         ~onDispose=
           () => {
             otherSubscription |> AssignableDisposable.dispose;
