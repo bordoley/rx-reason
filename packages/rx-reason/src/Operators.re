@@ -637,41 +637,49 @@ let withLatestFrom =
     : Operator.t('a, 'c) =>
   observer => {
     let otherLatest = MutableOption.create();
-    let otherSubscription = AssignableDisposable.create();
 
-    let withLatestObserver =
+    let withLatestObserver = ref(Observer.disposed);
+    let otherSubscription = ref(Disposable.disposed);
+
+    withLatestObserver :=
       Observer.create(
         ~onNext=
-          next =>
+          Functions.earlyReturnsUnit1(next => {
             if (MutableOption.isNotEmpty(otherLatest)) {
               let latest = otherLatest |> MutableOption.get;
-              let nextWithLatest = selector(next, latest);
+
+
+              let nextWithLatest = try (selector(next, latest)) {
+              | exn =>
+              withLatestObserver^ |> Observer.complete(Some(exn));
+              Functions.returnUnit();
+              };
               observer |> Observer.next(nextWithLatest);
-            },
+            };
+          }),
         ~onComplete=
           exn => {
             observer |> Observer.complete(exn);
-            otherSubscription |> AssignableDisposable.dispose;
+            otherSubscription^ |> Disposable.dispose;
           },
         ~onDispose=
           () => {
-            otherSubscription |> AssignableDisposable.dispose;
+            otherSubscription^ |> Disposable.dispose;
             observer |> Observer.dispose;
           },
       );
-    AssignableDisposable.set(
+
+    otherSubscription :=
       other
       |> Observable.subscribeWithCallbacks(
            ~onNext=next => otherLatest |> MutableOption.set(next),
            ~onComplete=
              exn =>
                switch (exn) {
-               | Some(_) => observer |> Observer.complete(exn)
-               | _ => otherSubscription |> AssignableDisposable.dispose
+               | Some(_) => withLatestObserver^ |> Observer.complete(exn)
+               | _ => ()
                },
-         ),
-      otherSubscription,
-    );
+         );
 
-    withLatestObserver;
+    withLatestObserver^;
   };
