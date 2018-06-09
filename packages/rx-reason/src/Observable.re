@@ -68,15 +68,25 @@ let combineLatest2 =
     let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0) && MutableOption.isNotEmpty(v1);
+        if (haveValues) {
+          let next =
+            try (selector(MutableOption.get(v0), MutableOption.get(v1))) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0) && MutableOption.isNotEmpty(v1);
-      if (haveValues) {
-        onNext(selector(v0 |> MutableOption.get, v1 |> MutableOption.get));
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
@@ -129,23 +139,33 @@ let combineLatest3 =
     );
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0)
+          && MutableOption.isNotEmpty(v1)
+          && MutableOption.isNotEmpty(v2);
+        if (haveValues) {
+          let next =
+            try (
+              selector(
+                MutableOption.get(v0),
+                MutableOption.get(v1),
+                MutableOption.get(v2),
+              )
+            ) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0)
-        && MutableOption.isNotEmpty(v1)
-        && MutableOption.isNotEmpty(v2);
-      if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-            v2 |> MutableOption.get,
-          ),
-        );
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
@@ -211,25 +231,36 @@ let combineLatest4 =
     );
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0)
+          && MutableOption.isNotEmpty(v1)
+          && MutableOption.isNotEmpty(v2)
+          && MutableOption.isNotEmpty(v3);
+
+        if (haveValues) {
+          let next =
+            try (
+              selector(
+                MutableOption.get(v0),
+                MutableOption.get(v1),
+                MutableOption.get(v2),
+                MutableOption.get(v3),
+              )
+            ) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0)
-        && MutableOption.isNotEmpty(v1)
-        && MutableOption.isNotEmpty(v2)
-        && MutableOption.isNotEmpty(v3);
-      if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-            v2 |> MutableOption.get,
-            v3 |> MutableOption.get,
-          ),
-        );
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
@@ -303,27 +334,38 @@ let combineLatest5 =
     );
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0)
+          && MutableOption.isNotEmpty(v1)
+          && MutableOption.isNotEmpty(v2)
+          && MutableOption.isNotEmpty(v3)
+          && MutableOption.isNotEmpty(v4);
+
+        if (haveValues) {
+          let next =
+            try (
+              selector(
+                MutableOption.get(v0),
+                MutableOption.get(v1),
+                MutableOption.get(v2),
+                MutableOption.get(v3),
+                MutableOption.get(v4),
+              )
+            ) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0)
-        && MutableOption.isNotEmpty(v1)
-        && MutableOption.isNotEmpty(v2)
-        && MutableOption.isNotEmpty(v3)
-        && MutableOption.isNotEmpty(v4);
-      if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-            v2 |> MutableOption.get,
-            v3 |> MutableOption.get,
-            v4 |> MutableOption.get,
-          ),
-        );
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
@@ -404,29 +446,40 @@ let combineLatest6 =
     );
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0)
+          && MutableOption.isNotEmpty(v1)
+          && MutableOption.isNotEmpty(v2)
+          && MutableOption.isNotEmpty(v3)
+          && MutableOption.isNotEmpty(v4)
+          && MutableOption.isNotEmpty(v5);
+
+        if (haveValues) {
+          let next =
+            try (
+              selector(
+                MutableOption.get(v0),
+                MutableOption.get(v1),
+                MutableOption.get(v2),
+                MutableOption.get(v3),
+                MutableOption.get(v4),
+                MutableOption.get(v5),
+              )
+            ) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0)
-        && MutableOption.isNotEmpty(v1)
-        && MutableOption.isNotEmpty(v2)
-        && MutableOption.isNotEmpty(v3)
-        && MutableOption.isNotEmpty(v4)
-        && MutableOption.isNotEmpty(v5);
-      if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-            v2 |> MutableOption.get,
-            v3 |> MutableOption.get,
-            v4 |> MutableOption.get,
-            v5 |> MutableOption.get,
-          ),
-        );
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
@@ -514,31 +567,42 @@ let combineLatest7 =
     );
     let lock = Lock.create();
 
+    let tryOnNext =
+      Functions.earlyReturnsUnit(() => {
+        let haveValues =
+          MutableOption.isNotEmpty(v0)
+          && MutableOption.isNotEmpty(v1)
+          && MutableOption.isNotEmpty(v2)
+          && MutableOption.isNotEmpty(v3)
+          && MutableOption.isNotEmpty(v4)
+          && MutableOption.isNotEmpty(v5)
+          && MutableOption.isNotEmpty(v6);
+
+        if (haveValues) {
+          let next =
+            try (
+              selector(
+                MutableOption.get(v0),
+                MutableOption.get(v1),
+                MutableOption.get(v2),
+                MutableOption.get(v3),
+                MutableOption.get(v4),
+                MutableOption.get(v5),
+                MutableOption.get(v6),
+              )
+            ) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            };
+          onNext(next);
+        };
+      });
+
     let doOnNext = (v, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-
-      let haveValues =
-        MutableOption.isNotEmpty(v0)
-        && MutableOption.isNotEmpty(v1)
-        && MutableOption.isNotEmpty(v2)
-        && MutableOption.isNotEmpty(v3)
-        && MutableOption.isNotEmpty(v4)
-        && MutableOption.isNotEmpty(v5)
-        && MutableOption.isNotEmpty(v6);
-      if (haveValues) {
-        onNext(
-          selector(
-            v0 |> MutableOption.get,
-            v1 |> MutableOption.get,
-            v2 |> MutableOption.get,
-            v3 |> MutableOption.get,
-            v4 |> MutableOption.get,
-            v5 |> MutableOption.get,
-            v6 |> MutableOption.get,
-          ),
-        );
-      };
+      tryOnNext();
       Lock.release(lock);
     };
 
