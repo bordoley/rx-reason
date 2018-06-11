@@ -2,6 +2,19 @@ open ReUnit;
 
 open ReUnit.Test;
 
+let optionEquals = (~equals=(===), a, b) =>
+  switch (a, b) {
+  | (Some(a), Some(b)) => equals(a, b)
+  | (None, None) => true
+  | _ => false
+  };
+
+let optionToString = (~toString, x) =>
+  switch (x) {
+  | Some(v) => "Some(" ++ toString(v) ++ ")"
+  | _ => "None"
+  };
+
 let subscribeWithResult = (result, observable) =>
   observable
   |> Observable.subscribeWithCallbacks(
@@ -23,9 +36,9 @@ let expectToBeEqualToListOfNotifications = (~equals=(===), ~toString) =>
     ~toString=
       v =>
         switch (v) {
-        | Notification.Next(v) => "next: " ++ toString(v)
-        | Notification.Complete(Some(_)) => "completed with exception"
-        | Notification.Complete(None) => "completed"
+        | Notification.Next(v) => "Next(" ++ toString(v) ++ ")"
+        | Notification.Complete(Some(_)) => "Complete(Some(exn))"
+        | Notification.Complete(None) => "Complete(None)"
         },
   );
 
@@ -202,65 +215,44 @@ let test =
             result^
             |> List.rev
             |> expectToBeEqualToListOfNotifications(
-                 ~equals=
-                   (a, b) =>
-                     switch (a, b) {
-                     | (Some(a), Some(b)) => a === b
-                     | _ => false
-                     },
-                 ~toString=
-                   x =>
-                     switch (x) {
-                     | Some(v) => "Some(" ++ string_of_int(v) ++ ")"
-                     | _ => "None"
-                     },
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
                  [Next(Some(2)), Complete(None)],
                );
           }),
           it("passes through completed exceptions", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let firstOrNoneObserver = Operators.firstOrNone(observer);
-            firstOrNoneObserver |> Observer.complete(Some(Division_by_zero));
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
-            };
+            let result = ref([]);
+            Observable.raise(Division_by_zero)
+            |> Observable.lift(Operators.firstOrNone)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
           it(
             "ignores EmptyException, publishes None, and completes normally",
             () => {
-            let observedValue = ref(Some(1));
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let firstOrNoneObserver =
-              Operators.first @@ Operators.firstOrNone @@ observer;
-            firstOrNoneObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToNoneOfInt;
-          }),
-        ],
-      ),
-      describe(
-        "identity",
-        [
-          it("returns the observer provided as an argument", () => {
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let identityObserver = Operators.identity(observer);
-            observer === identityObserver |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.empty()
+            |> Observable.lift(observer =>
+                 Operators.first @@ Operators.firstOrNone @@ observer
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
+                 [Next(None), Complete(None)],
+               );
           }),
         ],
       ),
@@ -384,53 +376,57 @@ let test =
         "lastOrNone",
         [
           it("publishes the Some of the last observed value and disposes", () => {
-            let observedValue = ref(None);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let lastOrNoneObserver = Operators.lastOrNone(observer);
-            lastOrNoneObserver |> Observer.next(3);
-            observedValue^ |> Expect.toBeEqualToNoneOfInt;
-            lastOrNoneObserver |> Observer.next(2);
-            observedValue^ |> Expect.toBeEqualToNoneOfInt;
-            lastOrNoneObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToSomeOfInt(2);
-            completed^ |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.ofList([2, 3])
+            |> Observable.lift(Operators.lastOrNone)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
+                 [Next(Some(3)), Complete(None)],
+               );
           }),
           it("passes through completed exceptions", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let lastOrNoneObserver = Operators.lastOrNone(observer);
-            lastOrNoneObserver |> Observer.complete(Some(Division_by_zero));
+            let result = ref([]);
+            Observable.ofNotifications([
+              Next(1),
+              Next(2),
+              Complete(Some(Division_by_zero)),
+            ])
+            |> Observable.lift(Operators.lastOrNone)
+            |> subscribeWithResult(result)
+            |> ignore;
 
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
-            };
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
           it(
             "ignores EmptyException, publishes None, and completes normally",
             () => {
-            let observedValue = ref(Some(1));
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let lastOrNoneObserver =
-              Operators.first @@ Operators.lastOrNone @@ observer;
-            lastOrNoneObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToNoneOfInt;
+            let result = ref([]);
+            Observable.empty()
+            |> Observable.lift(observer =>
+                 Operators.first @@ Operators.lastOrNone @@ observer
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~equals=optionEquals,
+                 ~toString=optionToString(~toString=string_of_int),
+                 [Next(None), Complete(None)],
+               );
           }),
         ],
       ),
@@ -489,103 +485,105 @@ let test =
           }),
         ],
       ),
-      describe("maybe", []),
       describe(
         "maybeFirst",
         [
           it("publishes the first observed value", () => {
-            let observedValue = ref(0);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeFirstObserver = Operators.maybeFirst(observer);
-            maybeFirstObserver |> Observer.next(2);
-            observedValue^ |> Expect.toBeEqualToInt(2);
-            completed^ |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.ofList([1, 2, 3])
+            |> Observable.lift(Operators.maybeFirst)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(1), Complete(None)],
+               );
           }),
           it("passes through completed exceptions", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeFirstObserver = Operators.maybeFirst(observer);
-            maybeFirstObserver |> Observer.complete(Some(Division_by_zero));
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
-            };
+            let result = ref([]);
+            Observable.raise(Division_by_zero)
+            |> Observable.lift(Operators.maybeFirst)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
           it("ignores EmptyException and completes normally", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeFirstObserver =
-              Operators.first @@ Operators.maybeFirst @@ observer;
-            maybeFirstObserver |> Observer.complete(None);
-            observedExn^ === None |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.empty()
+            |> Observable.lift(observer =>
+                 Operators.first @@ Operators.maybeFirst @@ observer
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(None)],
+               );
           }),
         ],
       ),
       describe(
         "maybeLast",
         [
-          it("publishes the first observed value and disposes", () => {
-            let observedValue = ref(0);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeLastObserver = Operators.maybeLast(observer);
-            maybeLastObserver |> Observer.next(2);
-            observedValue^ |> Expect.toBeEqualToInt(0);
-            maybeLastObserver |> Observer.next(4);
-            observedValue^ |> Expect.toBeEqualToInt(0);
-            maybeLastObserver |> Observer.next(6);
-            maybeLastObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToInt(6);
-            completed^ |> Expect.toBeEqualToTrue;
+          it("publishes the last observed value", () => {
+            let result = ref([]);
+            Observable.ofList([1, 2, 3])
+            |> Observable.lift(Operators.maybeLast)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(3), Complete(None)],
+               );
           }),
           it("passes through completed exceptions", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeLastObserver = Operators.maybeLast(observer);
-            maybeLastObserver |> Observer.complete(Some(Division_by_zero));
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
-            };
+            let result = ref([]);
+            Observable.ofNotifications([
+              Next(1),
+              Next(2),
+              Complete(Some(Division_by_zero)),
+            ])
+            |> Observable.lift(Operators.maybeLast)
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
           it("ignores EmptyException and completes normally", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let maybeLastObserver =
-              Operators.first @@ Operators.maybeLast @@ observer;
-            maybeLastObserver |> Observer.complete(None);
-            observedExn^ === None |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.empty()
+            |> Observable.lift(observer =>
+                 Operators.first @@ Operators.maybeLast @@ observer
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(None)],
+               );
           }),
         ],
       ),

@@ -29,8 +29,6 @@ let first: Operator.t('a, 'a);
 
 let firstOrNone: Operator.t('a, option('a));
 
-let identity: Operator.t('a, 'a);
-
 let ignoreElements: Operator.t('a, 'a);
 
 let isEmpty: Operator.t('a, bool);
@@ -44,8 +42,6 @@ let lastOrNone: Operator.t('a, option('a));
 let map: ('a => 'b) => Operator.t('a, 'b);
 
 let mapTo: 'b => Operator.t('a, 'b);
-
-let maybe: Operator.t('a, 'a);
 
 let maybeFirst: Operator.t('a, 'a);
 

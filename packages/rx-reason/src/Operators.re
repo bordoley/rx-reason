@@ -170,8 +170,6 @@ let first: Operator.t('a, 'a) =
     firstObserver^;
   };
 
-let identity: Operator.t('a, 'a) = observer => observer;
-
 let ignoreElements: Operator.t('a, 'a) =
   observer =>
     Observer.create(

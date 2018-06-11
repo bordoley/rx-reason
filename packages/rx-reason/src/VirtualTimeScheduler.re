@@ -65,3 +65,21 @@ let toClockScheduler = ({currentTime, scheduler}) : ClockScheduler.t =>
 let toDelayScheduler = ({scheduler}) => scheduler;
 
 let toScheduler = ({scheduler}) => scheduler(~delay=0.0);
+
+let subscribe =
+    (
+      vts,
+      result: ref(list((Notification.t('a), int))),
+      observable: Observable.t('a),
+    ) =>
+  observable
+  |> Observable.subscribeWithCallbacks(
+       ~onNext=
+         next =>
+           result :=
+             [(Notification.Next(next), vts.currentTime^), ...result^],
+       ~onComplete=
+         exn =>
+           result :=
+             [(Notification.Complete(exn), vts.currentTime^), ...result^],
+     );
