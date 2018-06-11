@@ -1,6 +1,6 @@
 let resolveUnit = Js.Promise.resolve();
 
-let schedule: RxReason.Scheduler.t =
+let scheduler: RxReason.Scheduler.t =
   work => {
     let disposable = RxReason.AssignableDisposable.create();
     let run = () => {
@@ -16,7 +16,7 @@ let schedule: RxReason.Scheduler.t =
     disposable |> RxReason.AssignableDisposable.toDisposable;
   };
 
-let scheduleFuture: RxReason.DelayScheduler.t =
+let delayScheduler: RxReason.DelayScheduler.t =
   (~delay, work) => {
     let disposable = RxReason.AssignableDisposable.create();
     let timeoutId =
@@ -37,3 +37,6 @@ let scheduleFuture: RxReason.DelayScheduler.t =
     disposable |> RxReason.AssignableDisposable.set(timeoutDisposable);
     disposable |> RxReason.AssignableDisposable.toDisposable;
   };
+
+  let clockScheduler: RxReason.ClockScheduler.t = f =>
+    f(Js.Date.now(), delayScheduler);

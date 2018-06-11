@@ -216,19 +216,6 @@ let test =
                      },
                  [Next(Some(2)), Complete(None)],
                );
-
-            let observedValue = ref(None);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let firstOrNoneObserver = Operators.firstOrNone(observer);
-            firstOrNoneObserver |> Observer.next(2);
-            observedValue^ |> Expect.toBeEqualToSomeOfInt(2);
-            completed^ |> Expect.toBeEqualToTrue;
           }),
           it("passes through completed exceptions", () => {
             let observedExn = ref(None);
