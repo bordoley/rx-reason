@@ -172,7 +172,7 @@ let first: Operator.t('a, 'a) =
 
 let identity: Operator.t('a, 'a) = observer => observer;
 
-let ignoreElements: Operator.t('a, unit) =
+let ignoreElements: Operator.t('a, 'a) =
   observer =>
     Observer.create(
       ~onNext=Functions.alwaysUnit,

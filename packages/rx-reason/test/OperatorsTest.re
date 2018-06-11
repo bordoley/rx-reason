@@ -268,26 +268,20 @@ let test =
         "ignoreElements",
         [
           it("ignores all elements and publishes an exception", () => {
-            let observedValues = ref([]);
-            let completed = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValues := [next, ...observedValues^],
-                ~onComplete=exn => completed := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
+            let result = ref([]);
+            Observable.ofNotifications([
+              Next(1), Next(2), Next(3), Complete(Some(Division_by_zero)),
+            ])
+            |> Observable.lift(Operators.ignoreElements)
+            |> subscribeWithResult(result)
+            |> ignore;
 
-            let ignoreObserver = observer |> Operators.ignoreElements;
-            ignoreObserver |> Observer.next(1);
-            ignoreObserver |> Observer.next(2);
-            ignoreObserver |> Observer.next(3);
-            ignoreObserver |> Observer.complete(Some(Division_by_zero));
-
-            observedValues^ === [] |> Expect.toBeEqualToTrue;
-            switch (completed^) {
-            | Some(x) => x === Division_by_zero |> Expect.toBeEqualToTrue
-            | _ => failwith("expected a division by zero exception")
-            };
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
         ],
       ),
@@ -295,33 +289,38 @@ let test =
       describe(
         "keep",
         [
-          it("completes the observer when the mapper throws an exception", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let mapper = _ => raise(Division_by_zero);
-            let keepObserver = Operators.keep(mapper, observer);
-            keepObserver |> Observer.next(1);
-            observedExn^ === None |> Expect.toBeEqualToFalse;
+          it("completes the observer when the predicate throws an exception", () => {
+            let predicate = _ => raise(Division_by_zero);
+
+            let result = ref([]);
+            Observable.ofValue(1)
+            |> Observable.lift(Operators.keep(predicate))
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Complete(Some(Division_by_zero))],
+               );
           }),
           it(
-            "completes the observer when the mapping observer is completed", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
+            "completes the observer when the keep observer is completed", () => {
+              let predicate = _ => true;
+
+              let result = ref([]);
+              Observable.ofValue(1)
+              |> Observable.lift(Operators.keep(predicate))
+              |> subscribeWithResult(result)
+              |> ignore;
+  
+              result^
+              |> List.rev
+              |> expectToBeEqualToListOfNotifications(
+                   ~toString=string_of_int,
+                   [Next(1), Complete(None)],
               );
-            let keepObserver = Operators.keep(_ => true, observer);
-            keepObserver
-            |> Observer.completeWithResult(Some(Division_by_zero))
-            |> Expect.toBeEqualToTrue;
-            observedExn^ === None |> Expect.toBeEqualToFalse;
           }),
         ],
       ),
@@ -594,19 +593,23 @@ let test =
         "onNext",
         [
           it("calls the side effect function on next", () => {
-            let sideEffectCalled = ref(false);
-            let observedNext = ref(0);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedNext := next,
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let doObserver =
-              Operators.onNext(_ => sideEffectCalled := true, observer);
-            doObserver |> Observer.next(1);
-            sideEffectCalled^ |> Expect.toBeEqualToTrue;
-            observedNext^ |> Expect.toBeEqualToInt(1);
+            let result = ref([]);
+            let sideEffectCount = ref(0);
+
+            Observable.ofList([1])
+            |> Observable.lift(
+                 Operators.onNext(_ => sideEffectCount := sideEffectCount^ + 1),
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            sideEffectCount^ |> Expect.toBeEqualToInt(1);
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(1), Complete(None)],
+               );
           }),
         ],
       ),
@@ -617,19 +620,19 @@ let test =
             "publishes all intermediate values, including the initial accumulator value",
             () => {
             let result = ref([]);
-            let observer =
-              Observer.create(
-                ~onNext=next => result := [next, ...result^],
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let scanObserver =
-              Operators.scan((acc, next) => acc + next, 0, observer);
-            scanObserver |> Observer.next(2);
-            scanObserver |> Observer.next(3);
-            scanObserver |> Observer.next(4);
+            Observable.ofList([2, 3, 4])
+            |> Observable.lift(
+                 Operators.scan((acc, next) => acc + next, 0),
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
 
-            result^ |> Expect.toBeEqualToListOfInt([9, 5, 2, 0]);
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(0), Next(2), Next(5), Next(9), Complete(None)],
+               );
           }),
         ],
       ),
@@ -639,39 +642,34 @@ let test =
           it(
             "returns false for an observer that completes without producing values",
             () => {
-            let observedValue = ref(true);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let someObserver = observer |> Operators.some(i => i > 10);
-            someObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToFalse;
-            completed^ |> Expect.toBeEqualToTrue;
+            let result = ref([]);
+            Observable.empty()
+            |> Observable.lift(Operators.some(i => i > 10))
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_bool,
+                 [Next(false), Complete(None)],
+               );
           }),
           it(
             "returns false for an observer for which no value passes the predicate",
             () => {
-            let observedValue = ref(true);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let someObserver = observer |> Operators.some(i => i > 10);
+            let result = ref([]);
+            Observable.ofList([5, 6, 7])
+            |> Observable.lift(Operators.some(i => i > 10))
+            |> subscribeWithResult(result)
+            |> ignore;
 
-            someObserver |> Observer.next(5);
-            observedValue^ |> Expect.toBeEqualToTrue;
-            completed^ |> Expect.toBeEqualToFalse;
-
-            someObserver |> Observer.complete(None);
-            observedValue^ |> Expect.toBeEqualToFalse;
-            completed^ |> Expect.toBeEqualToTrue;
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_bool,
+                 [Next(false), Complete(None)],
+               );
           }),
           it(
             "returns true for the first observed value that passed the predicate",

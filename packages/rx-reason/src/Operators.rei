@@ -31,7 +31,7 @@ let firstOrNone: Operator.t('a, option('a));
 
 let identity: Operator.t('a, 'a);
 
-let ignoreElements: Operator.t('a, unit);
+let ignoreElements: Operator.t('a, 'a);
 
 let isEmpty: Operator.t('a, bool);
 
