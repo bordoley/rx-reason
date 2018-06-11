@@ -775,6 +775,39 @@ let merge = (observables: list(t('a))) : t('a) => {
 let never = () : t('a) =>
   create((~onNext as _, ~onComplete as _) => Disposable.empty());
 
+let ofAbsoluteTimeNotifications =
+    (
+      ~scheduler: ClockScheduler.t,
+      notifications: list((Notification.t('a), float)),
+    )
+    : t('a) =>
+  create((~onNext, ~onComplete) => {
+    let rec loop = lst =>
+      switch (lst) {
+      | [(notif, time), ...tail] =>
+        scheduler((currentTime, schedule) => {
+          let delay = time -. currentTime;
+          if (delay >= 0.0) {
+            schedule(
+              ~delay,
+              () => {
+                switch (notif) {
+                | Notification.Next(v) => onNext(v)
+                | Notification.Complete(exn) => onComplete(exn)
+                };
+                loop(tail);
+              },
+            );
+          } else {
+            schedule(~delay=0.0, () => loop(tail));
+          };
+        })
+      | [] => Disposable.disposed
+      };
+
+    loop(notifications);
+  });
+
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
     create((~onNext, ~onComplete) => {
@@ -800,6 +833,67 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
         };
       scheduler(loop(list));
     });
+
+let ofNotifications =
+    (
+      ~scheduler as schedule=Scheduler.immediate,
+      notifications: list(Notification.t('a)),
+    )
+    : t('a) =>
+  schedule === Scheduler.immediate ?
+    create((~onNext, ~onComplete) => {
+      let rec loop = list =>
+        switch (list) {
+        | [hd, ...tail] =>
+          switch (hd) {
+          | Notification.Next(v) => onNext(v)
+          | Notification.Complete(exn) => onComplete(exn)
+          };
+          loop(tail);
+        | [] => ()
+        };
+      loop(notifications);
+      Disposable.disposed;
+    }) :
+    create((~onNext, ~onComplete) => {
+      let rec loop = (list, ()) =>
+        switch (list) {
+        | [hd, ...tail] =>
+          switch (hd) {
+          | Notification.Next(v) => onNext(v)
+          | Notification.Complete(exn) => onComplete(exn)
+          };
+          schedule(loop(tail));
+        | [] => Disposable.disposed
+        };
+      schedule(loop(notifications));
+    });
+
+let ofRelativeTimeNotifications =
+    (
+      ~scheduler as schedule: DelayScheduler.t,
+      notifications: list((Notification.t('a), float)),
+    )
+    : t('a) =>
+  create((~onNext, ~onComplete) => {
+    let rec loop = (lst, previousDelay) =>
+      switch (lst) {
+      | [(notif, delay), ...tail] =>
+        schedule(
+          ~delay=max(0.0, delay -. previousDelay),
+          () => {
+            switch (notif) {
+            | Notification.Next(v) => onNext(v)
+            | Notification.Complete(exn) => onComplete(exn)
+            };
+            loop(tail, delay);
+          },
+        )
+      | [] => Disposable.disposed
+      };
+
+    loop(notifications, 0.0);
+  });
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
   scheduler === Scheduler.immediate ?

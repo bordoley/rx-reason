@@ -1,27 +1,12 @@
 type t('a);
 
-let combineLatest2:
-  (~selector: ('a, 'b) => 'c, t('a), t('b)) =>
-  t('c);
+let combineLatest2: (~selector: ('a, 'b) => 'c, t('a), t('b)) => t('c);
 
 let combineLatest3:
-  (
-    ~selector: ('a, 'b, 'c) => 'd,
-    t('a),
-    t('b),
-    t('c)
-  ) =>
-  t('d);
+  (~selector: ('a, 'b, 'c) => 'd, t('a), t('b), t('c)) => t('d);
 
 let combineLatest4:
-  (
-    ~selector: ('a, 'b, 'c, 'd) => 'e,
-    t('a),
-    t('b),
-    t('c),
-    t('d)
-  ) =>
-  t('e);
+  (~selector: ('a, 'b, 'c, 'd) => 'e, t('a), t('b), t('c), t('d)) => t('e);
 
 let combineLatest5:
   (
@@ -71,11 +56,22 @@ let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
-let merge: (list(t('a))) => t('a);
+let merge: list(t('a)) => t('a);
 
 let never: unit => t('a);
 
+let ofAbsoluteTimeNotifications:
+  (~scheduler: ClockScheduler.t, list((Notification.t('a), float))) =>
+  t('a);
+
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
+
+let ofNotifications:
+  (~scheduler: Scheduler.t=?, list(Notification.t('a))) => t('a);
+
+let ofRelativeTimeNotifications:
+  (~scheduler: DelayScheduler.t, list((Notification.t('a), float))) =>
+  t('a);
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
