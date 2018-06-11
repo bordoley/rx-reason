@@ -2,13 +2,13 @@ type t = {
   currentTime: ref(int),
   /* FIXME: Don't use Belt directly. Instead add a Multimap to platform */
   timeQueue: Belt.MutableMap.Int.t(MutableQueue.t(unit => unit)),
-  scheduler: ClockScheduler.t,
+  scheduler: DelayScheduler.t,
 };
 
 let create = () => {
   let currentTime = ref(0);
   let timeQueue = Belt.MutableMap.Int.make();
-  let schedule = (~delay, work) => {
+  let scheduler = (~delay, work) => {
     let currentTime = currentTime^;
     let scheduleTime = currentTime + int_of_float(delay);
 
@@ -32,7 +32,6 @@ let create = () => {
       Disposable.disposed;
     };
   };
-  let scheduler = f => f(float_of_int(currentTime^), schedule);
 
   {currentTime, timeQueue, scheduler};
 };
@@ -57,3 +56,12 @@ let run = (vts: t) => {
     break := Belt.MutableMap.Int.isEmpty(vts.timeQueue);
   };
 };
+
+let getCurrentTime = ({currentTime}: t) => currentTime^;
+
+let toClockScheduler = ({currentTime, scheduler}) : ClockScheduler.t =>
+  f => f(float_of_int(currentTime^), scheduler);
+
+let toDelayScheduler = ({scheduler}) => scheduler;
+
+let toScheduler = ({scheduler}) => scheduler(~delay=0.0);

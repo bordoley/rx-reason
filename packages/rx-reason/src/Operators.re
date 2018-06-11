@@ -142,6 +142,9 @@ let find = (predicate: 'a => bool, observer) => {
   findObserver^;
 };
 
+exception AlreadyCompletedException;
+let alreadyCompletedException = Some(AlreadyCompletedException);
+
 let first: Operator.t('a, 'a) =
   observer => {
     let firstObserver = ref(Observer.disposed);
@@ -150,12 +153,13 @@ let first: Operator.t('a, 'a) =
         ~onNext=
           next => {
             observer |> Observer.next(next);
-            firstObserver^ |> Observer.complete(None);
+            firstObserver^ |> Observer.complete(alreadyCompletedException);
           },
         ~onComplete=
           exn => {
             let exn =
               switch (exn) {
+              | Some(AlreadyCompletedException) => None
               | Some(_) => exn
               | _ => Some(EmptyException)
               };
