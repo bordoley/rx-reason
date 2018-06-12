@@ -772,7 +772,7 @@ let merge = (observables: list(t('a))) : t('a) => {
   });
 };
 
-let never = (~onNext, ~onComplete) => Disposable.empty();
+let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
 
 let ofAbsoluteTimeNotifications =
     (
