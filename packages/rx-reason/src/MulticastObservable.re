@@ -1,5 +1,13 @@
 type t('a) = Observable.t('a);
 
+let subscribe = Observable.subscribe;
+
+let subscribeObserver = Observable.subscribeObserver;
+
+let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
+
+let toObservable = Functions.identity;
+
 let shareInternal = (~createSubject, source) => {
   let subject = ref(Subject.disposed);
   let sourceSubscription = AssignableDisposable.create();
@@ -25,13 +33,10 @@ let shareInternal = (~createSubject, source) => {
       |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
 
     if (refCount^ === 0) {
+      let observer = subject |> Subject.toObserver;
       sourceSubscription
       |> AssignableDisposable.set(
-           Observable.subscribeWithCallbacks(
-             ~onNext=v => subject |> Subject.next(v),
-             ~onComplete=exn => subject |> Subject.complete(exn),
-             source,
-           ),
+           Observable.subscribeObserver(observer, source),
          );
     };
 
@@ -57,10 +62,3 @@ let shareWithReplayBuffer = (count, obs) =>
     ~createSubject=() => Subject.createWithReplayBuffer(count),
     obs,
   );
-
-
-let subscribe = Observable.subscribe;
-
-let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
-
-let toObservable = Functions.identity;

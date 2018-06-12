@@ -12,6 +12,8 @@ module type S1 = {
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
 
+  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
+
   let toObservable: t('a) => observable('a);
 };
 

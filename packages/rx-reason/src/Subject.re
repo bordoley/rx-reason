@@ -28,10 +28,33 @@ let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
 let subscribe = subject => subject |> toObservable |> Observable.subscribe;
 
+let subscribeObserver = (observer, subject) =>
+  subject |> toObservable |> Observable.subscribeObserver(observer);
+
 let subscribeWithCallbacks = (~onNext, ~onComplete, subject) =>
   subject
   |> toObservable
   |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+
+let publish = (subject, observable) => {
+  let connection = ref(Disposable.disposed);
+  let active = ref(false);
+
+  () => {
+    if (! Interlocked.exchange(true, active)) {
+      let observer = subject |> toObserver;
+      let subscription = observable |> Observable.subscribeObserver(observer);
+      let newConnection =
+        Disposable.create(() => {
+          subscription |> Disposable.dispose;
+          Volatile.write(false, active);
+        });
+
+      Volatile.write(newConnection, connection);
+    };
+    Volatile.read(connection);
+  };
+};
 
 let createWithCallbacks =
     (
