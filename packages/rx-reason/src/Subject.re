@@ -3,8 +3,6 @@ type t('a) = {
   observable: Observable.t('a),
 };
 
-exception DisposedException;
-
 let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
@@ -43,13 +41,9 @@ let createWithCallbacks =
         },
     );
 
-  let raiseIfDisposed = (disposable: Disposable.t) : unit =>
-    if (Disposable.isDisposed(disposable)) {
-      raise(DisposedException);
-    };
   let observable =
     Observable.create((~onNext, ~onComplete) => {
-      observer |> Observer.toDisposable |> raiseIfDisposed;
+      observer |> Observer.toDisposable |> Disposable.raiseIfDisposed;
       let currentSubscribers = subscribers^;
       let subscriber = (onNext, onComplete);
       subscribers :=

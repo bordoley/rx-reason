@@ -19,6 +19,8 @@ module type S1 = {
 
 include S with type t := t;
 
+exception DisposedException;
+
 let compose: list(t) => t;
 
 let create: (unit => unit) => t;
@@ -26,3 +28,5 @@ let create: (unit => unit) => t;
 let disposed: t;
 
 let empty: unit => t;
+
+let raiseIfDisposed: t => unit;

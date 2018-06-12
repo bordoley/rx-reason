@@ -35,7 +35,7 @@ let test =
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
-            observer |> Observer.dispose;
+            observer |> Observer.complete(None);
             observer |> Observer.complete(Some(Division_by_zero));
 
             observedExn^ === None |> Expect.toBeEqualToTrue;
@@ -69,7 +69,7 @@ let test =
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
-            observer |> Observer.dispose;
+            observer |> Observer.complete(None);
 
             observer
             |> Observer.completeWithResult(None)
@@ -142,7 +142,7 @@ let test =
               );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
-            observer |> Observer.dispose;
+            observer |> Observer.complete(None);
             observer |> Observer.next(6);
             observedNext^ |> Expect.toBeEqualToInt(5);
           }),

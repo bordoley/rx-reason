@@ -495,7 +495,7 @@ let test =
             "returns false for an observer that completes without producing values",
             ~toString=string_of_bool,
             ~source=Observable.empty(),
-            ~expected= [Next(false), Complete(None)],
+            ~expected=[Next(false), Complete(None)],
             (),
           ),
           operatorIt(
@@ -503,7 +503,7 @@ let test =
             "returns false for an observer for which no value passes the predicate",
             ~toString=string_of_bool,
             ~source=Observable.ofList([5, 6, 7]),
-            ~expected= [Next(false), Complete(None)],
+            ~expected=[Next(false), Complete(None)],
             (),
           ),
           it(
@@ -564,42 +564,47 @@ let test =
         "withLatestFrom",
         [
           it("drops values from the source, if there is no latest value", () => {
-            let source = Subject.create();
-            let latest = Subject.create();
+            let vts = VirtualTimeScheduler.create();
+            let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+            let source =
+              Observable.ofAbsoluteTimeNotifications(
+                ~scheduler,
+                [
+                  (Next(1), 0.0),
+                  (Next(2), 200.0),
+                  (Next(3), 400.0),
+                  (Next(4), 600.0),
+                  (Complete(None), 700.0),
+                ],
+              );
+            let other =
+              Observable.ofAbsoluteTimeNotifications(
+                ~scheduler,
+                [
+                  (Next(1), 100.0),
+                  (Next(2), 250.0),
+                  (Next(3), 300.0),
+                  (Next(4), 450.0),
+                  (Complete(None), 500.0),
+                ],
+              );
 
             let result = ref([]);
             source
-            |> Subject.toObservable
             |> Observable.lift(
-                 Operators.withLatestFrom(
-                   ~selector=(a, b) => [a, b],
-                   latest |> Subject.toObservable,
-                 ),
+                 Operators.withLatestFrom(~selector=(a, b) => a + b, other),
                )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> subscribeWithResult(result)
             |> ignore;
 
-            source |> Subject.toObserver |> Observer.next(1);
-            result^ |> Expect.toBeEqualToListOfInt([]);
+            vts |> VirtualTimeScheduler.run;
 
-            source |> Subject.toObserver |> Observer.next(2);
-            result^ |> Expect.toBeEqualToListOfInt([]);
-
-            latest |> Subject.toObserver |> Observer.next(1);
-            source |> Subject.toObserver |> Observer.next(3);
-            result^ |> Expect.toBeEqualToListOfInt([3, 1]);
-
-            source |> Subject.toObserver |> Observer.next(4);
-            result^ |> Expect.toBeEqualToListOfInt([4, 1]);
-
-            latest |> Subject.toObserver |> Observer.next(2);
-            result^ |> Expect.toBeEqualToListOfInt([4, 1]);
-
-            source |> Subject.toObserver |> Observer.next(5);
-            result^ |> Expect.toBeEqualToListOfInt([5, 2]);
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(3), Next(6), Next(8), Complete(None)],
+               );
           }),
         ],
       ),

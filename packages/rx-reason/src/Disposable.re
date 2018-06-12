@@ -21,6 +21,8 @@ module type S1 = {
   let toDisposable: t('a) => disposable;
 };
 
+exception DisposedException;
+
 let create = (onDispose: unit => unit) : t => {
   onDispose: ref(onDispose),
   isDisposed: ref(false),
@@ -48,5 +50,10 @@ let disposed: t = {
 };
 
 let isDisposed = ({isDisposed}: t) : bool => Volatile.read(isDisposed);
+
+let raiseIfDisposed = (disposable: t)  =>
+  if (isDisposed(disposable)) {
+    raise(DisposedException);
+  };
 
 let toDisposable = Functions.identity;
