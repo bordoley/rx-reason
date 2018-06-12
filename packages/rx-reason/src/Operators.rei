@@ -59,7 +59,7 @@ let observe:
 
 let observeOn:
   (
-    ~backPressureStrategy: BackPressureStrategy.t=?,
+    ~bufferStrategy: BufferStrategy.t=?,
     ~bufferSize: int=?,
     Scheduler.t
   ) =>

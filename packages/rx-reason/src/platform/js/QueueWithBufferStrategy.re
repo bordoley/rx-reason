@@ -1,12 +1,12 @@
 type t('a) = {
   queue: array('a),
-  backPressureStrategy: BackPressureStrategy.t,
+  bufferStrategy: BufferStrategy.t,
   maxSize: int,
 };
 
-let create = (~backPressureStrategy, ~maxSize) : t('a) => {
+let create = (~bufferStrategy, ~maxSize) : t('a) => {
   queue: [||],
-  backPressureStrategy,
+  bufferStrategy,
   maxSize,
 };
 
@@ -15,11 +15,11 @@ let clear = ({queue}) =>
 
 let tryDeque = ({queue}) => queue |> Js.Array.shift;
 
-let enqueue = (v, {queue, backPressureStrategy, maxSize} as this) => {
+let enqueue = (v, {queue, bufferStrategy, maxSize} as this) => {
   let shouldApplyBackPressure = maxSize > 0 && Js.Array.length(queue) === maxSize;
-  switch (backPressureStrategy) {
+  switch (bufferStrategy) {
   | Throw when shouldApplyBackPressure =>
-    failwith("BackPressureException")
+    failwith("BufferException")
   | DropOldest when shouldApplyBackPressure =>
     tryDeque(this) |> ignore;
     queue |> Js.Array.push(v) |> ignore;

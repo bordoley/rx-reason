@@ -356,15 +356,15 @@ let observe =
 
 let observeOn =
     (
-      ~backPressureStrategy=BackPressureStrategy.Throw,
+      ~bufferStrategy=BufferStrategy.Throw,
       ~bufferSize=(-1),
       scheduler: Scheduler.t,
     )
     : Operator.t('a, 'a) =>
   observer => {
     let queue =
-      QueueWithBackPressureStrategy.create(
-        ~backPressureStrategy,
+      QueueWithBufferStrategy.create(
+        ~bufferStrategy,
         ~maxSize=bufferSize,
       );
     let shouldComplete = ref(false);
@@ -374,7 +374,7 @@ let observeOn =
     let innerSubscription = Disposable.empty();
 
     let rec doWorkStep = () =>
-      switch (QueueWithBackPressureStrategy.tryDeque(queue)) {
+      switch (QueueWithBufferStrategy.tryDeque(queue)) {
       | Some(next) =>
         observer |> Observer.next(next);
         Interlocked.decrement(wip) !== 0 ?
@@ -398,7 +398,7 @@ let observeOn =
     Observer.create(
       ~onNext=
         next => {
-          queue |> QueueWithBackPressureStrategy.enqueue(next);
+          queue |> QueueWithBufferStrategy.enqueue(next);
           schedule();
         },
       ~onComplete=
