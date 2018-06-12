@@ -19,6 +19,8 @@ let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
 let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
+let raiseIfDisposed = ({disposable}) => disposable |> Disposable.raiseIfDisposed;
+
 let set = (newDisposable, assignableDisposable) =>
   if (assignableDisposable |> isDisposed) {
     newDisposable |> Disposable.dispose;

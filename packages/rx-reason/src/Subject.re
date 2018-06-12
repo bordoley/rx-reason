@@ -3,6 +3,25 @@ type t('a) = {
   observable: Observable.t('a),
 };
 
+let disposed = {observer: Observer.disposed, observable: Observable.never};
+
+let complete = (exn, {observer}) => observer |> Observer.complete(exn);
+
+let completeWithResult = (exn, {observer}) =>
+  observer |> Observer.completeWithResult(exn);
+
+let dispose = ({observer}) => observer |> Observer.dispose;
+
+let isDisposed = ({observer}) => observer |> Observer.isDisposed;
+
+let isStopped = ({observer}) => observer |> Observer.isStopped;
+
+let next = (next, {observer}) => observer |> Observer.next(next);
+
+let raiseIfDisposed = ({observer}) => observer |> Observer.raiseIfDisposed;
+
+let toDisposable = ({observer}) => observer |> Observer.toDisposable;
+
 let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
@@ -43,12 +62,13 @@ let createWithCallbacks =
 
   let observable =
     Observable.create((~onNext, ~onComplete) => {
-      observer |> Observer.toDisposable |> Disposable.raiseIfDisposed;
-      let currentSubscribers = subscribers^;
+      observer |> Observer.raiseIfDisposed;
+
       let subscriber = (onNext, onComplete);
-      subscribers :=
-        currentSubscribers |> CopyOnWriteArray.addLast(subscriber);
+      subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
+
       onSubscribe(~onNext, ~onComplete);
+
       Disposable.create(() => {
         let currentSubscribers = subscribers^;
         subscribers :=
@@ -102,40 +122,41 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
 let shareInternal =
     (~createSubject, source: Observable.t('a))
     : Observable.t('a) => {
-  let subject = MutableOption.create();
-  let sourceSubscription = ref(Disposable.disposed);
+  let subject = ref(disposed);
+  let sourceSubscription = AssignableDisposable.create();
   let refCount = ref(0);
+
   let reset = () => {
-    sourceSubscription^ |> Disposable.dispose;
-    subject |> MutableOption.unset;
+    sourceSubscription |> AssignableDisposable.set(Disposable.disposed);
+    subject^ |> dispose;
+    subject := disposed;
     refCount := 0;
   };
+
   Observable.create((~onNext, ~onComplete) => {
-    let currentSubject = {
-      if (refCount^ === 0) {
-        MutableOption.set(createSubject(), subject);
-      };
-      subject |> MutableOption.get;
-    };
-    let subjectObservable = toObservable(currentSubject);
-    let subjectObserver = toObserver(currentSubject);
-    let observerSubscription =
-      subjectObservable |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+    /* FIXME: Should probably add some locking here */
     if (refCount^ === 0) {
-      sourceSubscription :=
-        source
-        |> Observable.subscribeWithCallbacks(
-             ~onNext=next => subjectObserver |> Observer.next(next),
-             ~onComplete=
-               exn => {
-                 subjectObserver |> Observer.complete(exn);
-                 reset();
-               },
-           );
+      subject := createSubject();
     };
-    if (subjectObserver |> Observer.toDisposable |> Disposable.isDisposed) {
-      /* The source completed synchronously and reset */
-      observerSubscription |> Disposable.dispose;
+    let subject = subject^;
+
+    let subscription =
+      subject
+      |> toObservable
+      |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+
+    if (refCount^ === 0) {
+      sourceSubscription
+      |> AssignableDisposable.set(
+           Observable.subscribeWithCallbacks(
+             ~onNext=v => subject |> next(v),
+             ~onComplete=exn => subject |> complete(exn),
+             source,
+           ),
+         );
+    };
+
+    if (subscription |> Disposable.isDisposed) {
       Disposable.disposed;
     } else {
       refCount := refCount^ + 1;
@@ -144,7 +165,7 @@ let shareInternal =
         if (refCount^ === 0) {
           reset();
         };
-        observerSubscription |> Disposable.dispose;
+        subscription |> Disposable.dispose;
       });
     };
   });

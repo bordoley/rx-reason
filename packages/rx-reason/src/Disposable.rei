@@ -6,6 +6,7 @@ module type S = {
 
   let dispose: t => unit;
   let isDisposed: t => bool;
+  let raiseIfDisposed: t => unit;
   let toDisposable: t => disposable;
 };
 
@@ -14,6 +15,7 @@ module type S1 = {
 
   let dispose: t('a) => unit;
   let isDisposed: t('a) => bool;
+  let raiseIfDisposed: t('a) => unit;
   let toDisposable: t('a) => disposable;
 };
 
@@ -29,4 +31,3 @@ let disposed: t;
 
 let empty: unit => t;
 
-let raiseIfDisposed: t => unit;

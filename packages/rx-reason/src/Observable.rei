@@ -58,7 +58,7 @@ let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
 let merge: list(t('a)) => t('a);
 
-let never: unit => t('a);
+let never: t('a);
 
 let ofAbsoluteTimeNotifications:
   (~scheduler: ClockScheduler.t, list((Notification.t('a), float))) =>

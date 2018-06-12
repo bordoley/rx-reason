@@ -5,6 +5,20 @@ type t('a) = {
   disposable: Disposable.t,
 };
 
+type observer('a) = t('a);
+
+module type S1 = {
+  type t('a);
+
+  include Disposable.S1 with type t('a) := t('a);
+
+  let complete: (option(exn), t('a)) => unit;
+  let completeWithResult: (option(exn), t('a)) => bool;
+  let isStopped: t('a) => bool;
+  let next: ('a, t('a)) => unit;
+  let toObserver: t('a) => observer('a);
+};
+
 let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   let isStopped = ref(false);
   {
@@ -83,4 +97,8 @@ let next = (next: 'a, {onNext, isStopped, disposable}: t('a)) : unit => {
   };
 };
 
+let raiseIfDisposed= ({disposable}) => disposable |> Disposable.raiseIfDisposed;
+ 
 let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
+
+let toObserver = Functions.identity;
