@@ -21,6 +21,13 @@ let ofValue = Observable.ofValue;
 let first = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.first);
 
+let flatMap = (mapper, single) =>
+  single |> Observable.lift(observer => 
+    Operators.map(mapper)
+    @@Operators.exhaust
+    @@observer
+  );
+
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.last);
 
@@ -35,6 +42,9 @@ let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
 
 let find = (predicate: 'a => bool, observable: Observable.t('a)) : t('a) =>
   observable |> liftFirst(Operators.find(predicate));
+
+let map = (mapper, single) =>
+  single |> Observable.lift(Operators.map(mapper));
 
 let none = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.none(predicate));

@@ -15,11 +15,15 @@ let find: ('a => bool, Observable.t('a)) => t('a);
 
 let first: Observable.t('a) => t('a);
 
+let flatMap: ('a => t('b), t('a)) => t('b);
+
 let last: Observable.t('a) => t('a);
 
 let liftFirst: (Operator.t('a, 'b), Observable.t('a)) => t('b);
 
 let liftLast: (Operator.t('a, 'b), Observable.t('a)) => t('b);
+
+let map: ('a => 'b, t('a)) => t('b);
 
 let none: ('a => bool, Observable.t('a)) => t(bool);
 
