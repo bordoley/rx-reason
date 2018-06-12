@@ -26,6 +26,13 @@ let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
+let subscribe = subject => subject |> toObservable |> Observable.subscribe;
+
+let subscribeWithCallbacks = (~onNext, ~onComplete, subject) =>
+  subject
+  |> toObservable
+  |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+
 let createWithCallbacks =
     (
       ~onNext=Functions.alwaysUnit,
@@ -118,60 +125,3 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
     (),
   );
 };
-
-let shareInternal =
-    (~createSubject, source: Observable.t('a))
-    : Observable.t('a) => {
-  let subject = ref(disposed);
-  let sourceSubscription = AssignableDisposable.create();
-  let refCount = ref(0);
-
-  let reset = () => {
-    sourceSubscription |> AssignableDisposable.set(Disposable.disposed);
-    subject^ |> dispose;
-    subject := disposed;
-    refCount := 0;
-  };
-
-  Observable.create((~onNext, ~onComplete) => {
-    /* FIXME: Should probably add some locking here */
-    if (refCount^ === 0) {
-      subject := createSubject();
-    };
-    let subject = subject^;
-
-    let subscription =
-      subject
-      |> toObservable
-      |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
-
-    if (refCount^ === 0) {
-      sourceSubscription
-      |> AssignableDisposable.set(
-           Observable.subscribeWithCallbacks(
-             ~onNext=v => subject |> next(v),
-             ~onComplete=exn => subject |> complete(exn),
-             source,
-           ),
-         );
-    };
-
-    if (subscription |> Disposable.isDisposed) {
-      Disposable.disposed;
-    } else {
-      refCount := refCount^ + 1;
-      Disposable.create(() => {
-        refCount := refCount^ > 0 ? refCount^ - 1 : 0;
-        if (refCount^ === 0) {
-          reset();
-        };
-        subscription |> Disposable.dispose;
-      });
-    };
-  });
-};
-
-let share = obs => shareInternal(~createSubject=create, obs);
-
-let shareWithReplayBuffer = (count: int, obs) =>
-  shareInternal(~createSubject=() => createWithReplayBuffer(count), obs);

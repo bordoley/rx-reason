@@ -1,5 +1,21 @@
 type t('a);
 
+type observable('a) = t('a);
+
+module type S1 = {
+  type t('a);
+
+  let subscribe: t('a) => Disposable.t;
+
+  let subscribeWithCallbacks:
+    (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+    Disposable.t;
+
+  let toObservable: t('a) => observable('a);
+};
+
+include S1 with type t('a) := t('a);
+
 let combineLatest2: (~selector: ('a, 'b) => 'c, t('a), t('b)) => t('c);
 
 let combineLatest3:
@@ -82,11 +98,5 @@ let retry: (exn => bool, t('a)) => t('a);
 let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
-
-let subscribe: t('a) => Disposable.t;
-
-let subscribeWithCallbacks:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-  Disposable.t;
 
 let subscribeOn: (Scheduler.t, t('a)) => t('a);

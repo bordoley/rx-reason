@@ -1,6 +1,20 @@
 type t('a) =
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t;
 
+type observable('a) = t('a);
+
+module type S1 = {
+  type t('a);
+
+  let subscribe: t('a) => Disposable.t;
+
+  let subscribeWithCallbacks:
+    (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+    Disposable.t;
+
+  let toObservable: t('a) => observable('a);
+};
+
 let subscribeWithCallbacks =
     (~onNext, ~onComplete, observable: t('a))
     : Disposable.t =>
@@ -969,3 +983,5 @@ let startWithList =
 let startWithValue =
     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
   concat([ofValue(~scheduler, value), observable]);
+
+let toObservable = Functions.identity;

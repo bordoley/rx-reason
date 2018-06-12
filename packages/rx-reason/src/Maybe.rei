@@ -1,5 +1,7 @@
 type t('a);
 
+include Observable.S1 with type t('a) := t('a);
+
 let create:
   (
     (~onNext: 'a => unit, ~onComplete: (option(exn)) => unit) =>
@@ -32,13 +34,5 @@ let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
 
 let some: ('a => bool, Observable.t('a)) => t(bool);
-
-let subscribe: t('a) => Disposable.t;
-
-let subscribeWithCallbacks:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-  Disposable.t;
-
-let toObservable: t('a) => Observable.t('a);
 
 let toSingle: t('a) => Single.t(option('a));
