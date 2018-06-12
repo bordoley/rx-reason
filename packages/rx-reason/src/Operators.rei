@@ -1,3 +1,7 @@
+exception EmptyException;
+
+exception TimeoutException;
+
 let bufferCount:
   (~size: int, ~startEvery: int=?) => Operator.t('a, array('a));
 

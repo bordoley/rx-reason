@@ -1,4 +1,8 @@
 exception EmptyException;
+exception TimeoutException;
+
+exception CompleteWithoutErrorException;
+let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
 let bufferCount =
     (~size as _: int, ~startEvery as _: int=0)
@@ -142,9 +146,6 @@ let find = (predicate: 'a => bool, observer) => {
   findObserver^;
 };
 
-exception AlreadyCompletedException;
-let alreadyCompletedException = Some(AlreadyCompletedException);
-
 let first: Operator.t('a, 'a) =
   observer => {
     let firstObserver = ref(Observer.disposed);
@@ -153,13 +154,13 @@ let first: Operator.t('a, 'a) =
         ~onNext=
           next => {
             observer |> Observer.next(next);
-            firstObserver^ |> Observer.complete(alreadyCompletedException);
+            firstObserver^ |> Observer.complete(completeWithoutErrorExn);
           },
         ~onComplete=
           exn => {
             let exn =
               switch (exn) {
-              | Some(AlreadyCompletedException) => None
+              | Some(CompleteWithoutErrorException) => None
               | Some(_) => exn
               | _ => Some(EmptyException)
               };
@@ -449,9 +450,6 @@ let scan =
     map(mapper, observer);
   };
 
-exception EverySuccessException;
-let everySuccessExn = Some(EverySuccessException);
-
 let every = (predicate: 'a => bool, observer) => {
   let everyTrueObserver = ref(Observer.disposed);
   everyTrueObserver :=
@@ -460,13 +458,13 @@ let every = (predicate: 'a => bool, observer) => {
         next =>
           if (! next) {
             observer |> Observer.next(next);
-            everyTrueObserver^ |> Observer.complete(everySuccessExn);
+            everyTrueObserver^ |> Observer.complete(completeWithoutErrorExn);
           },
       ~onComplete=
         exn => {
           let exn =
             switch (exn) {
-            | Some(EverySuccessException) =>
+            | Some(CompleteWithoutErrorException) =>
               observer |> Observer.next(false);
               None;
             | None =>
@@ -476,7 +474,7 @@ let every = (predicate: 'a => bool, observer) => {
             };
           observer |> Observer.complete(exn);
         },
-      ~onDispose=_ => observer |> Observer.dispose,
+      ~onDispose=() => observer |> Observer.dispose,
     );
   everyTrueObserver^ |> map(predicate);
 };
@@ -489,13 +487,13 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
         ~onNext=
           next =>
             if (next) {
-              someTrueObserver^ |> Observer.complete(everySuccessExn);
+              someTrueObserver^ |> Observer.complete(completeWithoutErrorExn);
             },
         ~onComplete=
           exn => {
             let exn =
               switch (exn) {
-              | Some(EverySuccessException) =>
+              | Some(CompleteWithoutErrorException) =>
                 observer |> Observer.next(true);
                 None;
               | None =>
@@ -586,8 +584,6 @@ let synchronize: Operator.t('a, 'a) =
     );
   };
 
-exception TimeoutException;
-
 let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
   let timeoutObservable = Observable.raise(~scheduler, TimeoutException);
   observer => {
@@ -618,7 +614,7 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
             observer |> Observer.complete(exn);
           },
         ~onDispose=
-          _ => {
+          () => {
             timeoutSubscription |> AssignableDisposable.dispose;
             observer |> Observer.dispose;
           },

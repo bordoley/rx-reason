@@ -22,6 +22,26 @@ let subscribeWithResult = (result, observable) =>
        ~onComplete=exn => result := [Notification.Complete(exn), ...result^],
      );
 
+let subscribeOnVTSWithResult =
+    (f: VirtualTimeScheduler.t => Observable.t('a))
+    : list(Notification.t('a)) => {
+  let vts = VirtualTimeScheduler.create();
+  let result = ref([]);
+
+  f(vts) |> subscribeWithResult(result) |> ignore;
+
+  vts |> VirtualTimeScheduler.run;
+  result^ |> List.rev;
+};
+
+let subscribeSynchronousWithResult =
+    (source: Observable.t('a))
+    : list(Notification.t('a)) => {
+  let result = ref([]);
+  source |> subscribeWithResult(result) |> ignore;
+
+  result^ |> List.rev;
+};
 let expectToBeEqualToListOfNotifications = (~equals=(===), ~toString) =>
   Expect.toBeEqualToListWith(
     ~equals=
@@ -52,20 +72,11 @@ let operatorIt =
       ~expected: list(Notification.t('b)),
       (),
     ) =>
-  it(
-    name,
-    () => {
-      let result = ref([]);
-
-      source
-      |> Observable.lift(operator)
-      |> subscribeWithResult(result)
-      |> ignore;
-
-      result^
-      |> List.rev
-      |> expectToBeEqualToListOfNotifications(~equals, ~toString, expected);
-    },
+  it(name, () =>
+    source
+    |> Observable.lift(operator)
+    |> subscribeSynchronousWithResult
+    |> expectToBeEqualToListOfNotifications(~equals, ~toString, expected)
   );
 
 let test =
@@ -559,53 +570,101 @@ let test =
         ],
       ),
       describe("synchronize", []),
-      describe("timeout", []),
+      describe(
+        "timeout",
+        [
+          it("when timeout does not expire", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+              let source =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 4.0),
+                    (Next(3), 6.0),
+                    (Next(4), 10.0),
+                    (Complete(None), 14.0),
+                  ],
+                );
+              source
+              |> Observable.lift(Operators.timeout(scheduler(~delay=5.0)));
+            })
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(1), Next(2), Next(3), Next(4), Complete(None)],
+               )
+          ),
+          it("when timeout expires", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+              let source =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 4.0),
+                    (Next(3), 6.0),
+                    (Next(4), 15.0),
+                    (Complete(None), 20.0),
+                  ],
+                );
+              source
+              |> Observable.lift(Operators.timeout(scheduler(~delay=5.0)));
+            })
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [
+                   Next(1),
+                   Next(2),
+                   Next(3),
+                   Complete(Some(Operators.TimeoutException)),
+                 ],
+               )
+          ),
+        ],
+      ),
       describe(
         "withLatestFrom",
         [
-          it("drops values from the source, if there is no latest value", () => {
-            let vts = VirtualTimeScheduler.create();
-            let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
-            let source =
-              Observable.ofAbsoluteTimeNotifications(
-                ~scheduler,
-                [
-                  (Next(1), 0.0),
-                  (Next(2), 200.0),
-                  (Next(3), 400.0),
-                  (Next(4), 600.0),
-                  (Complete(None), 700.0),
-                ],
-              );
-            let other =
-              Observable.ofAbsoluteTimeNotifications(
-                ~scheduler,
-                [
-                  (Next(1), 100.0),
-                  (Next(2), 250.0),
-                  (Next(3), 300.0),
-                  (Next(4), 450.0),
-                  (Complete(None), 500.0),
-                ],
-              );
-
-            let result = ref([]);
-            source
-            |> Observable.lift(
-                 Operators.withLatestFrom(~selector=(a, b) => a + b, other),
-               )
-            |> subscribeWithResult(result)
-            |> ignore;
-
-            vts |> VirtualTimeScheduler.run;
-
-            result^
-            |> List.rev
+          it("drops values from the source, if there is no latest value", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+              let source =
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 200.0),
+                    (Next(3), 400.0),
+                    (Next(4), 600.0),
+                    (Complete(None), 700.0),
+                  ],
+                );
+              let other =
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 100.0),
+                    (Next(2), 250.0),
+                    (Next(3), 300.0),
+                    (Next(4), 450.0),
+                    (Complete(None), 500.0),
+                  ],
+                );
+              source
+              |> Observable.lift(
+                   Operators.withLatestFrom(
+                     ~selector=(a, b) => a + b,
+                     other,
+                   ),
+                 );
+            })
             |> expectToBeEqualToListOfNotifications(
                  ~toString=string_of_int,
                  [Next(3), Next(6), Next(8), Complete(None)],
-               );
-          }),
+               )
+          ),
         ],
       ),
     ],

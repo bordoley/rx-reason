@@ -921,12 +921,10 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
       Disposable.disposed;
     }) :
     create((~onNext as _, ~onComplete) =>
-      scheduler(() =>
-        scheduler(() => {
-          onComplete(exn);
-          Disposable.disposed;
-        })
-      )
+      scheduler(() => {
+        onComplete(exn);
+        Disposable.disposed;
+      })
     );
 };
 
