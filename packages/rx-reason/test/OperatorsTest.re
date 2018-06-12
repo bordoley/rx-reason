@@ -198,7 +198,66 @@ let test =
           ),
         ],
       ),
-      describe("exhaust", []),
+      describe(
+        "exhaust",
+        [
+          it("exhausts", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+              let childObservableA =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 10.0),
+                    (Next(3), 20.0),
+                    (Next(4), 30.0),
+                    (Complete(None), 40.0),
+                  ],
+                );
+
+              let childObservableB =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(5), 0.0),
+                    (Next(6), 10.0),
+                    (Next(7), 19.0),
+                    (Next(8), 30.0),
+                    (Complete(None), 40.0),
+                  ],
+                );
+
+              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+              Observable.ofAbsoluteTimeNotifications(
+                ~scheduler,
+                [
+                  (Next(childObservableA), 0.0),
+                  (Next(childObservableB), 15.0),
+                  (Next(childObservableA), 35.0),
+                  (Next(childObservableB), 60.0),
+                  (Complete(None), 75.0),
+                ],
+              )
+              |> Observable.lift(Operators.exhaust);
+            })
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [
+                   Next(1),
+                   Next(2),
+                   Next(3),
+                   Next(4),
+                   Next(5),
+                   Next(6),
+                   Next(7),
+                   Next(8),
+                   Complete(None),
+                 ],
+               )
+          ),
+        ],
+      ),
       describe(
         "find",
         [
@@ -299,24 +358,27 @@ let test =
           ),
         ],
       ),
-      describe("isEmpty", [
-        operatorIt(
-          Operators.isEmpty,
-          "return false if not empty",
-          ~toString=string_of_bool,
-          ~source=Observable.ofValue(1),
-          ~expected=[Next(false), Complete(None)],
-          (),
-        ),
-        operatorIt(
-          Operators.isEmpty,
-          "return true if empty",
-          ~toString=string_of_bool,
-          ~source=Observable.empty(),
-          ~expected=[Next(true), Complete(None)],
-          (),
-        ),
-      ]),
+      describe(
+        "isEmpty",
+        [
+          operatorIt(
+            Operators.isEmpty,
+            "return false if not empty",
+            ~toString=string_of_bool,
+            ~source=Observable.ofValue(1),
+            ~expected=[Next(false), Complete(None)],
+            (),
+          ),
+          operatorIt(
+            Operators.isEmpty,
+            "return true if empty",
+            ~toString=string_of_bool,
+            ~source=Observable.empty(),
+            ~expected=[Next(true), Complete(None)],
+            (),
+          ),
+        ],
+      ),
       describe(
         "keep",
         [
@@ -634,29 +696,63 @@ let test =
       describe(
         "switch_",
         [
-          it("switches", () => {
-            let result = ref([]);
-            let observer =
-              Observer.create(
-                ~onNext=next => result := [next, ...result^],
-                ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
-              );
+          it("switches", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+              let childObservableA =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 10.0),
+                    (Next(3), 20.0),
+                    (Next(4), 30.0),
+                    (Complete(None), 40.0),
+                  ],
+                );
 
-            let switchObserver = Operators.switch_(observer);
+              let childObservableB =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(5), 0.0),
+                    (Next(6), 10.0),
+                    (Next(7), 19.0),
+                    (Next(8), 30.0),
+                    (Complete(None), 40.0),
+                  ],
+                );
 
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-            subject0 |> Subject.toObserver |> Observer.next(1);
-            subject1 |> Subject.toObserver |> Observer.next(2);
-            switchObserver |> Observer.next(subject0 |> Subject.toObservable);
-            subject0 |> Subject.toObserver |> Observer.next(3);
-            subject1 |> Subject.toObserver |> Observer.next(4);
-            switchObserver |> Observer.next(subject1 |> Subject.toObservable);
-            subject0 |> Subject.toObserver |> Observer.next(5);
-            subject1 |> Subject.toObserver |> Observer.next(6);
-            result^ |> Expect.toBeEqualToListOfInt([6, 3]);
-          }),
+              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+              Observable.ofAbsoluteTimeNotifications(
+                ~scheduler,
+                [
+                  (Next(childObservableA), 0.0),
+                  (Next(childObservableB), 15.0),
+                  (Next(childObservableA), 35.0),
+                  (Next(childObservableB), 60.0),
+                  (Complete(None), 75.0),
+                ],
+              )
+              |> Observable.lift(Operators.switch_);
+            })
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [
+                   Next(1),
+                   Next(2),
+                   Next(5),
+                   Next(6),
+                   Next(7),
+                   Next(1),
+                   Next(2),
+                   Next(3),
+                   Next(5),
+                   Next(6),
+                   Complete(None),
+                 ],
+               )
+          ),
         ],
       ),
       describe("synchronize", []),
