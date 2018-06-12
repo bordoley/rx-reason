@@ -85,8 +85,56 @@ let test =
     [
       describe("bufferCount", []),
       describe("bufferTime", []),
-      describe("debounce", []),
-      describe("defaultIfEmpty", []),
+      describe(
+        "debounce",
+        [
+          it("debounces", () =>
+            subscribeOnVTSWithResult(vts => {
+              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+              let source =
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(1), 0.0),
+                    (Next(2), 4.0),
+                    (Next(3), 6.0),
+                    (Next(4), 15.0),
+                    (Next(5), 16.0),
+                    (Next(6), 17.0),
+                    (Complete(None), 18.0),
+                  ],
+                );
+              source
+              |> Observable.lift(Operators.debounce(scheduler(~delay=5.0)));
+            })
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(3), Next(6), Complete(None)],
+               )
+          ),
+        ],
+      ),
+      describe(
+        "defaultIfEmpty",
+        [
+          operatorIt(
+            Operators.defaultIfEmpty(1),
+            "returns the default if empty",
+            ~toString=string_of_int,
+            ~source=Observable.empty(),
+            ~expected=[Next(1), Complete(None)],
+            (),
+          ),
+          operatorIt(
+            Operators.defaultIfEmpty(1),
+            "passes through if not empty",
+            ~toString=string_of_int,
+            ~source=Observable.ofList([1, 2, 3]),
+            ~expected=[Next(1), Next(2), Next(3), Complete(None)],
+            (),
+          ),
+        ],
+      ),
       describe(
         "distinctUntilChanged",
         [
@@ -251,7 +299,24 @@ let test =
           ),
         ],
       ),
-      describe("isEmpty", []),
+      describe("isEmpty", [
+        operatorIt(
+          Operators.isEmpty,
+          "return false if not empty",
+          ~toString=string_of_bool,
+          ~source=Observable.ofValue(1),
+          ~expected=[Next(false), Complete(None)],
+          (),
+        ),
+        operatorIt(
+          Operators.isEmpty,
+          "return true if empty",
+          ~toString=string_of_bool,
+          ~source=Observable.empty(),
+          ~expected=[Next(true), Complete(None)],
+          (),
+        ),
+      ]),
       describe(
         "keep",
         [
@@ -452,7 +517,32 @@ let test =
       describe("none", []),
       describe("observe", []),
       describe("observeOn", []),
-      describe("onComplete", []),
+      describe(
+        "onComplete",
+        [
+          it("calls the side effect function on complete", () => {
+            let result = ref([]);
+            let sideEffectCount = ref(0);
+
+            Observable.ofList([1])
+            |> Observable.lift(
+                 Operators.onComplete(_ =>
+                   sideEffectCount := sideEffectCount^ + 1
+                 ),
+               )
+            |> subscribeWithResult(result)
+            |> ignore;
+
+            sideEffectCount^ |> Expect.toBeEqualToInt(1);
+            result^
+            |> List.rev
+            |> expectToBeEqualToListOfNotifications(
+                 ~toString=string_of_int,
+                 [Next(1), Complete(None)],
+               );
+          }),
+        ],
+      ),
       describe(
         "onNext",
         [

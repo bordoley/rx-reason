@@ -187,13 +187,18 @@ let isEmpty: Operator.t('a, bool) =
         ~onNext=
           _ => {
             observer |> Observer.next(false);
-            isEmptyObserver^ |> Observer.complete(None);
+            isEmptyObserver^ |> Observer.complete(completeWithoutErrorExn);
           },
         ~onComplete=
           exn => {
-            if (exn === None) {
-              observer |> Observer.next(false);
-            };
+            let exn =
+              switch (exn) {
+              | Some(CompleteWithoutErrorException) => None
+              | Some(_) => exn
+              | None =>
+                observer |> Observer.next(true);
+                exn;
+              };
             observer |> Observer.complete(exn);
           },
         ~onDispose=() => observer |> Observer.dispose,
