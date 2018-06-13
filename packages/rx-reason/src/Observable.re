@@ -792,36 +792,36 @@ let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
 
 let ofAbsoluteTimeNotifications =
     (
-      ~scheduler: ClockScheduler.t,
+      ~scheduler: (module ClockScheduler.S),
       notifications: list((Notification.t('a), float)),
     )
-    : t('a) =>
+    : t('a) => {
+  module Scheduler = (val (scheduler: (module ClockScheduler.S)));
   create((~onNext, ~onComplete) => {
     let rec loop = lst =>
       switch (lst) {
       | [(notif, time), ...tail] =>
-        scheduler((currentTime, schedule) => {
-          let delay = time -. currentTime;
-          if (delay >= 0.0) {
-            schedule(
-              ~delay,
-              () => {
-                switch (notif) {
-                | Notification.Next(v) => onNext(v)
-                | Notification.Complete(exn) => onComplete(exn)
-                };
-                loop(tail);
-              },
-            );
-          } else {
-            schedule(~delay=0.0, () => loop(tail));
-          };
-        })
+        let delay = time -. Scheduler.getCurrentTime();
+        if (delay >= 0.0) {
+          Scheduler.scheduleWithDelay(
+            ~delay,
+            () => {
+              switch (notif) {
+              | Notification.Next(v) => onNext(v)
+              | Notification.Complete(exn) => onComplete(exn)
+              };
+              loop(tail);
+            },
+          );
+        } else {
+          Scheduler.scheduleWithDelay(~delay=0.0, () => loop(tail));
+        };
       | [] => Disposable.disposed
       };
 
     loop(notifications);
   });
+};
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?

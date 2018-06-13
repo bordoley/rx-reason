@@ -79,7 +79,7 @@ let merge: list(t('a)) => t('a);
 let never: t('a);
 
 let ofAbsoluteTimeNotifications:
-  (~scheduler: ClockScheduler.t, list((Notification.t('a), float))) =>
+  (~scheduler: (module ClockScheduler.S), list((Notification.t('a), float))) =>
   t('a);
 
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);

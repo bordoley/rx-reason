@@ -1,3 +1,4 @@
-type t = ((float, DelayScheduler.t) => Disposable.t) => Disposable.t;
-
-let create = (~getCurrentTime, scheduler) : t => f => f(getCurrentTime(), scheduler);
+module type S = {
+  include DelayScheduler.S;
+  let getCurrentTime: unit => float;
+};

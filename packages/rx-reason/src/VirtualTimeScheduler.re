@@ -74,10 +74,11 @@ let getCurrentTime = ({currentTime}: t) => float_of_int(currentTime^);
 
 let toDelayScheduler = ({scheduler}) => scheduler;
 
-let toClockScheduler = vts =>
-  ClockScheduler.create(
-    ~getCurrentTime=() => getCurrentTime(vts),
-    vts |> toDelayScheduler,
-  );
-
 let toScheduler = vts => toDelayScheduler(vts, ~delay=0.0);
+
+let toClockScheduler = (vts: t): (module ClockScheduler.S) => (module {
+  let getCurrentTime = () => getCurrentTime(vts);
+  let schedule = toScheduler(vts);
+  let scheduleWithDelay = toDelayScheduler(vts);
+});
+
