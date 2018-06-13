@@ -792,18 +792,17 @@ let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
 
 let ofAbsoluteTimeNotifications =
     (
-      ~scheduler: (module ClockScheduler.S),
+      ~scheduler as {getCurrentTime, scheduleWithDelay}: ClockScheduler.t,
       notifications: list((Notification.t('a), float)),
     )
-    : t('a) => {
-  module Scheduler = (val (scheduler: (module ClockScheduler.S)));
+    : t('a) =>
   create((~onNext, ~onComplete) => {
     let rec loop = lst =>
       switch (lst) {
       | [(notif, time), ...tail] =>
-        let delay = time -. Scheduler.getCurrentTime();
+        let delay = time -. getCurrentTime();
         if (delay >= 0.0) {
-          Scheduler.scheduleWithDelay(
+          scheduleWithDelay(
             ~delay,
             () => {
               switch (notif) {
@@ -814,14 +813,13 @@ let ofAbsoluteTimeNotifications =
             },
           );
         } else {
-          Scheduler.scheduleWithDelay(~delay=0.0, () => loop(tail));
+          scheduleWithDelay(~delay=0.0, () => loop(tail));
         };
       | [] => Disposable.disposed
       };
 
     loop(notifications);
   });
-};
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?

@@ -1,4 +1,5 @@
-module type S = {
-  include DelayScheduler.S;
-  let getCurrentTime: unit => float;
+ type t = {
+  schedule: Scheduler.t,
+  scheduleWithDelay: DelayScheduler.t,
+  getCurrentTime: unit => float,
 };

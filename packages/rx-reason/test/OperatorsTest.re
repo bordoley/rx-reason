@@ -32,8 +32,8 @@ let operatorIt =
       name,
       ~equals=(===),
       ~toString,
-      ~source: (module ClockScheduler.S) => Observable.t('a),
-      ~operator: (module ClockScheduler.S) => Operator.t('a, 'b),
+      ~source: ClockScheduler.t => Observable.t('a),
+      ~operator: ClockScheduler.t => Operator.t('a, 'b),
       ~expected: list(Notification.t('b)),
       (),
     ) =>
@@ -75,12 +75,9 @@ let test =
             "debounces",
             ~toString=string_of_int,
             ~source=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
+              ({scheduleWithDelay}) =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=Scheduler.scheduleWithDelay,
+                  ~scheduler=scheduleWithDelay,
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -90,15 +87,10 @@ let test =
                     (Next(6), 17.0),
                     (Complete(None), 18.0),
                   ],
-                );
-              },
+                ),
             ~operator=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
-                Operators.debounce(Scheduler.scheduleWithDelay(~delay=5.0));
-              },
+              ({scheduleWithDelay}) =>
+                Operators.debounce(scheduleWithDelay(~delay=5.0)),
             ~expected=[Next(3), Next(6), Complete(None)],
             (),
           ),
@@ -195,13 +187,10 @@ let test =
             "exhausts",
             ~toString=string_of_int,
             ~source=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
+              ({scheduleWithDelay} as scheduler) => {
                 let childObservableA =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=Scheduler.scheduleWithDelay,
+                    ~scheduler=scheduleWithDelay,
                     [
                       (Next(1), 0.0),
                       (Next(2), 10.0),
@@ -213,7 +202,7 @@ let test =
 
                 let childObservableB =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=Scheduler.scheduleWithDelay,
+                    ~scheduler=scheduleWithDelay,
                     [
                       (Next(5), 0.0),
                       (Next(6), 10.0),
@@ -702,13 +691,10 @@ let test =
             "switches",
             ~toString=string_of_int,
             ~source=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
+              ({scheduleWithDelay} as scheduler) => {
                 let childObservableA =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=Scheduler.scheduleWithDelay,
+                    ~scheduler=scheduleWithDelay,
                     [
                       (Next(1), 0.0),
                       (Next(2), 10.0),
@@ -720,7 +706,7 @@ let test =
 
                 let childObservableB =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=Scheduler.scheduleWithDelay,
+                    ~scheduler=scheduleWithDelay,
                     [
                       (Next(5), 0.0),
                       (Next(6), 10.0),
@@ -767,12 +753,9 @@ let test =
             "when timeout does not expire",
             ~toString=string_of_int,
             ~source=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
+              ({scheduleWithDelay}) =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=Scheduler.scheduleWithDelay,
+                  ~scheduler=scheduleWithDelay,
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -780,15 +763,10 @@ let test =
                     (Next(4), 10.0),
                     (Complete(None), 14.0),
                   ],
-                );
-              },
+                ),
             ~operator=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
-                Operators.timeout(Scheduler.scheduleWithDelay(~delay=5.0));
-              },
+              ({scheduleWithDelay}) =>
+                Operators.timeout(scheduleWithDelay(~delay=5.0)),
             ~expected=[
               Next(1),
               Next(2),
@@ -802,12 +780,9 @@ let test =
             "when timeout expires",
             ~toString=string_of_int,
             ~source=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
+              ({scheduleWithDelay}) =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=Scheduler.scheduleWithDelay,
+                  ~scheduler=scheduleWithDelay,
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -815,15 +790,10 @@ let test =
                     (Next(4), 15.0),
                     (Complete(None), 20.0),
                   ],
-                );
-              },
+                ),
             ~operator=
-              scheduler => {
-                module Scheduler = (
-                  val (scheduler: (module ClockScheduler.S))
-                );
-                Operators.timeout(Scheduler.scheduleWithDelay(~delay=5.0));
-              },
+              ({scheduleWithDelay}) =>
+                Operators.timeout(scheduleWithDelay(~delay=5.0)),
             ~expected=[
               Next(1),
               Next(2),

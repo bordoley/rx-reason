@@ -76,9 +76,9 @@ let toDelayScheduler = ({scheduler}) => scheduler;
 
 let toScheduler = vts => toDelayScheduler(vts, ~delay=0.0);
 
-let toClockScheduler = (vts: t): (module ClockScheduler.S) => (module {
-  let getCurrentTime = () => getCurrentTime(vts);
-  let schedule = toScheduler(vts);
-  let scheduleWithDelay = toDelayScheduler(vts);
-});
+let toClockScheduler = (vts: t): ClockScheduler.t => {
+  getCurrentTime: () => getCurrentTime(vts),
+  schedule: toScheduler(vts),
+  scheduleWithDelay: toDelayScheduler(vts),
+};
 
