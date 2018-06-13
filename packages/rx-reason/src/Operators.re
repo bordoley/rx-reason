@@ -414,31 +414,17 @@ let observeOn =
     );
   };
 
-let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
-  observer =>
-    Observer.create(
-      ~onNext=next => observer |> Observer.next(next),
-      ~onComplete=
-        exn => {
-          let exn =
-            try (
-              {
-                onComplete(exn);
-                exn;
-              }
-            ) {
-            | exn => Some(exn)
-            };
-          observer |> Observer.complete(exn);
-        },
-      ~onDispose=() => observer |> Observer.dispose,
-    );
+let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) => 
+  observe(
+    ~onNext=Functions.alwaysUnit,
+    ~onComplete,
+  );
 
 let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
-  map(next => {
-    onNext(next);
-    next;
-  });
+  observe(
+    ~onNext,
+    ~onComplete=Functions.alwaysUnit,
+);
 
 let scan =
     (scanner: ('acc, 'a) => 'acc, initialValue: 'acc)
