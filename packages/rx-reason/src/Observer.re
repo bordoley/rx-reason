@@ -101,3 +101,9 @@ let raiseIfDisposed = ({disposable}) =>
 let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
 
 let toObserver = Functions.identity;
+
+let forwardOnComplete = (observer, exn) => observer |> complete(~exn?);
+
+let forwardOnNext = (observer, v) => observer |> next(v);
+
+let forwardOnDispose = (observer, ()) => observer |> dispose;

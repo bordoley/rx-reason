@@ -43,7 +43,7 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
   };
 
@@ -70,7 +70,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
   };
 
@@ -85,7 +85,7 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
             if (Disposable.(innerSubscription^ |> isDisposed)) {
               innerSubscription :=
                 Observable.subscribeWithCallbacks(
-                  ~onNext=next => observer |> Observer.next(next),
+                  ~onNext=Observer.forwardOnNext(observer),
                   ~onComplete=
                     exn =>
                       if (exhaustObserver^ |> Observer.isStopped) {
@@ -106,7 +106,7 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
               observer |> Observer.complete(~exn?)
             | _ => ()
             },
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     exhaustObserver^;
   };
@@ -128,8 +128,8 @@ let find = (predicate: 'a => bool, observer) => {
             findObserver^ |> Observer.complete;
           };
         }),
-      ~onComplete=exn => observer |> Observer.complete(~exn?),
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onComplete=Observer.forwardOnComplete(observer),
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
   findObserver^;
 };
@@ -154,7 +154,7 @@ let first: Operator.t('a, 'a) =
               };
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     firstObserver^;
   };
@@ -163,8 +163,8 @@ let ignoreElements: Operator.t('a, 'a) =
   observer =>
     Observer.create(
       ~onNext=Functions.alwaysUnit,
-      ~onComplete=exn => observer |> Observer.complete(~exn?),
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onComplete=Observer.forwardOnComplete(observer),
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
 
 let isEmpty: Operator.t('a, bool) =
@@ -189,7 +189,7 @@ let isEmpty: Operator.t('a, bool) =
               };
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     isEmptyObserver^;
   };
@@ -211,8 +211,8 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
               observer |> Observer.next(next);
             };
           }),
-        ~onComplete=exn => observer |> Observer.complete(~exn?),
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onComplete=Observer.forwardOnComplete(observer),
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     keepObserver^;
   };
@@ -271,8 +271,8 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
               };
             observer |> Observer.next(mapped);
           }),
-        ~onComplete=exn => observer |> Observer.complete(~exn?),
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onComplete=Observer.forwardOnComplete(observer),
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     mapObserver^;
   };
@@ -297,13 +297,13 @@ let materialize = observer =>
         observer |> Observer.next(next);
         observer |> Observer.complete;
       },
-    ~onDispose=() => observer |> Observer.dispose,
+    ~onDispose=Observer.forwardOnDispose(observer),
   );
 
 let maybe: Operator.t('a, 'a) =
   observer =>
     Observer.create(
-      ~onNext=next => observer |> Observer.next(next),
+      ~onNext=Observer.forwardOnNext(observer),
       ~onComplete=
         exn => {
           let exn =
@@ -313,7 +313,7 @@ let maybe: Operator.t('a, 'a) =
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
 
 let maybeFirst = observer => first @@ maybe @@ observer;
@@ -352,7 +352,7 @@ let observe =
               };
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     observeObserver^;
   };
@@ -465,7 +465,7 @@ let every = (predicate: 'a => bool, observer) => {
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
   everyTrueObserver^ |> map(predicate);
 };
@@ -494,7 +494,7 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
               };
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=() => observer |> Observer.dispose,
+        ~onDispose=Observer.forwardOnDispose(observer),
       );
     someTrueObserver^ |> map(predicate);
   };
@@ -571,7 +571,7 @@ let synchronize: Operator.t('a, 'a) =
           observer |> Observer.next(next);
           Lock.release(gate);
         },
-      ~onDispose=() => observer |> Observer.dispose,
+      ~onDispose=Observer.forwardOnDispose(observer),
     );
   };
 

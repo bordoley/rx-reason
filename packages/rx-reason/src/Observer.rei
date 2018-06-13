@@ -33,3 +33,9 @@ let createAutoDisposing:
   t('a);
 
 let disposed: t('a);
+
+let forwardOnComplete: (t('a), option(exn)) => unit;
+
+let forwardOnNext: (t('a), 'a) => unit;
+
+let forwardOnDispose: (t('a), unit) => unit;
