@@ -1,11 +1,7 @@
 type t('a);
 
 let create:
-  (
-    (~onSuccess: 'a => unit, ~onError: exn => unit) =>
-    Disposable.t
-  ) =>
-  t('a);
+  ((~onSuccess: 'a => unit, ~onError: exn => unit) => Disposable.t) => t('a);
 
 let defer: (unit => t('a)) => t('a);
 
@@ -38,7 +34,6 @@ let some: ('a => bool, Observable.t('a)) => t(bool);
 let subscribe: t('a) => Disposable.t;
 
 let subscribeWithCallbacks:
-  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) =>
-  Disposable.t;
+  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;
 
 let toObservable: t('a) => Observable.t('a);

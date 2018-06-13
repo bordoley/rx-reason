@@ -1,5 +1,3 @@
-open Functions.Operators;
-
 type t('a) = Observable.t('a);
 
 let create = subscribe =>
@@ -21,21 +19,21 @@ let ofValue = Observable.ofValue;
 let first = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.first);
 
-let flatMap = (mapper, single) =>
-  single |> Observable.lift(observer => 
-    Operators.map(mapper)
-    @@Operators.exhaust
-    @@observer
-  );
+let flatMap = (mapper: 'a => t('b), single: t('a)) : t('b) =>
+  single |> Observable.lift(Operators.(map(mapper) >> exhaust));
 
 let last = (observable: Observable.t('a)) : t('a) =>
   observable |> Observable.lift(Operators.last);
 
-let liftFirst = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
-  observable |> Observable.lift(Operators.first << operator);
+let liftFirst =
+    (operator: Operator.t('a, 'b), observable: Observable.t('a))
+    : t('b) =>
+  observable |> Observable.lift(Operators.(operator >> first));
 
-let liftLast = (operator: Operator.t('a, 'b), observable: Observable.t('a)) : t('b) =>
-  observable |> Observable.lift(Operators.last << operator);
+let liftLast =
+    (operator: Operator.t('a, 'b), observable: Observable.t('a))
+    : t('b) =>
+  observable |> Observable.lift(Operators.(operator >> last));
 
 let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.every(predicate));
@@ -71,10 +69,11 @@ let subscribeWithCallbacks =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
     : Disposable.t => {
   let innerSubscription = ref(Disposable.disposed);
-  let subscription = Disposable.create(() =>
-    Interlocked.exchange(Disposable.disposed, innerSubscription)
-    |> Disposable.dispose
-  );
+  let subscription =
+    Disposable.create(() =>
+      Interlocked.exchange(Disposable.disposed, innerSubscription)
+      |> Disposable.dispose
+    );
   innerSubscription :=
     single
     |> Observable.subscribeWithCallbacks(
@@ -95,7 +94,7 @@ let subscribeWithCallbacks =
                onError(InvalidState)
              },
        );
-    subscription;
+  subscription;
 };
 
 let toObservable = (single: t('a)) : Observable.t('a) => single;

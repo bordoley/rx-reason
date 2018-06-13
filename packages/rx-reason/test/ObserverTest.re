@@ -1,5 +1,4 @@
 open ReUnit;
-
 open ReUnit.Test;
 
 let test =
@@ -113,7 +112,7 @@ let test =
               );
             observer |> Observer.complete(None);
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
-          })
+          }),
         ],
       ),
       describe(

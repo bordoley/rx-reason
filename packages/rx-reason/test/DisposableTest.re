@@ -1,5 +1,4 @@
 open ReUnit;
-
 open ReUnit.Test;
 
 let test =
@@ -11,12 +10,13 @@ let test =
         [
           it("should dispose all children disposables once", () => {
             let count = ref(0);
-            let onDispose = () => {count := count ^ + 1};
-            let composed = Disposable.compose([
-              Disposable.create(onDispose),
-              Disposable.create(onDispose),
-              Disposable.create(onDispose),
-            ]);
+            let onDispose = () => count := count^ + 1;
+            let composed =
+              Disposable.compose([
+                Disposable.create(onDispose),
+                Disposable.create(onDispose),
+                Disposable.create(onDispose),
+              ]);
             composed |> Disposable.dispose;
             count^ |> Expect.toBeEqualToInt(3);
             composed |> Disposable.dispose;

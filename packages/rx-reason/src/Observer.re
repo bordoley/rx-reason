@@ -62,9 +62,8 @@ let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) : t('a) => {
 };
 
 let completeWithResult =
-    (exn: option(exn), {isStopped, onComplete, disposable}: t('a))
+    (exn: option(exn), {isStopped, onComplete}: t('a))
     : bool => {
-  Disposable.raiseIfDisposed(disposable);
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
     onComplete(exn);
@@ -89,16 +88,16 @@ let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
 let isStopped = ({isStopped}) => Volatile.read(isStopped);
 
-let next = (next: 'a, {onNext, isStopped, disposable}: t('a)) : unit => {
-  Disposable.raiseIfDisposed(disposable);
+let next = (next: 'a, {onNext, isStopped}: t('a)) : unit => {
   let isStopped = Volatile.read(isStopped);
   if (! isStopped) {
     onNext(next);
   };
 };
 
-let raiseIfDisposed= ({disposable}) => disposable |> Disposable.raiseIfDisposed;
- 
+let raiseIfDisposed = ({disposable}) =>
+  disposable |> Disposable.raiseIfDisposed;
+
 let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
 
 let toObserver = Functions.identity;

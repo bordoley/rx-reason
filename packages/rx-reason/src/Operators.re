@@ -4,6 +4,9 @@ exception TimeoutException;
 exception CompleteWithoutErrorException;
 let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
+let (>>) = (o0: Operator.t('a, 'b), o1: Operator.t('b, 'c)): Operator.t('a, 'c) =>
+  observer => o0(o1(observer));
+
 let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
@@ -215,9 +218,9 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
   };
 
 let distinctUntilChanged =
-    (~comparer=Functions.referenceEquality)
+    (~equals=Functions.referenceEquality)
     : Operator.t('a, 'a) => {
-  let shouldUpdate = (a, b) => ! comparer(a, b);
+  let shouldUpdate = (a, b) => ! equals(a, b);
   observer => {
     let state = MutableOption.create();
     let predicate = next => MutableOption.setIf(shouldUpdate, next, state);
@@ -274,13 +277,24 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
     mapObserver^;
   };
 
-let mapTo = (value: 'b) : Operator.t('a, 'b) => map(_ => value);
-
 let firstOrNone = observer =>
   first @@ map(a => Some(a)) @@ defaultIfEmpty(None) @@ observer;
 
 let lastOrNone = observer =>
   last @@ map(a => Some(a)) @@ defaultIfEmpty(None) @@ observer;
+
+let mapTo = (value: 'b) : Operator.t('a, 'b) => map(_ => value);
+
+let materialize = observer =>
+  Observer.create(
+    ~onNext=next => observer |> Observer.next(Notification.Next(next)),
+    ~onComplete=
+      exn => {
+        observer |> Observer.next(Notification.Complete(exn));
+        observer |> Observer.complete(None);
+      },
+    ~onDispose=() => observer |> Observer.dispose,
+  );
 
 let maybe: Operator.t('a, 'a) =
   observer =>
@@ -348,10 +362,7 @@ let observeOn =
     : Operator.t('a, 'a) =>
   observer => {
     let queue =
-      QueueWithBufferStrategy.create(
-        ~bufferStrategy,
-        ~maxSize=bufferSize,
-      );
+      QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
     let shouldComplete = ref(false);
     let completedState = ref(None);
 

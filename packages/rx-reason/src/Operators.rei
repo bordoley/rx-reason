@@ -2,12 +2,14 @@ exception EmptyException;
 
 exception TimeoutException;
 
-let debounce: (Scheduler.t) => Operator.t('a, 'a);
+let (>>): (Operator.t('a, 'b), Operator.t('b, 'c)) => Operator.t('a, 'c);
+
+let debounce: Scheduler.t => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
 let distinctUntilChanged:
-  (~comparer: ('a, 'a) => bool=?) => Operator.t('a, 'a);
+  (~equals: ('a, 'a) => bool=?) => Operator.t('a, 'a);
 
 let every: ('a => bool) => Operator.t('a, bool);
 
@@ -33,6 +35,8 @@ let map: ('a => 'b) => Operator.t('a, 'b);
 
 let mapTo: 'b => Operator.t('a, 'b);
 
+let materialize: Operator.t('a, Notification.t('a));
+
 let maybeFirst: Operator.t('a, 'a);
 
 let maybeLast: Operator.t('a, 'a);
@@ -44,11 +48,7 @@ let observe:
   Operator.t('a, 'a);
 
 let observeOn:
-  (
-    ~bufferStrategy: BufferStrategy.t=?,
-    ~bufferSize: int=?,
-    Scheduler.t
-  ) =>
+  (~bufferStrategy: BufferStrategy.t=?, ~bufferSize: int=?, Scheduler.t) =>
   Operator.t('a, 'a);
 
 let onComplete: (option(exn) => unit) => Operator.t('a, 'a);

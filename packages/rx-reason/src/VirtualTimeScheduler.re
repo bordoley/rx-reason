@@ -40,25 +40,29 @@ let create = () => {
   {currentTime, disposable, timeQueue, scheduler};
 };
 
+let advance = ({disposable, timeQueue} as vts: t) => {
+  let currentTime = vts.currentTime^;
+
+  switch (Belt.MutableMap.Int.get(timeQueue, currentTime)) {
+  | None => ()
+  | Some(queue) =>
+    while (! MutableQueue.isEmpty(queue)
+           && ! Disposable.isDisposed(disposable)) {
+      let work = MutableQueue.dequeue(queue);
+      work();
+    }
+  };
+
+  Belt.MutableMap.Int.remove(timeQueue, currentTime);
+  vts.currentTime := vts.currentTime^ + 1;
+};
+
 let run = ({disposable, timeQueue} as vts: t) => {
   Disposable.raiseIfDisposed(disposable);
 
   let break = ref(false);
   while (! break^) {
-    let currentTime = vts.currentTime^;
-
-    switch (Belt.MutableMap.Int.get(timeQueue, currentTime)) {
-    | None => ()
-    | Some(queue) =>
-      while (! MutableQueue.isEmpty(queue)
-             && ! Disposable.isDisposed(disposable)) {
-        let work = MutableQueue.dequeue(queue);
-        work();
-      }
-    };
-
-    Belt.MutableMap.Int.remove(timeQueue, currentTime);
-    vts.currentTime := vts.currentTime^ + 1;
+    advance(vts);
     break :=
       Belt.MutableMap.Int.isEmpty(timeQueue)
       || Disposable.isDisposed(disposable);
@@ -66,25 +70,7 @@ let run = ({disposable, timeQueue} as vts: t) => {
   disposable |> Disposable.dispose;
 };
 
-let getCurrentTime = ({currentTime, disposable}: t) => {
-  Disposable.raiseIfDisposed(disposable);
-  currentTime^;
-};
+let getCurrentTime = ({currentTime}: t) =>
+  float_of_int(currentTime^);
 
-let toClockScheduler = ({currentTime, disposable, scheduler}) : ClockScheduler.t => {
-  Disposable.raiseIfDisposed(disposable);
-  f => {
-    Disposable.raiseIfDisposed(disposable);
-    f(float_of_int(currentTime^), scheduler);
-  };
-};
-
-let toDelayScheduler = ({disposable, scheduler}) => {
-  Disposable.raiseIfDisposed(disposable);
-  scheduler;
-};
-
-let toScheduler = ({disposable,scheduler}) => {
-  Disposable.raiseIfDisposed(disposable);
-  scheduler(~delay=0.0);
-};
+let toDelayScheduler = ({ scheduler}) => scheduler;

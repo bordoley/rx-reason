@@ -1,47 +1,12 @@
 open ReUnit;
-
 open ReUnit.Test;
 
-let optionEquals = (~equals=(===), a, b) =>
-  switch (a, b) {
-  | (Some(a), Some(b)) => equals(a, b)
-  | (None, None) => true
-  | _ => false
-  };
-
-let optionToString = (~toString, x) =>
-  switch (x) {
-  | Some(v) => "Some(" ++ toString(v) ++ ")"
-  | _ => "None"
-  };
-
-let subscribeWithResult = (result, observable) =>
-  observable
-  |> Observable.subscribeWithCallbacks(
-       ~onNext=next => result := [Notification.Next(next), ...result^],
-       ~onComplete=exn => result := [Notification.Complete(exn), ...result^],
+let buffer = observer =>
+  observer
+  |> Operators.(
+       scan((acc, next) => [next, ...acc], []) >> last >> map(List.rev)
      );
 
-let subscribeOnVTSWithResult =
-    (f: VirtualTimeScheduler.t => Observable.t('a))
-    : list(Notification.t('a)) => {
-  let vts = VirtualTimeScheduler.create();
-  let result = ref([]);
-
-  f(vts) |> subscribeWithResult(result) |> ignore;
-
-  vts |> VirtualTimeScheduler.run;
-  result^ |> List.rev;
-};
-
-let subscribeSynchronousWithResult =
-    (source: Observable.t('a))
-    : list(Notification.t('a)) => {
-  let result = ref([]);
-  source |> subscribeWithResult(result) |> ignore;
-
-  result^ |> List.rev;
-};
 let expectToBeEqualToListOfNotifications = (~equals=(===), ~toString) =>
   Expect.toBeEqualToListWith(
     ~equals=
@@ -64,36 +29,51 @@ let expectToBeEqualToListOfNotifications = (~equals=(===), ~toString) =>
 
 let operatorIt =
     (
-      operator: Operator.t('a, 'b),
       name,
       ~equals=(===),
       ~toString,
-      ~source: Observable.t('a),
+      ~source: VirtualTimeScheduler.t => Observable.t('a),
+      ~operator: VirtualTimeScheduler.t => Operator.t('a, 'b),
       ~expected: list(Notification.t('b)),
       (),
     ) =>
-  it(name, () =>
-    source
-    |> Observable.lift(operator)
-    |> subscribeSynchronousWithResult
-    |> expectToBeEqualToListOfNotifications(~equals, ~toString, expected)
+  it(
+    name,
+    () => {
+      let vts = VirtualTimeScheduler.create();
+
+      let subscription = source(vts)
+      |> Observable.lift(Operators.(operator(vts) >> materialize >> buffer))
+      |> Observable.lift(
+           Operators.onNext(
+             expectToBeEqualToListOfNotifications(
+               ~equals,
+               ~toString,
+               expected,
+             ),
+           ),
+         )
+      |> Observable.subscribe;
+
+      vts |> VirtualTimeScheduler.run;
+      subscription |> Disposable.dispose;
+    },
   );
 
 let test =
   describe(
     "Operators",
     [
-      describe("bufferCount", []),
-      describe("bufferTime", []),
       describe(
         "debounce",
         [
-          it("debounces", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
-              let source =
+          operatorIt(
+            "debounces",
+            ~toString=string_of_int,
+            ~source=
+              vts =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
+                  ~scheduler=VirtualTimeScheduler.toDelayScheduler(vts),
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -103,14 +83,14 @@ let test =
                     (Next(6), 17.0),
                     (Complete(None), 18.0),
                   ],
-                );
-              source
-              |> Observable.lift(Operators.debounce(scheduler(~delay=5.0)));
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [Next(3), Next(6), Complete(None)],
-               )
+                ),
+            ~operator=
+              vts => {
+                let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+                Operators.debounce(scheduler(~delay=5.0));
+              },
+            ~expected=[Next(3), Next(6), Complete(None)],
+            (),
           ),
         ],
       ),
@@ -118,18 +98,18 @@ let test =
         "defaultIfEmpty",
         [
           operatorIt(
-            Operators.defaultIfEmpty(1),
             "returns the default if empty",
             ~toString=string_of_int,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.defaultIfEmpty(1),
             ~expected=[Next(1), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.defaultIfEmpty(1),
             "passes through if not empty",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.defaultIfEmpty(1),
             ~expected=[Next(1), Next(2), Next(3), Complete(None)],
             (),
           ),
@@ -139,10 +119,10 @@ let test =
         "distinctUntilChanged",
         [
           operatorIt(
-            Operators.distinctUntilChanged,
             "removes duplicates",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 1, 1, 3, 5, 3, 3, 1]),
+            ~source=_ => Observable.ofList([1, 1, 1, 3, 5, 3, 3, 1]),
+            ~operator=_ => Operators.distinctUntilChanged(~equals=(===)),
             ~expected=[
               Next(1),
               Next(3),
@@ -159,10 +139,10 @@ let test =
         "every",
         [
           operatorIt(
-            Operators.every(i => i > 10),
             "returns true for an observer that completes without producing values",
             ~toString=string_of_bool,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.every(i => i > 10),
             ~expected=[Next(true), Complete(None)],
             (),
           ),
@@ -189,10 +169,10 @@ let test =
             everyObserver |> Observer.complete(None);
           }),
           operatorIt(
-            Operators.every(i => i > 10),
             "it completes with true if all values pass the predicate",
             ~toString=string_of_bool,
-            ~source=Observable.ofList([12, 13]),
+            ~source=_ => Observable.ofList([12, 13]),
+            ~operator=_ => Operators.every(i => i > 10),
             ~expected=[Next(true), Complete(None)],
             (),
           ),
@@ -201,60 +181,65 @@ let test =
       describe(
         "exhaust",
         [
-          it("exhausts", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
-              let childObservableA =
-                Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
+          operatorIt(
+            "exhausts",
+            ~toString=string_of_int,
+            ~source=
+              vts => {
+                let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+                let childObservableA =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (Next(1), 0.0),
+                      (Next(2), 10.0),
+                      (Next(3), 20.0),
+                      (Next(4), 30.0),
+                      (Complete(None), 40.0),
+                    ],
+                  );
+
+                let childObservableB =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (Next(5), 0.0),
+                      (Next(6), 10.0),
+                      (Next(7), 19.0),
+                      (Next(8), 30.0),
+                      (Complete(None), 40.0),
+                    ],
+                  );
+
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler=
+                    ClockScheduler.create(
+                      ~getCurrentTime=
+                        () => VirtualTimeScheduler.getCurrentTime(vts),
+                      vts |> VirtualTimeScheduler.toDelayScheduler,
+                    ),
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 10.0),
-                    (Next(3), 20.0),
-                    (Next(4), 30.0),
-                    (Complete(None), 40.0),
+                    (Next(childObservableA), 0.0),
+                    (Next(childObservableB), 15.0),
+                    (Next(childObservableA), 35.0),
+                    (Next(childObservableB), 60.0),
+                    (Complete(None), 75.0),
                   ],
                 );
-
-              let childObservableB =
-                Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
-                  [
-                    (Next(5), 0.0),
-                    (Next(6), 10.0),
-                    (Next(7), 19.0),
-                    (Next(8), 30.0),
-                    (Complete(None), 40.0),
-                  ],
-                );
-
-              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
-              Observable.ofAbsoluteTimeNotifications(
-                ~scheduler,
-                [
-                  (Next(childObservableA), 0.0),
-                  (Next(childObservableB), 15.0),
-                  (Next(childObservableA), 35.0),
-                  (Next(childObservableB), 60.0),
-                  (Complete(None), 75.0),
-                ],
-              )
-              |> Observable.lift(Operators.exhaust);
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [
-                   Next(1),
-                   Next(2),
-                   Next(3),
-                   Next(4),
-                   Next(5),
-                   Next(6),
-                   Next(7),
-                   Next(8),
-                   Complete(None),
-                 ],
-               )
+              },
+            ~operator=_ => Operators.exhaust,
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              Next(5),
+              Next(6),
+              Next(7),
+              Next(8),
+              Complete(None),
+            ],
+            (),
           ),
         ],
       ),
@@ -262,10 +247,10 @@ let test =
         "find",
         [
           operatorIt(
-            Operators.find(x => x mod 2 === 0),
             "finds the first matching element and completes",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 3, 10, 6, 8]),
+            ~source=_ => Observable.ofList([1, 3, 10, 6, 8]),
+            ~operator=_ => Operators.find(x => x mod 2 === 0),
             ~expected=[Next(10), Complete(None)],
             (),
           ),
@@ -275,18 +260,18 @@ let test =
         "first",
         [
           operatorIt(
-            Operators.first,
             "publishes the first observed value",
             ~toString=string_of_int,
-            ~source=Observable.ofList([2, 3]),
+            ~source=_ => Observable.ofList([2, 3]),
+            ~operator=_ => Operators.first,
             ~expected=[Next(2), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.first,
             "passes through completed exceptions",
             ~toString=string_of_int,
-            ~source=Observable.raise(Division_by_zero),
+            ~source=_ => Observable.raise(Division_by_zero),
+            ~operator=_ => Operators.first,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -311,29 +296,29 @@ let test =
         "firstOrNone",
         [
           operatorIt(
-            Operators.firstOrNone,
             "publishes Some of the first observed value",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
-            ~source=Observable.ofList([2, 3]),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.ofList([2, 3]),
+            ~operator=_ => Operators.firstOrNone,
             ~expected=[Next(Some(2)), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.firstOrNone,
             "publishes Some of the first observed value",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
-            ~source=Observable.raise(Division_by_zero),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.raise(Division_by_zero),
+            ~operator=_ => Operators.firstOrNone,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            observer => Operators.first @@ Operators.firstOrNone @@ observer,
             "ignores EmptyException, publishes None, and completes normally",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
-            ~source=Observable.empty(),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.(first >> firstOrNone),
             ~expected=[Next(None), Complete(None)],
             (),
           ),
@@ -343,16 +328,17 @@ let test =
         "ignoreElements",
         [
           operatorIt(
-            Operators.ignoreElements,
             "ignores all elements and publishes an exception",
             ~toString=string_of_int,
             ~source=
-              Observable.ofNotifications([
-                Next(1),
-                Next(2),
-                Next(3),
-                Complete(Some(Division_by_zero)),
-              ]),
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Next(3),
+                  Complete(Some(Division_by_zero)),
+                ]),
+            ~operator=_ => Operators.ignoreElements,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -362,18 +348,18 @@ let test =
         "isEmpty",
         [
           operatorIt(
-            Operators.isEmpty,
             "return false if not empty",
             ~toString=string_of_bool,
-            ~source=Observable.ofValue(1),
+            ~source=_ => Observable.ofValue(1),
+            ~operator=_ => Operators.isEmpty,
             ~expected=[Next(false), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.isEmpty,
             "return true if empty",
             ~toString=string_of_bool,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.isEmpty,
             ~expected=[Next(true), Complete(None)],
             (),
           ),
@@ -383,18 +369,18 @@ let test =
         "keep",
         [
           operatorIt(
-            Operators.keep(_ => raise(Division_by_zero)),
             "completes the observer when the predicate throws an exception",
             ~toString=string_of_int,
-            ~source=Observable.ofValue(1),
+            ~source=_ => Observable.ofValue(1),
+            ~operator=_ => Operators.keep(_ => raise(Division_by_zero)),
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            Operators.keep(_ => true),
             "completes the observer when the keep observer is completed",
             ~toString=string_of_int,
-            ~source=Observable.ofValue(1),
+            ~source=_ => Observable.ofValue(1),
+            ~operator=_ => Operators.keep(_ => true),
             ~expected=[Next(1), Complete(None)],
             (),
           ),
@@ -404,24 +390,25 @@ let test =
         "last",
         [
           operatorIt(
-            Operators.last,
             "publishes the last observed value and disposes",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.last,
             ~expected=[Next(3), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.last,
             "passes through completed exceptions",
             ~toString=string_of_int,
             ~source=
-              Observable.ofNotifications([
-                Next(1),
-                Next(2),
-                Next(3),
-                Complete(Some(Division_by_zero)),
-              ]),
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Next(3),
+                  Complete(Some(Division_by_zero)),
+                ]),
+            ~operator=_ => Operators.last,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -446,34 +433,35 @@ let test =
         "lastOrNone",
         [
           operatorIt(
-            Operators.lastOrNone,
             "publishes the Some of the last observed value and completes",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
-            ~source=Observable.ofList([2, 3]),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.ofList([2, 3]),
+            ~operator=_ => Operators.lastOrNone,
             ~expected=[Next(Some(3)), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.lastOrNone,
             "passes through completed exceptions",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
             ~source=
-              Observable.ofNotifications([
-                Next(1),
-                Next(2),
-                Complete(Some(Division_by_zero)),
-              ]),
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Complete(Some(Division_by_zero)),
+                ]),
+            ~operator=_ => Operators.lastOrNone,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            observer => Operators.first @@ Operators.lastOrNone @@ observer,
             "ignores EmptyException, publishes None, and completes normally",
-            ~equals=optionEquals,
-            ~toString=optionToString(~toString=string_of_int),
-            ~source=Observable.empty(),
+            ~equals=Option.equals,
+            ~toString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.(first >> lastOrNone),
             ~expected=[Next(None), Complete(None)],
             (),
           ),
@@ -483,18 +471,18 @@ let test =
         "map",
         [
           operatorIt(
-            Operators.map(_ => raise(Division_by_zero)),
             "completes the observer when the mapper throws an exception",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.map(_ => raise(Division_by_zero)),
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            Operators.map(i => i + 1),
             "completes the observer when the mapping observer is completed",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.map(i => i + 1),
             ~expected=[Next(2), Next(3), Next(4), Complete(None)],
             (),
           ),
@@ -504,10 +492,10 @@ let test =
         "mapTo",
         [
           operatorIt(
-            Operators.mapTo("a"),
             "maps any input to value",
             ~toString=Functions.identity,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.mapTo("a"),
             ~expected=[Next("a"), Next("a"), Next("a"), Complete(None)],
             (),
           ),
@@ -517,26 +505,26 @@ let test =
         "maybeFirst",
         [
           operatorIt(
-            Operators.maybeFirst,
             "publishes the first observed value",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.maybeFirst,
             ~expected=[Next(1), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.maybeFirst,
             "passes through completed exceptions",
             ~toString=string_of_int,
-            ~source=Observable.raise(Division_by_zero),
+            ~source=_ => Observable.raise(Division_by_zero),
+            ~operator=_ => Operators.maybeFirst,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            observer => Operators.first @@ Operators.maybeFirst @@ observer,
             "ignores EmptyException and completes normally",
             ~toString=string_of_int,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.(first >> maybeFirst),
             ~expected=[Complete(None)],
             (),
           ),
@@ -546,31 +534,32 @@ let test =
         "maybeLast",
         [
           operatorIt(
-            Operators.maybeLast,
             "publishes the last observed value",
             ~toString=string_of_int,
-            ~source=Observable.ofList([1, 2, 3]),
+            ~source=_ => Observable.ofList([1, 2, 3]),
+            ~operator=_ => Operators.maybeLast,
             ~expected=[Next(3), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.maybeLast,
             "passes through completed exceptions",
             ~toString=string_of_int,
             ~source=
-              Observable.ofNotifications([
-                Next(1),
-                Next(2),
-                Complete(Some(Division_by_zero)),
-              ]),
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Complete(Some(Division_by_zero)),
+                ]),
+            ~operator=_ => Operators.maybeLast,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           operatorIt(
-            observer => Operators.first @@ Operators.maybeLast @@ observer,
             "ignores EmptyException and completes normally",
             ~toString=string_of_int,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.(first >> maybeLast),
             ~expected=[Complete(None)],
             (),
           ),
@@ -583,25 +572,28 @@ let test =
         "onComplete",
         [
           it("calls the side effect function on complete", () => {
-            let result = ref([]);
             let sideEffectCount = ref(0);
 
             Observable.ofList([1])
             |> Observable.lift(
-                 Operators.onComplete(_ =>
-                   sideEffectCount := sideEffectCount^ + 1
+                 Operators.(
+                   onComplete(_ => sideEffectCount := sideEffectCount^ + 1)
+                   >> materialize
+                   >> buffer
                  ),
                )
-            |> subscribeWithResult(result)
+            |> Observable.lift(
+                 Operators.onNext(
+                   expectToBeEqualToListOfNotifications(
+                     ~toString=string_of_int,
+                     [Next(1), Complete(None)],
+                   ),
+                 ),
+               )
+            |> Observable.subscribe
             |> ignore;
 
             sideEffectCount^ |> Expect.toBeEqualToInt(1);
-            result^
-            |> List.rev
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [Next(1), Complete(None)],
-               );
           }),
         ],
       ),
@@ -609,25 +601,28 @@ let test =
         "onNext",
         [
           it("calls the side effect function on next", () => {
-            let result = ref([]);
             let sideEffectCount = ref(0);
 
-            Observable.ofList([1])
+            Observable.ofList([1, 2])
             |> Observable.lift(
-                 Operators.onNext(_ =>
-                   sideEffectCount := sideEffectCount^ + 1
+                 Operators.(
+                   onNext(_ => sideEffectCount := sideEffectCount^ + 1)
+                   >> materialize
+                   >> buffer
                  ),
                )
-            |> subscribeWithResult(result)
+            |> Observable.lift(
+                 Operators.onNext(
+                   expectToBeEqualToListOfNotifications(
+                     ~toString=string_of_int,
+                     [Next(1), Complete(None)],
+                   ),
+                 ),
+               )
+            |> Observable.subscribe
             |> ignore;
 
-            sideEffectCount^ |> Expect.toBeEqualToInt(1);
-            result^
-            |> List.rev
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [Next(1), Complete(None)],
-               );
+            sideEffectCount^ |> Expect.toBeEqualToInt(2);
           }),
         ],
       ),
@@ -635,10 +630,10 @@ let test =
         "scan",
         [
           operatorIt(
-            Operators.scan((acc, next) => acc + next, 0),
             "publishes all intermediate values, including the initial accumulator value",
             ~toString=string_of_int,
-            ~source=Observable.ofList([2, 3, 4]),
+            ~source=_ => Observable.ofList([2, 3, 4]),
+            ~operator=_ => Operators.scan((acc, next) => acc + next, 0),
             ~expected=[
               Next(0),
               Next(2),
@@ -654,18 +649,18 @@ let test =
         "some",
         [
           operatorIt(
-            Operators.some(i => i > 10),
             "returns false for an observer that completes without producing values",
             ~toString=string_of_bool,
-            ~source=Observable.empty(),
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.some(i => i > 10),
             ~expected=[Next(false), Complete(None)],
             (),
           ),
           operatorIt(
-            Operators.some(i => i > 10),
             "returns false for an observer for which no value passes the predicate",
             ~toString=string_of_bool,
-            ~source=Observable.ofList([5, 6, 7]),
+            ~source=_ => Observable.ofList([5, 6, 7]),
+            ~operator=_ => Operators.some(i => i > 10),
             ~expected=[Next(false), Complete(None)],
             (),
           ),
@@ -696,62 +691,67 @@ let test =
       describe(
         "switch_",
         [
-          it("switches", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
-              let childObservableA =
-                Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
+          operatorIt(
+            "switches",
+            ~toString=string_of_int,
+            ~source=
+              vts => {
+                let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
+                let childObservableA =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (Next(1), 0.0),
+                      (Next(2), 10.0),
+                      (Next(3), 20.0),
+                      (Next(4), 30.0),
+                      (Complete(None), 40.0),
+                    ],
+                  );
+
+                let childObservableB =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (Next(5), 0.0),
+                      (Next(6), 10.0),
+                      (Next(7), 19.0),
+                      (Next(8), 30.0),
+                      (Complete(None), 40.0),
+                    ],
+                  );
+
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler=
+                    ClockScheduler.create(
+                      ~getCurrentTime=
+                        () => VirtualTimeScheduler.getCurrentTime(vts),
+                      vts |> VirtualTimeScheduler.toDelayScheduler,
+                    ),
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 10.0),
-                    (Next(3), 20.0),
-                    (Next(4), 30.0),
-                    (Complete(None), 40.0),
+                    (Next(childObservableA), 0.0),
+                    (Next(childObservableB), 15.0),
+                    (Next(childObservableA), 35.0),
+                    (Next(childObservableB), 60.0),
+                    (Complete(None), 75.0),
                   ],
                 );
-
-              let childObservableB =
-                Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
-                  [
-                    (Next(5), 0.0),
-                    (Next(6), 10.0),
-                    (Next(7), 19.0),
-                    (Next(8), 30.0),
-                    (Complete(None), 40.0),
-                  ],
-                );
-
-              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
-              Observable.ofAbsoluteTimeNotifications(
-                ~scheduler,
-                [
-                  (Next(childObservableA), 0.0),
-                  (Next(childObservableB), 15.0),
-                  (Next(childObservableA), 35.0),
-                  (Next(childObservableB), 60.0),
-                  (Complete(None), 75.0),
-                ],
-              )
-              |> Observable.lift(Operators.switch_);
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [
-                   Next(1),
-                   Next(2),
-                   Next(5),
-                   Next(6),
-                   Next(7),
-                   Next(1),
-                   Next(2),
-                   Next(3),
-                   Next(5),
-                   Next(6),
-                   Complete(None),
-                 ],
-               )
+              },
+            ~operator=_ => Operators.switch_,
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(5),
+              Next(6),
+              Next(7),
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(5),
+              Next(6),
+              Complete(None),
+            ],
+            (),
           ),
         ],
       ),
@@ -759,12 +759,13 @@ let test =
       describe(
         "timeout",
         [
-          it("when timeout does not expire", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
-              let source =
+          operatorIt(
+            "when timeout does not expire",
+            ~toString=string_of_int,
+            ~source=
+              vts =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
+                  ~scheduler=VirtualTimeScheduler.toDelayScheduler(vts),
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -772,21 +773,28 @@ let test =
                     (Next(4), 10.0),
                     (Complete(None), 14.0),
                   ],
-                );
-              source
-              |> Observable.lift(Operators.timeout(scheduler(~delay=5.0)));
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [Next(1), Next(2), Next(3), Next(4), Complete(None)],
-               )
+                ),
+            ~operator=
+              vts => {
+                let scheduler = VirtualTimeScheduler.toDelayScheduler(vts);
+                Operators.timeout(scheduler(~delay=5.0));
+              },
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              Complete(None),
+            ],
+            (),
           ),
-          it("when timeout expires", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toDelayScheduler;
-              let source =
+          operatorIt(
+            "when timeout expires",
+            ~toString=string_of_int,
+            ~source=
+              vts =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler,
+                  ~scheduler=VirtualTimeScheduler.toDelayScheduler(vts),
                   [
                     (Next(1), 0.0),
                     (Next(2), 4.0),
@@ -794,31 +802,37 @@ let test =
                     (Next(4), 15.0),
                     (Complete(None), 20.0),
                   ],
-                );
-              source
-              |> Observable.lift(Operators.timeout(scheduler(~delay=5.0)));
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [
-                   Next(1),
-                   Next(2),
-                   Next(3),
-                   Complete(Some(Operators.TimeoutException)),
-                 ],
-               )
+                ),
+            ~operator=
+              vts => {
+                let scheduler = VirtualTimeScheduler.toDelayScheduler(vts);
+                Operators.timeout(scheduler(~delay=5.0));
+              },
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Complete(Some(Operators.TimeoutException)),
+            ],
+            (),
           ),
         ],
       ),
       describe(
         "withLatestFrom",
         [
-          it("drops values from the source, if there is no latest value", () =>
-            subscribeOnVTSWithResult(vts => {
-              let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
-              let source =
+          operatorIt(
+            "drops values from the source, if there is no latest value",
+            ~toString=string_of_int,
+            ~source=
+              vts =>
                 Observable.ofAbsoluteTimeNotifications(
-                  ~scheduler,
+                  ~scheduler=
+                    ClockScheduler.create(
+                      ~getCurrentTime=
+                        () => VirtualTimeScheduler.getCurrentTime(vts),
+                      vts |> VirtualTimeScheduler.toDelayScheduler,
+                    ),
                   [
                     (Next(1), 0.0),
                     (Next(2), 200.0),
@@ -826,30 +840,29 @@ let test =
                     (Next(4), 600.0),
                     (Complete(None), 700.0),
                   ],
-                );
-              let other =
-                Observable.ofAbsoluteTimeNotifications(
-                  ~scheduler,
-                  [
-                    (Next(1), 100.0),
-                    (Next(2), 250.0),
-                    (Next(3), 300.0),
-                    (Next(4), 450.0),
-                    (Complete(None), 500.0),
-                  ],
-                );
-              source
-              |> Observable.lift(
-                   Operators.withLatestFrom(
-                     ~selector=(a, b) => a + b,
-                     other,
-                   ),
-                 );
-            })
-            |> expectToBeEqualToListOfNotifications(
-                 ~toString=string_of_int,
-                 [Next(3), Next(6), Next(8), Complete(None)],
-               )
+                ),
+            ~operator=
+              vts => {
+                let other =
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler=
+                      ClockScheduler.create(
+                        ~getCurrentTime=
+                          () => VirtualTimeScheduler.getCurrentTime(vts),
+                        vts |> VirtualTimeScheduler.toDelayScheduler,
+                      ),
+                    [
+                      (Next(1), 100.0),
+                      (Next(2), 250.0),
+                      (Next(3), 300.0),
+                      (Next(4), 450.0),
+                      (Complete(None), 500.0),
+                    ],
+                  );
+                Operators.withLatestFrom(~selector=(a, b) => a + b, other);
+              },
+            ~expected=[Next(3), Next(6), Next(8), Complete(None)],
+            (),
           ),
         ],
       ),

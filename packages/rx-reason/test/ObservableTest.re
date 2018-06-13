@@ -1,4 +1,3 @@
-open Functions.Operators;
 open ReUnit;
 open ReUnit.Test;
 
@@ -894,9 +893,9 @@ let test =
           it("applies the operator", () =>
             Observable.ofList([1, 2, 3])
             |> Observable.lift(
-                 Operators.scan((acc, next) => acc + next, 0)
-                 << Operators.map(string_of_int)
-                 << Operators.last,
+                 Operators.(scan((acc, next) => acc + next, 0)
+                 >> Operators.map(string_of_int)
+                 >> Operators.last),
                )
             |> Observable.subscribeWithCallbacks(
                  ~onNext=Expect.toBeEqualToString("6"),
