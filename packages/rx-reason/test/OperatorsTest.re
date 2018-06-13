@@ -42,18 +42,21 @@ let operatorIt =
     () => {
       let vts = VirtualTimeScheduler.create();
 
-      let subscription = source(vts)
-      |> Observable.lift(Operators.(operator(vts) >> materialize >> buffer))
-      |> Observable.lift(
-           Operators.onNext(
-             expectToBeEqualToListOfNotifications(
-               ~equals,
-               ~toString,
-               expected,
+      let subscription =
+        source(vts)
+        |> Observable.lift(
+             Operators.(operator(vts) >> materialize >> buffer),
+           )
+        |> Observable.lift(
+             Operators.onNext(
+               expectToBeEqualToListOfNotifications(
+                 ~equals,
+                 ~toString,
+                 expected,
+               ),
              ),
-           ),
-         )
-      |> Observable.subscribe;
+           )
+        |> Observable.subscribe;
 
       vts |> VirtualTimeScheduler.run;
       subscription |> Disposable.dispose;
@@ -212,12 +215,7 @@ let test =
                   );
 
                 Observable.ofAbsoluteTimeNotifications(
-                  ~scheduler=
-                    ClockScheduler.create(
-                      ~getCurrentTime=
-                        () => VirtualTimeScheduler.getCurrentTime(vts),
-                      vts |> VirtualTimeScheduler.toDelayScheduler,
-                    ),
+                  ~scheduler=vts |> VirtualTimeScheduler.toClockScheduler,
                   [
                     (Next(childObservableA), 0.0),
                     (Next(childObservableB), 15.0),
@@ -722,12 +720,7 @@ let test =
                   );
 
                 Observable.ofAbsoluteTimeNotifications(
-                  ~scheduler=
-                    ClockScheduler.create(
-                      ~getCurrentTime=
-                        () => VirtualTimeScheduler.getCurrentTime(vts),
-                      vts |> VirtualTimeScheduler.toDelayScheduler,
-                    ),
+                  ~scheduler=vts |> VirtualTimeScheduler.toClockScheduler,
                   [
                     (Next(childObservableA), 0.0),
                     (Next(childObservableB), 15.0),
@@ -827,12 +820,7 @@ let test =
             ~source=
               vts =>
                 Observable.ofAbsoluteTimeNotifications(
-                  ~scheduler=
-                    ClockScheduler.create(
-                      ~getCurrentTime=
-                        () => VirtualTimeScheduler.getCurrentTime(vts),
-                      vts |> VirtualTimeScheduler.toDelayScheduler,
-                    ),
+                  ~scheduler=vts |> VirtualTimeScheduler.toClockScheduler,
                   [
                     (Next(1), 0.0),
                     (Next(2), 200.0),
@@ -845,12 +833,7 @@ let test =
               vts => {
                 let other =
                   Observable.ofAbsoluteTimeNotifications(
-                    ~scheduler=
-                      ClockScheduler.create(
-                        ~getCurrentTime=
-                          () => VirtualTimeScheduler.getCurrentTime(vts),
-                        vts |> VirtualTimeScheduler.toDelayScheduler,
-                      ),
+                    ~scheduler=vts |> VirtualTimeScheduler.toClockScheduler,
                     [
                       (Next(1), 100.0),
                       (Next(2), 250.0),

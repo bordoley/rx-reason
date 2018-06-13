@@ -70,7 +70,14 @@ let run = ({disposable, timeQueue} as vts: t) => {
   disposable |> Disposable.dispose;
 };
 
-let getCurrentTime = ({currentTime}: t) =>
-  float_of_int(currentTime^);
+let getCurrentTime = ({currentTime}: t) => float_of_int(currentTime^);
 
-let toDelayScheduler = ({ scheduler}) => scheduler;
+let toDelayScheduler = ({scheduler}) => scheduler;
+
+let toClockScheduler = vts =>
+  ClockScheduler.create(
+    ~getCurrentTime=() => getCurrentTime(vts),
+    vts |> toDelayScheduler,
+  );
+
+let toScheduler = vts => toDelayScheduler(vts, ~delay=0.0);
