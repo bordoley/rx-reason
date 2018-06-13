@@ -7,8 +7,8 @@ module type S1 = {
 
   include Disposable.S1 with type t('a) := t('a);
 
-  let complete: (option(exn), t('a)) => unit;
-  let completeWithResult: (option(exn), t('a)) => bool;
+  let complete: (~exn: exn=?, t('a)) => unit;
+  let completeWithResult: (~exn: exn=?, t('a)) => bool;
   let isStopped: t('a) => bool;
   let next: ('a, t('a)) => unit;
   let toObserver: t('a) => observer('a);

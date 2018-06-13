@@ -41,7 +41,7 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           | Some(_) => clearDebounce()
           | None => debouncedNext() |> ignore
           };
-          observer |> Observer.complete(exn);
+          observer |> Observer.complete(~exn?);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -68,7 +68,7 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
               None;
             | Some(_) => exn
             };
-          observer |> Observer.complete(exn);
+          observer |> Observer.complete(~exn?);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -89,9 +89,9 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
                   ~onComplete=
                     exn =>
                       if (exhaustObserver^ |> Observer.isStopped) {
-                        observer |> Observer.complete(exn);
+                        observer |> Observer.complete(~exn?);
                       } else if (exn !== None) {
-                        exhaustObserver^ |> Observer.complete(exn);
+                        exhaustObserver^ |> Observer.complete(~exn?);
                       },
                   next,
                 );
@@ -100,10 +100,10 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
           exn =>
             switch (exn) {
             | Some(_) =>
-              observer |> Observer.complete(exn);
+              observer |> Observer.complete(~exn?);
               innerSubscription^ |> Disposable.dispose;
             | None when innerSubscription^ |> Disposable.isDisposed =>
-              observer |> Observer.complete(exn)
+              observer |> Observer.complete(~exn?)
             | _ => ()
             },
         ~onDispose=() => observer |> Observer.dispose,
@@ -120,15 +120,15 @@ let find = (predicate: 'a => bool, observer) => {
           let found =
             try (predicate(next)) {
             | exn =>
-              findObserver^ |> Observer.complete(Some(exn));
+              findObserver^ |> Observer.complete(~exn);
               Functions.returnUnit();
             };
           if (found) {
             observer |> Observer.next(next);
-            findObserver^ |> Observer.complete(None);
+            findObserver^ |> Observer.complete;
           };
         }),
-      ~onComplete=exn => observer |> Observer.complete(exn),
+      ~onComplete=exn => observer |> Observer.complete(~exn?),
       ~onDispose=() => observer |> Observer.dispose,
     );
   findObserver^;
@@ -142,7 +142,7 @@ let first: Operator.t('a, 'a) =
         ~onNext=
           next => {
             observer |> Observer.next(next);
-            firstObserver^ |> Observer.complete(completeWithoutErrorExn);
+            firstObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
         ~onComplete=
           exn => {
@@ -152,7 +152,7 @@ let first: Operator.t('a, 'a) =
               | Some(_) => exn
               | _ => Some(EmptyException)
               };
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
@@ -163,7 +163,7 @@ let ignoreElements: Operator.t('a, 'a) =
   observer =>
     Observer.create(
       ~onNext=Functions.alwaysUnit,
-      ~onComplete=exn => observer |> Observer.complete(exn),
+      ~onComplete=exn => observer |> Observer.complete(~exn?),
       ~onDispose=() => observer |> Observer.dispose,
     );
 
@@ -175,7 +175,7 @@ let isEmpty: Operator.t('a, bool) =
         ~onNext=
           _ => {
             observer |> Observer.next(false);
-            isEmptyObserver^ |> Observer.complete(completeWithoutErrorExn);
+            isEmptyObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
         ~onComplete=
           exn => {
@@ -187,7 +187,7 @@ let isEmpty: Operator.t('a, bool) =
                 observer |> Observer.next(true);
                 exn;
               };
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
@@ -204,14 +204,14 @@ let keep = (predicate: 'a => bool) : Operator.t('a, 'a) =>
             let shouldKeep =
               try (predicate(next)) {
               | exn =>
-                keepObserver^ |> Observer.complete(Some(exn));
+                keepObserver^ |> Observer.complete(~exn);
                 Functions.returnUnit();
               };
             if (shouldKeep) {
               observer |> Observer.next(next);
             };
           }),
-        ~onComplete=exn => observer |> Observer.complete(exn),
+        ~onComplete=exn => observer |> Observer.complete(~exn?),
         ~onDispose=() => observer |> Observer.dispose,
       );
     keepObserver^;
@@ -246,7 +246,7 @@ let last = observer => {
               None;
             }
           };
-        observer |> Observer.complete(exn);
+        observer |> Observer.complete(~exn?);
       },
     ~onDispose=
       () => {
@@ -266,12 +266,12 @@ let map = (mapper: 'a => 'b) : Operator.t('a, 'b) =>
             let mapped =
               try (mapper(next)) {
               | exn =>
-                mapObserver^ |> Observer.complete(Some(exn));
+                mapObserver^ |> Observer.complete(~exn);
                 Functions.returnUnit();
               };
             observer |> Observer.next(mapped);
           }),
-        ~onComplete=exn => observer |> Observer.complete(exn),
+        ~onComplete=exn => observer |> Observer.complete(~exn?),
         ~onDispose=() => observer |> Observer.dispose,
       );
     mapObserver^;
@@ -295,7 +295,7 @@ let materialize = observer =>
         | None => Notification.Complete
         };
         observer |> Observer.next(next);
-        observer |> Observer.complete(None);
+        observer |> Observer.complete;
       },
     ~onDispose=() => observer |> Observer.dispose,
   );
@@ -311,7 +311,7 @@ let maybe: Operator.t('a, 'a) =
             | Some(EmptyException) => None
             | _ => exn
             };
-          observer |> Observer.complete(exn);
+          observer |> Observer.complete(~exn?);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -334,7 +334,7 @@ let observe =
           Functions.earlyReturnsUnit1(next => {
             try (onNext(next)) {
             | exn =>
-              observeObserver^ |> Observer.complete(Some(exn));
+              observeObserver^ |> Observer.complete(~exn);
               Functions.returnUnit();
             };
             observer |> Observer.next(next);
@@ -350,7 +350,7 @@ let observe =
               ) {
               | exn => Some(exn)
               };
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
@@ -381,7 +381,7 @@ let observeOn =
           scheduler(doWorkStep) : Disposable.disposed;
       | _ when Interlocked.exchange(false, shouldComplete) =>
         Volatile.write(0, wip);
-        observer |> Observer.complete(completedState^);
+        observer |> Observer.complete(~exn=?(completedState^));
         Disposable.disposed;
       | _ when innerSubscription |> Disposable.isDisposed =>
         Volatile.write(0, wip);
@@ -449,7 +449,7 @@ let every = (predicate: 'a => bool, observer) => {
         next =>
           if (! next) {
             observer |> Observer.next(next);
-            everyTrueObserver^ |> Observer.complete(completeWithoutErrorExn);
+            everyTrueObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
       ~onComplete=
         exn => {
@@ -463,7 +463,7 @@ let every = (predicate: 'a => bool, observer) => {
               None;
             | _ => exn
             };
-          observer |> Observer.complete(exn);
+          observer |> Observer.complete(~exn?);
         },
       ~onDispose=() => observer |> Observer.dispose,
     );
@@ -478,7 +478,7 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
         ~onNext=
           next =>
             if (next) {
-              someTrueObserver^ |> Observer.complete(completeWithoutErrorExn);
+              someTrueObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
             },
         ~onComplete=
           exn => {
@@ -492,7 +492,7 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
                 None;
               | _ => exn
               };
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
           },
         ~onDispose=() => observer |> Observer.dispose,
       );
@@ -524,7 +524,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
                  switch (exn) {
                  | Some(_) =>
                    if (latest^ === id) {
-                     switchObserver^ |> Observer.complete(exn);
+                     switchObserver^ |> Observer.complete(~exn?);
                    }
                  | None => ()
                  },
@@ -547,7 +547,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
           exn => {
             lock |> Lock.acquire;
             innerSubscription |> AssignableDisposable.dispose;
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
             lock |> Lock.release;
           },
         ~onDispose=() => innerSubscription |> AssignableDisposable.dispose,
@@ -562,7 +562,7 @@ let synchronize: Operator.t('a, 'a) =
       ~onComplete=
         exn => {
           Lock.acquire(gate);
-          observer |> Observer.complete(exn);
+          observer |> Observer.complete(~exn?);
           Lock.release(gate);
         },
       ~onNext=
@@ -587,7 +587,7 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
         timeoutObservable
         |> Observable.subscribeWithCallbacks(
              ~onNext=_ => (),
-             ~onComplete=exn => timeOutObserver^ |> Observer.complete(exn),
+             ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
            );
       timeoutSubscription |> AssignableDisposable.set(subscription);
     };
@@ -602,7 +602,7 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
         ~onComplete=
           exn => {
             timeoutSubscription |> AssignableDisposable.dispose;
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
           },
         ~onDispose=
           () => {
@@ -634,7 +634,7 @@ let withLatestFrom =
               let nextWithLatest =
                 try (selector(next, latest)) {
                 | exn =>
-                  withLatestObserver^ |> Observer.complete(Some(exn));
+                  withLatestObserver^ |> Observer.complete(~exn);
                   Functions.returnUnit();
                 };
               observer |> Observer.next(nextWithLatest);
@@ -642,7 +642,7 @@ let withLatestFrom =
           ),
         ~onComplete=
           exn => {
-            observer |> Observer.complete(exn);
+            observer |> Observer.complete(~exn?);
             otherSubscription^ |> Disposable.dispose;
           },
         ~onDispose=
@@ -659,7 +659,7 @@ let withLatestFrom =
            ~onComplete=
              exn =>
                switch (exn) {
-               | Some(_) => withLatestObserver^ |> Observer.complete(exn)
+               | Some(_) => withLatestObserver^ |> Observer.complete(~exn?)
                | _ => ()
                },
          );

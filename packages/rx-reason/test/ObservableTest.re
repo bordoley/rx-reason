@@ -53,11 +53,11 @@ let test =
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -84,7 +84,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer0 = subject0 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(Some(Division_by_zero));
+            observer0 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -146,15 +146,15 @@ let test =
             let observer1 = subject1 |> Subject.toObserver;
             let observer2 = subject2 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -183,7 +183,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer1 = subject1 |> Subject.toObserver;
 
-            observer1 |> Observer.complete(Some(Division_by_zero));
+            observer1 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -253,19 +253,19 @@ let test =
             let observer2 = subject2 |> Subject.toObserver;
             let observer3 = subject3 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -296,7 +296,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer2 = subject2 |> Subject.toObserver;
 
-            observer2 |> Observer.complete(Some(Division_by_zero));
+            observer2 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -374,23 +374,23 @@ let test =
             let observer3 = subject3 |> Subject.toObserver;
             let observer4 = subject4 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer4 |> Observer.complete(None);
+            observer4 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -423,7 +423,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer3 = subject3 |> Subject.toObserver;
 
-            observer3 |> Observer.complete(Some(Division_by_zero));
+            observer3 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -509,27 +509,27 @@ let test =
             let observer4 = subject4 |> Subject.toObserver;
             let observer5 = subject5 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer4 |> Observer.complete(None);
+            observer4 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer5 |> Observer.complete(None);
+            observer5 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -564,7 +564,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer4 = subject4 |> Subject.toObserver;
 
-            observer4 |> Observer.complete(Some(Division_by_zero));
+            observer4 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -658,31 +658,31 @@ let test =
             let observer5 = subject5 |> Subject.toObserver;
             let observer6 = subject6 |> Subject.toObserver;
 
-            observer0 |> Observer.complete(None);
+            observer0 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer4 |> Observer.complete(None);
+            observer4 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer5 |> Observer.complete(None);
+            observer5 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
-            observer6 |> Observer.complete(None);
+            observer6 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -719,7 +719,7 @@ let test =
             result^ |> Expect.toBeEqualToFalse;
             let observer5 = subject5 |> Subject.toObserver;
 
-            observer5 |> Observer.complete(Some(Division_by_zero));
+            observer5 |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
@@ -749,10 +749,10 @@ let test =
             subject0 |> Subject.toObserver |> Observer.next(4);
             subject0 |> Subject.toObserver |> Observer.next(5);
             subject0 |> Subject.toObserver |> Observer.next(6);
-            subject0 |> Subject.toObserver |> Observer.complete(None);
+            subject0 |> Subject.toObserver |> Observer.complete;
             subject1 |> Subject.toObserver |> Observer.next(10);
             subject1 |> Subject.toObserver |> Observer.next(11);
-            subject1 |> Subject.toObserver |> Observer.complete(None);
+            subject1 |> Subject.toObserver |> Observer.complete;
 
             result^
             |> Expect.toBeEqualToListOfInt([
@@ -958,11 +958,11 @@ let test =
             observer2 |> Observer.next(2);
             observer1 |> Observer.next(3);
             observer2 |> Observer.next(4);
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             observer2 |> Observer.next(5);
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             observer3 |> Observer.next(6);
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
 
             result^ |> Expect.toBeEqualToListOfInt([6, 5, 4, 3, 2, 1]);
           }),
@@ -987,13 +987,13 @@ let test =
             let observer2 = subject2 |> Subject.toObserver;
             let observer3 = subject3 |> Subject.toObserver;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer2 |> Observer.complete(None);
+            observer2 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer3 |> Observer.complete(None);
+            observer3 |> Observer.complete;
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -1018,10 +1018,10 @@ let test =
             let observer1 = subject1 |> Subject.toObserver;
             let observer2 = subject2 |> Subject.toObserver;
 
-            observer1 |> Observer.complete(None);
+            observer1 |> Observer.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer2 |> Observer.complete(Some(Division_by_zero));
+            observer2 |> Observer.complete(~exn=Division_by_zero);
             result^ |> Expect.toBeEqualToTrue;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
@@ -1079,13 +1079,13 @@ let test =
             let observer = subject^ |> Subject.toObserver;
             observer |> Observer.next(1);
             observer |> Observer.next(2);
-            observer |> Observer.complete(Some(Division_by_zero));
+            observer |> Observer.complete(~exn=Division_by_zero);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             let observer = subject^ |> Subject.toObserver;
             observer |> Observer.next(3);
             observer |> Observer.next(4);
-            observer |> Observer.complete(None);
+            observer |> Observer.complete;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
 
             result^ |> Expect.toBeEqualToListOfInt([4, 3, 2, 1]);
@@ -1114,7 +1114,7 @@ let test =
             subject^ |> Subject.toObserver |> Observer.next(5);
             subject^
             |> Subject.toObserver
-            |> Observer.complete(Some(Division_by_zero));
+            |> Observer.complete(~exn=Division_by_zero);
             subject^ |> Subject.toObserver |> Observer.next(6);
 
             result^ |> Expect.toBeEqualToListOfInt([5]);

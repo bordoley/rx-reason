@@ -168,7 +168,7 @@ let test =
             observedValue^ |> Expect.toBeEqualToFalse;
             completed^ |> Expect.toBeEqualToTrue;
 
-            everyObserver |> Observer.complete(None);
+            everyObserver |> Observer.complete;
           }),
           operatorIt(
             "it completes with true if all values pass the predicate",
@@ -280,7 +280,7 @@ let test =
                 ~onDispose=Functions.alwaysUnit,
               );
             let firstObserver = Operators.first(observer);
-            firstObserver |> Observer.complete(None);
+            firstObserver |> Observer.complete;
             switch (observedExn^) {
             | None => failwith("expected observedExn to be not be None")
             | Some(_) => ()
@@ -417,7 +417,7 @@ let test =
                 ~onDispose=Functions.alwaysUnit,
               );
             let lastObserver = Operators.last(observer);
-            lastObserver |> Observer.complete(None);
+            lastObserver |> Observer.complete;
             switch (observedExn^) {
             | None => failwith("expected observedExn to be not be None")
             | Some(_) => ()

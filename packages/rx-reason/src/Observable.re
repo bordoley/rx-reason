@@ -35,7 +35,7 @@ let subscribeObserver =
   observable
   |> subscribeWithCallbacks(
        ~onNext=next => observer |> Observer.next(next),
-       ~onComplete=exn => observer |> Observer.complete(exn),
+       ~onComplete=exn => observer |> Observer.complete(~exn?),
      );
 
 let createWithObserver =
@@ -51,7 +51,7 @@ let createWithObserver =
       try (onSubscribe(observer)) {
       | exn =>
         let shouldRaise =
-          observer |> Observer.completeWithResult(Some(exn)) |> (!);
+          observer |> Observer.completeWithResult(~exn) |> (!);
         if (shouldRaise) {
           /* This could happen when the onComplete is called synchronously in the
            * subscribe function which also throws.

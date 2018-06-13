@@ -12,8 +12,8 @@ module type S1 = {
 
   include Disposable.S1 with type t('a) := t('a);
 
-  let complete: (option(exn), t('a)) => unit;
-  let completeWithResult: (option(exn), t('a)) => bool;
+  let complete: (~exn: exn=?, t('a)) => unit;
+  let completeWithResult: (~exn: exn=?, t('a)) => bool;
   let isStopped: t('a) => bool;
   let next: ('a, t('a)) => unit;
   let toObserver: t('a) => observer('a);
@@ -62,7 +62,7 @@ let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) : t('a) => {
 };
 
 let completeWithResult =
-    (exn: option(exn), {isStopped, onComplete}: t('a))
+    (~exn=?, {isStopped, onComplete}: t('a))
     : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
@@ -71,8 +71,8 @@ let completeWithResult =
   shouldComplete;
 };
 
-let complete = (exn: option(exn), observer: t('a)) : unit =>
-  observer |> completeWithResult(exn) |> ignore;
+let complete = (~exn=?, observer: t('a)) : unit =>
+  observer |> completeWithResult(~exn?) |> ignore;
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;
 

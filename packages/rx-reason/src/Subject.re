@@ -5,10 +5,10 @@ type t('a) = {
 
 let disposed = {observer: Observer.disposed, observable: Observable.never};
 
-let complete = (exn, {observer}) => observer |> Observer.complete(exn);
+let complete = (~exn=?, {observer}) => observer |> Observer.complete(~exn?);
 
-let completeWithResult = (exn, {observer}) =>
-  observer |> Observer.completeWithResult(exn);
+let completeWithResult = (~exn=?, {observer}) =>
+  observer |> Observer.completeWithResult(~exn?);
 
 let dispose = ({observer}) => observer |> Observer.dispose;
 

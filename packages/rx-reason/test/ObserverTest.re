@@ -19,7 +19,7 @@ let test =
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
 
-            observer |> Observer.complete(Some(Division_by_zero));
+            observer |> Observer.complete(~exn=Division_by_zero);
 
             observedExn^ === None |> Expect.toBeEqualToFalse;
             observer |> Observer.isStopped |> Expect.toBeEqualToTrue;
@@ -34,8 +34,8 @@ let test =
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
-            observer |> Observer.complete(None);
-            observer |> Observer.complete(Some(Division_by_zero));
+            observer |> Observer.complete;
+            observer |> Observer.complete(~exn=Division_by_zero);
 
             observedExn^ === None |> Expect.toBeEqualToTrue;
             observer |> Observer.isStopped |> Expect.toBeEqualToTrue;
@@ -56,7 +56,7 @@ let test =
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
 
             observer
-            |> Observer.completeWithResult(None)
+            |> Observer.completeWithResult
             |> Expect.toBeEqualToTrue;
           }),
           it("returns false if stopped", () => {
@@ -68,10 +68,10 @@ let test =
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
-            observer |> Observer.complete(None);
+            observer |> Observer.complete;
 
             observer
-            |> Observer.completeWithResult(None)
+            |> Observer.completeWithResult
             |> Expect.toBeEqualToFalse;
           }),
         ],
@@ -100,7 +100,7 @@ let test =
                 ~onComplete=_ => raise(Division_by_zero),
                 ~onDispose=Functions.alwaysUnit,
               );
-            (() => observer |> Observer.complete(None)) |> Expect.shouldRaise;
+            (() => observer |> Observer.complete) |> Expect.shouldRaise;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it("disposes when the observer completes", () => {
@@ -110,7 +110,7 @@ let test =
                 ~onComplete=Functions.alwaysUnit,
                 ~onDispose=Functions.alwaysUnit,
               );
-            observer |> Observer.complete(None);
+            observer |> Observer.complete;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -141,7 +141,7 @@ let test =
               );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
-            observer |> Observer.complete(None);
+            observer |> Observer.complete;
             observer |> Observer.next(6);
             observedNext^ |> Expect.toBeEqualToInt(5);
           }),
