@@ -4,21 +4,6 @@ exception TimeoutException;
 exception CompleteWithoutErrorException;
 let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let bufferCount =
-    (~size as _: int, ~startEvery as _: int=0)
-    : Operator.t('a, array('a)) =>
-  failwith("Not Implemented");
-/*
- let bufferTime =
-     (
-       ~bufferCreationInterval as _: float=0.0,
-       ~maxBufferSize as _: int,
-       ~scheduler as _: DelayScheduler.t=DelayScheduler.default,
-       ~timespan as _: float,
-     )
-     : Operator.t('a, list('a)) =>
-   failwith("Not Implemented");*/
-
 let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();

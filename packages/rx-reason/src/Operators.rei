@@ -2,20 +2,6 @@ exception EmptyException;
 
 exception TimeoutException;
 
-let bufferCount:
-  (~size: int, ~startEvery: int=?) => Operator.t('a, array('a));
-
-/*
- let bufferTime:
-   (
-     ~bufferCreationInterval: float=?,
-     ~maxBufferSize: int,
-     ~scheduler: DelayScheduler.t=?,
-     ~timespan: float,
-   ) =>
-   /* FIXME: Is list really the right return type... */
-   Operator.t('a, list('a));*/
-
 let debounce: (Scheduler.t) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
