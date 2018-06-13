@@ -290,7 +290,11 @@ let materialize = observer =>
     ~onNext=next => observer |> Observer.next(Notification.Next(next)),
     ~onComplete=
       exn => {
-        observer |> Observer.next(Notification.Complete(exn));
+        let next = switch (exn) {
+        | Some(exn) => Notification.CompleteWithException(exn)
+        | None => Notification.Complete
+        };
+        observer |> Observer.next(next);
         observer |> Observer.complete(None);
       },
     ~onDispose=() => observer |> Observer.dispose,

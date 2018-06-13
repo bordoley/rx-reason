@@ -13,17 +13,17 @@ let expectToBeEqualToListOfNotifications = (~equals=(===), ~toString) =>
       (a, b) =>
         switch (a, b) {
         | (Notification.Next(a), Notification.Next(b)) => equals(a, b)
-        | (Notification.Complete(Some(a)), Notification.Complete(Some(b))) =>
+        | (Notification.CompleteWithException(a), Notification.CompleteWithException(b)) =>
           a === b
-        | (Notification.Complete(None), Notification.Complete(None)) => true
+        | (Notification.Complete, Notification.Complete) => true
         | _ => false
         },
     ~toString=
       v =>
         switch (v) {
         | Notification.Next(v) => "Next(" ++ toString(v) ++ ")"
-        | Notification.Complete(Some(_)) => "Complete(Some(exn))"
-        | Notification.Complete(None) => "Complete(None)"
+        | Notification.CompleteWithException(_) => "CompleteWithException(exn)"
+        | Notification.Complete => "Complete"
         },
   );
 
@@ -85,13 +85,13 @@ let test =
                     (Next(4), 15.0),
                     (Next(5), 16.0),
                     (Next(6), 17.0),
-                    (Complete(None), 18.0),
+                    (Complete, 18.0),
                   ],
                 ),
             ~operator=
               ({scheduleWithDelay}) =>
                 Operators.debounce(scheduleWithDelay(~delay=5.0)),
-            ~expected=[Next(3), Next(6), Complete(None)],
+            ~expected=[Next(3), Next(6), Complete],
             (),
           ),
         ],
@@ -104,7 +104,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.defaultIfEmpty(1),
-            ~expected=[Next(1), Complete(None)],
+            ~expected=[Next(1), Complete],
             (),
           ),
           operatorIt(
@@ -112,7 +112,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.defaultIfEmpty(1),
-            ~expected=[Next(1), Next(2), Next(3), Complete(None)],
+            ~expected=[Next(1), Next(2), Next(3), Complete],
             (),
           ),
         ],
@@ -131,7 +131,7 @@ let test =
               Next(5),
               Next(3),
               Next(1),
-              Complete(None),
+              Complete,
             ],
             (),
           ),
@@ -145,7 +145,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.every(i => i > 10),
-            ~expected=[Next(true), Complete(None)],
+            ~expected=[Next(true), Complete],
             (),
           ),
           it(
@@ -175,7 +175,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.ofList([12, 13]),
             ~operator=_ => Operators.every(i => i > 10),
-            ~expected=[Next(true), Complete(None)],
+            ~expected=[Next(true), Complete],
             (),
           ),
         ],
@@ -196,7 +196,7 @@ let test =
                       (Next(2), 10.0),
                       (Next(3), 20.0),
                       (Next(4), 30.0),
-                      (Complete(None), 40.0),
+                      (Complete, 40.0),
                     ],
                   );
 
@@ -208,7 +208,7 @@ let test =
                       (Next(6), 10.0),
                       (Next(7), 19.0),
                       (Next(8), 30.0),
-                      (Complete(None), 40.0),
+                      (Complete, 40.0),
                     ],
                   );
 
@@ -219,7 +219,7 @@ let test =
                     (Next(childObservableB), 15.0),
                     (Next(childObservableA), 35.0),
                     (Next(childObservableB), 60.0),
-                    (Complete(None), 75.0),
+                    (Complete, 75.0),
                   ],
                 );
               },
@@ -233,7 +233,7 @@ let test =
               Next(6),
               Next(7),
               Next(8),
-              Complete(None),
+              Complete,
             ],
             (),
           ),
@@ -247,7 +247,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 3, 10, 6, 8]),
             ~operator=_ => Operators.find(x => x mod 2 === 0),
-            ~expected=[Next(10), Complete(None)],
+            ~expected=[Next(10), Complete],
             (),
           ),
         ],
@@ -260,7 +260,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([2, 3]),
             ~operator=_ => Operators.first,
-            ~expected=[Next(2), Complete(None)],
+            ~expected=[Next(2), Complete],
             (),
           ),
           operatorIt(
@@ -268,7 +268,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.raise(Division_by_zero),
             ~operator=_ => Operators.first,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           it("completes with exception if no values are produced", () => {
@@ -297,7 +297,7 @@ let test =
             ~toString=Option.toString(~toString=string_of_int),
             ~source=_ => Observable.ofList([2, 3]),
             ~operator=_ => Operators.firstOrNone,
-            ~expected=[Next(Some(2)), Complete(None)],
+            ~expected=[Next(Some(2)), Complete],
             (),
           ),
           operatorIt(
@@ -306,7 +306,7 @@ let test =
             ~toString=Option.toString(~toString=string_of_int),
             ~source=_ => Observable.raise(Division_by_zero),
             ~operator=_ => Operators.firstOrNone,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -315,7 +315,7 @@ let test =
             ~toString=Option.toString(~toString=string_of_int),
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.(first >> firstOrNone),
-            ~expected=[Next(None), Complete(None)],
+            ~expected=[Next(None), Complete],
             (),
           ),
         ],
@@ -332,10 +332,10 @@ let test =
                   Next(1),
                   Next(2),
                   Next(3),
-                  Complete(Some(Division_by_zero)),
+                  CompleteWithException(Division_by_zero),
                 ]),
             ~operator=_ => Operators.ignoreElements,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
         ],
@@ -348,7 +348,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.ofValue(1),
             ~operator=_ => Operators.isEmpty,
-            ~expected=[Next(false), Complete(None)],
+            ~expected=[Next(false), Complete],
             (),
           ),
           operatorIt(
@@ -356,7 +356,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.isEmpty,
-            ~expected=[Next(true), Complete(None)],
+            ~expected=[Next(true), Complete],
             (),
           ),
         ],
@@ -369,7 +369,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofValue(1),
             ~operator=_ => Operators.keep(_ => raise(Division_by_zero)),
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -377,7 +377,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofValue(1),
             ~operator=_ => Operators.keep(_ => true),
-            ~expected=[Next(1), Complete(None)],
+            ~expected=[Next(1), Complete],
             (),
           ),
         ],
@@ -390,7 +390,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.last,
-            ~expected=[Next(3), Complete(None)],
+            ~expected=[Next(3), Complete],
             (),
           ),
           operatorIt(
@@ -402,10 +402,10 @@ let test =
                   Next(1),
                   Next(2),
                   Next(3),
-                  Complete(Some(Division_by_zero)),
+                  CompleteWithException(Division_by_zero),
                 ]),
             ~operator=_ => Operators.last,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           it("completes with exception if no values are produced", () => {
@@ -434,7 +434,7 @@ let test =
             ~toString=Option.toString(~toString=string_of_int),
             ~source=_ => Observable.ofList([2, 3]),
             ~operator=_ => Operators.lastOrNone,
-            ~expected=[Next(Some(3)), Complete(None)],
+            ~expected=[Next(Some(3)), Complete],
             (),
           ),
           operatorIt(
@@ -446,10 +446,10 @@ let test =
                 Observable.ofNotifications([
                   Next(1),
                   Next(2),
-                  Complete(Some(Division_by_zero)),
+                  CompleteWithException(Division_by_zero),
                 ]),
             ~operator=_ => Operators.lastOrNone,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -458,7 +458,7 @@ let test =
             ~toString=Option.toString(~toString=string_of_int),
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.(first >> lastOrNone),
-            ~expected=[Next(None), Complete(None)],
+            ~expected=[Next(None), Complete],
             (),
           ),
         ],
@@ -471,7 +471,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.map(_ => raise(Division_by_zero)),
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -479,7 +479,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.map(i => i + 1),
-            ~expected=[Next(2), Next(3), Next(4), Complete(None)],
+            ~expected=[Next(2), Next(3), Next(4), Complete],
             (),
           ),
         ],
@@ -492,7 +492,7 @@ let test =
             ~toString=Functions.identity,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.mapTo("a"),
-            ~expected=[Next("a"), Next("a"), Next("a"), Complete(None)],
+            ~expected=[Next("a"), Next("a"), Next("a"), Complete],
             (),
           ),
         ],
@@ -505,7 +505,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.maybeFirst,
-            ~expected=[Next(1), Complete(None)],
+            ~expected=[Next(1), Complete],
             (),
           ),
           operatorIt(
@@ -513,7 +513,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.raise(Division_by_zero),
             ~operator=_ => Operators.maybeFirst,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -521,7 +521,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.(first >> maybeFirst),
-            ~expected=[Complete(None)],
+            ~expected=[Complete],
             (),
           ),
         ],
@@ -534,7 +534,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.ofList([1, 2, 3]),
             ~operator=_ => Operators.maybeLast,
-            ~expected=[Next(3), Complete(None)],
+            ~expected=[Next(3), Complete],
             (),
           ),
           operatorIt(
@@ -545,10 +545,10 @@ let test =
                 Observable.ofNotifications([
                   Next(1),
                   Next(2),
-                  Complete(Some(Division_by_zero)),
+                  CompleteWithException(Division_by_zero),
                 ]),
             ~operator=_ => Operators.maybeLast,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           operatorIt(
@@ -556,7 +556,7 @@ let test =
             ~toString=string_of_int,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.(first >> maybeLast),
-            ~expected=[Complete(None)],
+            ~expected=[Complete],
             (),
           ),
         ],
@@ -582,7 +582,7 @@ let test =
                  Operators.onNext(
                    expectToBeEqualToListOfNotifications(
                      ~toString=string_of_int,
-                     [Next(1), Complete(None)],
+                     [Next(1), Complete],
                    ),
                  ),
                )
@@ -611,7 +611,7 @@ let test =
                  Operators.onNext(
                    expectToBeEqualToListOfNotifications(
                      ~toString=string_of_int,
-                     [Next(1), Complete(None)],
+                     [Next(1), Complete],
                    ),
                  ),
                )
@@ -635,7 +635,7 @@ let test =
               Next(2),
               Next(5),
               Next(9),
-              Complete(None),
+              Complete,
             ],
             (),
           ),
@@ -649,7 +649,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.empty(),
             ~operator=_ => Operators.some(i => i > 10),
-            ~expected=[Next(false), Complete(None)],
+            ~expected=[Next(false), Complete],
             (),
           ),
           operatorIt(
@@ -657,7 +657,7 @@ let test =
             ~toString=string_of_bool,
             ~source=_ => Observable.ofList([5, 6, 7]),
             ~operator=_ => Operators.some(i => i > 10),
-            ~expected=[Next(false), Complete(None)],
+            ~expected=[Next(false), Complete],
             (),
           ),
           it(
@@ -700,7 +700,7 @@ let test =
                       (Next(2), 10.0),
                       (Next(3), 20.0),
                       (Next(4), 30.0),
-                      (Complete(None), 40.0),
+                      (Complete, 40.0),
                     ],
                   );
 
@@ -712,7 +712,7 @@ let test =
                       (Next(6), 10.0),
                       (Next(7), 19.0),
                       (Next(8), 30.0),
-                      (Complete(None), 40.0),
+                      (Complete, 40.0),
                     ],
                   );
 
@@ -723,7 +723,7 @@ let test =
                     (Next(childObservableB), 15.0),
                     (Next(childObservableA), 35.0),
                     (Next(childObservableB), 60.0),
-                    (Complete(None), 75.0),
+                    (Complete, 75.0),
                   ],
                 );
               },
@@ -739,7 +739,7 @@ let test =
               Next(3),
               Next(5),
               Next(6),
-              Complete(None),
+              Complete,
             ],
             (),
           ),
@@ -761,7 +761,7 @@ let test =
                     (Next(2), 4.0),
                     (Next(3), 6.0),
                     (Next(4), 10.0),
-                    (Complete(None), 14.0),
+                    (Complete, 14.0),
                   ],
                 ),
             ~operator=
@@ -772,7 +772,7 @@ let test =
               Next(2),
               Next(3),
               Next(4),
-              Complete(None),
+              Complete,
             ],
             (),
           ),
@@ -788,7 +788,7 @@ let test =
                     (Next(2), 4.0),
                     (Next(3), 6.0),
                     (Next(4), 15.0),
-                    (Complete(None), 20.0),
+                    (Complete, 20.0),
                   ],
                 ),
             ~operator=
@@ -798,7 +798,7 @@ let test =
               Next(1),
               Next(2),
               Next(3),
-              Complete(Some(Operators.TimeoutException)),
+              CompleteWithException(Operators.TimeoutException),
             ],
             (),
           ),
@@ -819,7 +819,7 @@ let test =
                     (Next(2), 200.0),
                     (Next(3), 400.0),
                     (Next(4), 600.0),
-                    (Complete(None), 700.0),
+                    (Complete, 700.0),
                   ],
                 ),
             ~operator=
@@ -832,12 +832,12 @@ let test =
                       (Next(2), 250.0),
                       (Next(3), 300.0),
                       (Next(4), 450.0),
-                      (Complete(None), 500.0),
+                      (Complete, 500.0),
                     ],
                   );
                 Operators.withLatestFrom(~selector=(a, b) => a + b, other);
               },
-            ~expected=[Next(3), Next(6), Next(8), Complete(None)],
+            ~expected=[Next(3), Next(6), Next(8), Complete],
             (),
           ),
         ],

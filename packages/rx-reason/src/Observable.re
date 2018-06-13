@@ -807,7 +807,8 @@ let ofAbsoluteTimeNotifications =
             () => {
               switch (notif) {
               | Notification.Next(v) => onNext(v)
-              | Notification.Complete(exn) => onComplete(exn)
+              | Notification.Complete => onComplete(None)
+              | Notification.CompleteWithException(exn) => onComplete(Some(exn))
               };
               loop(tail);
             },
@@ -860,7 +861,8 @@ let ofNotifications =
         | [hd, ...tail] =>
           switch (hd) {
           | Notification.Next(v) => onNext(v)
-          | Notification.Complete(exn) => onComplete(exn)
+          | Notification.Complete => onComplete(None)
+          | Notification.CompleteWithException(exn) => onComplete(Some(exn))
           };
           loop(tail);
         | [] => ()
@@ -874,7 +876,8 @@ let ofNotifications =
         | [hd, ...tail] =>
           switch (hd) {
           | Notification.Next(v) => onNext(v)
-          | Notification.Complete(exn) => onComplete(exn)
+          | Notification.Complete => onComplete(None)
+          | Notification.CompleteWithException(exn) => onComplete(Some(exn))
           };
           schedule(loop(tail));
         | [] => Disposable.disposed
@@ -897,7 +900,8 @@ let ofRelativeTimeNotifications =
           () => {
             switch (notif) {
             | Notification.Next(v) => onNext(v)
-            | Notification.Complete(exn) => onComplete(exn)
+            | Notification.Complete => onComplete(None)
+            | Notification.CompleteWithException(exn) => onComplete(Some(exn))
             };
             loop(tail, delay);
           },

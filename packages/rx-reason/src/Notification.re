@@ -1,3 +1,4 @@
 type t('a) = 
   | Next('a)
-  | Complete(option(exn));
+  | Complete
+  | CompleteWithException(exn);
