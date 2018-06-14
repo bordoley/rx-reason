@@ -134,30 +134,33 @@ let test =
             ~expected=[Next(true), Complete],
             (),
           ),
-          it(
-            "it completes with false on the first observed value that fails the predicate",
-            () => {
-            let observedValue = ref(true);
-            let completed = ref(false);
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let everyObserver = observer |> Operators.every(i => i > 10);
-            everyObserver |> Observer.next(12);
-            observedValue^ |> Expect.toBeEqualToTrue;
-            completed^ |> Expect.toBeEqualToFalse;
-
-            everyObserver |> Observer.next(10);
-            observedValue^ |> Expect.toBeEqualToFalse;
-            completed^ |> Expect.toBeEqualToTrue;
-
-            everyObserver |> Observer.complete;
-          }),
           operatorIt(
-            "it completes with true if all values pass the predicate",
+            "completes with false on the first observed value that fails the predicate",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(12), 1.0),
+                    (Next(8), 2.0),
+                    (Next(14), 3.0),
+                    (Next(13), 4.0),
+                    (Next(6), 5.0),
+                    (Complete, 6.0),
+                  ],
+                ),
+            ~operator=
+              ({getCurrentTime}) =>
+                Operators.(
+                  every(i => i > 10)
+                  >> map(_ => getCurrentTime() |> int_of_float)
+                ),
+            ~expected=[Next(2), Complete],
+            (),
+          ),
+          operatorIt(
+            "completes with true if all values pass the predicate",
             ~nextToString=string_of_bool,
             ~source=_ => Observable.ofList([12, 13]),
             ~operator=_ => Operators.every(i => i > 10),
@@ -257,21 +260,14 @@ let test =
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
-          it("completes with exception if no values are produced", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let firstObserver = Operators.first(observer);
-            firstObserver |> Observer.complete;
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(_) => ()
-            };
-          }),
+          operatorIt(
+            "completes with exception if no values are produced",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.first,
+            ~expected=[CompleteWithException(Operators.EmptyException)],
+            (),
+          ),
         ],
       ),
       describe(
@@ -394,21 +390,14 @@ let test =
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
-          it("completes with exception if no values are produced", () => {
-            let observedExn = ref(None);
-            let observer =
-              Observer.create(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let lastObserver = Operators.last(observer);
-            lastObserver |> Observer.complete;
-            switch (observedExn^) {
-            | None => failwith("expected observedExn to be not be None")
-            | Some(_) => ()
-            };
-          }),
+          operatorIt(
+            "completes with exception if no values are produced",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.empty(),
+            ~operator=_ => Operators.last,
+            ~expected=[CompleteWithException(Operators.EmptyException)],
+            (),
+          ),
         ],
       ),
       describe(
@@ -548,28 +537,25 @@ let test =
         ],
       ),
       describe("none", []),
-      describe("observe", []),
       describe("observeOn", []),
       describe(
         "onComplete",
         [
-          it("calls the side effect function on complete", () => {
+          operatorIt(
+            "passes through notifications",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofList([1, 2]),
+            ~operator=_ => Operators.onComplete(Functions.alwaysUnit),
+            ~expected=[Next(1), Complete],
+            (),
+          ),
+          it("calls the side effect function", () => {
             let sideEffectCount = ref(0);
 
             Observable.ofList([1])
             |> Observable.lift(
-                 Operators.(
-                   onComplete(_ => sideEffectCount := sideEffectCount^ + 1)
-                   >> materialize
-                   >> buffer
-                 ),
-               )
-            |> Observable.lift(
-                 Operators.onNext(
-                   expectToBeEqualToListOfNotifications(
-                     ~nextToString=string_of_int,
-                     [Next(1), Complete],
-                   ),
+                 Operators.onComplete(_ =>
+                   sideEffectCount := sideEffectCount^ + 1
                  ),
                )
             |> Observable.subscribe
@@ -582,29 +568,27 @@ let test =
       describe(
         "onNext",
         [
-          it("calls the side effect function on next", () => {
+          operatorIt(
+            "passes through notifications",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofList([1, 2]),
+            ~operator=_ => Operators.onNext(Functions.alwaysUnit),
+            ~expected=[Next(1), Complete],
+            (),
+          ),
+          it("calls the side effect function", () => {
             let sideEffectCount = ref(0);
 
-            Observable.ofList([1, 2])
+            Observable.ofList([1])
             |> Observable.lift(
-                 Operators.(
-                   onNext(_ => sideEffectCount := sideEffectCount^ + 1)
-                   >> materialize
-                   >> buffer
-                 ),
-               )
-            |> Observable.lift(
-                 Operators.onNext(
-                   expectToBeEqualToListOfNotifications(
-                     ~nextToString=string_of_int,
-                     [Next(1), Complete],
-                   ),
+                 Operators.onNext(_ =>
+                   sideEffectCount := sideEffectCount^ + 1
                  ),
                )
             |> Observable.subscribe
             |> ignore;
 
-            sideEffectCount^ |> Expect.toBeEqualToInt(2);
+            sideEffectCount^ |> Expect.toBeEqualToInt(1);
           }),
         ],
       ),
@@ -640,28 +624,31 @@ let test =
             ~expected=[Next(false), Complete],
             (),
           ),
-          it(
-            "returns true for the first observed value that passed the predicate",
-            () => {
-            let observedValue = ref(false);
-            let completed = ref(false);
-
-            let observer =
-              Observer.create(
-                ~onNext=next => observedValue := next,
-                ~onComplete=_ => completed := true,
-                ~onDispose=Functions.alwaysUnit,
-              );
-            let someObserver = observer |> Operators.some(i => i > 10);
-
-            someObserver |> Observer.next(5);
-            observedValue^ |> Expect.toBeEqualToFalse;
-            completed^ |> Expect.toBeEqualToFalse;
-
-            someObserver |> Observer.next(11);
-            observedValue^ |> Expect.toBeEqualToTrue;
-            completed^ |> Expect.toBeEqualToTrue;
-          }),
+          operatorIt(
+            "completes with true on the first observed value that passed the predicate",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (Next(8), 1.0),
+                    (Next(11), 2.0),
+                    (Next(14), 3.0),
+                    (Next(6), 4.0),
+                    (Next(5), 5.0),
+                    (Complete, 6.0),
+                  ],
+                ),
+            ~operator=
+              ({getCurrentTime}) =>
+                Operators.(
+                  some(i => i > 10)
+                  >> map(_ => getCurrentTime() |> int_of_float)
+                ),
+            ~expected=[Next(2), Complete],
+            (),
+          ),
         ],
       ),
       describe(
