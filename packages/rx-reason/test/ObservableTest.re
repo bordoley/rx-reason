@@ -19,10 +19,7 @@ let test =
               subject0 |> Subject.toObservable,
               subject1 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -45,10 +42,7 @@ let test =
                 subject0 |> Subject.toObservable,
                 subject1 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -75,10 +69,7 @@ let test =
                 subject0 |> Subject.toObservable,
                 subject1 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -106,10 +97,7 @@ let test =
               subject1 |> Subject.toObservable,
               subject2 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -137,10 +125,7 @@ let test =
                 subject1 |> Subject.toObservable,
                 subject2 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -174,10 +159,7 @@ let test =
                 subject1 |> Subject.toObservable,
                 subject2 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -207,10 +189,7 @@ let test =
               subject2 |> Subject.toObservable,
               subject3 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -243,10 +222,7 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -287,10 +263,7 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -322,10 +295,7 @@ let test =
               subject3 |> Subject.toObservable,
               subject4 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -363,10 +333,7 @@ let test =
                 subject3 |> Subject.toObservable,
                 subject4 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -414,10 +381,7 @@ let test =
                 subject3 |> Subject.toObservable,
                 subject4 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -451,10 +415,7 @@ let test =
               subject4 |> Subject.toObservable,
               subject5 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -497,10 +458,7 @@ let test =
                 subject4 |> Subject.toObservable,
                 subject5 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -555,10 +513,7 @@ let test =
                 subject4 |> Subject.toObservable,
                 subject5 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -594,10 +549,7 @@ let test =
               subject5 |> Subject.toObservable,
               subject6 |> Subject.toObservable,
             )
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=next => result := next,
-                 ~onComplete=Functions.alwaysUnit,
-               )
+            |> Observable.subscribe(~onNext=next => result := next)
             |> ignore;
 
             let observer0 = subject0 |> Subject.toObserver;
@@ -645,10 +597,7 @@ let test =
                 subject5 |> Subject.toObservable,
                 subject6 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             let observer0 = subject0 |> Subject.toObserver;
             let observer1 = subject1 |> Subject.toObserver;
@@ -710,10 +659,7 @@ let test =
                 subject5 |> Subject.toObservable,
                 subject6 |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
-                   result := true
-                 );
+              |> Observable.subscribe(~onComplete=_ => result := true);
 
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
@@ -740,10 +686,7 @@ let test =
                 Observable.ofList([7, 8, 9]),
                 subject1 |> Subject.toObservable,
               ])
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=x => result := [x, ...result^],
-                   ~onComplete=Functions.alwaysUnit,
-                 );
+              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
             result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
 
             subject0 |> Subject.toObserver |> Observer.next(4);
@@ -829,10 +772,7 @@ let test =
 
             let complete = ref(None);
             observable
-            |> Observable.subscribeWithCallbacks(
-                 ~onNext=Functions.alwaysUnit, ~onComplete=exn =>
-                 complete := exn
-               )
+            |> Observable.subscribe(~onComplete=exn => complete := exn)
             |> ignore;
 
             switch (complete^) {
@@ -850,15 +790,7 @@ let test =
                 raise(Division_by_zero);
               });
 
-            (
-              () =>
-                observable
-                |> Observable.subscribeWithCallbacks(
-                     ~onNext=Functions.alwaysUnit,
-                     ~onComplete=Functions.alwaysUnit,
-                   )
-            )
-            |> Expect.shouldRaise;
+            (() => observable |> Observable.subscribe) |> Expect.shouldRaise;
           }),
         ],
       ),
@@ -893,13 +825,14 @@ let test =
           it("applies the operator", () =>
             Observable.ofList([1, 2, 3])
             |> Observable.lift(
-                 Operators.(scan((acc, next) => acc + next, 0)
-                 >> Operators.map(string_of_int)
-                 >> Operators.last),
+                 Operators.(
+                   scan((acc, next) => acc + next, 0)
+                   >> Operators.map(string_of_int)
+                   >> Operators.last
+                 ),
                )
-            |> Observable.subscribeWithCallbacks(
+            |> Observable.subscribe(
                  ~onNext=Expect.toBeEqualToString("6"),
-                 ~onComplete=Functions.alwaysUnit,
                )
             |> Disposable.isDisposed
             |> Expect.toBeEqualToTrue
@@ -919,9 +852,8 @@ let test =
               subject2 |> Subject.toObservable,
               Observable.ofList([4, 5, 6]),
             ])
-            |> Observable.subscribeWithCallbacks(
+            |> Observable.subscribe(
                  ~onNext=x => result := [x, ...result^],
-                 ~onComplete=Functions.alwaysUnit,
                )
             |> ignore;
 
@@ -944,9 +876,8 @@ let test =
               subject2 |> Subject.toObservable,
               subject3 |> Subject.toObservable,
             ])
-            |> Observable.subscribeWithCallbacks(
+            |> Observable.subscribe(
                  ~onNext=x => result := [x, ...result^],
-                 ~onComplete=Functions.alwaysUnit,
                )
             |> ignore;
 
@@ -978,8 +909,8 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               ])
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+              |> Observable.subscribe(
+                   ~onComplete=_ =>
                    result := true
                  );
 
@@ -1010,8 +941,8 @@ let test =
                 subject2 |> Subject.toObservable,
                 subject3 |> Subject.toObservable,
               ])
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=Functions.alwaysUnit, ~onComplete=_ =>
+              |> Observable.subscribe(
+                  ~onComplete=_ =>
                    result := true
                  );
 
@@ -1052,9 +983,8 @@ let test =
               Disposable.disposed;
             })
             |> Observable.retry(shouldRetry)
-            |> Observable.subscribeWithCallbacks(
+            |> Observable.subscribe(
                  ~onNext=x => result := [x, ...result^],
-                 ~onComplete=Functions.alwaysUnit,
                )
             |> ignore;
             result^ |> Expect.toBeEqualToListOfInt([2, 1, 2, 1, 2, 1]);
@@ -1071,9 +1001,8 @@ let test =
                 |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
               })
               |> Observable.retry(_ => true)
-              |> Observable.subscribeWithCallbacks(
+              |> Observable.subscribe(
                    ~onNext=x => result := [x, ...result^],
-                   ~onComplete=Functions.alwaysUnit,
                  );
 
             let observer = subject^ |> Subject.toObserver;
@@ -1106,9 +1035,8 @@ let test =
                    subscription^ |> Disposable.dispose;
                    true;
                  })
-              |> Observable.subscribeWithCallbacks(
+              |> Observable.subscribe(
                    ~onNext=x => result := [x, ...result^],
-                   ~onComplete=Functions.alwaysUnit,
                  );
 
             subject^ |> Subject.toObserver |> Observer.next(5);
@@ -1132,9 +1060,8 @@ let test =
                 [1, 2, 3],
                 subject |> Subject.toObservable,
               )
-              |> Observable.subscribeWithCallbacks(
+              |> Observable.subscribe(
                    ~onNext=x => result := [x, ...result^],
-                   ~onComplete=Functions.alwaysUnit,
                  );
             result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
@@ -1153,9 +1080,8 @@ let test =
           it("prepends the value", () => {
             let result = ref([]);
             Observable.startWithValue(1, Observable.ofList([2, 3]))
-            |> Observable.subscribeWithCallbacks(
+            |> Observable.subscribe(
                  ~onNext=x => result := [x, ...result^],
-                 ~onComplete=Functions.alwaysUnit,
                )
             |> ignore;
             result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);

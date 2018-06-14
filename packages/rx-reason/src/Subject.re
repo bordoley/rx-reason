@@ -26,7 +26,8 @@ let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
-let subscribe = subject => subject |> toObservable |> Observable.subscribe;
+let subscribe = (~onNext=?, ~onComplete=?, subject) =>
+  subject |> toObservable |> Observable.subscribe(~onNext?, ~onComplete?);
 
 let subscribeObserver = (observer, subject) =>
   subject |> toObservable |> Observable.subscribeObserver(observer);
@@ -110,14 +111,15 @@ let create = () =>
     ~onNext=Functions.alwaysUnit,
     ~onComplete=Functions.alwaysUnit,
     ~onDispose=Functions.alwaysUnit,
-    ~onSubscribe=(~onNext as _, ~onComplete as _) => ()
+    ~onSubscribe=(~onNext as _, ~onComplete as _) =>
+    ()
   );
 
 let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
   /* This is fine for small buffers, eg. < 32
-   * Ideally we'd use something like an Immutable.re vector 
+   * Ideally we'd use something like an Immutable.re vector
    * for large replay buffers.
-   * 
+   *
    * We use a cow array in order to snapshot the events we replay
    * in case their is feedback in the event system.
    */

@@ -6,7 +6,9 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
-  let subscribe: t('a) => Disposable.t;
+  let subscribe:
+    (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
+    Disposable.t;
 
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
@@ -22,12 +24,13 @@ let subscribeWithCallbacks =
     : Disposable.t =>
   observable(~onNext, ~onComplete);
 
-let subscribe = observable =>
-  observable
-  |> subscribeWithCallbacks(
-       ~onNext=Functions.alwaysUnit,
-       ~onComplete=Functions.alwaysUnit,
-     );
+let subscribe =
+    (
+      ~onNext=Functions.alwaysUnit,
+      ~onComplete=Functions.alwaysUnit,
+      observable,
+    ) =>
+  observable |> subscribeWithCallbacks(~onNext, ~onComplete);
 
 let subscribeObserver =
     (observer: Observer.t('a), observable: t('a))
@@ -931,14 +934,13 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
-let onSubscribe = (f, observable) => create(
-  (~onNext, ~onComplete) => {
+let onSubscribe = (f, observable) =>
+  create((~onNext, ~onComplete) => {
     let callbackDisposable = f();
     let subscription =
       observable |> subscribeWithCallbacks(~onNext, ~onComplete);
     Disposable.compose([subscription, callbackDisposable]);
-  }
-);
+  });
 
 let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
   let exn = Some(exn);

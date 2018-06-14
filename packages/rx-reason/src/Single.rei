@@ -31,7 +31,8 @@ let reduce: (('acc, 'a) => 'acc, 'acc, Observable.t('a)) => t('acc);
 
 let some: ('a => bool, Observable.t('a)) => t(bool);
 
-let subscribe: t('a) => Disposable.t;
+let subscribe:
+  (~onSuccess: ('a => unit)=?, ~onError: (exn => unit)=?, t('a)) => Disposable.t;
 
 let subscribeWithCallbacks:
   (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;

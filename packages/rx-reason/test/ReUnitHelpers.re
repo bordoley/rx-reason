@@ -38,8 +38,7 @@ let observableIt =
               >> first
             )
           )
-        |> Observable.subscribeWithCallbacks(
-            ~onNext=Functions.alwaysUnit,
+        |> Observable.subscribe(
             ~onComplete=exn =>
               switch(exn) {
               | Some(exn) => raise(exn)

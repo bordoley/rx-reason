@@ -61,8 +61,6 @@ let reduce =
 let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.some(predicate));
 
-let subscribe = Observable.subscribe;
-
 let subscribeWithCallbacks =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
     : Disposable.t => {
@@ -93,5 +91,8 @@ let subscribeWithCallbacks =
        );
   subscription;
 };
+
+let subscribe = (~onSuccess=Functions.alwaysUnit, ~onError=Functions.alwaysUnit, single) =>
+  subscribeWithCallbacks(~onSuccess, ~onError, single);
 
 let toObservable = (single: t('a)) : Observable.t('a) => single;

@@ -5,7 +5,9 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
-  let subscribe: t('a) => Disposable.t;
+  let subscribe:
+    (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
+    Disposable.t;
 
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
