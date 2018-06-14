@@ -4,19 +4,18 @@ exception TimeoutException;
 exception CompleteWithoutErrorException;
 let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let (>>) = (o0: Operator.t('a, 'b), o1: Operator.t('b, 'c)): Operator.t('a, 'c) =>
+let (>>) =
+    (o0: Operator.t('a, 'b), o1: Operator.t('b, 'c))
+    : Operator.t('a, 'c) =>
   observer => o0(o1(observer));
 
 let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
-    let debounceSubscription = ref(Disposable.disposed);
+    let debounceSubscription = AssignableDisposable.create();
 
-    let clearDebounce = () => {
-      let currentDebounceSubscription = debounceSubscription^;
-      currentDebounceSubscription |> Disposable.dispose;
-      debounceSubscription := Disposable.disposed;
-    };
+    let clearDebounce = () =>
+      debounceSubscription |> AssignableDisposable.set(Disposable.disposed);
 
     let debouncedNext = () => {
       clearDebounce();
@@ -33,7 +32,8 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
         next => {
           clearDebounce();
           MutableOption.set(next, lastValue);
-          debounceSubscription := scheduler(debouncedNext);
+          debounceSubscription
+          |> AssignableDisposable.set(scheduler(debouncedNext));
         },
       ~onComplete=
         exn => {
@@ -43,7 +43,11 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=Observer.forwardOnDispose(observer),
+      ~onDispose=
+        () => {
+          debounceSubscription |> AssignableDisposable.dispose;
+          observer |> Observer.dispose;
+        },
     );
   };
 
@@ -76,37 +80,55 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
 
 let exhaust: Operator.t(Observable.t('a), 'a) =
   observer => {
-    let innerSubscription = ref(Disposable.disposed);
+    let innerSubscription = AssignableDisposable.create();
     let exhaustObserver = ref(Observer.disposed);
+
+    let hasActiveSubscription = () =>
+      innerSubscription
+      |> AssignableDisposable.get
+      |> Disposable.isDisposed
+      |> (!);
+
+    let completeObserver = exn => {
+      innerSubscription |> AssignableDisposable.dispose;
+      observer |> Observer.complete(~exn?);
+    };
+
     exhaustObserver :=
       Observer.create(
         ~onNext=
-          next =>
-            if (Disposable.(innerSubscription^ |> isDisposed)) {
-              innerSubscription :=
+          next => {
+            let hasActiveSubscription = hasActiveSubscription();
+            if (! hasActiveSubscription) {
+              let subscription =
                 Observable.subscribeWithCallbacks(
                   ~onNext=Observer.forwardOnNext(observer),
                   ~onComplete=
                     exn =>
                       if (exhaustObserver^ |> Observer.isStopped) {
-                        observer |> Observer.complete(~exn?);
+                        completeObserver(exn);
                       } else if (exn !== None) {
                         exhaustObserver^ |> Observer.complete(~exn?);
                       },
                   next,
                 );
-            },
+              innerSubscription |> AssignableDisposable.set(subscription);
+            };
+          },
         ~onComplete=
-          exn =>
+          exn => {
+            let hasActiveSubscription = hasActiveSubscription();
             switch (exn) {
-            | Some(_) =>
-              observer |> Observer.complete(~exn?);
-              innerSubscription^ |> Disposable.dispose;
-            | None when innerSubscription^ |> Disposable.isDisposed =>
-              observer |> Observer.complete(~exn?)
+            | Some(_)
+            | None when ! hasActiveSubscription => completeObserver(exn)
             | _ => ()
-            },
-        ~onDispose=Observer.forwardOnDispose(observer),
+            };
+          },
+        ~onDispose=
+          () => {
+            innerSubscription |> AssignableDisposable.dispose;
+            observer |> Observer.dispose;
+          },
       );
     exhaustObserver^;
   };
@@ -175,7 +197,8 @@ let isEmpty: Operator.t('a, bool) =
         ~onNext=
           _ => {
             observer |> Observer.next(false);
-            isEmptyObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
+            isEmptyObserver^
+            |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
         ~onComplete=
           exn => {
@@ -290,10 +313,11 @@ let materialize = observer =>
     ~onNext=next => observer |> Observer.next(Notification.Next(next)),
     ~onComplete=
       exn => {
-        let next = switch (exn) {
-        | Some(exn) => Notification.CompleteWithException(exn)
-        | None => Notification.Complete
-        };
+        let next =
+          switch (exn) {
+          | Some(exn) => Notification.CompleteWithException(exn)
+          | None => Notification.Complete
+          };
         observer |> Observer.next(next);
         observer |> Observer.complete;
       },
@@ -371,21 +395,23 @@ let observeOn =
     let completedState = ref(None);
 
     let wip = ref(0);
-    let innerSubscription = Disposable.empty();
+    let innerSubscription =
+      Disposable.create(() => {
+        Volatile.write(0, wip);
+        queue |> QueueWithBufferStrategy.clear;
+        completedState := None;
+      });
 
     let rec doWorkStep = () =>
       switch (QueueWithBufferStrategy.tryDeque(queue)) {
+      | _ when innerSubscription |> Disposable.isDisposed => Disposable.disposed
       | Some(next) =>
         observer |> Observer.next(next);
         Interlocked.decrement(wip) !== 0 ?
           scheduler(doWorkStep) : Disposable.disposed;
       | _ when Interlocked.exchange(false, shouldComplete) =>
-        Volatile.write(0, wip);
-        observer |> Observer.complete(~exn=?(completedState^));
-        Disposable.disposed;
-      | _ when innerSubscription |> Disposable.isDisposed =>
-        Volatile.write(0, wip);
-        observer |> Observer.dispose;
+        observer |> Observer.complete(~exn=?completedState^);
+        innerSubscription |> Disposable.dispose;
         Disposable.disposed;
       | _ => Disposable.disposed
       };
@@ -408,23 +434,18 @@ let observeOn =
           schedule();
         },
       ~onDispose=
-        () =>
-          /* FIXME: Should this be async? */
-          innerSubscription |> Disposable.dispose,
+        () => {
+          innerSubscription |> Disposable.dispose;
+          observer |> Observer.dispose;
+        },
     );
   };
 
-let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) => 
-  observe(
-    ~onNext=Functions.alwaysUnit,
-    ~onComplete,
-  );
+let onComplete = (onComplete: option(exn) => unit) : Operator.t('a, 'a) =>
+  observe(~onNext=Functions.alwaysUnit, ~onComplete);
 
 let onNext = (onNext: 'a => unit) : Operator.t('a, 'a) =>
-  observe(
-    ~onNext,
-    ~onComplete=Functions.alwaysUnit,
-);
+  observe(~onNext, ~onComplete=Functions.alwaysUnit);
 
 let scan =
     (scanner: ('acc, 'a) => 'acc, initialValue: 'acc)
@@ -449,7 +470,8 @@ let every = (predicate: 'a => bool, observer) => {
         next =>
           if (! next) {
             observer |> Observer.next(next);
-            everyTrueObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
+            everyTrueObserver^
+            |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
       ~onComplete=
         exn => {
@@ -478,7 +500,8 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
         ~onNext=
           next =>
             if (next) {
-              someTrueObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
+              someTrueObserver^
+              |> Observer.complete(~exn=?completeWithoutErrorExn);
             },
         ~onComplete=
           exn => {
@@ -509,26 +532,26 @@ let switch_: Operator.t(Observable.t('a), 'a) =
     let doSubscribeInner = (id, next) => {
       innerSubscription |> AssignableDisposable.set(Disposable.disposed);
       let newInnerSubscription =
-        next
-        |> Observable.subscribeWithCallbacks(
-             ~onNext=
-               next => {
-                 lock |> Lock.acquire;
-                 if (latest^ === id) {
-                   observer |> Observer.next(next);
-                 };
-                 lock |> Lock.release;
-               },
-             ~onComplete=
-               exn =>
-                 switch (exn) {
-                 | Some(_) =>
-                   if (latest^ === id) {
-                     switchObserver^ |> Observer.complete(~exn?);
-                   }
-                 | None => ()
-                 },
-           );
+        Observable.subscribeWithCallbacks(
+          ~onNext=
+            next => {
+              lock |> Lock.acquire;
+              if (latest^ === id) {
+                observer |> Observer.next(next);
+              };
+              lock |> Lock.release;
+            },
+          ~onComplete=
+            exn =>
+              switch (exn) {
+              | Some(_) =>
+                if (latest^ === id) {
+                  switchObserver^ |> Observer.complete(~exn?);
+                }
+              | None => ()
+              },
+          next,
+        );
       innerSubscription |> AssignableDisposable.set(newInnerSubscription);
     };
 
@@ -550,7 +573,11 @@ let switch_: Operator.t(Observable.t('a), 'a) =
             observer |> Observer.complete(~exn?);
             lock |> Lock.release;
           },
-        ~onDispose=() => innerSubscription |> AssignableDisposable.dispose,
+        ~onDispose=
+          () => {
+            innerSubscription |> AssignableDisposable.dispose;
+            observer |> Observer.dispose;
+          },
       );
     switchObserver^;
   };
@@ -584,11 +611,11 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
     let subscribeToTimeout = () => {
       timeoutSubscription |> AssignableDisposable.set(Disposable.disposed);
       let subscription =
-        timeoutObservable
-        |> Observable.subscribeWithCallbacks(
-             ~onNext=_ => (),
-             ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
-           );
+        Observable.subscribeWithCallbacks(
+          ~onNext=_ => (),
+          ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
+          timeoutObservable,
+        );
       timeoutSubscription |> AssignableDisposable.set(subscription);
     };
 
@@ -653,16 +680,16 @@ let withLatestFrom =
       );
 
     otherSubscription :=
-      other
-      |> Observable.subscribeWithCallbacks(
-           ~onNext=next => otherLatest |> MutableOption.set(next),
-           ~onComplete=
-             exn =>
-               switch (exn) {
-               | Some(_) => withLatestObserver^ |> Observer.complete(~exn?)
-               | _ => ()
-               },
-         );
+      Observable.subscribeWithCallbacks(
+        ~onNext=next => otherLatest |> MutableOption.set(next),
+        ~onComplete=
+          exn =>
+            switch (exn) {
+            | Some(_) => withLatestObserver^ |> Observer.complete(~exn?)
+            | _ => ()
+            },
+        other,
+      );
 
     withLatestObserver^;
   };

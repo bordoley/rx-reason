@@ -11,7 +11,7 @@ let create = (~bufferStrategy, ~maxSize) : t('a) => {
 };
 
 let clear = ({queue}) =>
-  queue |> Js.Array.removeCountInPlace(~pos=0, ~count=Js.Array.length(queue));
+  queue |> Js.Array.removeCountInPlace(~pos=0, ~count=Js.Array.length(queue)) |> ignore;
 
 let tryDeque = ({queue}) => queue |> Js.Array.shift;
 
