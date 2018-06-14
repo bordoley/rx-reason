@@ -14,17 +14,21 @@ let test =
                 (Next(1), 0.0), 
                 (Next(2), 2.0), 
                 (Next(3), 4.0),
+                (Complete, 10.0),
               ])
             |> MulticastObservable.shareWithReplayBuffer(1)
             |> MulticastObservable.toObservable;
 
           source |> Observable.subscribe |> ignore;
 
-          source 
-          |> Observable.lift(Operators.first) 
-          |> Observable.subscribeOn(scheduleWithDelay(~delay=6.0));
+          Observable.merge([
+            source 
+            |> Observable.subscribeOn(scheduleWithDelay(~delay=6.0)),
+            source 
+            |> Observable.subscribeOn(scheduleWithDelay(~delay=3.0))
+          ]);
         },
-        ~expected=[Next(3), Complete],
+        ~expected=[Next(2), Next(3), Next(3), Complete],
         (),
       ),
     ]),
