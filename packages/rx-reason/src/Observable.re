@@ -933,8 +933,10 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
 
 let onSubscribe = (f, observable) => create(
   (~onNext, ~onComplete) => {
-    f();
-    observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+    let callbackDisposable = f();
+    let subscription =
+      observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+    Disposable.compose([subscription, callbackDisposable]);
   }
 );
 
