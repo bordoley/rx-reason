@@ -26,17 +26,19 @@ let operatorIt =
       let subscription =
         source(scheduler)
         |> Observable.lift(
-             Operators.(operator(scheduler) >> materialize >> toList),
-           )
-        |> Observable.lift(
-             Operators.onNext(
-               expectToBeEqualToListOfNotifications(
-                 ~nextEquals,
-                 ~nextToString,
-                 expected,
-               ),
-             ),
-           )
+            Operators.(
+              operator(scheduler) 
+              >> materialize 
+              >> toList 
+              >> onNext(
+                expectToBeEqualToListOfNotifications(
+                  ~nextEquals,
+                  ~nextToString,
+                  expected,
+                ),
+              ),
+            ),
+          )
         |> Observable.subscribe;
 
       vts |> VirtualTimeScheduler.run;
