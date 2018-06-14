@@ -38,7 +38,14 @@ let observableIt =
               >> first
             )
           )
-        |> Observable.subscribe;
+        |> Observable.subscribeWithCallbacks(
+            ~onNext=Functions.alwaysUnit,
+            ~onComplete=exn =>
+              switch(exn) {
+              | Some(exn) => raise(exn)
+              | _ => ()
+              },
+          );
 
       vts |> VirtualTimeScheduler.run;
       subscription |> Disposable.dispose;
