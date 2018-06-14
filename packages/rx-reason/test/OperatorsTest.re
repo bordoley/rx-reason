@@ -498,7 +498,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=_ => Observable.ofList([1, 2]),
             ~operator=_ => Operators.onComplete(Functions.alwaysUnit),
-            ~expected=[Next(1), Complete],
+            ~expected=[Next(1), Next(2), Complete],
             (),
           ),
           it("calls the side effect function", () => {
@@ -525,7 +525,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=_ => Observable.ofList([1, 2]),
             ~operator=_ => Operators.onNext(Functions.alwaysUnit),
-            ~expected=[Next(1), Complete],
+            ~expected=[Next(1), Next(2), Complete],
             (),
           ),
           it("calls the side effect function", () => {

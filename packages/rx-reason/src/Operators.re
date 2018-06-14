@@ -469,7 +469,6 @@ let every = (predicate: 'a => bool, observer) => {
       ~onNext=
         next =>
           if (! next) {
-            observer |> Observer.next(next);
             everyTrueObserver^
             |> Observer.complete(~exn=?completeWithoutErrorExn);
           },
