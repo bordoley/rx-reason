@@ -17,13 +17,13 @@ let test =
                 Observable.ofRelativeTimeNotifications(
                   ~scheduler=scheduleWithDelay,
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 4.0),
-                    (Next(3), 6.0),
-                    (Next(4), 15.0),
-                    (Next(5), 16.0),
-                    (Next(6), 17.0),
-                    (Complete, 18.0),
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (15.0, Next(4)),
+                    (16.0, Next(5)),
+                    (17.0, Next(6)),
+                    (18.0, Complete),
                   ],
                 ),
             ~operator=
@@ -94,12 +94,12 @@ let test =
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (Next(12), 1.0),
-                    (Next(8), 2.0),
-                    (Next(14), 3.0),
-                    (Next(13), 4.0),
-                    (Next(6), 5.0),
-                    (Complete, 6.0),
+                    (1.0, Next(12)),
+                    (2.0, Next(8)),
+                    (3.0, Next(14)),
+                    
+                    (5.0, Next(6)),
+                    (6.0, Complete),
                   ],
                 ),
             ~operator=
@@ -133,11 +133,11 @@ let test =
                   Observable.ofRelativeTimeNotifications(
                     ~scheduler=scheduleWithDelay,
                     [
-                      (Next(1), 0.0),
-                      (Next(2), 10.0),
-                      (Next(3), 20.0),
-                      (Next(4), 30.0),
-                      (Complete, 40.0),
+                      (0.0, Next(1)),
+                      (10.0, Next(2)),
+                      (20.0, Next(3)),
+                      (30.0, Next(4)),
+                      (40.0, Complete),
                     ],
                   );
 
@@ -145,22 +145,22 @@ let test =
                   Observable.ofRelativeTimeNotifications(
                     ~scheduler=scheduleWithDelay,
                     [
-                      (Next(5), 0.0),
-                      (Next(6), 10.0),
-                      (Next(7), 19.0),
-                      (Next(8), 30.0),
-                      (Complete, 40.0),
+                      (0.0, Next(5)),
+                      (10.0, Next(6)),
+                      (19.0, Next(7)),
+                      (30.0, Next(8)),
+                      (40.0, Complete),
                     ],
                   );
 
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (Next(childObservableA), 0.0),
-                    (Next(childObservableB), 15.0),
-                    (Next(childObservableA), 35.0),
-                    (Next(childObservableB), 60.0),
-                    (Complete, 75.0),
+                    (0.0, Next(childObservableA)),
+                    (15.0, Next(childObservableB)),
+                    (35.0, Next(childObservableA)),
+                    (60.0, Next(childObservableB)),
+                    (75.0, Complete),
                   ],
                 );
               },
@@ -584,12 +584,12 @@ let test =
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (Next(8), 1.0),
-                    (Next(11), 2.0),
-                    (Next(14), 3.0),
-                    (Next(6), 4.0),
-                    (Next(5), 5.0),
-                    (Complete, 6.0),
+                    (1.0, Next(8)),
+                    (2.0, Next(11)),
+                    (3.0, Next(14)),
+                    (4.0, Next(6)),
+                    (5.0, Next(5)),
+                    (6.0, Complete),
                   ],
                 ),
             ~operator=
@@ -615,11 +615,11 @@ let test =
                   Observable.ofRelativeTimeNotifications(
                     ~scheduler=scheduleWithDelay,
                     [
-                      (Next(1), 0.0),
-                      (Next(2), 10.0),
-                      (Next(3), 20.0),
-                      (Next(4), 30.0),
-                      (Complete, 40.0),
+                      (0.0, Next(1)),
+                      (10.0, Next(2)),
+                      (20.0, Next(3)),
+                      (30.0, Next(4)),
+                      (40.0, Complete),
                     ],
                   );
 
@@ -627,22 +627,22 @@ let test =
                   Observable.ofRelativeTimeNotifications(
                     ~scheduler=scheduleWithDelay,
                     [
-                      (Next(5), 0.0),
-                      (Next(6), 10.0),
-                      (Next(7), 19.0),
-                      (Next(8), 30.0),
-                      (Complete, 40.0),
+                      (0.0, Next(5)),
+                      (10.0, Next(6)),
+                      (19.0, Next(7)),
+                      (30.0, Next(8)),
+                      (40.0, Complete),
                     ],
                   );
 
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (Next(childObservableA), 0.0),
-                    (Next(childObservableB), 15.0),
-                    (Next(childObservableA), 35.0),
-                    (Next(childObservableB), 60.0),
-                    (Complete, 75.0),
+                    (0.0, Next(childObservableA)),
+                    (15.0, Next(childObservableB)),
+                    (35.0, Next(childObservableA)),
+                    (60.0, Next(childObservableB)),
+                    (75.0, Complete),
                   ],
                 );
               },
@@ -676,11 +676,11 @@ let test =
                 Observable.ofRelativeTimeNotifications(
                   ~scheduler=scheduleWithDelay,
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 4.0),
-                    (Next(3), 6.0),
-                    (Next(4), 10.0),
-                    (Complete, 14.0),
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (10.0, Next(4)),
+                    (14.0, Complete),
                   ],
                 ),
             ~operator=
@@ -697,11 +697,11 @@ let test =
                 Observable.ofRelativeTimeNotifications(
                   ~scheduler=scheduleWithDelay,
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 4.0),
-                    (Next(3), 6.0),
-                    (Next(4), 15.0),
-                    (Complete, 20.0),
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (15.0, Next(4)),
+                    (20.0, Complete),
                   ],
                 ),
             ~operator=
@@ -728,11 +728,11 @@ let test =
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (Next(1), 0.0),
-                    (Next(2), 200.0),
-                    (Next(3), 400.0),
-                    (Next(4), 600.0),
-                    (Complete, 700.0),
+                    (0.0, Next(1)),
+                    (200.0, Next(2)),
+                    (400.0, Next(3)),
+                    (600.0, Next(4)),
+                    (700.0, Complete),
                   ],
                 ),
             ~operator=
@@ -741,11 +741,11 @@ let test =
                   Observable.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
-                      (Next(1), 100.0),
-                      (Next(2), 250.0),
-                      (Next(3), 300.0),
-                      (Next(4), 450.0),
-                      (Complete, 500.0),
+                      (100.0, Next(1)),
+                      (250.0, Next(2)),
+                      (300.0, Next(3)),
+                      (450.0, Next(4)),
+                      (500.0, Complete),
                     ],
                   );
                 Operators.withLatestFrom(~selector=(a, b) => a + b, other);

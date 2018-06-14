@@ -793,13 +793,13 @@ let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
 let ofAbsoluteTimeNotifications =
     (
       ~scheduler as {getCurrentTime, scheduleWithDelay}: ClockScheduler.t,
-      notifications: list((Notification.t('a), float)),
+      notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
   create((~onNext, ~onComplete) => {
     let rec loop = lst =>
       switch (lst) {
-      | [(notif, time), ...tail] =>
+      | [(time, notif), ...tail] =>
         let delay = time -. getCurrentTime();
         if (delay >= 0.0) {
           scheduleWithDelay(
@@ -889,13 +889,13 @@ let ofNotifications =
 let ofRelativeTimeNotifications =
     (
       ~scheduler as schedule: DelayScheduler.t,
-      notifications: list((Notification.t('a), float)),
+      notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
   create((~onNext, ~onComplete) => {
     let rec loop = (lst, previousDelay) =>
       switch (lst) {
-      | [(notif, delay), ...tail] =>
+      | [(delay, notif), ...tail] =>
         schedule(
           ~delay=max(0.0, delay -. previousDelay),
           () => {

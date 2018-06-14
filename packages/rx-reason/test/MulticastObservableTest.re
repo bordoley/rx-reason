@@ -11,10 +11,10 @@ let test =
         ~source=({scheduleWithDelay} as scheduler) => {
           let source =
             Observable.ofAbsoluteTimeNotifications(~scheduler, [
-                (Next(1), 0.0), 
-                (Next(2), 2.0), 
-                (Next(3), 4.0),
-                (Complete, 10.0),
+                (0.0, Next(1)), 
+                (2.0, Next(2)), 
+                (4.0, Next(3)),
+                (10.0, Complete),
               ])
             |> MulticastObservable.shareWithReplayBuffer(1)
             |> MulticastObservable.toObservable;
