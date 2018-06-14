@@ -931,6 +931,13 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
+let onSubscribe = (f, observable) => create(
+  (~onNext, ~onComplete) => {
+    f();
+    observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+  }
+);
+
 let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
   let exn = Some(exn);
 

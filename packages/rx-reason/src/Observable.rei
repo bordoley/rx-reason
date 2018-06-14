@@ -93,6 +93,8 @@ let ofRelativeTimeNotifications:
 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+let onSubscribe: (unit => unit, t('a)) => t('a);
+
 let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 
 let retry: (exn => bool, t('a)) => t('a);
