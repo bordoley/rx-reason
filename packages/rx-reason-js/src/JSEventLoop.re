@@ -39,3 +39,9 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
     disposable |> RxReason.AssignableDisposable.set(timeoutDisposable);
     disposable |> RxReason.AssignableDisposable.toDisposable;
   };
+
+  let clockScheduler: RxReason.ClockScheduler.t = {
+    getCurrentTime,
+    schedule,
+    scheduleWithDelay,
+  };
