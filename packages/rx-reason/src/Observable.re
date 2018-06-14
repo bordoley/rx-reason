@@ -6,15 +6,30 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
+  let publish:
+    (
+      ~onNext: 'a => unit=?,
+      ~onComplete: option(exn) => unit=?,
+      t('a),
+      unit
+    ) =>
+    Disposable.t;
+
+  let publishObserver: (Observer.t('a), t('a), unit) => Disposable.t;
+
+  let publishWithCallbacks:
+    (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
+    Disposable.t;
+
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     Disposable.t;
 
+  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
+
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
-
-  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
 
   let toObservable: t('a) => observable('a);
 };
@@ -957,6 +972,41 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
       })
     );
 };
+
+let publishWithCallbacks = (~onNext, ~onComplete, observable) => {
+  let connection = ref(Disposable.disposed);
+  let active = ref(false);
+
+  () => {
+    if (! Interlocked.exchange(true, active)) {
+      let subscription =
+        observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+      let newConnection =
+        Disposable.create(() => {
+          subscription |> Disposable.dispose;
+          Volatile.write(false, active);
+        });
+
+      Volatile.write(newConnection, connection);
+    };
+    Volatile.read(connection);
+  };
+};
+
+let publish =
+    (
+      ~onNext=Functions.alwaysUnit,
+      ~onComplete=Functions.alwaysUnit,
+      observable,
+    ) =>
+  publishWithCallbacks(~onNext, ~onComplete, observable);
+
+let publishObserver = (observer, observable) =>
+  publishWithCallbacks(
+    ~onNext=Observer.forwardOnNext(observer),
+    ~onComplete=Observer.forwardOnComplete(observer),
+    observable,
+  );
 
 let retry = (shouldRetry, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) => {

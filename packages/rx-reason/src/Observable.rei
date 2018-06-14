@@ -5,15 +5,30 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
+  let publish:
+    (
+      ~onNext: 'a => unit=?,
+      ~onComplete: option(exn) => unit=?,
+      t('a),
+      unit
+    ) =>
+    Disposable.t;
+
+  let publishObserver: (Observer.t('a), t('a), unit) => Disposable.t;
+
+  let publishWithCallbacks:
+    (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
+    Disposable.t;
+
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     Disposable.t;
 
+  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
+
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
-
-  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
 
   let toObservable: t('a) => observable('a);
 };

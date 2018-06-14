@@ -6,6 +6,12 @@ let subscribeObserver = Observable.subscribeObserver;
 
 let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
 
+let publish = Observable.publish;
+
+let publishObserver = Observable.publishObserver;
+
+let publishWithCallbacks = Observable.publishWithCallbacks;
+
 let toObservable = Functions.identity;
 
 let shareInternal = (~createSubject, source) => {

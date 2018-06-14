@@ -961,6 +961,7 @@ let test =
       describe("never", []),
       describe("ofList", []),
       describe("ofValue", []),
+      describe("publish", []),
       describe("raise", []),
       describe(
         "retry",

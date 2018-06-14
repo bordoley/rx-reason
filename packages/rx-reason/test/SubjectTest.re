@@ -1,6 +1,3 @@
 open ReUnit.Test;
 
-let test =
-  describe("Subject", [
-    describe("publish", []),
-  ]);
+let test = describe("Subject", []);

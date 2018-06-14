@@ -26,8 +26,17 @@ let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
-let subscribe = (~onNext=?, ~onComplete=?, subject) =>
-  subject |> toObservable |> Observable.subscribe(~onNext?, ~onComplete?);
+let publishObserver = (observer, subject) =>
+  subject |> toObservable |> Observable.publishObserver(observer);
+
+let publishWithCallbacks = (~onNext, ~onComplete, subject) =>
+  subject
+  |> toObservable
+  |> Observable.publishWithCallbacks(~onNext, ~onComplete);
+
+let publish =
+    (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
+    subject |> publishWithCallbacks(~onNext, ~onComplete);
 
 let subscribeObserver = (observer, subject) =>
   subject |> toObservable |> Observable.subscribeObserver(observer);
@@ -37,25 +46,9 @@ let subscribeWithCallbacks = (~onNext, ~onComplete, subject) =>
   |> toObservable
   |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
 
-let publish = (subject, observable) => {
-  let connection = ref(Disposable.disposed);
-  let active = ref(false);
-
-  () => {
-    if (! Interlocked.exchange(true, active)) {
-      let observer = subject |> toObserver;
-      let subscription = observable |> Observable.subscribeObserver(observer);
-      let newConnection =
-        Disposable.create(() => {
-          subscription |> Disposable.dispose;
-          Volatile.write(false, active);
-        });
-
-      Volatile.write(newConnection, connection);
-    };
-    Volatile.read(connection);
-  };
-};
+let subscribe =
+    (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
+  subject |> subscribeWithCallbacks(~onNext, ~onComplete);
 
 let createWithCallbacks =
     (~onNext, ~onComplete, ~onDispose, ~onSubscribe)
