@@ -14,6 +14,7 @@ let observableIt =
       ~nextToString,
       ~source: ClockScheduler.t => Observable.t('a),
       ~expected: list(Notification.t('b)),
+      (),
     ) => 
   it(
     name,
@@ -32,9 +33,10 @@ let observableIt =
                   ~nextEquals,
                   ~nextToString,
                   expected,
-                ),
-              ),
-            ),
+                )
+              )
+              >> first
+            )
           )
         |> Observable.subscribe;
 
@@ -59,4 +61,5 @@ let operatorIt =
     ~nextToString,
     ~source=scheduler => source(scheduler) |> Observable.lift(operator(scheduler)), 
     ~expected,
+    (),
   );
