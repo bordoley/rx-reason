@@ -34,8 +34,8 @@ let subscribeObserver =
     : Disposable.t =>
   observable
   |> subscribeWithCallbacks(
-       ~onNext=next => observer |> Observer.next(next),
-       ~onComplete=exn => observer |> Observer.complete(~exn?),
+       ~onNext=Observer.forwardOnNext(observer),
+       ~onComplete=Observer.forwardOnComplete(observer),
      );
 
 let createWithObserver =
@@ -808,7 +808,8 @@ let ofAbsoluteTimeNotifications =
               switch (notif) {
               | Notification.Next(v) => onNext(v)
               | Notification.Complete => onComplete(None)
-              | Notification.CompleteWithException(exn) => onComplete(Some(exn))
+              | Notification.CompleteWithException(exn) =>
+                onComplete(Some(exn))
               };
               loop(tail);
             },
@@ -901,7 +902,8 @@ let ofRelativeTimeNotifications =
             switch (notif) {
             | Notification.Next(v) => onNext(v)
             | Notification.Complete => onComplete(None)
-            | Notification.CompleteWithException(exn) => onComplete(Some(exn))
+            | Notification.CompleteWithException(exn) =>
+              onComplete(Some(exn))
             };
             loop(tail, delay);
           },
@@ -954,25 +956,25 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
 
       if (! alreadyDisposed) {
         let newSubscription =
-          observable
-          |> subscribeWithCallbacks(
-               ~onNext,
-               ~onComplete=
-                 Functions.earlyReturnsUnit1(exn => {
-                   let shouldComplete =
-                     switch (exn) {
-                     | None => true
-                     | Some(exn) =>
-                       try (! shouldRetry(exn)) {
-                       | exn =>
-                         onComplete(Some(exn));
-                         Functions.returnUnit();
-                       }
-                     };
+          subscribeWithCallbacks(
+            ~onNext,
+            ~onComplete=
+              Functions.earlyReturnsUnit1(exn => {
+                let shouldComplete =
+                  switch (exn) {
+                  | None => true
+                  | Some(exn) =>
+                    try (! shouldRetry(exn)) {
+                    | exn =>
+                      onComplete(Some(exn));
+                      Functions.returnUnit();
+                    }
+                  };
 
-                   shouldComplete ? onComplete(exn) : setupSubscription();
-                 }),
-             );
+                shouldComplete ? onComplete(exn) : setupSubscription();
+              }),
+            observable,
+          );
         subscription |> AssignableDisposable.set(newSubscription);
       };
     };
