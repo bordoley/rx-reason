@@ -65,5 +65,7 @@ let synchronize: Operator.t('a, 'a);
 
 let timeout: Scheduler.t => Operator.t('a, 'a);
 
+let toList: Operator.t('a, list('a));
+
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

@@ -1,12 +1,6 @@
 open ReUnit;
 open ReUnit.Test;
 
-let buffer = observer =>
-  observer
-  |> Operators.(
-       scan((acc, next) => [next, ...acc], []) >> last >> map(List.rev)
-     );
-
 let expectToBeEqualToListOfNotifications = (~nextEquals=(===), ~nextToString) =>
   Expect.toBeEqualToListWith(
     ~equals=Notification.equals(~nextEquals),
@@ -32,7 +26,7 @@ let operatorIt =
       let subscription =
         source(scheduler)
         |> Observable.lift(
-             Operators.(operator(scheduler) >> materialize >> buffer),
+             Operators.(operator(scheduler) >> materialize >> toList),
            )
         |> Observable.lift(
              Operators.onNext(

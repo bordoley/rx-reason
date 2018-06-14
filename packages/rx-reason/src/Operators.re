@@ -643,6 +643,9 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
   };
 };
 
+let toList = observer =>
+  observer |> (scan((acc, next) => [next, ...acc], []) >> last >> map(List.rev));
+
 let withLatestFrom =
     (~selector: ('a, 'b) => 'c, other: Observable.t('b))
     : Operator.t('a, 'c) =>
