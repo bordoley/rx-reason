@@ -4,7 +4,7 @@ let compose = (f1: 'a => 'b, f2: 'b => 'c, a: 'a) : 'c => f2(f1(a));
 
 let identity = (a: 'a) : 'a => a;
 
-let referenceEquality = (this: 'a, that: 'a) => this === that;
+let referenceEquality = (===);
 
 exception ReturnUnitException;
 

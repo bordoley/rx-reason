@@ -57,13 +57,7 @@ let publish = (subject, observable) => {
 };
 
 let createWithCallbacks =
-    (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
-      ~onDispose=Functions.alwaysUnit,
-      ~onSubscribe=(~onNext as _, ~onComplete as _) => (),
-      (),
-    )
+    (~onNext, ~onComplete, ~onDispose, ~onSubscribe)
     : t('a) => {
   let subscribers = ref(CopyOnWriteArray.empty());
   let observer =
@@ -81,7 +75,6 @@ let createWithCallbacks =
           let currentSubscribers = subscribers^;
           currentSubscribers
           |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
-          ();
         },
       ~onDispose=
         () => {
@@ -112,9 +105,22 @@ let createWithCallbacks =
   {observer, observable};
 };
 
-let create = () => createWithCallbacks();
+let create = () =>
+  createWithCallbacks(
+    ~onNext=Functions.alwaysUnit,
+    ~onComplete=Functions.alwaysUnit,
+    ~onDispose=Functions.alwaysUnit,
+    ~onSubscribe=(~onNext as _, ~onComplete as _) => ()
+  );
 
 let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
+  /* This is fine for small buffers, eg. < 32
+   * Ideally we'd use something like an Immutable.re vector 
+   * for large replay buffers.
+   * 
+   * We use a cow array in order to snapshot the events we replay
+   * in case their is feedback in the event system.
+   */
   let buffer = ref(CopyOnWriteArray.empty());
   let completed = ref(false);
   let completedValue = ref(None);
@@ -145,6 +151,5 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
           onComplete(completedValue^);
         };
       },
-    (),
   );
 };

@@ -61,8 +61,6 @@ let reduce =
 let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
   observable |> liftFirst(Operators.some(predicate));
 
-exception InvalidState;
-
 let subscribe = Observable.subscribe;
 
 let subscribeWithCallbacks =
@@ -88,10 +86,9 @@ let subscribeWithCallbacks =
              | Some(exn) => onError(exn)
              | None =>
                /* This case should never happen due to how the constructors of Single
-                * instances  protect against it. Ideally, we would error with EmptyError,
-                * but Operators hides that exception from it's public api.
+                * instances  protect against it.
                 */
-               onError(InvalidState)
+               onError(Operators.EmptyException)
              },
        );
   subscription;
