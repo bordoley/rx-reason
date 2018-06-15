@@ -133,29 +133,6 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
     exhaustObserver^;
   };
 
-let find = (predicate: 'a => bool, observer) => {
-  let findObserver = ref(Observer.disposed);
-  findObserver :=
-    Observer.create(
-      ~onNext=
-        Functions.earlyReturnsUnit1(next => {
-          let found =
-            try (predicate(next)) {
-            | exn =>
-              findObserver^ |> Observer.complete(~exn);
-              Functions.returnUnit();
-            };
-          if (found) {
-            observer |> Observer.next(next);
-            findObserver^ |> Observer.complete;
-          };
-        }),
-      ~onComplete=Observer.forwardOnComplete(observer),
-      ~onDispose=Observer.forwardOnDispose(observer),
-    );
-  findObserver^;
-};
-
 let first: Operator.t('a, 'a) =
   observer => {
     let firstObserver = ref(Observer.disposed);
@@ -341,6 +318,9 @@ let maybe: Operator.t('a, 'a) =
     );
 
 let maybeFirst = observer => first @@ maybe @@ observer;
+
+let find = predicate => 
+  observer => keep(predicate) @@ maybeFirst  @@ observer;
 
 let maybeLast = observer => last @@ maybe @@ observer;
 
