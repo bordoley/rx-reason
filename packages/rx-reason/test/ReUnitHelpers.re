@@ -1,11 +1,29 @@
 open ReUnit;
 open ReUnit.Test;
 
-let expectToBeEqualToListOfNotifications = (~nextEquals=(===), ~nextToString) =>
-  Expect.toBeEqualToListWith(
-    ~equals=Notification.equals(~nextEquals),
-    ~toString=Notification.toString(~nextToString),
-  );
+let expectObservableToProduce =
+    (~nextEquals=(===), ~nextToString, expected, observable) =>
+  observable
+  |> Observable.lift(
+       Operators.(
+         materialize
+         >> toList
+         >> onNext(
+              Expect.toBeEqualToListWith(
+                ~equals=Notification.equals(~nextEquals),
+                ~toString=Notification.toString(~nextToString),
+                expected,
+              ),
+            )
+         >> first
+       ),
+     )
+  |> Observable.subscribe(~onComplete=exn =>
+       switch (exn) {
+       | Some(exn) => raise(exn)
+       | _ => ()
+       }
+     );
 
 let observableIt =
     (
@@ -15,7 +33,7 @@ let observableIt =
       ~source: ClockScheduler.t => Observable.t('a),
       ~expected: list(Notification.t('b)),
       (),
-    ) => 
+    ) =>
   it(
     name,
     () => {
@@ -24,27 +42,7 @@ let observableIt =
 
       let subscription =
         source(scheduler)
-        |> Observable.lift(
-            Operators.(
-              materialize 
-              >> toList 
-              >> onNext(
-                expectToBeEqualToListOfNotifications(
-                  ~nextEquals,
-                  ~nextToString,
-                  expected,
-                )
-              )
-              >> first
-            )
-          )
-        |> Observable.subscribe(
-            ~onComplete=exn =>
-              switch(exn) {
-              | Some(exn) => raise(exn)
-              | _ => ()
-              },
-          );
+        |> expectObservableToProduce(~nextEquals, ~nextToString, expected);
 
       vts |> VirtualTimeScheduler.run;
       subscription |> Disposable.dispose;
@@ -65,7 +63,9 @@ let operatorIt =
     name,
     ~nextEquals,
     ~nextToString,
-    ~source=scheduler => source(scheduler) |> Observable.lift(operator(scheduler)), 
+    ~source=
+      scheduler =>
+        source(scheduler) |> Observable.lift(operator(scheduler)),
     ~expected,
     (),
   );

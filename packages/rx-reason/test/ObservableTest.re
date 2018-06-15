@@ -1,5 +1,6 @@
 open ReUnit;
 open ReUnit.Test;
+open ReUnitHelpers;
 
 let test =
   describe(
@@ -8,77 +9,66 @@ let test =
       describe(
         "combineLatest2",
         [
-          it("combines latest values from each subject", () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-
-            let result = ref([]);
-
-            Observable.combineLatest2(
-              ~selector=(a, b) => [a, b],
-              subject0 |> Subject.toObservable,
-              subject1 |> Subject.toObservable,
-            )
-            |> Observable.subscribe(~onNext=next => result := next)
-            |> ignore;
-
-            let observer0 = subject0 |> Subject.toObserver;
-            let observer1 = subject1 |> Subject.toObserver;
-
-            observer0 |> Observer.next(0);
-            result^ |> Expect.toBeEqualToListOfInt([]);
-            observer1 |> Observer.next(1);
-            result^ |> Expect.toBeEqualToListOfInt([0, 1]);
-          }),
-          it("completes only when all observables complete", () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-
-            let result = ref(false);
-
-            let subscription =
-              Observable.combineLatest2(
-                ~selector=(a, b) => [a, b],
-                subject0 |> Subject.toObservable,
-                subject1 |> Subject.toObservable,
-              )
-              |> Observable.subscribe(~onComplete=_ => result := true);
-
-            let observer0 = subject0 |> Subject.toObserver;
-            let observer1 = subject1 |> Subject.toObserver;
-
-            observer0 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-
-            observer1 |> Observer.complete;
-            result^ |> Expect.toBeEqualToTrue;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes when the first observable completes with an exception",
-            () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-
-            let result = ref(false);
-
-            let subscription =
-              Observable.combineLatest2(
-                ~selector=(a, b) => [a, b],
-                subject0 |> Subject.toObservable,
-                subject1 |> Subject.toObservable,
-              )
-              |> Observable.subscribe(~onComplete=_ => result := true);
-
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            result^ |> Expect.toBeEqualToFalse;
-            let observer0 = subject0 |> Subject.toObserver;
-
-            observer0 |> Observer.complete(~exn=Division_by_zero);
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-            result^ |> Expect.toBeEqualToTrue;
-          }),
+          observableIt(
+            "combines latest values from each observable",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.combineLatest2(
+                  ~selector=(a, b) => a + b,
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [
+                      (1.0, Next(0)),
+                      (3.0, Next(2)),
+                      (5.0, Next(4)),
+                      (6.0, Complete),
+                    ],
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [
+                      (0.0, Next(0)),
+                      (2.0, Next(2)),
+                      (4.0, Next(4)),
+                      (5.0, Complete),
+                    ],
+                  ),
+                ),
+            ~expected=[
+              Next(0),
+              Next(2),
+              Next(4),
+              Next(6),
+              Next(8),
+              Complete,
+            ],
+            (),
+          ),
+          observableIt(
+            "completes when either observable completes with an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.combineLatest2(
+                  ~selector=(a, b) => a + b,
+                  Observable.raise(
+                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    Division_by_zero,
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [
+                      (1.0, Next(0)),
+                      (3.0, Next(2)),
+                      (5.0, Next(4)),
+                      (6.0, Complete),
+                    ],
+                  ),
+                ),
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
         ],
       ),
       describe(
@@ -740,47 +730,31 @@ let test =
       describe(
         "create",
         [
-          it(
+          observableIt(
             "onNext and onComplete function calls delegate to the subscriber",
-            () => {
-            let observable =
-              Observable.create((~onNext, ~onComplete) => {
-                onNext(10);
-                onNext(20);
-                onComplete(None);
-                Disposable.disposed;
-              });
-
-            let value = ref(0);
-            let complete = ref(false);
-            let subscription =
-              observable
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=next => value := next,
-                   ~onComplete=_ => complete := true,
-                 );
-
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-            value^ |> Expect.toBeEqualToInt(20);
-            complete^ |> Expect.toBeEqualToTrue;
-          }),
-          it("onSubscribe throws synchronously before completing", () => {
-            let observable =
-              Observable.create((~onNext as _, ~onComplete as _) =>
-                raise(Division_by_zero)
-              );
-
-            let complete = ref(None);
-            observable
-            |> Observable.subscribe(~onComplete=exn => complete := exn)
-            |> ignore;
-
-            switch (complete^) {
-            | Some(Division_by_zero) => ()
-            | _ =>
-              failwith("expected subscription to complete with exception")
-            };
-          }),
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.create((~onNext, ~onComplete) => {
+                  onNext(10);
+                  onNext(20);
+                  onComplete(None);
+                  Disposable.disposed;
+                }),
+            ~expected=[Next(10), Next(20), Complete],
+            (),
+          ),
+          observableIt(
+            "onSubscribe throws synchronously before completing",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.create((~onNext as _, ~onComplete as _) =>
+                  raise(Division_by_zero)
+                ),
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
           it(
             "throws when onSubscribe complete synchronously and then throws an exception",
             () => {
@@ -806,156 +780,67 @@ let test =
                 Observable.empty();
               });
 
-            let subscription = observable |> Observable.subscribe;
-
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-
             observable |> Observable.subscribe |> ignore;
-
             observable |> Observable.subscribe |> ignore;
-
+            observable |> Observable.subscribe |> ignore;
             count^ |> Expect.toBeEqualToInt(3);
           }),
         ],
       ),
       describe("empty", []),
       describe(
-        "lift",
-        [
-          it("applies the operator", () =>
-            Observable.ofList([1, 2, 3])
-            |> Observable.lift(
-                 Operators.(
-                   scan((acc, next) => acc + next, 0)
-                   >> Operators.map(string_of_int)
-                   >> Operators.last
-                 ),
-               )
-            |> Observable.subscribe(
-                 ~onNext=Expect.toBeEqualToString("6"),
-               )
-            |> Disposable.isDisposed
-            |> Expect.toBeEqualToTrue
-          ),
-        ],
-      ),
-      describe(
         "merge",
         [
-          it("merges host and cold observables", () => {
-            let result = ref([]);
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-            Observable.merge([
-              subject1 |> Subject.toObservable,
-              Observable.ofList([1, 2, 3]),
-              subject2 |> Subject.toObservable,
-              Observable.ofList([4, 5, 6]),
-            ])
-            |> Observable.subscribe(
-                 ~onNext=x => result := [x, ...result^],
-               )
-            |> ignore;
-
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-
-            observer1 |> Observer.next(7);
-            observer2 |> Observer.next(8);
-            observer1 |> Observer.next(9);
-            result^
-            |> Expect.toBeEqualToListOfInt([9, 8, 7, 6, 5, 4, 3, 2, 1]);
-          }),
-          it("merges hot observables", () => {
-            let result = ref([]);
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-            let subject3 = Subject.create();
-            Observable.merge([
-              subject1 |> Subject.toObservable,
-              subject2 |> Subject.toObservable,
-              subject3 |> Subject.toObservable,
-            ])
-            |> Observable.subscribe(
-                 ~onNext=x => result := [x, ...result^],
-               )
-            |> ignore;
-
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-            let observer3 = subject3 |> Subject.toObserver;
-
-            observer1 |> Observer.next(1);
-            observer2 |> Observer.next(2);
-            observer1 |> Observer.next(3);
-            observer2 |> Observer.next(4);
-            observer1 |> Observer.complete;
-            observer2 |> Observer.next(5);
-            observer2 |> Observer.complete;
-            observer3 |> Observer.next(6);
-            observer3 |> Observer.complete;
-
-            result^ |> Expect.toBeEqualToListOfInt([6, 5, 4, 3, 2, 1]);
-          }),
-          it("completes when the last observable completes", () => {
-            let result = ref(false);
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-            let subject3 = Subject.create();
-
-            let subscription =
-              Observable.merge([
-                subject1 |> Subject.toObservable,
-                subject2 |> Subject.toObservable,
-                subject3 |> Subject.toObservable,
-              ])
-              |> Observable.subscribe(
-                   ~onComplete=_ =>
-                   result := true
-                 );
-
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-            let observer3 = subject3 |> Subject.toObserver;
-
-            observer1 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer2 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer3 |> Observer.complete;
-            result^ |> Expect.toBeEqualToTrue;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes early if any observable completes with an exception", () => {
-            let result = ref(false);
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-            let subject3 = Subject.create();
-
-            let subscription =
-              Observable.merge([
-                subject1 |> Subject.toObservable,
-                subject2 |> Subject.toObservable,
-                subject3 |> Subject.toObservable,
-              ])
-              |> Observable.subscribe(
-                  ~onComplete=_ =>
-                   result := true
-                 );
-
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-
-            observer1 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            observer2 |> Observer.complete(~exn=Division_by_zero);
-            result^ |> Expect.toBeEqualToTrue;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          observableIt(
+            "synchronous and asynchronous observables",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.merge([
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
+                  ),
+                  Observable.ofList([1, 2, 3]),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
+                  ),
+                  Observable.ofList([4, 5, 6]),
+                ]),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              Next(5),
+              Next(6),
+              Next(7),
+              Next(8),
+              Next(9),
+              Next(10),
+              Complete,
+            ],
+            (),
+          ),
+          observableIt(
+            "completes early if any observable completes with an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.merge([
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
+                  ),
+                  Observable.raise(
+                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    Division_by_zero,
+                  ),
+                ]),
+            ~expected=[Next(1), CompleteWithException(Division_by_zero)],
+            (),
+          ),
         ],
       ),
       describe("never", []),
@@ -984,9 +869,7 @@ let test =
               Disposable.disposed;
             })
             |> Observable.retry(shouldRetry)
-            |> Observable.subscribe(
-                 ~onNext=x => result := [x, ...result^],
-               )
+            |> Observable.subscribe(~onNext=x => result := [x, ...result^])
             |> ignore;
             result^ |> Expect.toBeEqualToListOfInt([2, 1, 2, 1, 2, 1]);
           }),
@@ -1002,9 +885,7 @@ let test =
                 |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
               })
               |> Observable.retry(_ => true)
-              |> Observable.subscribe(
-                   ~onNext=x => result := [x, ...result^],
-                 );
+              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
 
             let observer = subject^ |> Subject.toObserver;
             observer |> Observer.next(1);
@@ -1036,9 +917,7 @@ let test =
                    subscription^ |> Disposable.dispose;
                    true;
                  })
-              |> Observable.subscribe(
-                   ~onNext=x => result := [x, ...result^],
-                 );
+              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
 
             subject^ |> Subject.toObserver |> Observer.next(5);
             subject^
@@ -1053,43 +932,43 @@ let test =
       describe(
         "startWithlist",
         [
-          it("prepends values", () => {
-            let result = ref([]);
-            let subject = Subject.create();
-            let subscription =
-              Observable.startWithList(
-                [1, 2, 3],
-                subject |> Subject.toObservable,
-              )
-              |> Observable.subscribe(
-                   ~onNext=x => result := [x, ...result^],
-                 );
-            result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-
-            let observer = subject |> Subject.toObserver;
-            observer |> Observer.next(4);
-            observer |> Observer.next(5);
-
-            result^ |> Expect.toBeEqualToListOfInt([5, 4, 3, 2, 1]);
-          }),
+          observableIt(
+            "prepends the values",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay}) =>
+                Observable.startWithList(
+                  [1, 2, 3],
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduleWithDelay,
+                    [(1.0, Next(4)), (2.0, Next(5)), (3.0, Complete)],
+                  ),
+                ),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              Next(5),
+              Complete,
+            ],
+            (),
+          ),
         ],
       ),
       describe(
         "startWithValue",
         [
-          it("prepends the value", () => {
-            let result = ref([]);
-            Observable.startWithValue(1, Observable.ofList([2, 3]))
-            |> Observable.subscribe(
-                 ~onNext=x => result := [x, ...result^],
-               )
-            |> ignore;
-            result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
-          }),
+          observableIt(
+            "prepends the values",
+            ~nextToString=string_of_int,
+            ~source=
+              _ => Observable.startWithValue(1, Observable.ofList([2, 3])),
+            ~expected=[Next(1), Next(2), Next(3), Complete],
+            (),
+          ),
         ],
       ),
-      describe("subscribe", []),
       describe("subscribeOn", []),
     ],
   );

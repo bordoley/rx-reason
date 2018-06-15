@@ -36,7 +36,7 @@ let publishWithCallbacks = (~onNext, ~onComplete, subject) =>
 
 let publish =
     (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
-    subject |> publishWithCallbacks(~onNext, ~onComplete);
+  subject |> publishWithCallbacks(~onNext, ~onComplete);
 
 let subscribeObserver = (observer, subject) =>
   subject |> toObservable |> Observable.subscribeObserver(observer);
