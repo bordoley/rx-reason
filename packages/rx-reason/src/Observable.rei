@@ -83,26 +83,54 @@ let combineLatest7:
   ) =>
   t('h);
 
+/**
+ * Returns an Observable which concatenates elements of each provided Observable
+ * into a single sequence of elements without interleaving them.
+ */
 let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 
+/**
+ * Returns an Observable from the specified subscribe function.
+ */
 let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
+/**
+ * Returns an Observable that calls an Observable factory to 
+ * create a new Observable for each subscription.
+ */
 let defer: (unit => t('a)) => t('a);
 
+/**
+ * Returns an Observable that emits no items and immediately completes.
+ */
 let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
+/**
+ * Returns an Observable that applies the Operator function to the
+ * source Observable's notifications.
+ */
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
+/**
+ * Returns an Observable that merges items emitted by the source Observables,
+ * interleaving the items emitted by each Observable.
+ */
 let merge: list(t('a)) => t('a);
 
+/**
+ * Returns an Observable the emits no values and never completes.
+ */
 let never: t('a);
 
 let ofAbsoluteTimeNotifications:
   (~scheduler: ClockScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
+/**
+ * Returns an Observable that emits the given items and then completes.
+ */ 
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
 let ofNotifications:
@@ -112,16 +140,45 @@ let ofRelativeTimeNotifications:
   (~scheduler: DelayScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
+ /**
+  * Returns an Observable that emits the given item and then completes.
+  */ 
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+/**
+ * Returns an Observable that mirrors the source Observable,
+ * calling the specified function when subscribed to, and
+ * disposing the returned Disposable when disposed.
+ */
 let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
 
+/**
+ * Returns an Observable that completes with the specified exception
+ * when subscribed to.
+ */
 let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 
+/**
+ * Returns an Observable that mirrors the source Observable,
+ * resubscribing to it if it completes with an exception and 
+ * the predicate returns true for that specific exception.
+ */
 let retry: (exn => bool, t('a)) => t('a);
 
+/**
+ * Returns an Observable that emits the specified items before it 
+ * begins to emit items emitted by the source Observable.
+ */
 let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
+/**
+ * Returns an Observable that emits a specified item before it 
+ * begins to emit items emitted by the source Observable.
+ */
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
 
+/**
+ * Returns an Observable which subscribes to the provided source Observable 
+ * on the specified scheduler.
+ */
 let subscribeOn: (Scheduler.t, t('a)) => t('a);
