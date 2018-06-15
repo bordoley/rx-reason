@@ -1,3 +1,7 @@
+/**
+ * A disposable resource providing a mechanism for releasing unmanaged resources.
+ */;
+
 type t;
 type disposable = t;
 

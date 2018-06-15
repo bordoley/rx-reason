@@ -1,3 +1,6 @@
+/**
+ * A provider of push-based notifications.
+ */;
 type t('a);
 
 type observable('a) = t('a);

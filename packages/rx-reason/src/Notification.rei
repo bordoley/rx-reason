@@ -1,3 +1,7 @@
+/**
+ * Represents reactive event types and their values.
+ */;
+ 
 type t('a) =
   | Next('a)
   | Complete
