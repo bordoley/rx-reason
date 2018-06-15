@@ -3,7 +3,7 @@
  * Observable. As long as there is at least one active subscription, a MulticastObservable 
  * will maintain a subscription to the original source and emit data. When all subscribers 
  * have disposed it will dispose the underlying subscription to the source.
- * */;
+ */;
 
 type t('a);
 
