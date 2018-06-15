@@ -159,7 +159,7 @@ let test =
               );
             observer |> Observer.isDisposed |> Expect.toBeEqualToFalse;
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
-            observer |> Observer.toDisposable |> Disposable.dispose;
+            observer |> Observer.asDisposable |> Disposable.dispose;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
             observer |> Observer.isStopped |> Expect.toBeEqualToTrue;
           }),

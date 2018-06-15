@@ -3,29 +3,33 @@
  */;
 
 type t;
+
 type disposable = t;
 
 exception DisposedException;
 
 module type S = {
   type t;
+  
+  /** Cast to Disposable.t. */
+  let asDisposable: t => disposable;
 
   /** Dispose the resource. The operation should be idempotent. */
   let dispose: t => unit;
-
+  
   /** Returns true if this resource has been disposed. */
   let isDisposed: t => bool;
   
   /** Raises a DisposedException if the the Disposable is disposed. */
   let raiseIfDisposed: t => unit;
-  
-  /** Cast to Disposable.t. */
-  let toDisposable: t => disposable;
 };
 
 module type S1 = {
   type t('a);
-
+  
+  /** Cast to Disposable.t. */
+  let asDisposable: t('a) => disposable;
+  
   /** Dispose the resource. The operation should be idempotent. */
   let dispose: t('a) => unit;
   
@@ -34,14 +38,9 @@ module type S1 = {
   
   /** Raises a DisposedException if the the Disposable is disposed. */
   let raiseIfDisposed: t('a) => unit;
-  
-  /** Cast to Disposable.t. */
-  let toDisposable: t('a) => disposable;
 };
 
 include S with type t := t;
-
-
 
 /**
  * Constructs a Disposable instance which disposes the

@@ -5,25 +5,27 @@ type t = {
 
 type disposable = t;
 
+exception DisposedException;
+
 module type S = {
   type t;
 
+  let asDisposable: t => disposable;
   let dispose: t => unit;
   let isDisposed: t => bool;
   let raiseIfDisposed: t => unit;
-  let toDisposable: t => disposable;
 };
 
 module type S1 = {
   type t('a);
 
+  let asDisposable: t('a) => disposable;
   let dispose: t('a) => unit;
   let isDisposed: t('a) => bool;
   let raiseIfDisposed: t('a) => unit;
-  let toDisposable: t('a) => disposable;
 };
 
-exception DisposedException;
+let asDisposable = Functions.identity;
 
 let create = (onDispose: unit => unit) : t => {
   onDispose: ref(onDispose),
@@ -57,5 +59,3 @@ let raiseIfDisposed = (disposable: t)  =>
   if (isDisposed(disposable)) {
     raise(DisposedException);
   };
-
-let toDisposable = Functions.identity;

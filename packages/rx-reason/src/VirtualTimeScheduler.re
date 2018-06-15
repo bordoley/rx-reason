@@ -31,7 +31,7 @@ let create = () => {
         Belt.MutableMap.Int.set(timeQueue, scheduleTime, queue);
       };
 
-      disposable |> SerialDisposable.toDisposable;
+      disposable |> SerialDisposable.asDisposable;
     } else {
       Disposable.disposed;
     };
@@ -57,6 +57,8 @@ let advance = ({disposable, timeQueue} as vts: t) => {
   vts.currentTime := vts.currentTime^ + 1;
 };
 
+let asDelayScheduler = ({scheduler}) => scheduler;
+
 let run = ({disposable, timeQueue} as vts: t) => {
   Disposable.raiseIfDisposed(disposable);
 
@@ -72,13 +74,11 @@ let run = ({disposable, timeQueue} as vts: t) => {
 
 let getCurrentTime = ({currentTime}: t) => float_of_int(currentTime^);
 
-let toDelayScheduler = ({scheduler}) => scheduler;
-
-let toScheduler = vts => toDelayScheduler(vts, ~delay=0.0);
+let toScheduler = vts => asDelayScheduler(vts, ~delay=0.0);
 
 let toClockScheduler = (vts: t): ClockScheduler.t => {
   getCurrentTime: () => getCurrentTime(vts),
   schedule: toScheduler(vts),
-  scheduleWithDelay: toDelayScheduler(vts),
+  scheduleWithDelay: asDelayScheduler(vts),
 };
 

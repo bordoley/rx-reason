@@ -16,7 +16,7 @@ single |> RxReason.Single.subscribeWithCallbacks(
 ) |> ignore;
 
 let promise = single 
-  |> RxReason.Single.toObservable 
+  |> RxReason.Single.asObservable 
   |> RxReason.Single.liftFirst(RxReason.Operators.mapTo("b")) 
   |> RxReasonJs.JSPromise.fromSingle
   |> Js.Promise.then_(a => { Js.log(a); Js.Promise.resolve(())});

@@ -17,7 +17,7 @@ let test =
                 (10.0, Complete),
               ])
             |> MulticastObservable.shareWithReplayBuffer(1)
-            |> MulticastObservable.toObservable;
+            |> MulticastObservable.asObservable;
 
           source |> Observable.subscribe |> ignore;
 

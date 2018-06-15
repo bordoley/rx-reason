@@ -62,7 +62,7 @@ module Make =
       ) => {
     let subscription =
       propsSubject
-      |> RxReason.Subject.toObservable
+      |> RxReason.Subject.asObservable
       |> RxReason.Observable.lift(
            RxReason.Operators.(
              RxReason.Operators.distinctUntilChanged

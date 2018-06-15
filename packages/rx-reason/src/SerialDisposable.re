@@ -3,6 +3,8 @@ type t = {
   disposable: Disposable.t,
 };
 
+let asDisposable = ({disposable}) => disposable;
+
 let create = () => {
   let disposableRef = ref(Disposable.disposed);
   {
@@ -30,5 +32,3 @@ let set = (newDisposable, { disposableRef } as assignableDisposable) =>
     Interlocked.exchange(newDisposable, disposableRef)
     |> Disposable.dispose;
   };
-
-let toDisposable = ({disposable}) => disposable;

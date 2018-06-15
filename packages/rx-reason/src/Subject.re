@@ -22,18 +22,18 @@ let notify = (notif, {observer}) => observer |> Observer.notify(notif);
 
 let raiseIfDisposed = ({observer}) => observer |> Observer.raiseIfDisposed;
 
-let toDisposable = ({observer}) => observer |> Observer.toDisposable;
+let asDisposable = ({observer}) => observer |> Observer.asDisposable;
 
-let toObserver = ({observer}: t('a)) : Observer.t('a) => observer;
+let asObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
-let toObservable = ({observable}: t('a)) : Observable.t('a) => observable;
+let asObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
 let publishObserver = (observer, subject) =>
-  subject |> toObservable |> Observable.publishObserver(observer);
+  subject |> asObservable |> Observable.publishObserver(observer);
 
 let publishWithCallbacks = (~onNext, ~onComplete, subject) =>
   subject
-  |> toObservable
+  |> asObservable
   |> Observable.publishWithCallbacks(~onNext, ~onComplete);
 
 let publish =
@@ -41,11 +41,11 @@ let publish =
   subject |> publishWithCallbacks(~onNext, ~onComplete);
 
 let subscribeObserver = (observer, subject) =>
-  subject |> toObservable |> Observable.subscribeObserver(observer);
+  subject |> asObservable |> Observable.subscribeObserver(observer);
 
 let subscribeWithCallbacks = (~onNext, ~onComplete, subject) =>
   subject
-  |> toObservable
+  |> asObservable
   |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
 
 let subscribe =

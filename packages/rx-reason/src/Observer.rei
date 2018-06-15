@@ -7,12 +7,18 @@ module type S1 = {
 
   include Disposable.S1 with type t('a) := t('a);
 
+  /** Cast to Observer.t. */
+  let asObserver: t('a) => observer('a);
+
   let complete: (~exn: exn=?, t('a)) => unit;
+
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
+
   let isStopped: t('a) => bool;
+  
   let next: ('a, t('a)) => unit;
+  
   let notify: (Notification.t('a), t('a)) => unit;
-  let toObserver: t('a) => observer('a);
 };
 
 include S1 with type t('a) := t('a);

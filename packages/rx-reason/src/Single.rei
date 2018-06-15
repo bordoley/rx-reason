@@ -1,5 +1,7 @@
 type t('a);
 
+let asObservable: t('a) => Observable.t('a);
+
 let create:
   ((~onSuccess: 'a => unit, ~onError: exn => unit) => Disposable.t) => t('a);
 
@@ -36,5 +38,3 @@ let subscribe:
 
 let subscribeWithCallbacks:
   (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;
-
-let toObservable: t('a) => Observable.t('a);

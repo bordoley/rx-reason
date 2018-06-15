@@ -6,6 +6,8 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
+  let asObservable: t('a) => observable('a);
+
   let publish:
     (
       ~onNext: 'a => unit=?,
@@ -30,9 +32,9 @@ module type S1 = {
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
-
-  let toObservable: t('a) => observable('a);
 };
+
+let asObservable = Functions.identity;
 
 let subscribeWithCallbacks =
     (~onNext, ~onComplete, observable: t('a))
@@ -82,7 +84,7 @@ let createWithObserver =
       };
 
     subscription |> SerialDisposable.set(innerSubscription);
-    observer |> Observer.toDisposable;
+    observer |> Observer.asDisposable;
   };
 
 let create = onSubscribe : t('a) =>
@@ -742,7 +744,7 @@ let concat =
     };
 
     scheduleSubscription(observables);
-    subscription |> SerialDisposable.toDisposable;
+    subscription |> SerialDisposable.asDisposable;
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
@@ -767,7 +769,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   createWithObserver(observer => {
     let lifted = operator(observer);
     let subscription = observable |> subscribeObserver(lifted);
-    Disposable.compose([subscription, lifted |> Observer.toDisposable]);
+    Disposable.compose([subscription, lifted |> Observer.asDisposable]);
   });
 
 let merge = (observables: list(t('a))) : t('a) => {
@@ -1022,7 +1024,7 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
       };
     };
     setupSubscription();
-    subscription |> SerialDisposable.toDisposable;
+    subscription |> SerialDisposable.asDisposable;
   });
 
 let startWithList =
@@ -1032,5 +1034,3 @@ let startWithList =
 let startWithValue =
     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
   concat([ofValue(~scheduler, value), observable]);
-
-let toObservable = Functions.identity;

@@ -12,13 +12,17 @@ module type S1 = {
 
   include Disposable.S1 with type t('a) := t('a);
 
+  let asObserver: t('a) => observer('a);
   let complete: (~exn: exn=?, t('a)) => unit;
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
   let isStopped: t('a) => bool;
   let next: ('a, t('a)) => unit;
   let notify: (Notification.t('a), t('a)) => unit;
-  let toObserver: t('a) => observer('a);
 };
+
+let asDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
+
+let asObserver = Functions.identity;
 
 let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   let isStopped = ref(false);
@@ -103,10 +107,6 @@ let notify = (notif, observer) =>
 
 let raiseIfDisposed = ({disposable}) =>
   disposable |> Disposable.raiseIfDisposed;
-
-let toDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
-
-let toObserver = Functions.identity;
 
 let forwardOnComplete = (observer, exn) => observer |> complete(~exn?);
 

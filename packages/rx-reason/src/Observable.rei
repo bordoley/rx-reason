@@ -8,6 +8,9 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
+  /** Cast to Observable.t. */
+  let asObservable: t('a) => observable('a);
+
   let publish:
     (
       ~onNext: 'a => unit=?,
@@ -32,8 +35,6 @@ module type S1 = {
   let subscribeWithCallbacks:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
-
-  let toObservable: t('a) => observable('a);
 };
 
 include S1 with type t('a) := t('a);

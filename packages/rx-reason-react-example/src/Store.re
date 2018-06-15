@@ -25,13 +25,13 @@ let reducer = (state: State.t, action) =>
 let create = (props: RxReason.Observable.t(string)) : RxReason.Observable.t(State.t) => {
   let subject = RxReason.Subject.create();
 
-  let actions = subject |> RxReason.Subject.toObservable;
+  let actions = subject |> RxReason.Subject.asObservable;
   let propsActions =
     props
     |> RxReason.Observable.lift(RxReason.Operators.map(greeting => Actions.SetTitle(greeting)));
 
   let dispatch = (action, _) =>
-    subject |> RxReason.Subject.toObserver |> RxReason.Observer.next(action);
+    subject |> RxReason.Subject.next(action);
 
   let initialState: State.t = {
     count: 0,

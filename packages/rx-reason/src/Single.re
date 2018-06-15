@@ -1,5 +1,7 @@
 type t('a) = Observable.t('a);
 
+let asObservable = (single: t('a)) : Observable.t('a) => single;
+
 let create = subscribe =>
   Observable.create((~onNext, ~onComplete) =>
     subscribe(
@@ -94,5 +96,3 @@ let subscribeWithCallbacks =
 
 let subscribe = (~onSuccess=Functions.alwaysUnit, ~onError=Functions.alwaysUnit, single) =>
   subscribeWithCallbacks(~onSuccess, ~onError, single);
-
-let toObservable = (single: t('a)) : Observable.t('a) => single;

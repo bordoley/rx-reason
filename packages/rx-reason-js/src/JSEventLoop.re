@@ -15,7 +15,7 @@ let schedule: RxReason.Scheduler.t =
       resolveUnit;
     };
     Js.Promise.(resolveUnit |> then_(run)) |> ignore;
-    disposable |> RxReason.SerialDisposable.toDisposable;
+    disposable |> RxReason.SerialDisposable.asDisposable;
   };
 
 let scheduleWithDelay: RxReason.DelayScheduler.t =
@@ -37,7 +37,7 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
     let timeoutDisposable =
       RxReason.Disposable.create(() => Js.Global.clearTimeout(timeoutId));
     disposable |> RxReason.SerialDisposable.set(timeoutDisposable);
-    disposable |> RxReason.SerialDisposable.toDisposable;
+    disposable |> RxReason.SerialDisposable.asDisposable;
   };
 
   let clockScheduler: RxReason.ClockScheduler.t = {
