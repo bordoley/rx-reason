@@ -635,66 +635,59 @@ let test =
       describe(
         "concat",
         [
-          it("mixing async and sync observables", () => {
-            let result = ref([]);
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-
-            let subscription =
-              Observable.concat([
-                Observable.ofList([1, 2, 3]),
-                subject0 |> Subject.toObservable,
-                Observable.ofList([7, 8, 9]),
-                subject1 |> Subject.toObservable,
-              ])
-              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
-            result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
-
-            subject0 |> Subject.toObserver |> Observer.next(4);
-            subject0 |> Subject.toObserver |> Observer.next(5);
-            subject0 |> Subject.toObserver |> Observer.next(6);
-            subject0 |> Subject.toObserver |> Observer.complete;
-            subject1 |> Subject.toObserver |> Observer.next(10);
-            subject1 |> Subject.toObserver |> Observer.next(11);
-            subject1 |> Subject.toObserver |> Observer.complete;
-
-            result^
-            |> Expect.toBeEqualToListOfInt([
-                 11,
-                 10,
-                 9,
-                 8,
-                 7,
-                 6,
-                 5,
-                 4,
-                 3,
-                 2,
-                 1,
-               ]);
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes with an exception when the first observable completes with an exception",
-            () => {
-              let result = ref([]);
-              let err = ref(None);
-              Observable.concat([
-                Observable.ofList([1, 2, 3]),
-                Observable.raise(Division_by_zero),
-                Observable.ofList([4, 5, 6]),
-              ])
-              |> Observable.subscribeWithCallbacks(
-                   ~onNext=x => result := [x, ...result^],
-                   ~onComplete=exn => err := exn,
-                 )
-              |> ignore;
-              result^ |> Expect.toBeEqualToListOfInt([3, 2, 1]);
-              switch (err^) {
-              | Some(Division_by_zero) => ()
-              | _ => failwith("expected Division_by_zero exception")
-              };
-            },
+          observableIt(
+            "synchronous and asynchronous observables",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.concat([
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduler.scheduleWithDelay,
+                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
+                  ),
+                  Observable.ofList([1, 2, 3]),
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduler.scheduleWithDelay,
+                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
+                  ),
+                  Observable.ofList([4, 5, 6]),
+                ]),
+            ~expected=[
+              Next(7),
+              Next(9),
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(8),
+              Next(10),
+              Next(4),
+              Next(5),
+              Next(6),
+              Complete,
+            ],
+            (),
+          ),
+          observableIt(
+            "completes early if any observable completes with an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.concat([
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduler.scheduleWithDelay,
+                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
+                  ),
+                  Observable.raise(
+                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    Division_by_zero,
+                  ),
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduler.scheduleWithDelay,
+                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
+                  ),
+                ]),
+            ~expected=[Next(1), Next(2), CompleteWithException(Division_by_zero)],
+            (),
           ),
         ],
       ),
