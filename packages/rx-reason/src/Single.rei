@@ -1,5 +1,10 @@
+/**
+ * A notification provider that is guaranteed to complete with either 
+ * a single value or an exception. Conceptually similar to a Promise or Task.
+ */;
 type t('a);
 
+/** Cast to Observable.t. */
 let asObservable: t('a) => Observable.t('a);
 
 let create:
