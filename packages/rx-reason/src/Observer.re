@@ -16,6 +16,7 @@ module type S1 = {
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
   let isStopped: t('a) => bool;
   let next: ('a, t('a)) => unit;
+  let notify: (Notification.t('a), t('a)) => unit;
   let toObserver: t('a) => observer('a);
 };
 
@@ -61,9 +62,7 @@ let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   };
 };
 
-let completeWithResult =
-    (~exn=?, {isStopped, onComplete}: t('a))
-    : bool => {
+let completeWithResult = (~exn=?, {isStopped, onComplete}: t('a)) : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
     onComplete(exn);
@@ -94,6 +93,13 @@ let next = (next: 'a, {onNext, isStopped}: t('a)) : unit => {
     onNext(next);
   };
 };
+
+let notify = (notif, observer) =>
+  switch (notif) {
+  | Notification.Next(v) => observer |> next(v)
+  | Notification.Complete => observer |> complete
+  | Notification.CompleteWithException(exn) => observer |> complete(~exn)
+  };
 
 let raiseIfDisposed = ({disposable}) =>
   disposable |> Disposable.raiseIfDisposed;

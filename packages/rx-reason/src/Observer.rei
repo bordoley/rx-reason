@@ -11,6 +11,7 @@ module type S1 = {
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
   let isStopped: t('a) => bool;
   let next: ('a, t('a)) => unit;
+  let notify: (Notification.t('a), t('a)) => unit;
   let toObserver: t('a) => observer('a);
 };
 

@@ -814,7 +814,7 @@ let ofAbsoluteTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  create((~onNext, ~onComplete) => {
+  createWithObserver(observer => {
     let rec loop = lst =>
       switch (lst) {
       | [(time, notif), ...tail] =>
@@ -823,12 +823,7 @@ let ofAbsoluteTimeNotifications =
           scheduleWithDelay(
             ~delay,
             () => {
-              switch (notif) {
-              | Notification.Next(v) => onNext(v)
-              | Notification.Complete => onComplete(None)
-              | Notification.CompleteWithException(exn) =>
-                onComplete(Some(exn))
-              };
+              observer |> Observer.notify(notif);
               loop(tail);
             },
           );
@@ -874,30 +869,22 @@ let ofNotifications =
     )
     : t('a) =>
   schedule === Scheduler.immediate ?
-    create((~onNext, ~onComplete) => {
+    createWithObserver(observer => {
       let rec loop = list =>
         switch (list) {
         | [hd, ...tail] =>
-          switch (hd) {
-          | Notification.Next(v) => onNext(v)
-          | Notification.Complete => onComplete(None)
-          | Notification.CompleteWithException(exn) => onComplete(Some(exn))
-          };
+          observer |> Observer.notify(hd);
           loop(tail);
         | [] => ()
         };
       loop(notifications);
       Disposable.disposed;
     }) :
-    create((~onNext, ~onComplete) => {
+    createWithObserver(observer => {
       let rec loop = (list, ()) =>
         switch (list) {
         | [hd, ...tail] =>
-          switch (hd) {
-          | Notification.Next(v) => onNext(v)
-          | Notification.Complete => onComplete(None)
-          | Notification.CompleteWithException(exn) => onComplete(Some(exn))
-          };
+          observer |> Observer.notify(hd);
           schedule(loop(tail));
         | [] => Disposable.disposed
         };
@@ -910,19 +897,14 @@ let ofRelativeTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  create((~onNext, ~onComplete) => {
+  createWithObserver(observer => {
     let rec loop = (lst, previousDelay) =>
       switch (lst) {
       | [(delay, notif), ...tail] =>
         schedule(
           ~delay=max(0.0, delay -. previousDelay),
           () => {
-            switch (notif) {
-            | Notification.Next(v) => onNext(v)
-            | Notification.Complete => onComplete(None)
-            | Notification.CompleteWithException(exn) =>
-              onComplete(Some(exn))
-            };
+            observer |> Observer.notify(notif);
             loop(tail, delay);
           },
         )

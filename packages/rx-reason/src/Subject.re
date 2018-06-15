@@ -18,6 +18,8 @@ let isStopped = ({observer}) => observer |> Observer.isStopped;
 
 let next = (next, {observer}) => observer |> Observer.next(next);
 
+let notify = (notif, {observer}) => observer |> Observer.notify(notif);
+
 let raiseIfDisposed = ({observer}) => observer |> Observer.raiseIfDisposed;
 
 let toDisposable = ({observer}) => observer |> Observer.toDisposable;
