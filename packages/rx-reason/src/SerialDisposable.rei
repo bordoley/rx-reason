@@ -8,13 +8,13 @@ type t;
 
 include Disposable.S with type t := t;
 
-/** Constructs a SerialDisposable containing a disposed disposable. */
+/** Constructs a new SerialDisposable instance containing a disposed disposable. */
 let create: unit => t;
 
 /** Returns the currently contained Disposable */
 let get: t => Disposable.t;
 
-/** Atomically: set the next disposable on this container and dispose the previous
+/** Atomically set the next disposable on this container and dispose the previous
  *  one (if any) or dispose next if the container has been disposed
  */
 let set: (Disposable.t, t) => unit;
