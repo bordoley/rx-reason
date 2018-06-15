@@ -74,91 +74,62 @@ let test =
       describe(
         "combineLatest3",
         [
-          it("combines latest values from each subject", () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-
-            let result = ref([]);
-
-            Observable.combineLatest3(
-              ~selector=(a, b, c) => [a, b, c],
-              subject0 |> Subject.toObservable,
-              subject1 |> Subject.toObservable,
-              subject2 |> Subject.toObservable,
-            )
-            |> Observable.subscribe(~onNext=next => result := next)
-            |> ignore;
-
-            let observer0 = subject0 |> Subject.toObserver;
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-
-            observer0 |> Observer.next(0);
-            result^ |> Expect.toBeEqualToListOfInt([]);
-            observer1 |> Observer.next(1);
-            result^ |> Expect.toBeEqualToListOfInt([]);
-            observer2 |> Observer.next(2);
-            result^ |> Expect.toBeEqualToListOfInt([0, 1, 2]);
-          }),
-          it("completes only when all observables complete", () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-
-            let result = ref(false);
-
-            let subscription =
-              Observable.combineLatest3(
-                ~selector=(a, b, c) => [a, b, c],
-                subject0 |> Subject.toObservable,
-                subject1 |> Subject.toObservable,
-                subject2 |> Subject.toObservable,
-              )
-              |> Observable.subscribe(~onComplete=_ => result := true);
-
-            let observer0 = subject0 |> Subject.toObserver;
-            let observer1 = subject1 |> Subject.toObserver;
-            let observer2 = subject2 |> Subject.toObserver;
-
-            observer0 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-
-            observer1 |> Observer.complete;
-            result^ |> Expect.toBeEqualToFalse;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-
-            observer2 |> Observer.complete;
-            result^ |> Expect.toBeEqualToTrue;
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
-          it(
-            "completes when the first observable completes with an exception",
-            () => {
-            let subject0 = Subject.create();
-            let subject1 = Subject.create();
-            let subject2 = Subject.create();
-
-            let result = ref(false);
-
-            let subscription =
-              Observable.combineLatest3(
-                ~selector=(a, b, c) => [a, b, c],
-                subject0 |> Subject.toObservable,
-                subject1 |> Subject.toObservable,
-                subject2 |> Subject.toObservable,
-              )
-              |> Observable.subscribe(~onComplete=_ => result := true);
-
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
-            result^ |> Expect.toBeEqualToFalse;
-            let observer1 = subject1 |> Subject.toObserver;
-
-            observer1 |> Observer.complete(~exn=Division_by_zero);
-            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
-            result^ |> Expect.toBeEqualToTrue;
-          }),
+          observableIt(
+            "combines latest values from each observable",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.combineLatest3(
+                  ~selector=(a, b, c) => a + b + c,
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(1.0, Next(0)), (6.0, Next(3)), (7.0, Complete)],
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(2.0, Next(1)), (5.0, Complete)],
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [(3.0, Next(2)), (5.0, Complete)],
+                  ),
+                ),
+            ~expected=[Next(3), Next(6), Complete],
+            (),
+          ),
+          observableIt(
+            "completes when either observable completes with an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.combineLatest3(
+                  ~selector=(a, b, c) => a + b + c,
+                  Observable.raise(
+                    ~scheduler=scheduler.scheduleWithDelay(~delay=5.0),
+                    Division_by_zero,
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [
+                      (1.0, Next(0)),
+                      (3.0, Next(2)),
+                      (5.0, Next(4)),
+                      (6.0, Complete),
+                    ],
+                  ),
+                  Observable.ofAbsoluteTimeNotifications(
+                    ~scheduler,
+                    [
+                      (1.0, Next(0)),
+                      (3.0, Next(2)),
+                      (5.0, Next(4)),
+                      (6.0, Complete),
+                    ],
+                  ),
+                ),
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
         ],
       ),
       describe(
