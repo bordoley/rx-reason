@@ -12,10 +12,10 @@ let (>>) =
 let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
   observer => {
     let lastValue = MutableOption.create();
-    let debounceSubscription = AssignableDisposable.create();
+    let debounceSubscription = SerialDisposable.create();
 
     let clearDebounce = () =>
-      debounceSubscription |> AssignableDisposable.set(Disposable.disposed);
+      debounceSubscription |> SerialDisposable.set(Disposable.disposed);
 
     let debouncedNext = () => {
       clearDebounce();
@@ -33,7 +33,7 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           clearDebounce();
           MutableOption.set(next, lastValue);
           debounceSubscription
-          |> AssignableDisposable.set(scheduler(debouncedNext));
+          |> SerialDisposable.set(scheduler(debouncedNext));
         },
       ~onComplete=
         exn => {
@@ -45,7 +45,7 @@ let debounce = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
         },
       ~onDispose=
         () => {
-          debounceSubscription |> AssignableDisposable.dispose;
+          debounceSubscription |> SerialDisposable.dispose;
           observer |> Observer.dispose;
         },
     );
@@ -80,17 +80,17 @@ let defaultIfEmpty = (default: 'a) : Operator.t('a, 'b) =>
 
 let exhaust: Operator.t(Observable.t('a), 'a) =
   observer => {
-    let innerSubscription = AssignableDisposable.create();
+    let innerSubscription = SerialDisposable.create();
     let exhaustObserver = ref(Observer.disposed);
 
     let hasActiveSubscription = () =>
       innerSubscription
-      |> AssignableDisposable.get
+      |> SerialDisposable.get
       |> Disposable.isDisposed
       |> (!);
 
     let completeObserver = exn => {
-      innerSubscription |> AssignableDisposable.dispose;
+      innerSubscription |> SerialDisposable.dispose;
       observer |> Observer.complete(~exn?);
     };
 
@@ -112,7 +112,7 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
                       },
                   next,
                 );
-              innerSubscription |> AssignableDisposable.set(subscription);
+              innerSubscription |> SerialDisposable.set(subscription);
             };
           },
         ~onComplete=
@@ -126,7 +126,7 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
           },
         ~onDispose=
           () => {
-            innerSubscription |> AssignableDisposable.dispose;
+            innerSubscription |> SerialDisposable.dispose;
             observer |> Observer.dispose;
           },
       );
@@ -524,12 +524,12 @@ let some = (predicate: 'a => bool) : Operator.t('a, bool) =>
 let switch_: Operator.t(Observable.t('a), 'a) =
   observer => {
     let switchObserver = ref(Observer.disposed);
-    let innerSubscription = AssignableDisposable.create();
+    let innerSubscription = SerialDisposable.create();
     let latest = ref(0);
     let lock = Lock.create();
 
     let doSubscribeInner = (id, next) => {
-      innerSubscription |> AssignableDisposable.set(Disposable.disposed);
+      innerSubscription |> SerialDisposable.set(Disposable.disposed);
       let newInnerSubscription =
         Observable.subscribeWithCallbacks(
           ~onNext=
@@ -551,7 +551,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
               },
           next,
         );
-      innerSubscription |> AssignableDisposable.set(newInnerSubscription);
+      innerSubscription |> SerialDisposable.set(newInnerSubscription);
     };
 
     switchObserver :=
@@ -568,13 +568,13 @@ let switch_: Operator.t(Observable.t('a), 'a) =
         ~onComplete=
           exn => {
             lock |> Lock.acquire;
-            innerSubscription |> AssignableDisposable.dispose;
+            innerSubscription |> SerialDisposable.dispose;
             observer |> Observer.complete(~exn?);
             lock |> Lock.release;
           },
         ~onDispose=
           () => {
-            innerSubscription |> AssignableDisposable.dispose;
+            innerSubscription |> SerialDisposable.dispose;
             observer |> Observer.dispose;
           },
       );
@@ -604,18 +604,18 @@ let synchronize: Operator.t('a, 'a) =
 let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
   let timeoutObservable = Observable.raise(~scheduler, TimeoutException);
   observer => {
-    let timeoutSubscription = AssignableDisposable.create();
+    let timeoutSubscription = SerialDisposable.create();
     let timeOutObserver = ref(Observer.disposed);
 
     let subscribeToTimeout = () => {
-      timeoutSubscription |> AssignableDisposable.set(Disposable.disposed);
+      timeoutSubscription |> SerialDisposable.set(Disposable.disposed);
       let subscription =
         Observable.subscribeWithCallbacks(
           ~onNext=_ => (),
           ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
           timeoutObservable,
         );
-      timeoutSubscription |> AssignableDisposable.set(subscription);
+      timeoutSubscription |> SerialDisposable.set(subscription);
     };
 
     timeOutObserver :=
@@ -627,12 +627,12 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
           },
         ~onComplete=
           exn => {
-            timeoutSubscription |> AssignableDisposable.dispose;
+            timeoutSubscription |> SerialDisposable.dispose;
             observer |> Observer.complete(~exn?);
           },
         ~onDispose=
           () => {
-            timeoutSubscription |> AssignableDisposable.dispose;
+            timeoutSubscription |> SerialDisposable.dispose;
             observer |> Observer.dispose;
           },
       );

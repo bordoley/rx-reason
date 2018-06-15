@@ -4,40 +4,40 @@ let getCurrentTime=Js.Date.now;
 
 let schedule: RxReason.Scheduler.t =
   work => {
-    let disposable = RxReason.AssignableDisposable.create();
+    let disposable = RxReason.SerialDisposable.create();
     let run = () => {
       disposable
-      |> RxReason.AssignableDisposable.set(RxReason.Disposable.disposed);
-      let isDisposed = disposable |> RxReason.AssignableDisposable.isDisposed;
+      |> RxReason.SerialDisposable.set(RxReason.Disposable.disposed);
+      let isDisposed = disposable |> RxReason.SerialDisposable.isDisposed;
       if (! isDisposed) {
-        disposable |> RxReason.AssignableDisposable.set(work());
+        disposable |> RxReason.SerialDisposable.set(work());
       };
       resolveUnit;
     };
     Js.Promise.(resolveUnit |> then_(run)) |> ignore;
-    disposable |> RxReason.AssignableDisposable.toDisposable;
+    disposable |> RxReason.SerialDisposable.toDisposable;
   };
 
 let scheduleWithDelay: RxReason.DelayScheduler.t =
   (~delay, work) => {
-    let disposable = RxReason.AssignableDisposable.create();
+    let disposable = RxReason.SerialDisposable.create();
     let timeoutId =
       Js.Global.setTimeout(
         () => {
           disposable
-          |> RxReason.AssignableDisposable.set(RxReason.Disposable.disposed);
+          |> RxReason.SerialDisposable.set(RxReason.Disposable.disposed);
           let isDisposed =
-            disposable |> RxReason.AssignableDisposable.isDisposed;
+            disposable |> RxReason.SerialDisposable.isDisposed;
           if (! isDisposed) {
-            disposable |> RxReason.AssignableDisposable.set(work());
+            disposable |> RxReason.SerialDisposable.set(work());
           };
         },
         int_of_float(delay),
       );
     let timeoutDisposable =
       RxReason.Disposable.create(() => Js.Global.clearTimeout(timeoutId));
-    disposable |> RxReason.AssignableDisposable.set(timeoutDisposable);
-    disposable |> RxReason.AssignableDisposable.toDisposable;
+    disposable |> RxReason.SerialDisposable.set(timeoutDisposable);
+    disposable |> RxReason.SerialDisposable.toDisposable;
   };
 
   let clockScheduler: RxReason.ClockScheduler.t = {

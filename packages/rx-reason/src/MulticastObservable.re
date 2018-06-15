@@ -16,11 +16,11 @@ let toObservable = Functions.identity;
 
 let shareInternal = (~createSubject, source) => {
   let subject = ref(Subject.disposed);
-  let sourceSubscription = AssignableDisposable.create();
+  let sourceSubscription = SerialDisposable.create();
   let refCount = ref(0);
 
   let reset = () => {
-    sourceSubscription |> AssignableDisposable.set(Disposable.disposed);
+    sourceSubscription |> SerialDisposable.set(Disposable.disposed);
     subject^ |> Subject.dispose;
     subject := Subject.disposed;
     refCount := 0;
@@ -41,7 +41,7 @@ let shareInternal = (~createSubject, source) => {
     if (refCount^ === 0) {
       let observer = subject |> Subject.toObserver;
       sourceSubscription
-      |> AssignableDisposable.set(
+      |> SerialDisposable.set(
            Observable.subscribeObserver(observer, source),
          );
     };

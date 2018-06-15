@@ -17,10 +17,10 @@ let create = () => {
     let scheduleTime = currentTime + int_of_float(delay);
 
     if (scheduleTime >= currentTime) {
-      let disposable = AssignableDisposable.create();
+      let disposable = SerialDisposable.create();
       let executeWork = () =>
-        if (! AssignableDisposable.isDisposed(disposable)) {
-          disposable |> AssignableDisposable.set(work());
+        if (! SerialDisposable.isDisposed(disposable)) {
+          disposable |> SerialDisposable.set(work());
         };
 
       switch (Belt.MutableMap.Int.get(timeQueue, scheduleTime)) {
@@ -31,7 +31,7 @@ let create = () => {
         Belt.MutableMap.Int.set(timeQueue, scheduleTime, queue);
       };
 
-      disposable |> AssignableDisposable.toDisposable;
+      disposable |> SerialDisposable.toDisposable;
     } else {
       Disposable.disposed;
     };

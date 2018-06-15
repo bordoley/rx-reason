@@ -60,10 +60,10 @@ let createWithObserver =
     (onSubscribe: Observer.t('a) => Disposable.t)
     : t('a) =>
   (~onNext, ~onComplete) => {
-    let subscription = AssignableDisposable.create();
+    let subscription = SerialDisposable.create();
     let observer =
       Observer.createAutoDisposing(~onNext, ~onComplete, ~onDispose=() =>
-        subscription |> AssignableDisposable.dispose
+        subscription |> SerialDisposable.dispose
       );
     let innerSubscription =
       try (onSubscribe(observer)) {
@@ -81,7 +81,7 @@ let createWithObserver =
         Disposable.disposed;
       };
 
-    subscription |> AssignableDisposable.set(innerSubscription);
+    subscription |> SerialDisposable.set(innerSubscription);
     observer |> Observer.toDisposable;
   };
 
@@ -709,7 +709,7 @@ let concat =
     (~scheduler=Scheduler.immediate, observables: list(t('a)))
     : t('a) =>
   create((~onNext, ~onComplete) => {
-    let subscription = AssignableDisposable.create();
+    let subscription = SerialDisposable.create();
 
     let rec scheduleSubscription = observables => {
       let newSubscription =
@@ -723,7 +723,7 @@ let concat =
                  | None =>
                    /* Cancel the current subscription here */
                    subscription
-                   |> AssignableDisposable.set(Disposable.disposed);
+                   |> SerialDisposable.set(Disposable.disposed);
                    scheduleSubscription(tail);
                  }
                )
@@ -737,12 +737,12 @@ let concat =
        * async observable. Avoid canceling the async observable in that case.
        */
       if (! Disposable.isDisposed(newSubscription)) {
-        subscription |> AssignableDisposable.set(newSubscription);
+        subscription |> SerialDisposable.set(newSubscription);
       };
     };
 
     scheduleSubscription(observables);
-    subscription |> AssignableDisposable.toDisposable;
+    subscription |> SerialDisposable.toDisposable;
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
@@ -992,10 +992,10 @@ let publishObserver = (observer, observable) =>
 
 let retry = (shouldRetry, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) => {
-    let subscription = AssignableDisposable.create();
+    let subscription = SerialDisposable.create();
 
     let rec setupSubscription = () => {
-      let alreadyDisposed = subscription |> AssignableDisposable.isDisposed;
+      let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
 
       if (! alreadyDisposed) {
         let newSubscription =
@@ -1018,11 +1018,11 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
               }),
             observable,
           );
-        subscription |> AssignableDisposable.set(newSubscription);
+        subscription |> SerialDisposable.set(newSubscription);
       };
     };
     setupSubscription();
-    subscription |> AssignableDisposable.toDisposable;
+    subscription |> SerialDisposable.toDisposable;
   });
 
 let startWithList =
