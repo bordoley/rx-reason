@@ -33,6 +33,9 @@ let createAutoDisposing:
   ) =>
   t('a);
 
+/**
+ * A disposed Observer instance.
+ */
 let disposed: t('a);
 
 let forwardOnComplete: (t('a), option(exn)) => unit;
