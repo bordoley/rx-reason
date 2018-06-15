@@ -812,7 +812,7 @@ let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
 
 let ofAbsoluteTimeNotifications =
     (
-      ~scheduler as {getCurrentTime, scheduleWithDelay}: ClockScheduler.t,
+      ~scheduler as {now, scheduleWithDelay}: ClockScheduler.t,
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
@@ -820,7 +820,7 @@ let ofAbsoluteTimeNotifications =
     let rec loop = lst =>
       switch (lst) {
       | [(time, notif), ...tail] =>
-        let delay = time -. getCurrentTime();
+        let delay = time -. now();
         if (delay >= 0.0) {
           scheduleWithDelay(
             ~delay,

@@ -72,12 +72,12 @@ let run = ({disposable, timeQueue} as vts: t) => {
   disposable |> Disposable.dispose;
 };
 
-let getCurrentTime = ({currentTime}: t) => float_of_int(currentTime^);
+let now = ({currentTime}: t) => float_of_int(currentTime^);
 
 let toScheduler = vts => asDelayScheduler(vts, ~delay=0.0);
 
 let toClockScheduler = (vts: t): ClockScheduler.t => {
-  getCurrentTime: () => getCurrentTime(vts),
+  now: () => now(vts),
   schedule: toScheduler(vts),
   scheduleWithDelay: asDelayScheduler(vts),
 };

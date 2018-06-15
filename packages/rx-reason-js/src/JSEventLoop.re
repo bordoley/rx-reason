@@ -1,6 +1,6 @@
 let resolveUnit = Js.Promise.resolve();
 
-let getCurrentTime=Js.Date.now;
+let now=Js.Date.now;
 
 let schedule: RxReason.Scheduler.t =
   work => {
@@ -41,7 +41,7 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
   };
 
   let clockScheduler: RxReason.ClockScheduler.t = {
-    getCurrentTime,
+    now,
     schedule,
     scheduleWithDelay,
   };

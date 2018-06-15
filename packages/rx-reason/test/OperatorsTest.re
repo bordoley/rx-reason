@@ -103,10 +103,10 @@ let test =
                   ],
                 ),
             ~operator=
-              ({getCurrentTime}) =>
+              ({now}) =>
                 Operators.(
                   every(i => i > 10)
-                  >> map(_ => getCurrentTime() |> int_of_float)
+                  >> map(_ => now() |> int_of_float)
                 ),
             ~expected=[Next(2), Complete],
             (),
@@ -593,10 +593,10 @@ let test =
                   ],
                 ),
             ~operator=
-              ({getCurrentTime}) =>
+              ({now}) =>
                 Operators.(
                   some(i => i > 10)
-                  >> map(_ => getCurrentTime() |> int_of_float)
+                  >> map(_ => now() |> int_of_float)
                 ),
             ~expected=[Next(2), Complete],
             (),
