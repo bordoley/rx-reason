@@ -100,20 +100,20 @@ module Make =
     ...component,
     reducer,
     didMount,
-    shouldUpdate,
+    shouldUpdate: ({oldSelf, newSelf}) => {
+      let { propsSubject } = newSelf.state;
+      propsSubject
+      |> RxReason.Subject.next(props);
+
+      let oldAction = oldSelf.state.action;
+      let newAction = newSelf.state.action;
+      ! Action.equal(oldAction, newAction);
+    },
     initialState: () => {
       let propsSubject = RxReason.Subject.createWithReplayBuffer(1);
       propsSubject
-      |> RxReason.Subject.toObserver
-      |> RxReason.Observer.next(props);
+      |> RxReason.Subject.next(props);
       {action: None, propsSubject};
-    },
-    willReceiveProps: ({state}) => {
-      let {propsSubject} = state;
-      propsSubject
-      |> RxReason.Subject.toObserver
-      |> RxReason.Observer.next(props);
-      state;
     },
     render: ({state: {action}}) =>
       switch (action) {
