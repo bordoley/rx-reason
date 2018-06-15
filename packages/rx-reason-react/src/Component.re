@@ -86,16 +86,6 @@ module Make =
 
   let reducer = (action, state) => ReasonReact.Update({...state, action});
 
-  let shouldUpdate =
-      (
-        {oldSelf, newSelf}:
-          ReasonReact.oldNewSelf(state, ReasonReact.noRetainedProps, action),
-      ) => {
-    let oldAction = oldSelf.state.action;
-    let newAction = newSelf.state.action;
-    ! Action.equal(oldAction, newAction);
-  };
-
   let make = (~props: props, children) => {
     ...component,
     reducer,
