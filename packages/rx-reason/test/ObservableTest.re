@@ -686,7 +686,11 @@ let test =
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
                 ]),
-            ~expected=[Next(1), Next(2), CompleteWithException(Division_by_zero)],
+            ~expected=[
+              Next(1),
+              Next(2),
+              CompleteWithException(Division_by_zero),
+            ],
             (),
           ),
         ],
@@ -815,28 +819,39 @@ let test =
       describe(
         "retry",
         [
-          it("with cold observable", () => {
-            let result = ref([]);
-            let retryCount = ref(0);
-            let shouldRetry = _ => {
-              let retry = retryCount^ < 2;
-              if (retry) {
-                Interlocked.increment(retryCount) |> ignore;
-              };
-              retry;
-            };
+          observableIt(
+            "with cold observable",
+            ~nextToString=string_of_int,
+            ~source=
+              _ => {
+                let retryCount = ref(0);
+                let shouldRetry = _ => {
+                  let retry = retryCount^ < 2;
+                  if (retry) {
+                    Interlocked.increment(retryCount) |> ignore;
+                  };
+                  retry;
+                };
 
-            Observable.create((~onNext, ~onComplete) => {
-              onNext(1);
-              onNext(2);
-              onComplete(Some(Division_by_zero));
-              Disposable.disposed;
-            })
-            |> Observable.retry(shouldRetry)
-            |> Observable.subscribe(~onNext=x => result := [x, ...result^])
-            |> ignore;
-            result^ |> Expect.toBeEqualToListOfInt([2, 1, 2, 1, 2, 1]);
-          }),
+                Observable.create((~onNext, ~onComplete) => {
+                  onNext(1);
+                  onNext(2);
+                  onComplete(Some(Division_by_zero));
+                  Disposable.disposed;
+                })
+                |> Observable.retry(shouldRetry);
+              },
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(1),
+              Next(2),
+              Next(1),
+              Next(2),
+              CompleteWithException(Division_by_zero),
+            ],
+            (),
+          ),
           it("with hot observable", () => {
             let result = ref([]);
             let subject = ref(Subject.create());
@@ -866,30 +881,28 @@ let test =
             result^ |> Expect.toBeEqualToListOfInt([4, 3, 2, 1]);
           }),
           it("doesn't retry if unsubscribed in shouldRetry callback", () => {
-            let subscription = ref(Disposable.disposed);
-            let result = ref([]);
-            let subject = ref(Subject.create());
+            let vts = VirtualTimeScheduler.create();
+            let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
 
+            let subscription = ref(Disposable.disposed);
             subscription :=
-              Observable.create((~onNext, ~onComplete) => {
-                subject := Subject.create();
-                let observable = subject^ |> Subject.toObservable;
-                observable
-                |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
-              })
+              Observable.ofAbsoluteTimeNotifications(
+                ~scheduler,
+                [
+                  (1.0, Next(5)),
+                  (2.0, CompleteWithException(Division_by_zero)),
+                ],
+              )
               |> Observable.retry(_ => {
                    subscription^ |> Disposable.dispose;
                    true;
                  })
-              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
+              |> expectObservableToProduce(
+                   ~nextToString=string_of_int,
+                   [Next(5), Complete],
+                 );
 
-            subject^ |> Subject.toObserver |> Observer.next(5);
-            subject^
-            |> Subject.toObserver
-            |> Observer.complete(~exn=Division_by_zero);
-            subject^ |> Subject.toObserver |> Observer.next(6);
-
-            result^ |> Expect.toBeEqualToListOfInt([5]);
+            vts |> VirtualTimeScheduler.run;
           }),
         ],
       ),
