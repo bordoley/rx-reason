@@ -279,7 +279,6 @@ let test =
               )
               |> Observable.subscribe(~onComplete=_ => result := true);
 
-
             subject0 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
             subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
@@ -689,7 +688,7 @@ let test =
 
             let observable =
               Observable.defer(() => {
-                count := count^ + 1;
+                incr(count);
                 Observable.empty();
               });
 
@@ -805,8 +804,7 @@ let test =
               Observable.create((~onNext, ~onComplete) => {
                 subject := Subject.create();
                 let observable = subject^ |> Subject.asObservable;
-                observable
-                |> Observable.subscribeWith(~onNext, ~onComplete);
+                observable |> Observable.subscribeWith(~onNext, ~onComplete);
               })
               |> Observable.retry
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);

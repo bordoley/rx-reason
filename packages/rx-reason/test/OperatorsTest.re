@@ -97,7 +97,6 @@ let test =
                     (1.0, Next(12)),
                     (2.0, Next(8)),
                     (3.0, Next(14)),
-                    
                     (5.0, Next(6)),
                     (6.0, Complete),
                   ],
@@ -105,8 +104,7 @@ let test =
             ~operator=
               ({now}) =>
                 Operators.(
-                  every(i => i > 10)
-                  >> map(_ => now() |> int_of_float)
+                  every(i => i > 10) >> map(_ => now() |> int_of_float)
                 ),
             ~expected=[Next(2), Complete],
             (),
@@ -506,9 +504,7 @@ let test =
 
             Observable.ofList([1])
             |> Observable.lift(
-                 Operators.onComplete(_ =>
-                   sideEffectCount := sideEffectCount^ + 1
-                 ),
+                 Operators.onComplete(_ => incr(sideEffectCount)),
                )
             |> Observable.subscribe
             |> ignore;
@@ -532,11 +528,7 @@ let test =
             let sideEffectCount = ref(0);
 
             Observable.ofList([1])
-            |> Observable.lift(
-                 Operators.onNext(_ =>
-                   sideEffectCount := sideEffectCount^ + 1
-                 ),
-               )
+            |> Observable.lift(Operators.onNext(_ => incr(sideEffectCount)))
             |> Observable.subscribe
             |> ignore;
 
@@ -595,8 +587,7 @@ let test =
             ~operator=
               ({now}) =>
                 Operators.(
-                  some(i => i > 10)
-                  >> map(_ => now() |> int_of_float)
+                  some(i => i > 10) >> map(_ => now() |> int_of_float)
                 ),
             ~expected=[Next(2), Complete],
             (),

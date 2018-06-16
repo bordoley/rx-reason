@@ -10,7 +10,7 @@ let test =
         [
           it("should dispose all children disposables once", () => {
             let count = ref(0);
-            let onDispose = () => count := count^ + 1;
+            let onDispose = () => incr(count);
             let composed =
               Disposable.compose([
                 Disposable.create(onDispose),

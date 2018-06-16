@@ -15,26 +15,19 @@ let shareInternal = (~createSubject, source) => {
   let sourceSubscription = SerialDisposable.create();
   let refCount = ref(0);
 
-  let reset = () => {
-    sourceSubscription |> SerialDisposable.set(Disposable.disposed);
-    subject^ |> Subject.dispose;
-    subject := Subject.disposed;
-    refCount := 0;
-  };
-
   Observable.create((~onNext, ~onComplete) => {
     /* FIXME: Should probably add some locking here */
     if (refCount^ === 0) {
       subject := createSubject();
     };
-    let subject = subject^;
+    let currentSubject = subject^;
 
     let subscription =
-      subject
+    currentSubject
       |> Subject.subscribeWith(~onNext, ~onComplete);
 
     if (refCount^ === 0) {
-      let observer = subject |> Subject.asObserver;
+      let observer = currentSubject |> Subject.asObserver;
       sourceSubscription
       |> SerialDisposable.set(
            Observable.subscribeWith(
@@ -48,11 +41,13 @@ let shareInternal = (~createSubject, source) => {
     if (subscription |> Disposable.isDisposed) {
       Disposable.disposed;
     } else {
-      refCount := refCount^ + 1;
+      incr(refCount);
       Disposable.create(() => {
-        refCount := refCount^ > 0 ? refCount^ - 1 : 0;
+        decr(refCount);
         if (refCount^ === 0) {
-          reset();
+          sourceSubscription |> SerialDisposable.set(Disposable.disposed);
+          currentSubject |> Subject.dispose;
+          subject := Subject.disposed;
         };
         subscription |> Disposable.dispose;
       });

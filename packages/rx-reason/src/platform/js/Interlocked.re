@@ -1,9 +1,9 @@
 let decrement = (ref: ref(int)): int => {
-  ref := ref^ - 1;
+  decr(ref);
   ref^;
 };
 let increment = (ref: ref(int)): int => {
-  ref := ref^ + 1;
+  incr(ref);
   ref^;
 };
 let exchange = (value: 'a, ref: ref('a)) : 'a => {

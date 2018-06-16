@@ -539,7 +539,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
         ~onNext=
           next => {
             lock |> Lock.acquire;
-            latest := latest^ + 1;
+            incr(latest);
             let id = latest^;
             lock |> Lock.release;
 

@@ -54,7 +54,7 @@ let advance = ({disposable, timeQueue} as vts: t) => {
   };
 
   Belt.MutableMap.Int.remove(timeQueue, currentTime);
-  vts.currentTime := vts.currentTime^ + 1;
+  incr(vts.currentTime);
 };
 
 let asDelayScheduler = ({scheduler}) => scheduler;
@@ -76,9 +76,8 @@ let now = ({currentTime}: t) => float_of_int(currentTime^);
 
 let toScheduler = vts => asDelayScheduler(vts, 0.0);
 
-let toClockScheduler = (vts: t): ClockScheduler.t => {
+let toClockScheduler = (vts: t) : ClockScheduler.t => {
   now: () => now(vts),
   schedule: toScheduler(vts),
   scheduleWithDelay: asDelayScheduler(vts),
 };
-
