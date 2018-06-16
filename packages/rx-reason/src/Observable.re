@@ -842,6 +842,10 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
     create((~onNext, ~onComplete) => {
       let rec loop = (list, ()) =>
         switch (list) {
+        | [hd, ...[]] =>
+          onNext(hd);
+          onComplete(None);
+          Disposable.disposed;
         | [hd, ...tail] =>
           onNext(hd);
           scheduler(loop(tail));
@@ -873,6 +877,9 @@ let ofNotifications =
     createWithObserver(observer => {
       let rec loop = (list, ()) =>
         switch (list) {
+        | [hd, ...[]] =>
+          observer |> Observer.notify(hd);
+          Disposable.disposed;
         | [hd, ...tail] =>
           observer |> Observer.notify(hd);
           schedule(loop(tail));
