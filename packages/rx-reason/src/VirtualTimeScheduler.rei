@@ -10,7 +10,7 @@ let advance: t => unit;
 /** Casts to DelayScheduler.t */
 let asDelayScheduler: t => DelayScheduler.t;
 
-/** Constructs a new VirtualTimeScheduler */
+/** Constructs a new VirtualTimeScheduler. */
 let create: unit => t;
 
 /** Returns the current time in milliseconds. */

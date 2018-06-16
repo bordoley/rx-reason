@@ -1,7 +1,5 @@
 let resolveUnit = Js.Promise.resolve();
 
-let now=Js.Date.now;
-
 let schedule: RxReason.Scheduler.t =
   work => {
     let disposable = RxReason.SerialDisposable.create();
@@ -41,7 +39,7 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
   };
 
   let clockScheduler: RxReason.ClockScheduler.t = {
-    now,
+    now: Js.Date.now,
     schedule,
     scheduleWithDelay,
   };
