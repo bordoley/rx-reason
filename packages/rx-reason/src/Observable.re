@@ -35,8 +35,8 @@ module type S1 = {
 
 let asObservable = Functions.identity;
 
-let subscribeSafe = (observer, subscribe) =>
-  try (subscribe(observer)) {
+let subscribeSafe = (observer, source) =>
+  try (source(observer)) {
   | exn =>
     let shouldRaise = observer |> Observer.completeWithResult(~exn) |> (!);
     if (shouldRaise) {
@@ -52,10 +52,10 @@ let subscribeSafe = (observer, subscribe) =>
 
 let subscribeObserver = (observer, observable) =>
   switch (observable) {
-  | Source(subscribe) => subscribeSafe(observer, subscribe)
-  | Lifted(subscribe, operator) =>
+  | Source(source) => source |> subscribeSafe(observer)
+  | Lifted(source, operator) =>
     let observer = operator(observer);
-    subscribeSafe(observer, subscribe);
+    source |> subscribeSafe(observer);
   };
 
 let subscribeWith = (~onNext, ~onComplete, observable) => {
