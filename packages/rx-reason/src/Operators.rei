@@ -47,8 +47,8 @@ let distinctUntilChanged:
   (~equals: ('a, 'a) => bool=?) => Operator.t('a, 'a);
 
 /**
- * Returns an Observer that emits a single true value if every 
- * item observed by the upstream observer satisfies
+ * Returns an Observer that emits a single true value if all
+ * items observed by the upstream observer satisfies
  * the predicate.
  * 
  * Note: If the Observer is completed before observing any values
@@ -111,8 +111,7 @@ let lastOrNone: Operator.t('a, option('a));
 
 /**
  * Returns an Observer which applies the specified function to
- * each item observed, emitting the
- * result of the function application.
+ * each item observed, emitting the result of the function application.
  */
 let map: ('a => 'b) => Operator.t('a, 'b);
 
