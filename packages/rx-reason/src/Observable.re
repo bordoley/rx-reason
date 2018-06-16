@@ -1,5 +1,8 @@
+type source('a) = Observer.t('a) => Disposable.t;
+
 type t('a) =
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t;
+  | Source(source('a)): t('a)
+  | Lifted(source('b), Operator.t('b, 'a)): t('a);
 
 type observable('a) = t('a);
 
@@ -32,8 +35,41 @@ module type S1 = {
 
 let asObservable = Functions.identity;
 
-let subscribeWith = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
-  observable(~onNext, ~onComplete);
+let subscribeSafe = (observer, subscribe) =>
+  try (subscribe(observer)) {
+  | exn =>
+    let shouldRaise = observer |> Observer.completeWithResult(~exn) |> (!);
+    if (shouldRaise) {
+      /* This could happen when the onComplete is called synchronously in the
+       * subscribe function which also throws.
+       */
+      raise(
+        exn,
+      );
+    };
+    Disposable.disposed;
+  };
+
+let subscribeObserver = (observer, observable) =>
+  switch (observable) {
+  | Source(subscribe) => subscribeSafe(observer, subscribe)
+  | Lifted(subscribe, operator) =>
+    let observer = operator(observer);
+    subscribeSafe(observer, subscribe);
+  };
+
+let subscribeWith = (~onNext, ~onComplete, observable) => {
+  let subscription = SerialDisposable.create();
+
+  let observer =
+    Observer.createAutoDisposing(~onNext, ~onComplete, ~onDispose=() =>
+      subscription |> SerialDisposable.dispose
+    );
+
+  subscription
+  |> SerialDisposable.set(subscribeObserver(observer, observable));
+  observer |> Observer.asDisposable;
+};
 
 let subscribe =
     (
@@ -43,50 +79,20 @@ let subscribe =
     ) =>
   observable |> subscribeWith(~onNext, ~onComplete);
 
-let subscribeObserver =
-    (observer: Observer.t('a), observable: t('a))
-    : Disposable.t =>
-  observable
-  |> subscribeWith(
-       ~onNext=Observer.forwardOnNext(observer),
-       ~onComplete=Observer.forwardOnComplete(observer),
-     );
+let createWithObserver = onSubscribe => Source(onSubscribe);
 
-let createWithObserver =
-    (onSubscribe: Observer.t('a) => Disposable.t)
-    : t('a) =>
-  (~onNext, ~onComplete) => {
-    let subscription = SerialDisposable.create();
-    let observer =
-      Observer.createAutoDisposing(~onNext, ~onComplete, ~onDispose=() =>
-        subscription |> SerialDisposable.dispose
-      );
-    let innerSubscription =
-      try (onSubscribe(observer)) {
-      | exn =>
-        let shouldRaise =
-          observer |> Observer.completeWithResult(~exn) |> (!);
-        if (shouldRaise) {
-          /* This could happen when the onComplete is called synchronously in the
-           * subscribe function which also throws.
-           */
-          raise(
-            exn,
-          );
-        };
-        Disposable.disposed;
-      };
-
-    subscription |> SerialDisposable.set(innerSubscription);
-    observer |> Observer.asDisposable;
-  };
-
-let create = onSubscribe : t('a) =>
-  createWithObserver(observer => subscribeObserver(observer, onSubscribe));
+let create = onSubscribe =>
+  Source(
+    observer =>
+      onSubscribe(
+        ~onNext=Observer.forwardOnNext(observer),
+        ~onComplete=Observer.forwardOnComplete(observer),
+      ),
+  );
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
-  create((~onNext, ~onComplete) =>
-    scheduler(() => observable |> subscribeWith(~onNext, ~onComplete))
+  createWithObserver(observer =>
+    scheduler(() => observable |> subscribeObserver(observer))
   );
 
 let combineLatest2 =
@@ -736,8 +742,8 @@ let concat =
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
-  create((~onNext, ~onComplete) =>
-    f() |> subscribeWith(~onNext, ~onComplete)
+  createWithObserver(observer =>
+    f() |> subscribeObserver(observer)
   );
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
@@ -754,11 +760,12 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
     );
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
-  createWithObserver(observer => {
-    let lifted = operator(observer);
-    let subscription = observable |> subscribeObserver(lifted);
-    Disposable.compose([subscription, lifted |> Observer.asDisposable]);
-  });
+  switch (observable) {
+  | Source(source) => Lifted(source, operator)
+  | Lifted(source, oldOperator) =>
+    let newOperator = observer => oldOperator @@ operator @@ observer;
+    Lifted(source, newOperator);
+  };
 
 let merge = (observables: list(t('a))) : t('a) => {
   let count = observables |> List.length;
@@ -796,7 +803,7 @@ let merge = (observables: list(t('a))) : t('a) => {
   });
 };
 
-let never = (~onNext as _, ~onComplete as _) => Disposable.empty();
+let never = Source(_ => Disposable.empty());
 
 let ofAbsoluteTimeNotifications =
     (
@@ -804,27 +811,29 @@ let ofAbsoluteTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(observer => {
-    let rec loop = lst =>
-      switch (lst) {
-      | [(time, notif), ...tail] =>
-        let delay = time -. now();
-        if (delay >= 0.0) {
-          scheduleWithDelay(
-            delay,
-            () => {
-              observer |> Observer.notify(notif);
-              loop(tail);
-            },
-          );
-        } else {
-          scheduleWithDelay(0.0, () => loop(tail));
+  createWithObserver(
+    observer => {
+      let rec loop = lst =>
+        switch (lst) {
+        | [(time, notif), ...tail] =>
+          let delay = time -. now();
+          if (delay >= 0.0) {
+            scheduleWithDelay(
+              delay,
+              () => {
+                observer |> Observer.notify(notif);
+                loop(tail);
+              },
+            );
+          } else {
+            scheduleWithDelay(0.0, () => loop(tail));
+          };
+        | [] => Disposable.disposed
         };
-      | [] => Disposable.disposed
-      };
 
-    loop(notifications);
-  });
+      loop(notifications);
+    },
+  );
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
@@ -842,7 +851,7 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
     create((~onNext, ~onComplete) => {
       let rec loop = (list, ()) =>
         switch (list) {
-        | [hd, ...[]] =>
+        | [hd] =>
           onNext(hd);
           onComplete(None);
           Disposable.disposed;
@@ -862,31 +871,35 @@ let ofNotifications =
       notifications: list(Notification.t('a)),
     )
     : t('a) =>
-  schedule === Scheduler.immediate ?
-    createWithObserver(observer => {
-      let rec loop = list =>
-        switch (list) {
-        | [hd, ...tail] =>
-          observer |> Observer.notify(hd);
-          loop(tail);
-        | [] => ()
-        };
-      loop(notifications);
-      Disposable.disposed;
-    }) :
-    createWithObserver(observer => {
-      let rec loop = (list, ()) =>
-        switch (list) {
-        | [hd, ...[]] =>
-          observer |> Observer.notify(hd);
-          Disposable.disposed;
-        | [hd, ...tail] =>
-          observer |> Observer.notify(hd);
-          schedule(loop(tail));
-        | [] => Disposable.disposed
-        };
-      schedule(loop(notifications));
-    });
+  createWithObserver(
+    schedule === Scheduler.immediate ?
+      observer => {
+        let rec loop = list =>
+          switch (list) {
+          | [hd, ...tail] =>
+            observer |> Observer.notify(hd);
+            loop(tail);
+          | [] => ()
+          };
+        loop(notifications);
+        Disposable.disposed;
+      } :
+      (
+        observer => {
+          let rec loop = (list, ()) =>
+            switch (list) {
+            | [hd] =>
+              observer |> Observer.notify(hd);
+              Disposable.disposed;
+            | [hd, ...tail] =>
+              observer |> Observer.notify(hd);
+              schedule(loop(tail));
+            | [] => Disposable.disposed
+            };
+          schedule(loop(notifications));
+        }
+      ),
+  );
 
 let ofRelativeTimeNotifications =
     (
@@ -894,22 +907,24 @@ let ofRelativeTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(observer => {
-    let rec loop = (lst, previousDelay) =>
-      switch (lst) {
-      | [(delay, notif), ...tail] =>
-        schedule(
-          max(0.0, delay -. previousDelay),
-          () => {
-            observer |> Observer.notify(notif);
-            loop(tail, delay);
-          },
-        )
-      | [] => Disposable.disposed
-      };
+  createWithObserver(
+    observer => {
+      let rec loop = (lst, previousDelay) =>
+        switch (lst) {
+        | [(delay, notif), ...tail] =>
+          schedule(
+            max(0.0, delay -. previousDelay),
+            () => {
+              observer |> Observer.notify(notif);
+              loop(tail, delay);
+            },
+          )
+        | [] => Disposable.disposed
+        };
 
-    loop(notifications, 0.0);
-  });
+      loop(notifications, 0.0);
+    },
+  );
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
   scheduler === Scheduler.immediate ?
@@ -929,9 +944,9 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
     );
 
 let onSubscribe = (f, observable) =>
-  create((~onNext, ~onComplete) => {
+  createWithObserver(observer => {
     let callbackDisposable = f();
-    let subscription = observable |> subscribeWith(~onNext, ~onComplete);
+    let subscription = observable |> subscribeObserver(observer);
     Disposable.compose([subscription, callbackDisposable]);
   });
 
