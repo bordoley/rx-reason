@@ -28,7 +28,7 @@ let test =
                 ),
             ~operator=
               ({scheduleWithDelay}) =>
-                Operators.debounce(scheduleWithDelay(~delay=5.0)),
+                Operators.debounce(scheduleWithDelay(5.0)),
             ~expected=[Next(3), Next(6), Complete],
             (),
           ),
@@ -685,7 +685,7 @@ let test =
                 ),
             ~operator=
               ({scheduleWithDelay}) =>
-                Operators.timeout(scheduleWithDelay(~delay=5.0)),
+                Operators.timeout(scheduleWithDelay(5.0)),
             ~expected=[Next(1), Next(2), Next(3), Next(4), Complete],
             (),
           ),
@@ -706,7 +706,7 @@ let test =
                 ),
             ~operator=
               ({scheduleWithDelay}) =>
-                Operators.timeout(scheduleWithDelay(~delay=5.0)),
+                Operators.timeout(scheduleWithDelay(5.0)),
             ~expected=[
               Next(1),
               Next(2),

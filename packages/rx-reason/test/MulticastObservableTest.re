@@ -23,9 +23,9 @@ let test =
 
           Observable.merge([
             source 
-            |> Observable.subscribeOn(scheduleWithDelay(~delay=6.0)),
+            |> Observable.subscribeOn(scheduleWithDelay(6.0)),
             source 
-            |> Observable.subscribeOn(scheduleWithDelay(~delay=3.0))
+            |> Observable.subscribeOn(scheduleWithDelay(3.0))
           ]);
         },
         ~expected=[Next(2), Next(3), Next(3), Complete],

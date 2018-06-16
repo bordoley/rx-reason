@@ -53,7 +53,7 @@ let test =
                 Observable.combineLatest2(
                   ~selector=(a, b) => a + b,
                   Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    ~scheduler=scheduler.scheduleWithDelay(2.0),
                     Division_by_zero,
                   ),
                   Observable.ofAbsoluteTimeNotifications(
@@ -105,7 +105,7 @@ let test =
                 Observable.combineLatest3(
                   ~selector=(a, b, c) => a + b + c,
                   Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(~delay=5.0),
+                    ~scheduler=scheduler.scheduleWithDelay(5.0),
                     Division_by_zero,
                   ),
                   Observable.ofAbsoluteTimeNotifications(
@@ -623,7 +623,7 @@ let test =
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
                   Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    ~scheduler=scheduler.scheduleWithDelay(2.0),
                     Division_by_zero,
                   ),
                   Observable.ofRelativeTimeNotifications(
@@ -747,7 +747,7 @@ let test =
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
                   Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(~delay=2.0),
+                    ~scheduler=scheduler.scheduleWithDelay(2.0),
                     Division_by_zero,
                   ),
                 ]),

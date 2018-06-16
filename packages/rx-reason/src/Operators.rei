@@ -25,7 +25,7 @@ let (>>): (Operator.t('a, 'b), Operator.t('b, 'c)) => Operator.t('a, 'c);
  * ```re
  * Observable.ofList([1, 2 , 3])
  * |> Observable.lift(
- *     Operators.debounce(scheduleWithDelay(~delay=5.0))
+ *     Operators.debounce(scheduleWithDelay(5.0))
  *   );
  * ```
  */
@@ -214,7 +214,7 @@ let synchronize: Operator.t('a, 'a);
  * ```re
  * someObservable
  * |> Observable.lift(
- *     Operators.timeout(scheduleWithDelay(~delay=5.0))
+ *     Operators.timeout(scheduleWithDelay(5.0))
  *   );
  * ```
  */

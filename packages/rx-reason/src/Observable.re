@@ -811,14 +811,14 @@ let ofAbsoluteTimeNotifications =
         let delay = time -. now();
         if (delay >= 0.0) {
           scheduleWithDelay(
-            ~delay,
+            delay,
             () => {
               observer |> Observer.notify(notif);
               loop(tail);
             },
           );
         } else {
-          scheduleWithDelay(~delay=0.0, () => loop(tail));
+          scheduleWithDelay(0.0, () => loop(tail));
         };
       | [] => Disposable.disposed
       };
@@ -892,7 +892,7 @@ let ofRelativeTimeNotifications =
       switch (lst) {
       | [(delay, notif), ...tail] =>
         schedule(
-          ~delay=max(0.0, delay -. previousDelay),
+          max(0.0, delay -. previousDelay),
           () => {
             observer |> Observer.notify(notif);
             loop(tail, delay);

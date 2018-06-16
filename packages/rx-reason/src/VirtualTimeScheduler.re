@@ -11,7 +11,7 @@ let create = () => {
   let timeQueue = Belt.MutableMap.Int.make();
   let disposable =
     Disposable.create(() => timeQueue |> Belt.MutableMap.Int.clear);
-  let scheduler = (~delay, work) => {
+  let scheduler = (delay, work) => {
     Disposable.raiseIfDisposed(disposable);
     let currentTime = currentTime^;
     let scheduleTime = currentTime + int_of_float(delay);
@@ -74,7 +74,7 @@ let run = ({disposable, timeQueue} as vts: t) => {
 
 let now = ({currentTime}: t) => float_of_int(currentTime^);
 
-let toScheduler = vts => asDelayScheduler(vts, ~delay=0.0);
+let toScheduler = vts => asDelayScheduler(vts, 0.0);
 
 let toClockScheduler = (vts: t): ClockScheduler.t => {
   now: () => now(vts),
