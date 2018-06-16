@@ -770,7 +770,7 @@ let test =
             ~source=
               _ => {
                 let retryCount = ref(0);
-                let shouldRetry = _ => {
+                let predicate = _ => {
                   let retry = retryCount^ < 2;
                   if (retry) {
                     Interlocked.increment(retryCount) |> ignore;
@@ -784,7 +784,7 @@ let test =
                   onComplete(Some(Division_by_zero));
                   Disposable.disposed;
                 })
-                |> Observable.retry(shouldRetry);
+                |> Observable.retry(~predicate);
               },
             ~expected=[
               Next(1),
@@ -808,7 +808,7 @@ let test =
                 observable
                 |> Observable.subscribeWith(~onNext, ~onComplete);
               })
-              |> Observable.retry(_ => true)
+              |> Observable.retry
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
 
             let observer = subject^ |> Subject.asObserver;
@@ -838,7 +838,7 @@ let test =
                   (2.0, CompleteWithException(Division_by_zero)),
                 ],
               )
-              |> Observable.retry(_ => {
+              |> Observable.retry(~predicate=_ => {
                    subscription^ |> Disposable.dispose;
                    true;
                  })

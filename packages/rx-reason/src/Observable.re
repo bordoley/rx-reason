@@ -971,7 +971,7 @@ let publish =
     ) =>
   publishTo(~onNext, ~onComplete, observable);
 
-let retry = (shouldRetry, observable: t('a)) : t('a) =>
+let repeatInternal = (shouldRetry, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) => {
     let subscription = SerialDisposable.create();
     let setupSubscription = ref(Functions.alwaysUnit);
@@ -979,14 +979,10 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
     let onComplete =
       Functions.earlyReturnsUnit1(exn => {
         let shouldComplete =
-          switch (exn) {
-          | None => true
-          | Some(exn) =>
-            try (! shouldRetry(exn)) {
-            | exn =>
-              onComplete(Some(exn));
-              Functions.returnUnit();
-            }
+          try (! shouldRetry(exn)) {
+          | exn =>
+            onComplete(Some(exn));
+            Functions.returnUnit();
           };
 
         shouldComplete ? onComplete(exn) : setupSubscription^();
@@ -1008,6 +1004,24 @@ let retry = (shouldRetry, observable: t('a)) : t('a) =>
     setupSubscription^();
     subscription |> SerialDisposable.asDisposable;
   });
+
+let repeat = (~predicate=Functions.alwaysTrue, observable) =>
+  observable
+  |> repeatInternal(exn =>
+       switch (exn) {
+       | None => predicate()
+       | Some(_) => false
+       }
+     );
+
+let retry = (~predicate=Functions.alwaysTrue, observable) =>
+  observable
+  |> repeatInternal(exn =>
+       switch (exn) {
+       | None => false
+       | Some(exn) => predicate(exn)
+       }
+     );
 
 let startWithList =
     (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>

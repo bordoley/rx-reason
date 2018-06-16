@@ -1,3 +1,5 @@
+let alwaysTrue = _ => true;
+
 let alwaysUnit = (_: 'a) : unit => ();
 
 let identity = (a: 'a) : 'a => a;

@@ -10,13 +10,13 @@ module type S1 = {
 
   /** Cast to Observable.t. */
   let asObservable: t('a) => observable('a);
- 
-  /** 
-   * Returns a delayed subscription to the Observable with the 
+
+  /**
+   * Returns a delayed subscription to the Observable with the
    * optional item and completion handlers.
-   * 
+   *
    * When the returned connect function is first invoked, it will
-   * establish the subscription, returning a Disposable which can 
+   * establish the subscription, returning a Disposable which can
    * be used to cancel the subscription. Subsequent calls to the
    * connect function will return the same Disposable instance,
    * unless the connection has been disposed, in which case a new
@@ -31,10 +31,10 @@ module type S1 = {
     ) =>
     Disposable.t;
 
-  /** 
-   * Returns a delayed subscription to the Observablew ith the supplied 
+  /**
+   * Returns a delayed subscription to the Observablew ith the supplied
    * item and completion handlers.
-   * 
+   *
    * Prefer using this publish variant when supplying both item and completion
    * handlers or to avoid optional argument boxing.
    */
@@ -51,7 +51,7 @@ module type S1 = {
 
   /**
    * Subscribes to the Observable with the supplied item and completion handlers.
-   * 
+   *
    * Prefer using this subscribe variant when supplying both item and completion
    * handlers or to avoid optional argument boxing.
    */
@@ -63,35 +63,35 @@ module type S1 = {
 include S1 with type t('a) := t('a);
 
 /**
- * Combines 2 source Observables, emitting items which aggregate the latest 
+ * Combines 2 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest2: (~selector: ('a, 'b) => 'c, t('a), t('b)) => t('c);
 
 /**
- * Combines 3 source Observables, emitting items which aggregate the latest 
+ * Combines 3 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest3:
   (~selector: ('a, 'b, 'c) => 'd, t('a), t('b), t('c)) => t('d);
 
 /**
- * Combines 4 source Observables, emitting items which aggregate the latest 
+ * Combines 4 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest4:
   (~selector: ('a, 'b, 'c, 'd) => 'e, t('a), t('b), t('c), t('d)) => t('e);
 
 /**
- * Combines 5 source Observables, emitting items which aggregate the latest 
+ * Combines 5 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest5:
@@ -106,9 +106,9 @@ let combineLatest5:
   t('f);
 
 /**
- * Combines 6 source Observables, emitting items which aggregate the latest 
+ * Combines 6 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest6:
@@ -124,9 +124,9 @@ let combineLatest6:
   t('g);
 
 /**
- * Combines 7 source Observables, emitting items which aggregate the latest 
+ * Combines 7 source Observables, emitting items which aggregate the latest
  * values emitted by each source Observable each time an item is emitted by
- * any of the source Observable. The combined value is computed using the 
+ * any of the source Observable. The combined value is computed using the
  * provided selector function.
  */
 let combineLatest7:
@@ -156,7 +156,7 @@ let create:
   t('a);
 
 /**
- * Returns an Observable that calls an Observable factory to 
+ * Returns an Observable that calls an Observable factory to
  * create a new Observable for each subscription.
  */
 let defer: (unit => t('a)) => t('a);
@@ -183,8 +183,8 @@ let merge: list(t('a)) => t('a);
  */
 let never: t('a);
 
-/** 
- * Returns an Observable which emits the specified notifications at the 
+/**
+ * Returns an Observable which emits the specified notifications at the
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
@@ -193,27 +193,27 @@ let ofAbsoluteTimeNotifications:
 
 /**
  * Returns an Observable that emits the given items and then completes.
- */ 
+ */
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
-/** 
+/**
  * Returns an Observable which emits the specified notifications
  * using the supplied scheduler.
  */
 let ofNotifications:
   (~scheduler: Scheduler.t=?, list(Notification.t('a))) => t('a);
 
-/** 
- * Returns an Observable which emits the specified notifications at the 
+/**
+ * Returns an Observable which emits the specified notifications at the
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
   (~scheduler: DelayScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
- /**
+/**
   * Returns an Observable that emits the given item and then completes.
-  */ 
+  */
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
 /**
@@ -231,25 +231,32 @@ let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 
 /**
  * Returns an Observable that mirrors the source Observable,
- * resubscribing to it if it completes with an exception and 
- * the predicate returns true for that specific exception.
+ * resubscribing to it if it completes and
+ * the predicate returns true for that specific.
  */
-let retry: (exn => bool, t('a)) => t('a);
+let repeat: (~predicate: unit => bool=?, t('a)) => t('a);
 
 /**
- * Returns an Observable that emits the specified items before it 
+ * Returns an Observable that mirrors the source Observable,
+ * resubscribing to it if it completes with an exception and
+ * the predicate returns true for that specific exception.
+ */
+let retry: (~predicate: exn => bool=?, t('a)) => t('a);
+
+/**
+ * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
  */
 let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
 /**
- * Returns an Observable that emits a specified item before it 
+ * Returns an Observable that emits a specified item before it
  * begins to emit items emitted by the source Observable.
  */
 let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
 
 /**
- * Returns an Observable which subscribes to the provided source Observable 
+ * Returns an Observable which subscribes to the provided source Observable
  * on the specified scheduler.
  */
 let subscribeOn: (Scheduler.t, t('a)) => t('a);
