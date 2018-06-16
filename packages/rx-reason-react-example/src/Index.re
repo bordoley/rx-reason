@@ -10,7 +10,7 @@ let module StatefulComponent = RxReasonReact.Component.Make({
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let single = promise |> RxReasonJs.JSPromise.toSingle;
-single |> RxReason.Single.subscribeWithCallbacks(
+single |> RxReason.Single.subscribeWith(
   ~onSuccess=Js.log,
   ~onError=Js.log,
 ) |> ignore;

@@ -28,29 +28,23 @@ let asObserver = ({observer}: t('a)) : Observer.t('a) => observer;
 
 let asObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
-let publishObserver = (observer, subject) =>
-  subject |> asObservable |> Observable.publishObserver(observer);
-
-let publishWithCallbacks = (~onNext, ~onComplete, subject) =>
+let publishTo = (~onNext, ~onComplete, subject) =>
   subject
   |> asObservable
-  |> Observable.publishWithCallbacks(~onNext, ~onComplete);
+  |> Observable.publishTo(~onNext, ~onComplete);
 
 let publish =
     (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
-  subject |> publishWithCallbacks(~onNext, ~onComplete);
+  subject |> publishTo(~onNext, ~onComplete);
 
-let subscribeObserver = (observer, subject) =>
-  subject |> asObservable |> Observable.subscribeObserver(observer);
-
-let subscribeWithCallbacks = (~onNext, ~onComplete, subject) =>
+let subscribeWith = (~onNext, ~onComplete, subject) =>
   subject
   |> asObservable
-  |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+  |> Observable.subscribeWith(~onNext, ~onComplete);
 
 let subscribe =
     (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
-  subject |> subscribeWithCallbacks(~onNext, ~onComplete);
+  subject |> subscribeWith(~onNext, ~onComplete);
 
 let createWithCallbacks =
     (~onNext, ~onComplete, ~onDispose, ~onSubscribe)

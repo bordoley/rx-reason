@@ -4,15 +4,11 @@ let asObservable = Functions.identity;
 
 let subscribe = Observable.subscribe;
 
-let subscribeObserver = Observable.subscribeObserver;
-
-let subscribeWithCallbacks = Observable.subscribeWithCallbacks;
+let subscribeWith = Observable.subscribeWith;
 
 let publish = Observable.publish;
 
-let publishObserver = Observable.publishObserver;
-
-let publishWithCallbacks = Observable.publishWithCallbacks;
+let publishTo = Observable.publishTo;
 
 let shareInternal = (~createSubject, source) => {
   let subject = ref(Subject.disposed);
@@ -35,13 +31,17 @@ let shareInternal = (~createSubject, source) => {
 
     let subscription =
       subject
-      |> Subject.subscribeWithCallbacks(~onNext, ~onComplete);
+      |> Subject.subscribeWith(~onNext, ~onComplete);
 
     if (refCount^ === 0) {
       let observer = subject |> Subject.asObserver;
       sourceSubscription
       |> SerialDisposable.set(
-           Observable.subscribeObserver(observer, source),
+           Observable.subscribeWith(
+             ~onNext=Observer.forwardOnNext(observer), 
+             ~onComplete=Observer.forwardOnComplete(observer),
+             source
+            ),
          );
     };
 

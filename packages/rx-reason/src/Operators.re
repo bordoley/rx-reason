@@ -101,7 +101,7 @@ let exhaust: Operator.t(Observable.t('a), 'a) =
             let hasActiveSubscription = hasActiveSubscription();
             if (! hasActiveSubscription) {
               let subscription =
-                Observable.subscribeWithCallbacks(
+                Observable.subscribeWith(
                   ~onNext=Observer.forwardOnNext(observer),
                   ~onComplete=
                     exn =>
@@ -511,7 +511,7 @@ let switch_: Operator.t(Observable.t('a), 'a) =
     let doSubscribeInner = (id, next) => {
       innerSubscription |> SerialDisposable.set(Disposable.disposed);
       let newInnerSubscription =
-        Observable.subscribeWithCallbacks(
+        Observable.subscribeWith(
           ~onNext=
             next => {
               lock |> Lock.acquire;
@@ -586,16 +586,14 @@ let timeout = (scheduler: Scheduler.t) : Operator.t('a, 'a) => {
   observer => {
     let timeoutSubscription = SerialDisposable.create();
     let timeOutObserver = ref(Observer.disposed);
+    let connect = Observable.publish(
+      ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
+      timeoutObservable,
+    );
 
     let subscribeToTimeout = () => {
-      timeoutSubscription |> SerialDisposable.set(Disposable.disposed);
-      let subscription =
-        Observable.subscribeWithCallbacks(
-          ~onNext=_ => (),
-          ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
-          timeoutObservable,
-        );
-      timeoutSubscription |> SerialDisposable.set(subscription);
+      timeoutSubscription |> SerialDisposable.get |> Disposable.dispose;
+      timeoutSubscription |> SerialDisposable.set(connect());
     };
 
     timeOutObserver :=
@@ -662,7 +660,7 @@ let withLatestFrom =
       );
 
     otherSubscription :=
-      Observable.subscribeWithCallbacks(
+      Observable.subscribeWith(
         ~onNext=next => otherLatest |> MutableOption.set(next),
         ~onComplete=
           exn =>

@@ -17,9 +17,7 @@ module type S1 = {
     ) =>
     Disposable.t;
 
-  let publishObserver: (Observer.t('a), t('a), unit) => Disposable.t;
-
-  let publishWithCallbacks:
+  let publishTo:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
     Disposable.t;
 
@@ -27,18 +25,14 @@ module type S1 = {
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     Disposable.t;
 
-  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
-
-  let subscribeWithCallbacks:
+  let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
 };
 
 let asObservable = Functions.identity;
 
-let subscribeWithCallbacks =
-    (~onNext, ~onComplete, observable: t('a))
-    : Disposable.t =>
+let subscribeWith = (~onNext, ~onComplete, observable: t('a)) : Disposable.t =>
   observable(~onNext, ~onComplete);
 
 let subscribe =
@@ -47,13 +41,13 @@ let subscribe =
       ~onComplete=Functions.alwaysUnit,
       observable,
     ) =>
-  observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+  observable |> subscribeWith(~onNext, ~onComplete);
 
 let subscribeObserver =
     (observer: Observer.t('a), observable: t('a))
     : Disposable.t =>
   observable
-  |> subscribeWithCallbacks(
+  |> subscribeWith(
        ~onNext=Observer.forwardOnNext(observer),
        ~onComplete=Observer.forwardOnComplete(observer),
      );
@@ -92,9 +86,7 @@ let create = onSubscribe : t('a) =>
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) =>
-    scheduler(() =>
-      observable |> subscribeWithCallbacks(~onNext, ~onComplete)
-    )
+    scheduler(() => observable |> subscribeWith(~onNext, ~onComplete))
   );
 
 let combineLatest2 =
@@ -141,10 +133,7 @@ let combineLatest2 =
 
     let doSubscribe = (observable, v, s) =>
       observable
-      |> subscribeWithCallbacks(
-           ~onNext=doOnNext(v),
-           ~onComplete=doOnComplete(s),
-         );
+      |> subscribeWith(~onNext=doOnNext(v), ~onComplete=doOnComplete(s));
 
     let (s0, s1) = Disposable.(ref(disposed), ref(disposed));
     s0 := doSubscribe(observable0, v0, s1);
@@ -222,7 +211,7 @@ let combineLatest3 =
 
     let doSubscribe = (observable, v, s0, s1) =>
       observable
-      |> subscribeWithCallbacks(
+      |> subscribeWith(
            ~onNext=doOnNext(v),
            ~onComplete=doOnComplete(s0, s1),
          );
@@ -319,7 +308,7 @@ let combineLatest4 =
 
     let doSubscribe = (observable, v, s0, s1, s2) =>
       observable
-      |> subscribeWithCallbacks(
+      |> subscribeWith(
            ~onNext=doOnNext(v),
            ~onComplete=doOnComplete(s0, s1, s2),
          );
@@ -425,7 +414,7 @@ let combineLatest5 =
 
     let doSubscribe = (observable, v, s0, s1, s2, s3) =>
       observable
-      |> subscribeWithCallbacks(
+      |> subscribeWith(
            ~onNext=doOnNext(v),
            ~onComplete=doOnComplete(s0, s1, s2, s3),
          );
@@ -540,7 +529,7 @@ let combineLatest6 =
 
     let doSubscribe = (observable, v, s0, s1, s2, s3, s4) =>
       observable
-      |> subscribeWithCallbacks(
+      |> subscribeWith(
            ~onNext=doOnNext(v),
            ~onComplete=doOnComplete(s0, s1, s2, s3, s4),
          );
@@ -664,7 +653,7 @@ let combineLatest7 =
 
     let doSubscribe = (observable, v, s0, s1, s2, s3, s4, s5) =>
       observable
-      |> subscribeWithCallbacks(
+      |> subscribeWith(
            ~onNext=doOnNext(v),
            ~onComplete=doOnComplete(s0, s1, s2, s3, s4, s5),
          );
@@ -719,13 +708,12 @@ let concat =
         | [hd, ...tail] =>
           scheduler(() =>
             hd
-            |> subscribeWithCallbacks(~onNext, ~onComplete=exn =>
+            |> subscribeWith(~onNext, ~onComplete=exn =>
                  switch (exn) {
                  | Some(_) => onComplete(exn)
                  | None =>
                    /* Cancel the current subscription here */
-                   subscription
-                   |> SerialDisposable.set(Disposable.disposed);
+                   subscription |> SerialDisposable.set(Disposable.disposed);
                    scheduleSubscription(tail);
                  }
                )
@@ -749,7 +737,7 @@ let concat =
 
 let defer = (f: unit => t('a)) : t('a) =>
   create((~onNext, ~onComplete) =>
-    f() |> subscribeWithCallbacks(~onNext, ~onComplete)
+    f() |> subscribeWith(~onNext, ~onComplete)
   );
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
@@ -780,7 +768,7 @@ let merge = (observables: list(t('a))) : t('a) => {
     let lock = Lock.create();
     observables
     |> List.map(
-         subscribeWithCallbacks(
+         subscribeWith(
            ~onNext=
              next => {
                Lock.acquire(lock);
@@ -936,8 +924,7 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
 let onSubscribe = (f, observable) =>
   create((~onNext, ~onComplete) => {
     let callbackDisposable = f();
-    let subscription =
-      observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+    let subscription = observable |> subscribeWith(~onNext, ~onComplete);
     Disposable.compose([subscription, callbackDisposable]);
   });
 
@@ -957,14 +944,13 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
     );
 };
 
-let publishWithCallbacks = (~onNext, ~onComplete, observable) => {
+let publishTo = (~onNext, ~onComplete, observable) => {
   let connection = ref(Disposable.disposed);
   let active = ref(false);
 
   () => {
     if (! Interlocked.exchange(true, active)) {
-      let subscription =
-        observable |> subscribeWithCallbacks(~onNext, ~onComplete);
+      let subscription = observable |> subscribeWith(~onNext, ~onComplete);
       let newConnection =
         Disposable.create(() => {
           subscription |> Disposable.dispose;
@@ -983,47 +969,43 @@ let publish =
       ~onComplete=Functions.alwaysUnit,
       observable,
     ) =>
-  publishWithCallbacks(~onNext, ~onComplete, observable);
-
-let publishObserver = (observer, observable) =>
-  publishWithCallbacks(
-    ~onNext=Observer.forwardOnNext(observer),
-    ~onComplete=Observer.forwardOnComplete(observer),
-    observable,
-  );
+  publishTo(~onNext, ~onComplete, observable);
 
 let retry = (shouldRetry, observable: t('a)) : t('a) =>
   create((~onNext, ~onComplete) => {
     let subscription = SerialDisposable.create();
+    let setupSubscription = ref(Functions.alwaysUnit);
 
-    let rec setupSubscription = () => {
-      let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
+    let onComplete =
+      Functions.earlyReturnsUnit1(exn => {
+        let shouldComplete =
+          switch (exn) {
+          | None => true
+          | Some(exn) =>
+            try (! shouldRetry(exn)) {
+            | exn =>
+              onComplete(Some(exn));
+              Functions.returnUnit();
+            }
+          };
 
-      if (! alreadyDisposed) {
-        let newSubscription =
-          subscribeWithCallbacks(
-            ~onNext,
-            ~onComplete=
-              Functions.earlyReturnsUnit1(exn => {
-                let shouldComplete =
-                  switch (exn) {
-                  | None => true
-                  | Some(exn) =>
-                    try (! shouldRetry(exn)) {
-                    | exn =>
-                      onComplete(Some(exn));
-                      Functions.returnUnit();
-                    }
-                  };
+        shouldComplete ? onComplete(exn) : setupSubscription^();
+      });
 
-                shouldComplete ? onComplete(exn) : setupSubscription();
-              }),
-            observable,
-          );
-        subscription |> SerialDisposable.set(newSubscription);
-      };
-    };
-    setupSubscription();
+    let connect = observable |> publishTo(~onNext, ~onComplete);
+
+    setupSubscription :=
+      (
+        () => {
+          let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
+
+          if (! alreadyDisposed) {
+            subscription |> SerialDisposable.get |> Disposable.dispose;
+            subscription |> SerialDisposable.set(connect());
+          };
+        }
+      );
+    setupSubscription^();
     subscription |> SerialDisposable.asDisposable;
   });
 

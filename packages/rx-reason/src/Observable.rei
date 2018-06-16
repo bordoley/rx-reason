@@ -10,7 +10,18 @@ module type S1 = {
 
   /** Cast to Observable.t. */
   let asObservable: t('a) => observable('a);
-
+ 
+  /** 
+   * Returns a delayed subscription to the Observable with the 
+   * optional item and completion handlers.
+   * 
+   * When the returned connect function is first invoked, it will
+   * establish the subscription, returning a Disposable which can 
+   * be used to cancel the subscription. Subsequent calls to the
+   * connect function will return the same Disposable instance,
+   * unless the connection has been disposed, in which case a new
+   * subscription will be created.
+   */
   let publish:
     (
       ~onNext: 'a => unit=?,
@@ -20,19 +31,31 @@ module type S1 = {
     ) =>
     Disposable.t;
 
-  let publishObserver: (Observer.t('a), t('a), unit) => Disposable.t;
-
-  let publishWithCallbacks:
+  /** 
+   * Returns a delayed subscription to the Observablew ith the supplied 
+   * item and completion handlers.
+   * 
+   * Prefer using this publish variant when supplying both item and completion
+   * handlers or to avoid optional argument boxing.
+   */
+  let publishTo:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
     Disposable.t;
 
+  /**
+   * Subscribes to the Observable with the optional item and completion handlers.
+   */
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     Disposable.t;
 
-  let subscribeObserver: (Observer.t('a), t('a)) => Disposable.t;
-
-  let subscribeWithCallbacks:
+  /**
+   * Subscribes to the Observable with the supplied item and completion handlers.
+   * 
+   * Prefer using this subscribe variant when supplying both item and completion
+   * handlers or to avoid optional argument boxing.
+   */
+  let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     Disposable.t;
 };

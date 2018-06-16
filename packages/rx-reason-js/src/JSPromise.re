@@ -28,7 +28,7 @@ let toSingle = (
 let fromSingle = (
   single: RxReason.Single.t('a),
 ): Js.Promise.t('a) => Js.Promise.make((~resolve, ~reject) => {
-  single |> RxReason.Single.subscribeWithCallbacks(
+  single |> RxReason.Single.subscribeWith(
     ~onSuccess=a => resolve(. a), 
     ~onError=e => reject(. e),
   ) |> ignore;

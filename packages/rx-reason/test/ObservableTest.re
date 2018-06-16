@@ -806,7 +806,7 @@ let test =
                 subject := Subject.create();
                 let observable = subject^ |> Subject.asObservable;
                 observable
-                |> Observable.subscribeWithCallbacks(~onNext, ~onComplete);
+                |> Observable.subscribeWith(~onNext, ~onComplete);
               })
               |> Observable.retry(_ => true)
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);

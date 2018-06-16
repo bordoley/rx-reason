@@ -41,5 +41,5 @@ let some: ('a => bool, Observable.t('a)) => t(bool);
 let subscribe:
   (~onSuccess: ('a => unit)=?, ~onError: (exn => unit)=?, t('a)) => Disposable.t;
 
-let subscribeWithCallbacks:
+let subscribeWith:
   (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;
