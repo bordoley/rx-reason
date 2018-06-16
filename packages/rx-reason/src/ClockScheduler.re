@@ -2,7 +2,7 @@
  * A Scheduler that can be used to schedule work either immediately or
  * in the future, and also provides a mechanism to retrieve the current 
  * time.
- */
+ */;
 type t = {
   /** Returns the current time in milliseconds. */
   now: unit => float,

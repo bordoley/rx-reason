@@ -39,14 +39,38 @@ module type S1 = {
 
 include S1 with type t('a) := t('a);
 
+/**
+ * Combines 2 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest2: (~selector: ('a, 'b) => 'c, t('a), t('b)) => t('c);
 
+/**
+ * Combines 3 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest3:
   (~selector: ('a, 'b, 'c) => 'd, t('a), t('b), t('c)) => t('d);
 
+/**
+ * Combines 4 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest4:
   (~selector: ('a, 'b, 'c, 'd) => 'e, t('a), t('b), t('c), t('d)) => t('e);
 
+/**
+ * Combines 5 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest5:
   (
     ~selector: ('a, 'b, 'c, 'd, 'e) => 'f,
@@ -58,6 +82,12 @@ let combineLatest5:
   ) =>
   t('f);
 
+/**
+ * Combines 6 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest6:
   (
     ~selector: ('a, 'b, 'c, 'd, 'e, 'f) => 'g,
@@ -70,6 +100,12 @@ let combineLatest6:
   ) =>
   t('g);
 
+/**
+ * Combines 7 source Observables, emitting items which aggregate the latest 
+ * values emitted by each source Observable each time an item is emitted by
+ * any of the source Observable. The combined value is computed using the 
+ * provided selector function.
+ */
 let combineLatest7:
   (
     ~selector: ('a, 'b, 'c, 'd, 'e, 'f, 'g) => 'h,
@@ -124,6 +160,10 @@ let merge: list(t('a)) => t('a);
  */
 let never: t('a);
 
+/** 
+ * Returns an Observable which emits the specified notifications at the 
+ * specified absolutes times using the supplied scheduler.
+ */
 let ofAbsoluteTimeNotifications:
   (~scheduler: ClockScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
@@ -133,9 +173,17 @@ let ofAbsoluteTimeNotifications:
  */ 
 let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
+/** 
+ * Returns an Observable which emits the specified notifications
+ * using the supplied scheduler.
+ */
 let ofNotifications:
   (~scheduler: Scheduler.t=?, list(Notification.t('a))) => t('a);
 
+/** 
+ * Returns an Observable which emits the specified notifications at the 
+ * specified relative times using the supplied scheduler.
+ */
 let ofRelativeTimeNotifications:
   (~scheduler: DelayScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
