@@ -5,10 +5,9 @@ ReUnit.run(
     "Reactive.re",
     [
       DisposableTest.test,
-      MulticastObservableTest.test,
       ObserverTest.test,
+      MulticastObservableTest.test,
       ObservableTest.test,
-      OperatorsTest.test,
       SingleTest.test,
       SubjectTest.test,
     ],

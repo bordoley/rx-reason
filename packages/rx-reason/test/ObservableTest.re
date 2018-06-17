@@ -681,6 +681,53 @@ let test =
         ],
       ),
       describe(
+        "debounce",
+        [
+          observableIt(
+            "debounces",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay}) =>
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler=scheduleWithDelay,
+                  [
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (15.0, Next(4)),
+                    (16.0, Next(5)),
+                    (17.0, Next(6)),
+                    (18.0, Complete),
+                  ],
+                )
+                |> Observable.debounce(scheduleWithDelay(5.0)),
+            ~expected=[Next(3), Next(6), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "defaultIfEmpty",
+        [
+          observableIt(
+            "returns the default if empty",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.empty() |> Observable.defaultIfEmpty(1),
+            ~expected=[Next(1), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through if not empty",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 2, 3]) |> Observable.defaultIfEmpty(1),
+            ~expected=[Next(1), Next(2), Next(3), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
         "defer",
         [
           it("calls the observable factory on subscribe", () => {
@@ -699,7 +746,441 @@ let test =
           }),
         ],
       ),
+      describe(
+        "distinctUntilChanged",
+        [
+          observableIt(
+            "removes duplicates",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 1, 1, 3, 5, 3, 3, 1])
+                |> Observable.distinctUntilChanged(~equals=(===)),
+            ~expected=[
+              Next(1),
+              Next(3),
+              Next(5),
+              Next(3),
+              Next(1),
+              Complete,
+            ],
+            (),
+          ),
+        ],
+      ),
       describe("empty", []),
+      describe(
+        "every",
+        [
+          observableIt(
+            "returns true for an observer that completes without producing values",
+            ~nextToString=string_of_bool,
+            ~source=_ => Observable.empty() |> Observable.every(i => i > 10),
+            ~expected=[Next(true), Complete],
+            (),
+          ),
+          observableIt(
+            "completes with false on the first observed value that fails the predicate",
+            ~nextToString=string_of_int,
+            ~source=
+              ({now} as scheduler) =>
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (1.0, Next(12)),
+                    (2.0, Next(8)),
+                    (3.0, Next(14)),
+                    (5.0, Next(6)),
+                    (6.0, Complete),
+                  ],
+                )
+                |> Observable.every(i => i > 10)
+                |> Observable.map(_ => now() |> int_of_float),
+            ~expected=[Next(2), Complete],
+            (),
+          ),
+          observableIt(
+            "completes with true if all values pass the predicate",
+            ~nextToString=string_of_bool,
+            ~source=
+              _ =>
+                Observable.ofList([12, 13]) |> Observable.every(i => i > 10),
+            ~expected=[Next(true), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "exhaust",
+        [
+          observableIt(
+            "exhausts",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay} as scheduler) => {
+                let childObservableA =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduleWithDelay,
+                    [
+                      (0.0, Next(1)),
+                      (10.0, Next(2)),
+                      (20.0, Next(3)),
+                      (30.0, Next(4)),
+                      (40.0, Complete),
+                    ],
+                  );
+
+                let childObservableB =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduleWithDelay,
+                    [
+                      (0.0, Next(5)),
+                      (10.0, Next(6)),
+                      (19.0, Next(7)),
+                      (30.0, Next(8)),
+                      (40.0, Complete),
+                    ],
+                  );
+
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (0.0, Next(childObservableA)),
+                    (15.0, Next(childObservableB)),
+                    (35.0, Next(childObservableA)),
+                    (60.0, Next(childObservableB)),
+                    (75.0, Complete),
+                  ],
+                )
+                |> Observable.exhaust;
+              },
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              Next(5),
+              Next(6),
+              Next(7),
+              Next(8),
+              Complete,
+            ],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "find",
+        [
+          observableIt(
+            "finds the first matching element and completes",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 3, 10, 6, 8])
+                |> Observable.find(x => x mod 2 === 0),
+            ~expected=[Next(10), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "first",
+        [
+          observableIt(
+            "publishes the first observed value",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofList([2, 3]) |> Observable.first,
+            ~expected=[Next(2), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through completed exceptions",
+            ~nextToString=string_of_int,
+            ~source=
+              _ => Observable.raise(Division_by_zero) |> Observable.first,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "completes with exception if no values are produced",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.empty() |> Observable.first,
+            ~expected=[CompleteWithException(Exceptions.EmptyException)],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "firstOrNone",
+        [
+          observableIt(
+            "publishes Some of the first observed value",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.ofList([2, 3]) |> Observable.firstOrNone,
+            ~expected=[Next(Some(2)), Complete],
+            (),
+          ),
+          observableIt(
+            "publishes Some of the first observed value",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=
+              _ =>
+                Observable.raise(Division_by_zero) |> Observable.firstOrNone,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "ignores EmptyException, publishes None, and completes normally",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=
+              _ =>
+                Observable.empty()
+                |> Observable.first
+                |> Observable.firstOrNone,
+            ~expected=[Next(None), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "ignoreElements",
+        [
+          observableIt(
+            "ignores all elements and publishes an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Next(3),
+                  CompleteWithException(Division_by_zero),
+                ])
+                |> Observable.ignoreElements,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "isEmpty",
+        [
+          observableIt(
+            "return false if not empty",
+            ~nextToString=string_of_bool,
+            ~source=_ => Observable.ofValue(1) |> Observable.isEmpty,
+            ~expected=[Next(false), Complete],
+            (),
+          ),
+          observableIt(
+            "return true if empty",
+            ~nextToString=string_of_bool,
+            ~source=_ => Observable.empty() |> Observable.isEmpty,
+            ~expected=[Next(true), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "keep",
+        [
+          observableIt(
+            "completes the observer when the predicate throws an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofValue(1)
+                |> Observable.keep(_ => raise(Division_by_zero)),
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "completes the observer when the keep observer is completed",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofValue(1) |> Observable.keep(_ => true),
+            ~expected=[Next(1), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "last",
+        [
+          observableIt(
+            "publishes the last observed value and disposes",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofList([1, 2, 3]) |> Observable.last,
+            ~expected=[Next(3), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through completed exceptions",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  Next(3),
+                  CompleteWithException(Division_by_zero),
+                ])
+                |> Observable.last,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "completes with exception if no values are produced",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.empty() |> Observable.last,
+            ~expected=[CompleteWithException(Exceptions.EmptyException)],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "lastOrNone",
+        [
+          observableIt(
+            "publishes the Some of the last observed value and completes",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=_ => Observable.ofList([2, 3]) |> Observable.lastOrNone,
+            ~expected=[Next(Some(3)), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through completed exceptions",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  CompleteWithException(Division_by_zero),
+                ])
+                |> Observable.lastOrNone,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "ignores EmptyException, publishes None, and completes normally",
+            ~nextEquals=Option.equals,
+            ~nextToString=Option.toString(~toString=string_of_int),
+            ~source=
+              _ =>
+                Observable.empty() |> Observable.first |> Observable.lastOrNone,
+            ~expected=[Next(None), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "map",
+        [
+          observableIt(
+            "completes the observer when the mapper throws an exception",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 2, 3])
+                |> Observable.map(_ => raise(Division_by_zero)),
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "completes the observer when the mapping observer is completed",
+            ~nextToString=string_of_int,
+            ~source=
+              _ => Observable.ofList([1, 2, 3]) |> Observable.map(i => i + 1),
+            ~expected=[Next(2), Next(3), Next(4), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "mapTo",
+        [
+          observableIt(
+            "maps any input to value",
+            ~nextToString=Functions.identity,
+            ~source=
+              _ => Observable.ofList([1, 2, 3]) |> Observable.mapTo("a"),
+            ~expected=[Next("a"), Next("a"), Next("a"), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "maybeFirst",
+        [
+          observableIt(
+            "publishes the first observed value",
+            ~nextToString=string_of_int,
+            ~source=
+              _ => Observable.ofList([1, 2, 3]) |> Observable.maybeFirst,
+            ~expected=[Next(1), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through completed exceptions",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.raise(Division_by_zero) |> Observable.maybeFirst,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "ignores EmptyException and completes normally",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.empty() |> Observable.first |> Observable.maybeFirst,
+            ~expected=[Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "maybeLast",
+        [
+          observableIt(
+            "publishes the last observed value",
+            ~nextToString=string_of_int,
+            ~source=_ => Observable.ofList([1, 2, 3]) |> Observable.maybeLast,
+            ~expected=[Next(3), Complete],
+            (),
+          ),
+          observableIt(
+            "passes through completed exceptions",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofNotifications([
+                  Next(1),
+                  Next(2),
+                  CompleteWithException(Division_by_zero),
+                ])
+                |> Observable.maybeLast,
+            ~expected=[CompleteWithException(Division_by_zero)],
+            (),
+          ),
+          observableIt(
+            "ignores EmptyException and completes normally",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.empty() |> Observable.first |> Observable.maybeLast,
+            ~expected=[Complete],
+            (),
+          ),
+        ],
+      ),
       describe(
         "merge",
         [
@@ -756,6 +1237,58 @@ let test =
         ],
       ),
       describe("never", []),
+      describe("none", []),
+      describe("observeOn", []),
+      describe(
+        "onComplete",
+        [
+          observableIt(
+            "passes through notifications",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 2])
+                |> Observable.onComplete(Functions.alwaysUnit),
+            ~expected=[Next(1), Next(2), Complete],
+            (),
+          ),
+          it("calls the side effect function", () => {
+            let sideEffectCount = ref(0);
+
+            Observable.ofList([1])
+            |> Observable.onComplete(_ => incr(sideEffectCount))
+            |> Observable.subscribe
+            |> ignore;
+
+            sideEffectCount^ |> Expect.toBeEqualToInt(1);
+          }),
+        ],
+      ),
+      describe(
+        "onNext",
+        [
+          observableIt(
+            "passes through notifications",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([1, 2])
+                |> Observable.onNext(Functions.alwaysUnit),
+            ~expected=[Next(1), Next(2), Complete],
+            (),
+          ),
+          it("calls the side effect function", () => {
+            let sideEffectCount = ref(0);
+
+            Observable.ofList([1])
+            |> Observable.onNext(_ => incr(sideEffectCount))
+            |> Observable.subscribe
+            |> ignore;
+
+            sideEffectCount^ |> Expect.toBeEqualToInt(1);
+          }),
+        ],
+      ),
       describe("ofList", []),
       describe("ofValue", []),
       describe("publish", []),
@@ -850,6 +1383,63 @@ let test =
         ],
       ),
       describe(
+        "scan",
+        [
+          observableIt(
+            "publishes all intermediate values, including the initial accumulator value",
+            ~nextToString=string_of_int,
+            ~source=
+              _ =>
+                Observable.ofList([2, 3, 4])
+                |> Observable.scan((acc, next) => acc + next, 0),
+            ~expected=[Next(0), Next(2), Next(5), Next(9), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "some",
+        [
+          observableIt(
+            "returns false for an observer that completes without producing values",
+            ~nextToString=string_of_bool,
+            ~source=_ => Observable.empty() |> Observable.some(i => i > 10),
+            ~expected=[Next(false), Complete],
+            (),
+          ),
+          observableIt(
+            "returns false for an observer for which no value passes the predicate",
+            ~nextToString=string_of_bool,
+            ~source=
+              _ =>
+                Observable.ofList([5, 6, 7]) |> Observable.some(i => i > 10),
+            ~expected=[Next(false), Complete],
+            (),
+          ),
+          observableIt(
+            "completes with true on the first observed value that passed the predicate",
+            ~nextToString=string_of_int,
+            ~source=
+              ({now} as scheduler) =>
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (1.0, Next(8)),
+                    (2.0, Next(11)),
+                    (3.0, Next(14)),
+                    (4.0, Next(6)),
+                    (5.0, Next(5)),
+                    (6.0, Complete),
+                  ],
+                )
+                |> Observable.some(i => i > 10)
+                |> Observable.map(_ => now() |> int_of_float),
+            ~expected=[Next(2), Complete],
+            (),
+          ),
+        ],
+      ),
+      describe(
         "startWithlist",
         [
           observableIt(
@@ -890,5 +1480,151 @@ let test =
         ],
       ),
       describe("subscribeOn", []),
+      describe(
+        "switch_",
+        [
+          observableIt(
+            "switches",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay} as scheduler) => {
+                let childObservableA =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduleWithDelay,
+                    [
+                      (0.0, Next(1)),
+                      (10.0, Next(2)),
+                      (20.0, Next(3)),
+                      (30.0, Next(4)),
+                      (40.0, Complete),
+                    ],
+                  );
+
+                let childObservableB =
+                  Observable.ofRelativeTimeNotifications(
+                    ~scheduler=scheduleWithDelay,
+                    [
+                      (0.0, Next(5)),
+                      (10.0, Next(6)),
+                      (19.0, Next(7)),
+                      (30.0, Next(8)),
+                      (40.0, Complete),
+                    ],
+                  );
+
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (0.0, Next(childObservableA)),
+                    (15.0, Next(childObservableB)),
+                    (35.0, Next(childObservableA)),
+                    (60.0, Next(childObservableB)),
+                    (75.0, Complete),
+                  ],
+                )
+                |> Observable.switch_;
+              },
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(5),
+              Next(6),
+              Next(7),
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(5),
+              Next(6),
+              Complete,
+            ],
+            (),
+          ),
+        ],
+      ),
+      describe("synchronize", []),
+      describe(
+        "timeout",
+        [
+          observableIt(
+            "when timeout does not expire",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay}) =>
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler=scheduleWithDelay,
+                  [
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (10.0, Next(4)),
+                    (14.0, Complete),
+                  ],
+                )
+                |> Observable.timeout(scheduleWithDelay(5.0)),
+            ~expected=[Next(1), Next(2), Next(3), Next(4), Complete],
+            (),
+          ),
+          observableIt(
+            "when timeout expires",
+            ~nextToString=string_of_int,
+            ~source=
+              ({scheduleWithDelay}) =>
+                Observable.ofRelativeTimeNotifications(
+                  ~scheduler=scheduleWithDelay,
+                  [
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (15.0, Next(4)),
+                    (20.0, Complete),
+                  ],
+                )
+                |> Observable.timeout(scheduleWithDelay(5.0)),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              CompleteWithException(Exceptions.TimeoutException),
+            ],
+            (),
+          ),
+        ],
+      ),
+      describe(
+        "withLatestFrom",
+        [
+          observableIt(
+            "drops values from the source, if there is no latest value",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observable.ofAbsoluteTimeNotifications(
+                  ~scheduler,
+                  [
+                    (0.0, Next(1)),
+                    (200.0, Next(2)),
+                    (400.0, Next(3)),
+                    (600.0, Next(4)),
+                    (700.0, Complete),
+                  ],
+                )
+                |> Observable.withLatestFrom(
+                     ~selector=(a, b) => a + b,
+                     Observable.ofAbsoluteTimeNotifications(
+                       ~scheduler,
+                       [
+                         (100.0, Next(1)),
+                         (250.0, Next(2)),
+                         (300.0, Next(3)),
+                         (450.0, Next(4)),
+                         (500.0, Complete),
+                       ],
+                     ),
+                   ),
+            ~expected=[Next(3), Next(6), Next(8), Complete],
+            (),
+          ),
+        ],
+      ),
     ],
   );
