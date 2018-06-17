@@ -10,7 +10,7 @@ let operator = (default, observer) => {
       exn => {
         let exn =
           switch (exn) {
-          | Some(Exceptions.EmptyException)
+          | Some(EmptyException.EmptyException)
           | None =>
             if (Volatile.read(isEmpty)) {
               observer |> Observer.next(default);

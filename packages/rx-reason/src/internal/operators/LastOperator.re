@@ -9,7 +9,7 @@ let operator = observer => {
           | Some(_) => exn
           | None =>
             if (MutableOption.isEmpty(last)) {
-              Some(Exceptions.EmptyException);
+              Some(EmptyException.exn);
             } else {
               let lastValue = MutableOption.get(last);
               observer |> Observer.next(lastValue);

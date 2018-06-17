@@ -5,8 +5,6 @@ type t = {
 
 type disposable = t;
 
-exception DisposedException;
-
 module type S = {
   type t;
 
@@ -57,5 +55,5 @@ let isDisposed = ({isDisposed}: t) : bool => Volatile.read(isDisposed);
 
 let raiseIfDisposed = (disposable: t)  =>
   if (isDisposed(disposable)) {
-    raise(DisposedException);
+    DisposedException.raise();
   };

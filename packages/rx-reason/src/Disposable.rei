@@ -6,8 +6,6 @@ type t;
 
 type disposable = t;
 
-exception DisposedException;
-
 module type S = {
   type t;
   

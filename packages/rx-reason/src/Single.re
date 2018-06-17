@@ -80,7 +80,7 @@ let subscribeWith =
                /* This case should never happen due to how the constructors of Single
                 * instances  protect against it.
                 */
-               onError(Exceptions.EmptyException)
+               onError(EmptyException.exn)
              },
        );
   subscription;

@@ -16,7 +16,7 @@ let operator = observer => {
             switch (exn) {
             | Some(CompleteWithoutErrorException) => None
             | Some(_) => exn
-            | _ => Some(Exceptions.EmptyException)
+            | _ => Some(EmptyException.exn)
             };
           observer |> Observer.complete(~exn?);
         },

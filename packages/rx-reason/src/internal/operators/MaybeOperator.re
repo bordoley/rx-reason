@@ -5,7 +5,7 @@ let operator = observer =>
       exn => {
         let exn =
           switch (exn) {
-          | Some(Exceptions.EmptyException) => None
+          | Some(EmptyException.EmptyException) => None
           | _ => exn
           };
         observer |> Observer.complete(~exn?);

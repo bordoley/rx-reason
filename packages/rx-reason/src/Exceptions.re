@@ -1,3 +1,0 @@
-exception EmptyException;
-
-exception TimeoutException;
