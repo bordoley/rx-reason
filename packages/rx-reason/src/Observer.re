@@ -1,4 +1,5 @@
 type t('a) = {
+  isAutoDispose: bool,
   isStopped: ref(bool),
   onComplete: option(exn) => unit,
   onNext: 'a => unit,
@@ -24,9 +25,10 @@ let asDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
 
 let asObserver = Functions.identity;
 
-let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
+let createInternal = (~isAutoDispose, ~onNext, ~onComplete, ~onDispose) => {
   let isStopped = ref(false);
   {
+    isAutoDispose,
     isStopped,
     onComplete,
     onNext,
@@ -38,39 +40,29 @@ let create = (~onNext, ~onComplete, ~onDispose) : t('a) => {
   };
 };
 
-let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) : t('a) => {
-  let isStopped = ref(false);
-  let disposable =
-    Disposable.create(() => {
-      Volatile.write(true, isStopped);
-      onDispose();
-    });
+let create = (~onNext, ~onComplete, ~onDispose) =>
+  createInternal(~isAutoDispose=false, ~onNext, ~onComplete, ~onDispose);
 
-  {
-    isStopped,
-    onComplete: exn => {
-      try (onComplete(exn)) {
-      | exn =>
-        disposable |> Disposable.dispose;
-        raise(exn);
-      };
-      disposable |> Disposable.dispose;
-    },
-    onNext: next =>
-      try (onNext(next)) {
-      | exn =>
-        disposable |> Disposable.dispose;
-        raise(exn);
-      },
-    disposable,
+let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) =>
+  createInternal(~isAutoDispose=true, ~onNext, ~onComplete, ~onDispose);
+
+let autoDispose = ({isAutoDispose, disposable}) =>
+  if (isAutoDispose) {
+    disposable |> Disposable.dispose;
   };
-};
 
-let completeWithResult = (~exn=?, {isStopped, onComplete}: t('a)) : bool => {
+let completeWithResult =
+    (~exn=?, {isStopped, onComplete} as observer)
+    : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
-    onComplete(exn);
+    try (onComplete(exn)) {
+    | exn =>
+      autoDispose(observer);
+      raise(exn);
+    };
   };
+  autoDispose(observer);
   shouldComplete;
 };
 
@@ -81,6 +73,7 @@ let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
 let disposedIsStopped = ref(true);
 let disposed = {
+  isAutoDispose: false,
   isStopped: disposedIsStopped,
   onComplete: Functions.alwaysUnit,
   onNext: Functions.alwaysUnit,
@@ -91,10 +84,16 @@ let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
 let isStopped = ({isStopped}) => Volatile.read(isStopped);
 
-let next = (next: 'a, {onNext, isStopped}: t('a)) : unit => {
+let next =
+    (next: 'a, {onNext, isStopped} as observer)
+    : unit => {
   let isStopped = Volatile.read(isStopped);
   if (! isStopped) {
-    onNext(next);
+    try (onNext(next)) {
+    | exn =>
+      autoDispose(observer);
+      raise(exn);
+    };
   };
 };
 
