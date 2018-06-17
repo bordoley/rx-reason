@@ -2,7 +2,21 @@ type source('a) = Observer.t('a) => Disposable.t;
 
 type t('a) =
   | Source(source('a)): t('a)
-  | Lifted(source('b), Operator.t('b, 'a)): t('a);
+  | Lift1(source('b), Operator.t('b, 'a)): t('a)
+  | Lift2(source('c), Operator.t('c, 'b), Operator.t('b, 'a)): t('a)
+  | Lift3(
+           source('d),
+           Operator.t('d, 'c),
+           Operator.t('c, 'b),
+           Operator.t('b, 'a),
+         ): t('a)
+  | Lift4(
+           source('e),
+           Operator.t('e, 'd),
+           Operator.t('d, 'c),
+           Operator.t('c, 'b),
+           Operator.t('b, 'a),
+         ): t('a);
 
 type observable('a) = t('a);
 
@@ -53,8 +67,17 @@ let subscribeSafe = (observer, source) =>
 let subscribeObserver = (observer, observable) =>
   switch (observable) {
   | Source(source) => source |> subscribeSafe(observer)
-  | Lifted(source, operator) =>
+  | Lift1(source, operator) =>
     let observer = operator(observer);
+    source |> subscribeSafe(observer);
+  | Lift2(source, op0, op1) =>
+    let observer = op0(op1(observer));
+    source |> subscribeSafe(observer);
+  | Lift3(source, op0, op1, op2) =>
+    let observer = op0(op1(op2(observer)));
+    source |> subscribeSafe(observer);
+  | Lift4(source, op0, op1, op2, op3) =>
+    let observer = op0(op1(op2(op3(observer))));
     source |> subscribeSafe(observer);
   };
 
@@ -759,10 +782,13 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   switch (observable) {
-  | Source(source) => Lifted(source, operator)
-  | Lifted(source, oldOperator) =>
-    let newOperator = observer => oldOperator @@ operator @@ observer;
-    Lifted(source, newOperator);
+  | Source(source) => Lift1(source, operator)
+  | Lift1(source, op0) => Lift2(source, op0, operator)
+  | Lift2(source, op0, op1) => Lift3(source, op0, op1, operator)
+  | Lift3(source, op0, op1, op2) => Lift4(source, op0, op1, op2, operator)
+  | Lift4(source, op0, op1, op2, op3) =>
+      let operator = observer => op0 @@ op1 @@ op2 @@ op3 @@ operator @@ observer;
+      Lift1(source, operator)
   };
 
 let merge = (observables: list(t('a))) : t('a) => {
