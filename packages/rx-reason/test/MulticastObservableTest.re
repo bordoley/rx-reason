@@ -28,7 +28,7 @@ let test =
             |> Observable.subscribeOn(scheduleWithDelay(3.0))
           ]);
         },
-        ~expected=[Next(2), Next(3), Next(3), Complete],
+        ~expected=[Next(1), Next(2), Next(3), Next(3), Complete],
         (),
       ),
     ]),

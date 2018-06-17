@@ -7,7 +7,7 @@ type t = {
 };
 
 let create = () => {
-  let currentTime = ref(0);
+  let currentTime = ref(-1);
   let timeQueue = Belt.MutableMap.Int.make();
   let disposable =
     Disposable.create(() => timeQueue |> Belt.MutableMap.Int.clear);

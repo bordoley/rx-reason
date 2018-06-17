@@ -742,9 +742,7 @@ let concat =
   });
 
 let defer = (f: unit => t('a)) : t('a) =>
-  createWithObserver(observer =>
-    f() |> subscribeObserver(observer)
-  );
+  createWithObserver(observer => f() |> subscribeObserver(observer));
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
@@ -811,29 +809,27 @@ let ofAbsoluteTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(
-    observer => {
-      let rec loop = lst =>
-        switch (lst) {
-        | [(time, notif), ...tail] =>
-          let delay = time -. now();
-          if (delay >= 0.0) {
-            scheduleWithDelay(
-              delay,
-              () => {
-                observer |> Observer.notify(notif);
-                loop(tail);
-              },
-            );
-          } else {
-            scheduleWithDelay(0.0, () => loop(tail));
-          };
-        | [] => Disposable.disposed
+  createWithObserver(observer => {
+    let rec loop = lst =>
+      switch (lst) {
+      | [(time, notif), ...tail] =>
+        let delay = time -. now();
+        if (delay > 0.0) {
+          scheduleWithDelay(
+            delay,
+            () => {
+              observer |> Observer.notify(notif);
+              loop(tail);
+            },
+          );
+        } else {
+          loop(tail);
         };
+      | [] => Disposable.disposed
+      };
 
-      loop(notifications);
-    },
-  );
+    loop(notifications);
+  });
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
@@ -907,24 +903,22 @@ let ofRelativeTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(
-    observer => {
-      let rec loop = (lst, previousDelay) =>
-        switch (lst) {
-        | [(delay, notif), ...tail] =>
-          schedule(
-            max(0.0, delay -. previousDelay),
-            () => {
-              observer |> Observer.notify(notif);
-              loop(tail, delay);
-            },
-          )
-        | [] => Disposable.disposed
-        };
+  createWithObserver(observer => {
+    let rec loop = (lst, previousDelay) =>
+      switch (lst) {
+      | [(delay, notif), ...tail] =>
+        schedule(
+          max(0.0, delay -. previousDelay),
+          () => {
+            observer |> Observer.notify(notif);
+            loop(tail, delay);
+          },
+        )
+      | [] => Disposable.disposed
+      };
 
-      loop(notifications, 0.0);
-    },
-  );
+    loop(notifications, 0.0);
+  });
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
   scheduler === Scheduler.immediate ?
@@ -943,12 +937,20 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
+let onSubscribeOperator = (f, observer) => {
+  let callbackDisposable = f();
+  Observer.create(
+    ~onNext=Observer.forwardOnNext(observer),
+    ~onComplete=Observer.forwardOnComplete(observer),
+    ~onDispose=() => {
+      callbackDisposable |> Disposable.dispose;
+      observer |> Observer.dispose;
+    },
+  );
+};
+
 let onSubscribe = (f, observable) =>
-  createWithObserver(observer => {
-    let callbackDisposable = f();
-    let subscription = observable |> subscribeObserver(observer);
-    Disposable.compose([subscription, callbackDisposable]);
-  });
+  observable |> lift(onSubscribeOperator(f));
 
 let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
   let exn = Some(exn);
@@ -993,39 +995,53 @@ let publish =
     ) =>
   publishTo(~onNext, ~onComplete, observable);
 
-let repeatInternal = (shouldRetry, observable: t('a)) : t('a) =>
-  create((~onNext, ~onComplete) => {
-    let subscription = SerialDisposable.create();
-    let setupSubscription = ref(Functions.alwaysUnit);
+let repeatOperator = (shouldRetry, observable, observer) => {
+  let subscription = SerialDisposable.create();
+  let setupSubscription = ref(Functions.alwaysUnit);
 
-    let onComplete =
-      Functions.earlyReturnsUnit1(exn => {
-        let shouldComplete =
-          try (! shouldRetry(exn)) {
-          | exn =>
-            onComplete(Some(exn));
-            Functions.returnUnit();
-          };
+  let onComplete =
+    Functions.earlyReturnsUnit1(exn => {
+      let shouldComplete =
+        try (! shouldRetry(exn)) {
+        | exn =>
+          observer |> Observer.complete(~exn);
+          Functions.returnUnit();
+        };
 
-        shouldComplete ? onComplete(exn) : setupSubscription^();
-      });
+      shouldComplete ?
+        observer |> Observer.complete(~exn?) : setupSubscription^();
+    });
 
-    let connect = observable |> publishTo(~onNext, ~onComplete);
+  setupSubscription :=
+    (
+      () => {
+        let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
 
-    setupSubscription :=
-      (
-        () => {
-          let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
+        if (! alreadyDisposed) {
+          subscription |> SerialDisposable.get |> Disposable.dispose;
+          let newInnerSubscription =
+            observable
+            |> subscribe(
+                 ~onNext=Observer.forwardOnNext(observer),
+                 ~onComplete,
+               );
+          subscription |> SerialDisposable.set(newInnerSubscription);
+        };
+      }
+    );
 
-          if (! alreadyDisposed) {
-            subscription |> SerialDisposable.get |> Disposable.dispose;
-            subscription |> SerialDisposable.set(connect());
-          };
-        }
-      );
-    setupSubscription^();
-    subscription |> SerialDisposable.asDisposable;
-  });
+  Observer.create(
+    ~onNext=Observer.forwardOnNext(observer),
+    ~onComplete,
+    ~onDispose=() => {
+      subscription |> SerialDisposable.dispose;
+      observer |> Observer.dispose;
+    },
+  );
+};
+
+let repeatInternal = (shouldRetry, observable) =>
+  observable |> lift(repeatOperator(shouldRetry, observable));
 
 let repeat = (~predicate=Functions.alwaysTrue, observable) =>
   observable
