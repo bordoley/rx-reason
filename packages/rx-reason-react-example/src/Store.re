@@ -1,4 +1,4 @@
-module State {
+module State = {
   type t = {
     count: int,
     greeting: string,
@@ -8,7 +8,7 @@ module State {
   };
 };
 
-module Actions {
+module Actions = {
   type t =
     | Click
     | Toggle
@@ -22,16 +22,16 @@ let reducer = (state: State.t, action) =>
   | Actions.SetTitle(greeting) => {...state, greeting}
   };
 
-let create = (props: RxReason.Observable.t(string)) : RxReason.Observable.t(State.t) => {
+let create =
+    (props: RxReason.Observable.t(string))
+    : RxReason.Observable.t(State.t) => {
   let subject = RxReason.Subject.create();
 
   let actions = subject |> RxReason.Subject.asObservable;
   let propsActions =
-    props
-    |> RxReason.Observable.lift(RxReason.Operators.map(greeting => Actions.SetTitle(greeting)));
+    props |> RxReason.Observable.map(greeting => Actions.SetTitle(greeting));
 
-  let dispatch = (action, _) =>
-    subject |> RxReason.Subject.next(action);
+  let dispatch = (action, _) => subject |> RxReason.Subject.next(action);
 
   let initialState: State.t = {
     count: 0,
@@ -42,7 +42,5 @@ let create = (props: RxReason.Observable.t(string)) : RxReason.Observable.t(Stat
   };
 
   RxReason.Observable.merge([actions, propsActions])
-  |> RxReason.Observable.lift(
-      RxReason.Operators.scan(reducer, initialState),
-    );
+  |> RxReason.Observable.scan(reducer, initialState);
 };

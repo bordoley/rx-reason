@@ -41,7 +41,11 @@
       "subdirs": [
         {
           "dir": "internal",
-          "public": "none"
+          "public": "none",
+          "subdirs": [{
+            "dir": "operators",
+            "public": "none"
+          }]
         }, 
         {
           "dir": "platform",

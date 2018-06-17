@@ -22,8 +22,7 @@ single
 
 let promise =
   single
-  |> RxReason.Single.asObservable
-  |> RxReason.Single.liftFirst(RxReason.Operators.mapTo("b"))
+  |> RxReason.Single.mapTo("b")
   |> RxReasonJs.Promise.fromSingle
   |> Js.Promise.then_(a => {
        Js.log(a);

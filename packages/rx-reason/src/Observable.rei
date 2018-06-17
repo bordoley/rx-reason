@@ -155,22 +155,58 @@ let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
+let debounce: (Scheduler.t, t('a)) => t('a);
+
+let defaultIfEmpty: ('a, t('a)) => t('a);
+
 /**
  * Returns an Observable that calls an Observable factory to
  * create a new Observable for each subscription.
  */
 let defer: (unit => t('a)) => t('a);
 
+let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, t('a)) => t('a);
+
 /**
  * Returns an Observable that emits no items and immediately completes.
  */
 let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
+
+let every: ('a => bool, t('a)) => t(bool);
+
+let exhaust: t(t('a)) => t('a);
+
+let find: ('a => bool, t('a)) => t('a);
+
+let first: t('a) => t('a);
+
+let firstOrNone: t('a) => t(option('a));
+
+let ignoreElements: t('a) => t('a);
+
+let isEmpty: t('a) => t(bool);
+
+let keep: ('a => bool, t('a)) => t('a);
+
+let last: t('a) => t('a);
+
+let lastOrNone: t('a) => t(option('a));
 
 /**
  * Returns an Observable that applies the Operator function to the
  * source Observable's notifications.
  */
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
+
+let map: ('a => 'b, t('a)) => t('b);
+
+let mapTo: ('b, t('a)) => t('b);
+
+let materialize: t('a) => t(Notification.t('a));
+
+let maybeFirst: t('a) => t('a);
+
+let maybeLast: t('a) => t('a);
 
 /**
  * Returns an Observable that merges items emitted by the source Observables,
@@ -182,6 +218,20 @@ let merge: list(t('a)) => t('a);
  * Returns an Observable the emits no values and never completes.
  */
 let never: t('a);
+
+let none: ('a => bool, t('a)) => t(bool);
+
+let observe:
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) => t('a);
+
+let observeOn:
+  (
+    ~bufferStrategy: BufferStrategy.t=?,
+    ~bufferSize: int=?,
+    Scheduler.t,
+    t('a)
+  ) =>
+  t('a);
 
 /**
  * Returns an Observable which emits the specified notifications at the
@@ -216,12 +266,32 @@ let ofRelativeTimeNotifications:
   */
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+let onComplete: (option(exn) => unit, t('a)) => t('a);
+
+let onNext: ('a => unit, t('a)) => t('a);
+
 /**
  * Returns an Observable that mirrors the source Observable,
  * calling the specified function when subscribed to, and
  * disposing the returned Disposable when disposed.
  */
 let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
+
+let pipe2: (Operator.t('a, 'b), Operator.t('b, 'c), t('a)) => t('c);
+
+let pipe3:
+  (Operator.t('a, 'b), Operator.t('b, 'c), Operator.t('c, 'd), t('a)) =>
+  t('d);
+
+let pipe4:
+  (
+    Operator.t('a, 'b),
+    Operator.t('b, 'c),
+    Operator.t('c, 'd),
+    Operator.t('d, 'e),
+    t('a)
+  ) =>
+  t('e);
 
 /**
  * Returns an Observable that completes with the specified exception
@@ -243,6 +313,10 @@ let repeat: (~predicate: unit => bool=?, t('a)) => t('a);
  */
 let retry: (~predicate: exn => bool=?, t('a)) => t('a);
 
+let scan: (('acc, 'a) => 'acc, 'acc, t('a)) => t('acc);
+
+let some: ('a => bool, t('a)) => t(bool);
+
 /**
  * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
@@ -260,3 +334,14 @@ let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
  * on the specified scheduler.
  */
 let subscribeOn: (Scheduler.t, t('a)) => t('a);
+
+let switch_: t(t('a)) => t('a);
+
+let synchronize: t('a) => t('a);
+
+/*
+let timeout: (Scheduler.t, t('a)) => t('a);*/
+
+let toList: t('a) => t(list('a));
+
+let withLatestFrom: (~selector: ('a, 'b) => 'c, t('b), t('a)) => t('c);

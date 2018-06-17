@@ -1,0 +1,3 @@
+exception EmptyException;
+
+exception TimeoutException;

@@ -63,22 +63,16 @@ module Make =
     let subscription =
       propsSubject
       |> RxReason.Subject.asObservable
-      |> RxReason.Observable.lift(
-           RxReason.Operators.(
-             RxReason.Operators.distinctUntilChanged
-             /* FIXME: In the future React will expose it's scheduler via an api.
-              * We should schedule using that instead of our home rolled eventloop.
-              * https://github.com/facebook/react/tree/master/packages/react-scheduler
-              */
-             >> RxReason.Operators.observeOn(RxReasonJs.EventLoop.schedule)
-           ),
-         )
+      |> RxReason.Observable.distinctUntilChanged
+      /* FIXME: In the future React will expose it's scheduler via an api.
+       * We should schedule using that instead of our home rolled eventloop.
+       * https://github.com/facebook/react/tree/master/packages/react-scheduler
+       */
+      |> RxReason.Observable.observeOn(RxReasonJs.EventLoop.schedule)
       |> ComponentSpec.createStore
-      |> RxReason.Observable.lift(
-           RxReason.Operators.observe(
-             ~onNext=next => send(Next(next)),
-             ~onComplete=exn => send(Completed(exn)),
-           ),
+      |> RxReason.Observable.observe(
+           ~onNext=next => send(Next(next)),
+           ~onComplete=exn => send(Completed(exn)),
          )
       |> RxReason.Observable.subscribe;
     onUnmount(() => subscription |> RxReason.Disposable.dispose);
@@ -91,9 +85,8 @@ module Make =
     reducer,
     didMount,
     shouldUpdate: ({oldSelf, newSelf}) => {
-      let { propsSubject } = newSelf.state;
-      propsSubject
-      |> RxReason.Subject.next(props);
+      let {propsSubject} = newSelf.state;
+      propsSubject |> RxReason.Subject.next(props);
 
       let oldAction = oldSelf.state.action;
       let newAction = newSelf.state.action;
@@ -101,8 +94,7 @@ module Make =
     },
     initialState: () => {
       let propsSubject = RxReason.Subject.createWithReplayBuffer(1);
-      propsSubject
-      |> RxReason.Subject.next(props);
+      propsSubject |> RxReason.Subject.next(props);
       {action: None, propsSubject};
     },
     render: ({state: {action}}) =>

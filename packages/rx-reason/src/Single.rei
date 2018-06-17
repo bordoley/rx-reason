@@ -80,6 +80,8 @@ let liftLast: (Operator.t('a, 'b), Observable.t('a)) => t('b);
  */
 let map: ('a => 'b, t('a)) => t('b);
 
+let mapTo: ('b, t('a)) => t('b);
+
 /*
  * Returns a Single that completes with true if no
  * items emitted by the source Observable satisfies the predicate.

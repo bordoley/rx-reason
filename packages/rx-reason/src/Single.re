@@ -16,39 +16,32 @@ let create = subscribe =>
 
 let defer = Observable.defer;
 
-let ofValue = Observable.ofValue;
+let every = Observable.every;
 
-let first = (observable: Observable.t('a)) : t('a) =>
-  observable |> Observable.lift(Operators.first);
+let find = (predicate: 'a => bool, observable: Observable.t('a)) : t('a) =>
+  observable |> Observable.find(predicate) |> Observable.first;
+
+let first = Observable.first;
 
 let flatMap = (mapper: 'a => t('b), single: t('a)) : t('b) =>
-  single |> Observable.lift(Operators.(map(mapper) >> exhaust));
+  single |> Observable.map(mapper) |> Observable.exhaust;
 
-let last = (observable: Observable.t('a)) : t('a) =>
-  observable |> Observable.lift(Operators.last);
+let last = Observable.last;
 
 let liftFirst =
     (operator: Operator.t('a, 'b), observable: Observable.t('a))
     : t('b) =>
-  observable |> Observable.lift(Operators.(operator >> first));
+  observable |> Observable.lift(operator) |> Observable.first;
 
 let liftLast =
     (operator: Operator.t('a, 'b), observable: Observable.t('a))
     : t('b) =>
-  observable |> Observable.lift(Operators.(operator >> last));
+  observable |> Observable.lift(operator) |> Observable.last;
 
-let every = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
-  observable |> liftFirst(Operators.every(predicate));
-
-let find = (predicate: 'a => bool, observable: Observable.t('a)) : t('a) =>
-  observable |> liftFirst(Operators.find(predicate));
-
-let map = (mapper, single) =>
-  single |> Observable.lift(Operators.map(mapper));
-
-let none = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
-  observable |> liftFirst(Operators.none(predicate));
-
+let map = Observable.map;
+let mapTo = Observable.mapTo;
+let none = Observable.none;
+let ofValue = Observable.ofValue;
 let raise = Observable.raise;
 
 let reduce =
@@ -58,10 +51,9 @@ let reduce =
       observable: Observable.t('a),
     )
     : t('acc) =>
-  observable |> liftLast(Operators.scan(reducer, initialValue));
+  observable |> Observable.scan(reducer, initialValue);
 
-let some = (predicate: 'a => bool, observable: Observable.t('a)) : t(bool) =>
-  observable |> liftFirst(Operators.some(predicate));
+let some = Observable.some;
 
 let subscribeWith =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
@@ -88,11 +80,12 @@ let subscribeWith =
                /* This case should never happen due to how the constructors of Single
                 * instances  protect against it.
                 */
-               onError(Operators.EmptyException)
+               onError(Exceptions.EmptyException)
              },
        );
   subscription;
 };
 
-let subscribe = (~onSuccess=Functions.alwaysUnit, ~onError=Functions.alwaysUnit, single) =>
+let subscribe =
+    (~onSuccess=Functions.alwaysUnit, ~onError=Functions.alwaysUnit, single) =>
   subscribeWith(~onSuccess, ~onError, single);
