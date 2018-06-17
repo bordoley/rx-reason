@@ -81,7 +81,8 @@ let pipe4 = (opA, opB, opC, opD, observable) =>
     let op0 = observer => op0 @@ op1 @@ opA @@ opB @@ opC @@ opD @@ observer;
     Lift1(source, op0);
   | Lift3(source, op0, op1, op2) =>
-    let op0 = observer => op0 @@ op1 @@ op2 @@ opA @@ opB @@ opC @@ opD @@ observer;
+    let op0 = observer =>
+      op0 @@ op1 @@ op2 @@ opA @@ opB @@ opC @@ opD @@ observer;
     Lift1(source, op0);
   | Lift4(source, op0, op1, op2, op3) =>
     let op0 = observer =>
@@ -132,4 +133,39 @@ let subscribeWith = (~onNext, ~onComplete, observable) => {
   subscription
   |> SerialDisposable.set(subscribeObserver(observer, observable));
   observer |> Observer.asDisposable;
+};
+
+let publishTo = (~onNext, ~onComplete, observable) => {
+  let connection = ref(Disposable.disposed);
+  let active = ref(false);
+
+  () => {
+    if (! Interlocked.exchange(true, active)) {
+      let subscription = observable |> subscribeWith(~onNext, ~onComplete);
+      let newConnection =
+        Disposable.create(() => {
+          subscription |> Disposable.dispose;
+          Volatile.write(false, active);
+        });
+
+      Volatile.write(newConnection, connection);
+    };
+    Volatile.read(connection);
+  };
+};
+
+let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
+  let exn = Some(exn);
+
+  scheduler === Scheduler.immediate ?
+    create((~onNext as _, ~onComplete) => {
+      onComplete(exn);
+      Disposable.disposed;
+    }) :
+    create((~onNext as _, ~onComplete) =>
+      scheduler(() => {
+        onComplete(exn);
+        Disposable.disposed;
+      })
+    );
 };

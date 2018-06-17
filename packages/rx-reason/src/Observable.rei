@@ -339,8 +339,7 @@ let switch_: t(t('a)) => t('a);
 
 let synchronize: t('a) => t('a);
 
-/*
-let timeout: (Scheduler.t, t('a)) => t('a);*/
+let timeout: (Scheduler.t, t('a)) => t('a);
 
 let toList: t('a) => t(list('a));
 

@@ -69,12 +69,15 @@ let onSubscribe = OnSubscribeOperator.lift;
 let pipe2 = ObservableSource.pipe2;
 let pipe3 = ObservableSource.pipe3;
 let pipe4 = ObservableSource.pipe4;
+let publishTo = ObservableSource.publishTo;
+let raise = ObservableSource.raise;
 let scan = ScanOperator.lift;
 let some = SomeOperator.lift;
 let switch_ = SwitchOperator.lift;
 let subscribeObserver = ObservableSource.subscribeObserver;
 let subscribeWith = ObservableSource.subscribeWith;
 let synchronize = SynchronizeOperator.lift;
+let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
 
 let defer = (f: unit => t('a)) : t('a) =>
@@ -226,41 +229,6 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
         });
       })
     );
-
-let raise = (~scheduler=Scheduler.immediate, exn: exn) : t('a) => {
-  let exn = Some(exn);
-
-  scheduler === Scheduler.immediate ?
-    create((~onNext as _, ~onComplete) => {
-      onComplete(exn);
-      Disposable.disposed;
-    }) :
-    create((~onNext as _, ~onComplete) =>
-      scheduler(() => {
-        onComplete(exn);
-        Disposable.disposed;
-      })
-    );
-};
-
-let publishTo = (~onNext, ~onComplete, observable) => {
-  let connection = ref(Disposable.disposed);
-  let active = ref(false);
-
-  () => {
-    if (! Interlocked.exchange(true, active)) {
-      let subscription = observable |> subscribeWith(~onNext, ~onComplete);
-      let newConnection =
-        Disposable.create(() => {
-          subscription |> Disposable.dispose;
-          Volatile.write(false, active);
-        });
-
-      Volatile.write(newConnection, connection);
-    };
-    Volatile.read(connection);
-  };
-};
 
 let publish =
     (
