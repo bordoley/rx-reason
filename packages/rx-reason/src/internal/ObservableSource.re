@@ -135,6 +135,14 @@ let subscribeWith = (~onNext, ~onComplete, observable) => {
   observer |> Observer.asDisposable;
 };
 
+let subscribe =
+    (
+      ~onNext=Functions.alwaysUnit,
+      ~onComplete=Functions.alwaysUnit,
+      observable,
+    ) =>
+  observable |> subscribeWith(~onNext, ~onComplete);
+
 let publishTo = (~onNext, ~onComplete, observable) => {
   let connection = ref(Disposable.disposed);
   let active = ref(false);
@@ -153,6 +161,14 @@ let publishTo = (~onNext, ~onComplete, observable) => {
     Volatile.read(connection);
   };
 };
+
+let publish =
+    (
+      ~onNext=Functions.alwaysUnit,
+      ~onComplete=Functions.alwaysUnit,
+      observable,
+    ) =>
+  publishTo(~onNext, ~onComplete, observable);
 
 let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   let exn = Some(exn);

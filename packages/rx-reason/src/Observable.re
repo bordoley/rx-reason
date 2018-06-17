@@ -69,6 +69,7 @@ let onSubscribe = OnSubscribeOperator.lift;
 let pipe2 = ObservableSource.pipe2;
 let pipe3 = ObservableSource.pipe3;
 let pipe4 = ObservableSource.pipe4;
+let publish = ObservableSource.publish;
 let publishTo = ObservableSource.publishTo;
 let raise = ObservableSource.raise;
 let scan = ScanOperator.lift;
@@ -76,6 +77,7 @@ let some = SomeOperator.lift;
 let switch_ = SwitchOperator.lift;
 let subscribeObserver = ObservableSource.subscribeObserver;
 let subscribeWith = ObservableSource.subscribeWith;
+let subscribe = ObservableSource.subscribe;
 let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
@@ -230,14 +232,6 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       })
     );
 
-let publish =
-    (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
-      observable,
-    ) =>
-  publishTo(~onNext, ~onComplete, observable);
-
 let repeat = (~predicate=Functions.alwaysTrue, observable) =>
   RepeatOperator.lift(
     exn =>
@@ -266,13 +260,6 @@ let startWithValue =
     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
   concat([ofValue(~scheduler, value), observable]);
 
-let subscribe =
-    (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
-      observable,
-    ) =>
-  observable |> subscribeWith(~onNext, ~onComplete);
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
   createWithObserver(observer =>
