@@ -5,7 +5,9 @@
   },
   "suffix": ".bs.js",
   "bs-dependencies": [],
-  "bs-dev-dependencies": ["reunit"],
+  "bs-dev-dependencies": [
+    "reunit"
+  ],
   "warnings": {
     "number": "-44",
     "error": "+101"
@@ -19,11 +21,21 @@
         {
           "dir": "internal",
           "public": "none",
-          "subdirs": [{
-            "dir": "operators",
-            "public": "none"
-          }]
-        }, 
+          "subdirs": [
+            {
+              "dir": "observable",
+              "public": "none"
+            },
+            {
+              "dir": "operators",
+              "public": "none"
+            },
+            {
+              "dir": "utils",
+              "public": "none"
+            }
+          ]
+        },
         {
           "dir": "platform",
           "public": "none",
@@ -33,7 +45,7 @@
               "public": "none"
             }
           ]
-        } 
+        }
       ]
     },
     {
