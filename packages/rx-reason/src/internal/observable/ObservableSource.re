@@ -42,54 +42,6 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
 
 let never = Source(_ => Disposable.empty());
 
-let pipe2 = (opA, opB, observable) =>
-  switch (observable) {
-  | Source(source) => Lift2(source, opA, opB)
-  | Lift1(source, op0) => Lift3(source, op0, opA, opB)
-  | Lift2(source, op0, op1) => Lift4(source, op0, op1, opA, opB)
-  | Lift3(source, op0, op1, op2) =>
-    let op0 = observer => op0 @@ op1 @@ op2 @@ opA @@ opB @@ observer;
-    Lift1(source, op0);
-  | Lift4(source, op0, op1, op2, op3) =>
-    let op0 = observer => op0 @@ op1 @@ op2 @@ op3 @@ opA @@ opB @@ observer;
-    Lift1(source, op0);
-  };
-
-let pipe3 = (opA, opB, opC, observable) =>
-  switch (observable) {
-  | Source(source) => Lift3(source, opA, opB, opC)
-  | Lift1(source, op0) => Lift4(source, op0, opA, opB, opC)
-  | Lift2(source, op0, op1) =>
-    let op0 = observer => op0 @@ op1 @@ opA @@ opB @@ opC @@ observer;
-    Lift1(source, op0);
-  | Lift3(source, op0, op1, op2) =>
-    let op0 = observer => op0 @@ op1 @@ op2 @@ opA @@ opB @@ opC @@ observer;
-    Lift1(source, op0);
-  | Lift4(source, op0, op1, op2, op3) =>
-    let op0 = observer =>
-      op0 @@ op1 @@ op2 @@ op3 @@ opA @@ opB @@ opC @@ observer;
-    Lift1(source, op0);
-  };
-
-let pipe4 = (opA, opB, opC, opD, observable) =>
-  switch (observable) {
-  | Source(source) => Lift4(source, opA, opB, opC, opD)
-  | Lift1(source, op0) =>
-    let op0 = observer => op0 @@ opA @@ opB @@ opC @@ opD @@ observer;
-    Lift1(source, op0);
-  | Lift2(source, op0, op1) =>
-    let op0 = observer => op0 @@ op1 @@ opA @@ opB @@ opC @@ opD @@ observer;
-    Lift1(source, op0);
-  | Lift3(source, op0, op1, op2) =>
-    let op0 = observer =>
-      op0 @@ op1 @@ op2 @@ opA @@ opB @@ opC @@ opD @@ observer;
-    Lift1(source, op0);
-  | Lift4(source, op0, op1, op2, op3) =>
-    let op0 = observer =>
-      op0 @@ op1 @@ op2 @@ op3 @@ opA @@ opB @@ opC @@ opD @@ observer;
-    Lift1(source, op0);
-  };
-
 let subscribeSafe = (observer, source) =>
   try (source(observer)) {
   | exn =>

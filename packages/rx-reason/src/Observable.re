@@ -66,9 +66,6 @@ let observeOn = ObserveOnOperator.lift;
 let onComplete = OnCompleteOperator.lift;
 let onNext = OnNextOperator.lift;
 let onSubscribe = OnSubscribeOperator.lift;
-let pipe2 = ObservableSource.pipe2;
-let pipe3 = ObservableSource.pipe3;
-let pipe4 = ObservableSource.pipe4;
 let publish = ObservableSource.publish;
 let publishTo = ObservableSource.publishTo;
 let raise = ObservableSource.raise;
@@ -267,9 +264,7 @@ let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
   );
 
 let toList = observable =>
-  observable
-  |> pipe3(
-       ScanOperator.operator((acc, next) => [next, ...acc], []),
-       LastOperator.operator,
-       MapOperator.operator(List.rev),
-     );
+  observable 
+  |> scan((acc, next) => [next, ...acc], [])
+  |> last
+  |> map(List.rev);

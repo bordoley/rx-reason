@@ -383,22 +383,6 @@ let onNext: ('a => unit, t('a)) => t('a);
  */
 let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
 
-let pipe2: (Operator.t('a, 'b), Operator.t('b, 'c), t('a)) => t('c);
-
-let pipe3:
-  (Operator.t('a, 'b), Operator.t('b, 'c), Operator.t('c, 'd), t('a)) =>
-  t('d);
-
-let pipe4:
-  (
-    Operator.t('a, 'b),
-    Operator.t('b, 'c),
-    Operator.t('c, 'd),
-    Operator.t('d, 'e),
-    t('a)
-  ) =>
-  t('e);
-
 /**
  * Returns an Observable that completes with the specified exception
  * when subscribed to.
