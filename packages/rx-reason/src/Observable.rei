@@ -155,8 +155,23 @@ let create:
   ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
   t('a);
 
+/**
+ * Returns an Observable which drops items from the source that 
+ * are followed by another item within a debounce duration 
+ * determined by the scheduler. 
+ * 
+ * For instance, a DelayScheduler can be used debounce items every 5 ms:
+ * ```re
+ * someObservable
+ * |> Observable.debounce(scheduleWithDelay(5.0);
+ * ```
+ */
 let debounce: (Scheduler.t, t('a)) => t('a);
 
+/**
+ * Returns an Observable which emits a default value if the
+ * source completes without producing any values.
+ */
 let defaultIfEmpty: ('a, t('a)) => t('a);
 
 /**
@@ -165,6 +180,12 @@ let defaultIfEmpty: ('a, t('a)) => t('a);
  */
 let defer: (unit => t('a)) => t('a);
 
+/**
+ * Returns an Observable which emits items that are distinct from 
+ * their immediate predecessors based upon the provided
+ * equality function. By default, reference equality is
+ * used.
+ */
 let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, t('a)) => t('a);
 
 /**
@@ -172,24 +193,67 @@ let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, t('a)) => t('a);
  */
 let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
+/**
+ * Returns an Observable that emits a single true value if all
+ * items emitted by the source satisfy the predicate.
+ * 
+ * Note: If the source completes before emitting any values,
+ * completes with true.
+ */
 let every: ('a => bool, t('a)) => t(bool);
 
+/** 
+ * Returns an Observable that flattens Observable items,
+ * dropping inner Observables until the current inner
+ * Observable completes. Also see: switch_
+ */
 let exhaust: t(t('a)) => t('a);
 
+/** 
+ * Returns an Observable which emits the first observed item
+ * from the source which satisfies the predicate.
+ */
 let find: ('a => bool, t('a)) => t('a);
 
+/** 
+ * Returns an Observable which emits the first observed item 
+ * from the source or completes with EmptyException.
+ */
 let first: t('a) => t('a);
 
+/** 
+ * Returns an Observable which emits Some of the first observed 
+ * item from the source or emits None.
+ */
 let firstOrNone: t('a) => t(option('a));
 
+/**
+ * Returns an Observable which drops all items from the source.
+ */
 let ignoreElements: t('a) => t('a);
 
+/**
+ * Returns an Observable which emits true if the source emits
+ * no items. Otherwise it emits false.
+ */
 let isEmpty: t('a) => t(bool);
 
+/**
+ * Returns an Observable which only emits items from the source
+ * which satisfy the predicate.
+ */
 let keep: ('a => bool, t('a)) => t('a);
 
+/** 
+ * Returns an Observable which emits the last observed item or
+ * completes with EmptyException.
+ */
 let last: t('a) => t('a);
 
+/** 
+ * Returns an Observable which emits Some of the last observed 
+ * item or emits None.
+ */
 let lastOrNone: t('a) => t(option('a));
 
 /**
@@ -198,14 +262,34 @@ let lastOrNone: t('a) => t(option('a));
  */
 let lift: (Operator.t('a, 'b), t('a)) => t('b);
 
+/**
+ * Returns an Observable which applies the specified function to
+ * each item observed, emitting the result of the function application.
+ */
 let map: ('a => 'b, t('a)) => t('b);
 
+/**
+ * Returns an Observable which emits the specified value for
+ * each item emitted by the source.
+ */
 let mapTo: ('b, t('a)) => t('b);
 
+/**
+ * Returns an Observable which emits all notifications
+ * as Notification instances.
+ */
 let materialize: t('a) => t(Notification.t('a));
 
+/**
+ * Returns an Observable which emits the first observed item, if present, and
+ * completes.
+ */
 let maybeFirst: t('a) => t('a);
 
+/**
+ * Returns an Observable which emits the last observed item, if present, and
+ * completes.
+ */
 let maybeLast: t('a) => t('a);
 
 /**
@@ -219,11 +303,26 @@ let merge: list(t('a)) => t('a);
  */
 let never: t('a);
 
+/**
+ * Returns an Observable that emits a single true value if every
+ * observed item fails to satisfy the predicate.
+ *
+ * Note: If the source completes before observing any values,
+ * completes with true.
+ */
 let none: ('a => bool, t('a)) => t(bool);
 
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
 let observe:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) => t('a);
 
+/**
+ * Returns an Observable which emits notifications on the specified scheduler. The default
+ * buffer strategy is to throw, and default buffer size is unbound.
+ */
 let observeOn:
   (
     ~bufferStrategy: BufferStrategy.t=?,
@@ -266,8 +365,15 @@ let ofRelativeTimeNotifications:
   */
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
+/**
+ * Returns an Observable which invokes the side-effect function when it completes.
+ */
 let onComplete: (option(exn) => unit, t('a)) => t('a);
 
+/**
+ * Returns an Observable which invokes the side-effect function
+ * with each observed item.
+ */
 let onNext: ('a => unit, t('a)) => t('a);
 
 /**
@@ -313,8 +419,20 @@ let repeat: (~predicate: unit => bool=?, t('a)) => t('a);
  */
 let retry: (~predicate: exn => bool=?, t('a)) => t('a);
 
+/**
+ * Returns an Observable which invokes the accumulator function
+ * for each item observed from the source, emitting the intermediate
+ * accumulated values. The first item emitted is the initial value.
+ */
 let scan: (('acc, 'a) => 'acc, 'acc, t('a)) => t('acc);
 
+/**
+ * Returns an Observable that emits a single true value if any
+ * observed item satisfies the predicate.
+ *
+ * Note: If the source Observable complete before producing any values,
+ * completes with false.
+ */
 let some: ('a => bool, t('a)) => t(bool);
 
 /**
@@ -335,12 +453,49 @@ let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
  */
 let subscribeOn: (Scheduler.t, t('a)) => t('a);
 
+/**
+ * Returns an Observable that flattens Observable items,
+ * unsubscribing from the observed inner Observable when the
+ * next one is observed. Also see: exhaust.
+ */
 let switch_: t(t('a)) => t('a);
 
+/**
+ * Returns an Observable that utilizes locking, to ensure observer
+ * callbacks are synchronized.
+ *
+ * Note: Only defined to support a future native ocaml version.
+ */
 let synchronize: t('a) => t('a);
 
+/**
+ * Returns an Observable which completes with a TimeoutException if
+ * no notifications are observed before a duration determined
+ * by the scheduler.
+ *
+ * For instance, a DelayScheduler can be used to timeout items every 5 ms:
+ * ```re
+ * someObservable
+ * |> Observable..timeout(scheduleWithDelay(5.0));
+ * ```
+ */
 let timeout: (Scheduler.t, t('a)) => t('a);
 
+/**
+ * Returns an Observable which collects all observed items in a list
+ * and emits a single list of observed values in the observed
+ * order when completed.
+ *
+ * Note: This Operator is intended to support testing. Using this
+ * operator on unbounded Observable sources may lead to memory exhaustion.
+ */
 let toList: t('a) => t(list('a));
 
+/**
+ * Returns an Observable that combines each observed item from the source with
+ * the last observed item from the other Observable using the selector function.
+ *
+ * Note: Observed items from the source are ignored, if the other Observable
+ * has not yet produced any values.
+ */
 let withLatestFrom: (~selector: ('a, 'b) => 'c, t('b), t('a)) => t('c);
