@@ -16,26 +16,24 @@ let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
       Disposable.disposed;
     };
 
-    Observer.delegate(
-      ~onNext=
-        next => {
-          clearDebounce();
-          MutableOption.set(next, lastValue);
-          debounceSubscription
-          |> SerialDisposable.set(scheduler(debouncedNext));
-        },
-      ~onComplete=
-        exn => {
-          switch (exn) {
-          | Some(_) => clearDebounce()
-          | None => debouncedNext() |> ignore
-          };
-          observer |> Observer.complete(~exn?);
-        },
-      observer,
-    )
-    |> Observer.addTeardown(() =>
-         debounceSubscription |> SerialDisposable.dispose
+    let onNext = next => {
+      clearDebounce();
+      MutableOption.set(next, lastValue);
+      debounceSubscription |> SerialDisposable.set(scheduler(debouncedNext));
+    };
+
+    let onComplete = exn => {
+      switch (exn) {
+      | Some(_) => clearDebounce()
+      | None => debouncedNext() |> ignore
+      };
+      observer |> Observer.complete(~exn?);
+    };
+
+    observer
+    |> Observer.delegate(~onNext, ~onComplete)
+    |> Observer.addDisposable(
+         SerialDisposable.asDisposable(debounceSubscription),
        );
   };
 

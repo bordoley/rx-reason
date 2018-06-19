@@ -125,7 +125,7 @@ let ofAbsoluteTimeNotifications =
 
     let loopSubscription = loop(notifications);
     observer
-    |> Observer.addTeardown(() => loopSubscription |> Disposable.dispose)
+    |> Observer.addDisposable(loopSubscription)
     |> ignore;
   });
 
@@ -193,9 +193,7 @@ let ofNotifications =
             };
           let schedulerSubscription = schedule(loop(notifications));
           observer
-          |> Observer.addTeardown(() =>
-               schedulerSubscription |> Disposable.dispose
-             )
+          |> Observer.addDisposable(schedulerSubscription)
           |> ignore;
         }
       ),
@@ -223,7 +221,7 @@ let ofRelativeTimeNotifications =
 
     let loopSubscription = loop(notifications, 0.0);
     observer
-    |> Observer.addTeardown(() => loopSubscription |> Disposable.dispose)
+    |> Observer.addDisposable(loopSubscription)
     |> ignore;
   });
 
@@ -283,7 +281,7 @@ let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
         Disposable.disposed;
       });
     observer
-    |> Observer.addTeardown(() => schedulerSubscription |> Disposable.dispose)
+    |> Observer.addDisposable(schedulerSubscription)
     |> ignore;
   });
 

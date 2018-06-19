@@ -23,6 +23,14 @@ module type S1 = {
 
 let asCompositeDisposable = ({disposable}) => disposable;
 
+let addDisposable = (disposable, observer) => {
+  observer
+  |> asCompositeDisposable
+  |> CompositeDisposable.addDisposable(disposable)
+  |> ignore;
+  observer;
+};
+
 let addTeardown = (teardown, observer) => {
   observer
   |> asCompositeDisposable

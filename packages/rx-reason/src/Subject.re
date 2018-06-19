@@ -59,8 +59,8 @@ let createWithCallbacks =
           |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
         },
     )
+    |> Observer.addTeardown(onDispose)
     |> Observer.addTeardown(() => {
-         onDispose();
          subscribers := CopyOnWriteArray.empty();
        });
 

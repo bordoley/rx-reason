@@ -37,21 +37,20 @@ let operator =
       scheduler(doWorkStep) |> ignore;
     };
 
-  Observer.delegate(
-    ~onNext=
-      next => {
-        queue |> QueueWithBufferStrategy.enqueue(next);
-        schedule();
-      },
-    ~onComplete=
-      exn => {
-        shouldComplete := true;
-        completedState := exn;
-        schedule();
-      },
-    observer,
-  )
-  |> Observer.addTeardown(() => innerSubscription |> Disposable.dispose);
+  let onNext = next => {
+    queue |> QueueWithBufferStrategy.enqueue(next);
+    schedule();
+  };
+
+  let onComplete = exn => {
+    shouldComplete := true;
+    completedState := exn;
+    schedule();
+  };
+
+  observer
+  |> Observer.delegate(~onNext, ~onComplete)
+  |> Observer.addDisposable(innerSubscription);
 };
 
 let lift =

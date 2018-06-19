@@ -36,12 +36,12 @@ let operator = (shouldRetry, observable, observer) => {
       }
     );
 
-  Observer.delegate(
-    ~onNext=Observer.forwardOnNext(observer),
-    ~onComplete,
-    observer,
-  )
-  |> Observer.addTeardown(() => subscription |> SerialDisposable.dispose);
+  observer
+  |> Observer.delegate(
+       ~onNext=Observer.forwardOnNext(observer),
+       ~onComplete,
+     )
+  |> Observer.addDisposable(SerialDisposable.asDisposable(subscription));
 };
 
 let lift = (shouldRetry, observable) =>

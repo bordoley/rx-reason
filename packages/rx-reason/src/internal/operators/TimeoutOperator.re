@@ -16,22 +16,21 @@ let operator = scheduler => {
       timeoutSubscription |> SerialDisposable.set(connect());
     };
 
+    let onNext = next => {
+      observer |> Observer.next(next);
+      subscribeToTimeout();
+    };
+
+    let onComplete = exn => {
+      timeoutSubscription |> SerialDisposable.dispose;
+      observer |> Observer.complete(~exn?);
+    };
+
     timeOutObserver :=
-      Observer.delegate(
-        ~onNext=
-          next => {
-            observer |> Observer.next(next);
-            subscribeToTimeout();
-          },
-        ~onComplete=
-          exn => {
-            timeoutSubscription |> SerialDisposable.dispose;
-            observer |> Observer.complete(~exn?);
-          },
-        observer,
-      )
-      |> Observer.addTeardown(() =>
-           timeoutSubscription |> SerialDisposable.dispose
+      observer
+      |> Observer.delegate(~onNext, ~onComplete)
+      |> Observer.addDisposable(
+           SerialDisposable.asDisposable(timeoutSubscription),
          );
 
     subscribeToTimeout();

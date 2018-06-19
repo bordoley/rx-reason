@@ -11,6 +11,8 @@ module type S = {
 
   include Disposable.S with type t := t;
 
+  let addDisposable: (Disposable.t, t) => t;
+
   let addTeardown: (unit => unit, t) => t;
 
   /** Cast to Disposable.t. */
@@ -21,6 +23,8 @@ module type S1 = {
   type t('a);
 
   include Disposable.S1 with type t('a) := t('a);
+
+  let addDisposable: (Disposable.t, t('a)) => t('a);
 
   let addTeardown: (unit => unit, t('a)) => t('a);
 
@@ -82,3 +86,10 @@ let addTeardown = (cb, {lock, teardown} as disposable) => {
 
   disposable;
 };
+
+let addDisposable = (disposable, self) =>
+  if (Disposable.isDisposed(disposable)) {
+    self
+  } else {
+    self |> addTeardown(() => Disposable.dispose(disposable));
+  };
