@@ -1,8 +1,8 @@
-let operator = (predicate, observer) =>
+let operator = (predicate, subscriber) =>
   MapOperator.operator(predicate) @@
   KeepOperator.operator(x => x) @@
   IsEmptyOperator.operator @@
-  observer;
+  subscriber;
 
 let lift = (predicate, observable) =>
   observable |> ObservableSource.lift(operator(predicate));

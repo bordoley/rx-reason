@@ -5,7 +5,7 @@ An implementation of Rx for Reason/OCaml that is designed with the goal of provi
 # Basic Concepts
 * Observables, Singles and Maybes
 * Disposables
-* Observers and Operators
+* Subscribers and Operators
 * Subjects
 * Schedulers
 

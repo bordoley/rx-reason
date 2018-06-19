@@ -1,12 +1,12 @@
 let merge = observables => {
   let count = observables |> List.length;
 
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let activeCount = ref(count);
     let lock = Lock.create();
     let onNext = next => {
       Lock.acquire(lock);
-      observer |> Observer.next(next);
+      subscriber |> Subscriber.next(next);
       Lock.release(lock);
     };
 
@@ -20,7 +20,7 @@ let merge = observables => {
           oldActiveCount <= 0;
         };
       if (shouldComplete) {
-        observer |> Observer.complete(~exn?);
+        subscriber |> Subscriber.complete(~exn?);
       };
       Lock.release(lock);
     };
@@ -28,8 +28,8 @@ let merge = observables => {
     observables
     |> List.map(ObservableSource.subscribeWith(~onNext, ~onComplete))
     |> List.iter(d =>
-         observer
-         |> Observer.addDisposable(CompositeDisposable.asDisposable(d))
+         subscriber
+         |> Subscriber.addDisposable(CompositeDisposable.asDisposable(d))
          |> ignore
        );
   });

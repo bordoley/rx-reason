@@ -15,7 +15,7 @@ let shareInternal = (~createSubject, source) => {
   let sourceSubscription = SerialDisposable.create();
   let refCount = ref(0);
 
-  Observable.create(observer => {
+  Observable.create(subscriber => {
     /* FIXME: Should probably add some locking here */
     if (refCount^ === 0) {
       subject := createSubject();
@@ -25,8 +25,8 @@ let shareInternal = (~createSubject, source) => {
     let subscription =
       currentSubject
       |> Subject.subscribeWith(
-           ~onNext=Observer.forwardOnNext(observer),
-           ~onComplete=Observer.forwardOnComplete(observer),
+           ~onNext=Subscriber.forwardOnNext(subscriber),
+           ~onComplete=Subscriber.forwardOnComplete(subscriber),
          );
 
     if (refCount^ === 0) {
@@ -53,7 +53,7 @@ let shareInternal = (~createSubject, source) => {
 
     if (!CompositeDisposable.isDisposed(subscription)) {
       incr(refCount);
-      observer |> Observer.addTeardown(teardown) |> ignore;
+      subscriber |> Subscriber.addTeardown(teardown) |> ignore;
     };
   });
 };

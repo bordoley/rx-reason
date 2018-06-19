@@ -707,10 +707,10 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.create(observer => {
-                  observer |> Observer.next(10);
-                  observer |> Observer.next(20);
-                  observer |> Observer.complete;
+                Observable.create(subscriber => {
+                  subscriber |> Subscriber.next(10);
+                  subscriber |> Subscriber.next(20);
+                  subscriber |> Subscriber.complete;
                 }),
             ~expected=[Next(10), Next(20), Complete],
             (),
@@ -726,8 +726,8 @@ let test =
             "throws when onSubscribe complete synchronously and then throws an exception",
             () => {
             let observable =
-              Observable.create(observer => {
-                observer |> Observer.complete;
+              Observable.create(subscriber => {
+                subscriber |> Subscriber.complete;
                 raise(Division_by_zero);
               });
 
@@ -828,7 +828,7 @@ let test =
         "every",
         [
           observableIt(
-            "returns true for an observer that completes without producing values",
+            "returns true for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
             ~source=_ => Observable.empty() |> Observable.every(i => i > 10),
             ~expected=[Next(true), Complete],
@@ -1044,7 +1044,7 @@ let test =
         "keep",
         [
           observableIt(
-            "completes the observer when the predicate throws an exception",
+            "completes the subscriber when the predicate throws an exception",
             ~nextToString=string_of_int,
             ~source=
               _ =>
@@ -1054,7 +1054,7 @@ let test =
             (),
           ),
           observableIt(
-            "completes the observer when the keep observer is completed",
+            "completes the subscriber when the keep subscriber is completed",
             ~nextToString=string_of_int,
             ~source=_ => Observable.ofValue(1) |> Observable.keep(_ => true),
             ~expected=[Next(1), Complete],
@@ -1138,7 +1138,7 @@ let test =
         "map",
         [
           observableIt(
-            "completes the observer when the mapper throws an exception",
+            "completes the subscriber when the mapper throws an exception",
             ~nextToString=string_of_int,
             ~source=
               _ =>
@@ -1148,7 +1148,7 @@ let test =
             (),
           ),
           observableIt(
-            "completes the observer when the mapping observer is completed",
+            "completes the subscriber when the mapping subscriber is completed",
             ~nextToString=string_of_int,
             ~source=
               _ => Observable.ofList([1, 2, 3]) |> Observable.map(i => i + 1),
@@ -1365,10 +1365,10 @@ let test =
                   retry;
                 };
 
-                Observable.create(observer => {
-                  observer |> Observer.next(1);
-                  observer |> Observer.next(2);
-                  observer |> Observer.complete(~exn=Division_by_zero);
+                Observable.create(subscriber => {
+                  subscriber |> Subscriber.next(1);
+                  subscriber |> Subscriber.next(2);
+                  subscriber |> Subscriber.complete(~exn=Division_by_zero);
                 })
                 |> Observable.retry(~predicate);
               },
@@ -1388,18 +1388,18 @@ let test =
             let subject = ref(Subject.create());
 
             let subscription =
-              Observable.create(observer => {
+              Observable.create(subscriber => {
                 subject := Subject.create();
                 let observable = subject^ |> Subject.asObservable;
                 let subscription =
                   observable
                   |> Observable.subscribeWith(
-                       ~onNext=Observer.forwardOnNext(observer),
-                       ~onComplete=Observer.forwardOnComplete(observer),
+                       ~onNext=Subscriber.forwardOnNext(subscriber),
+                       ~onComplete=Subscriber.forwardOnComplete(subscriber),
                      );
 
-                observer
-                |> Observer.addDisposable(
+                subscriber
+                |> Subscriber.addDisposable(
                      CompositeDisposable.asDisposable(subscription),
                    )
                 |> ignore;
@@ -1407,18 +1407,18 @@ let test =
               |> Observable.retry
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
 
-            let observer = subject^;
-            observer |> Subject.next(1);
-            observer |> Subject.next(2);
-            observer |> Subject.complete(~exn=Division_by_zero);
+            let subscriber = subject^;
+            subscriber |> Subject.next(1);
+            subscriber |> Subject.next(2);
+            subscriber |> Subject.complete(~exn=Division_by_zero);
             subscription
             |> CompositeDisposable.isDisposed
             |> Expect.toBeEqualToFalse;
 
-            let observer = subject^;
-            observer |> Subject.next(3);
-            observer |> Subject.next(4);
-            observer |> Subject.complete;
+            let subscriber = subject^;
+            subscriber |> Subject.next(3);
+            subscriber |> Subject.next(4);
+            subscriber |> Subject.complete;
             subscription
             |> CompositeDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
@@ -1470,14 +1470,14 @@ let test =
         "some",
         [
           observableIt(
-            "returns false for an observer that completes without producing values",
+            "returns false for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
             ~source=_ => Observable.empty() |> Observable.some(i => i > 10),
             ~expected=[Next(false), Complete],
             (),
           ),
           observableIt(
-            "returns false for an observer for which no value passes the predicate",
+            "returns false for an subscriber for which no value passes the predicate",
             ~nextToString=string_of_bool,
             ~source=
               _ =>

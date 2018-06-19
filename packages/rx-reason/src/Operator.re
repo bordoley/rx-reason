@@ -1,1 +1,1 @@
-type t('a, 'b) = Observer.t('b) => Observer.t('a);
+type t('a, 'b) = Subscriber.t('b) => Subscriber.t('a);

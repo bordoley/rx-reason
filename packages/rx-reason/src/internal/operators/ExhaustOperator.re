@@ -1,13 +1,13 @@
-let operator = observer => {
+let operator = subscriber => {
   let innerSubscription = SerialDisposable.create();
-  let exhaustObserver = ref(Observer.disposed);
+  let exhaustSubscriber = ref(Subscriber.disposed);
 
   let hasActiveSubscription = () =>
     innerSubscription |> SerialDisposable.get |> Disposable.isDisposed |> (!);
 
-  let completeObserver = exn => {
+  let completeSubscriber = exn => {
     innerSubscription |> SerialDisposable.dispose;
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
 
   let onNext = next => {
@@ -15,13 +15,13 @@ let operator = observer => {
     if (! hasActiveSubscription) {
       let subscription =
         ObservableSource.subscribeWith(
-          ~onNext=Observer.forwardOnNext(observer),
+          ~onNext=Subscriber.forwardOnNext(subscriber),
           ~onComplete=
             exn =>
-              if (exhaustObserver^ |> Observer.isStopped) {
-                completeObserver(exn);
+              if (exhaustSubscriber^ |> Subscriber.isStopped) {
+                completeSubscriber(exn);
               } else if (exn !== None) {
-                exhaustObserver^ |> Observer.complete(~exn?);
+                exhaustSubscriber^ |> Subscriber.complete(~exn?);
               },
           next,
         );
@@ -36,18 +36,18 @@ let operator = observer => {
     let hasActiveSubscription = hasActiveSubscription();
     switch (exn) {
     | Some(_)
-    | None when ! hasActiveSubscription => completeObserver(exn)
+    | None when ! hasActiveSubscription => completeSubscriber(exn)
     | _ => ()
     };
   };
 
-  exhaustObserver :=
-    observer
-    |> Observer.delegate(~onNext, ~onComplete)
-    |> Observer.addDisposable(
+  exhaustSubscriber :=
+    subscriber
+    |> Subscriber.delegate(~onNext, ~onComplete)
+    |> Subscriber.addDisposable(
          innerSubscription |> SerialDisposable.asDisposable,
        );
-  exhaustObserver^;
+  exhaustSubscriber^;
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

@@ -1,8 +1,8 @@
-let operator = observer =>
-  Observer.delegate(
+let operator = subscriber =>
+  Subscriber.delegate(
     ~onNext=Functions.alwaysUnit,
-    ~onComplete=Observer.forwardOnComplete(observer),
-    observer,
+    ~onComplete=Subscriber.forwardOnComplete(subscriber),
+    subscriber,
   );
 
 let lift = observable => observable |> ObservableSource.lift(operator);

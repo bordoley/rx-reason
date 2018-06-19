@@ -1,4 +1,4 @@
-let operator = (shouldRetry, observable, observer) => {
+let operator = (shouldRetry, observable, subscriber) => {
   let subscription = SerialDisposable.create();
   let setupSubscription = ref(Functions.alwaysUnit);
 
@@ -7,12 +7,12 @@ let operator = (shouldRetry, observable, observer) => {
       let shouldComplete =
         try (! shouldRetry(exn)) {
         | exn =>
-          observer |> Observer.complete(~exn);
+          subscriber |> Subscriber.complete(~exn);
           Functions.returnUnit();
         };
 
       shouldComplete ?
-        observer |> Observer.complete(~exn?) : setupSubscription^();
+        subscriber |> Subscriber.complete(~exn?) : setupSubscription^();
     });
 
   setupSubscription :=
@@ -25,7 +25,7 @@ let operator = (shouldRetry, observable, observer) => {
           let newInnerSubscription =
             observable
             |> ObservableSource.subscribeWith(
-                 ~onNext=Observer.forwardOnNext(observer),
+                 ~onNext=Subscriber.forwardOnNext(subscriber),
                  ~onComplete,
                );
           subscription
@@ -36,12 +36,12 @@ let operator = (shouldRetry, observable, observer) => {
       }
     );
 
-  observer
-  |> Observer.delegate(
-       ~onNext=Observer.forwardOnNext(observer),
+  subscriber
+  |> Subscriber.delegate(
+       ~onNext=Subscriber.forwardOnNext(subscriber),
        ~onComplete,
      )
-  |> Observer.addDisposable(SerialDisposable.asDisposable(subscription));
+  |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription));
 };
 
 let lift = (shouldRetry, observable) =>

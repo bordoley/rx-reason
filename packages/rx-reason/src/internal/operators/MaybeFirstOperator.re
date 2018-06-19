@@ -1,3 +1,3 @@
-let operator = observer => FirstOperator.operator @@ MaybeOperator.operator @@ observer;
+let operator = subscriber => FirstOperator.operator @@ MaybeOperator.operator @@ subscriber;
 
 let lift = observable => observable |> ObservableSource.lift(operator);

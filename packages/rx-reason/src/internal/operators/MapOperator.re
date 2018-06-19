@@ -1,22 +1,22 @@
-let operator = (mapper, observer) => {
-  let mapObserver = ref(Observer.disposed);
+let operator = (mapper, subscriber) => {
+  let mapSubscriber = ref(Subscriber.disposed);
   let onNext =
     Functions.earlyReturnsUnit1(next => {
       let mapped =
         try (mapper(next)) {
         | exn =>
-          mapObserver^ |> Observer.complete(~exn);
+          mapSubscriber^ |> Subscriber.complete(~exn);
           Functions.returnUnit();
         };
-      observer |> Observer.next(mapped);
+      subscriber |> Subscriber.next(mapped);
     });
-  mapObserver :=
-    observer
-    |> Observer.delegate(
+  mapSubscriber :=
+    subscriber
+    |> Subscriber.delegate(
          ~onNext,
-         ~onComplete=Observer.forwardOnComplete(observer),
+         ~onComplete=Subscriber.forwardOnComplete(subscriber),
        );
-  mapObserver^;
+  mapSubscriber^;
 };
 
 let lift = (mapper, observable) =>

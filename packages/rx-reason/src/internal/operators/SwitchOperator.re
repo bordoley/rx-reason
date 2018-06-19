@@ -1,5 +1,5 @@
-let operator = observer => {
-  let switchObserver = ref(Observer.disposed);
+let operator = subscriber => {
+  let switchSubscriber = ref(Subscriber.disposed);
   let innerSubscription = SerialDisposable.create();
   let latest = ref(0);
   let lock = Lock.create();
@@ -9,7 +9,7 @@ let operator = observer => {
     let onNext = next => {
       lock |> Lock.acquire;
       if (latest^ === id) {
-        observer |> Observer.next(next);
+        subscriber |> Subscriber.next(next);
       };
       lock |> Lock.release;
     };
@@ -18,7 +18,7 @@ let operator = observer => {
       switch (exn) {
       | Some(_) =>
         if (latest^ === id) {
-          switchObserver^ |> Observer.complete(~exn?);
+          switchSubscriber^ |> Subscriber.complete(~exn?);
         }
       | None => ()
       };
@@ -43,17 +43,17 @@ let operator = observer => {
   let onComplete = exn => {
     lock |> Lock.acquire;
     innerSubscription |> SerialDisposable.dispose;
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
     lock |> Lock.release;
   };
 
-  switchObserver :=
-    observer
-    |> Observer.delegate(~onNext, ~onComplete)
-    |> Observer.addDisposable(
+  switchSubscriber :=
+    subscriber
+    |> Subscriber.delegate(~onNext, ~onComplete)
+    |> Subscriber.addDisposable(
          SerialDisposable.asDisposable(innerSubscription),
        );
-  switchObserver^;
+  switchSubscriber^;
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

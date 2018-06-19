@@ -1,8 +1,8 @@
-let operator = (default, observer) => {
+let operator = (default, subscriber) => {
   let isEmpty = ref(true);
 
   let onNext = next => {
-    observer |> Observer.next(next);
+    subscriber |> Subscriber.next(next);
     Volatile.write(false, isEmpty);
   };
 
@@ -12,15 +12,15 @@ let operator = (default, observer) => {
       | Some(EmptyException.Exn)
       | None =>
         if (Volatile.read(isEmpty)) {
-          observer |> Observer.next(default);
+          subscriber |> Subscriber.next(default);
         };
         None;
       | Some(_) => exn
       };
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
   
-  observer |> Observer.delegate(~onNext, ~onComplete);
+  subscriber |> Subscriber.delegate(~onNext, ~onComplete);
 };
 
 let lift = (default, observable) =>

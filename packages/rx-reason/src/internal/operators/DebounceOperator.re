@@ -1,5 +1,5 @@
 let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
-  observer => {
+  subscriber => {
     let lastValue = MutableOption.create();
     let debounceSubscription = SerialDisposable.create();
 
@@ -11,7 +11,7 @@ let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
       if (MutableOption.isNotEmpty(lastValue)) {
         let next = MutableOption.get(lastValue);
         MutableOption.unset(lastValue);
-        observer |> Observer.next(next);
+        subscriber |> Subscriber.next(next);
       };
       Disposable.disposed;
     };
@@ -27,12 +27,12 @@ let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
       | Some(_) => clearDebounce()
       | None => debouncedNext() |> ignore
       };
-      observer |> Observer.complete(~exn?);
+      subscriber |> Subscriber.complete(~exn?);
     };
 
-    observer
-    |> Observer.delegate(~onNext, ~onComplete)
-    |> Observer.addDisposable(
+    subscriber
+    |> Subscriber.delegate(~onNext, ~onComplete)
+    |> Subscriber.addDisposable(
          SerialDisposable.asDisposable(debounceSubscription),
        );
   };

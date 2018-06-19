@@ -1,4 +1,4 @@
-let operator = (scanner, initialValue, observer) => {
+let operator = (scanner, initialValue, subscriber) => {
   let acc = ref(initialValue);
   let mapper = next => {
     let prevAcc = acc^;
@@ -6,8 +6,8 @@ let operator = (scanner, initialValue, observer) => {
     acc := nextAcc;
     nextAcc;
   };
-  observer |> Observer.next(initialValue);
-  MapOperator.operator(mapper, observer);
+  subscriber |> Subscriber.next(initialValue);
+  MapOperator.operator(mapper, subscriber);
 };
 
 let lift = (scanner, initialValue, observable) =>

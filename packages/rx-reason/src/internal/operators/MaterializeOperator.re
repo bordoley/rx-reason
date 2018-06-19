@@ -1,5 +1,5 @@
-let operator = observer => {
-  let onNext = next => observer |> Observer.next(Notification.Next(next));
+let operator = subscriber => {
+  let onNext = next => subscriber |> Subscriber.next(Notification.Next(next));
 
   let onComplete = exn => {
     let next =
@@ -7,11 +7,11 @@ let operator = observer => {
       | Some(exn) => Notification.CompleteWithException(exn)
       | None => Notification.Complete
       };
-    observer |> Observer.next(next);
-    observer |> Observer.complete;
+    subscriber |> Subscriber.next(next);
+    subscriber |> Subscriber.complete;
   };
   
-  observer |> Observer.delegate(~onNext, ~onComplete);
+  subscriber |> Subscriber.delegate(~onNext, ~onComplete);
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

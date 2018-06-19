@@ -1,4 +1,4 @@
-let operator = observer => {
+let operator = subscriber => {
   let last = MutableOption.create();
 
   let onNext = next => MutableOption.set(next, last);
@@ -11,16 +11,16 @@ let operator = observer => {
           Some(EmptyException.Exn);
         } else {
           let lastValue = MutableOption.get(last);
-          observer |> Observer.next(lastValue);
+          subscriber |> Subscriber.next(lastValue);
           None;
         }
       };
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
   
-  observer
-  |> Observer.delegate(~onNext, ~onComplete)
-  |> Observer.addTeardown(() => MutableOption.unset(last));
+  subscriber
+  |> Subscriber.delegate(~onNext, ~onComplete)
+  |> Subscriber.addTeardown(() => MutableOption.unset(last));
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

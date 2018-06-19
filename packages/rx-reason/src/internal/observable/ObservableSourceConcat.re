@@ -1,5 +1,5 @@
 let concat = (~scheduler=Scheduler.immediate, observables) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let subscription = SerialDisposable.create();
 
     let rec scheduleSubscription = observables => {
@@ -8,7 +8,7 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
         | [hd, ...tail] =>
           let onComplete = exn =>
             switch (exn) {
-            | Some(_) => observer |> Observer.complete(~exn?)
+            | Some(_) => subscriber |> Subscriber.complete(~exn?)
             | None =>
               /* Cancel the current subscription here */
               subscription |> SerialDisposable.set(Disposable.disposed);
@@ -18,13 +18,13 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
           scheduler(() =>
             hd
             |> ObservableSource.subscribeWith(
-                 ~onNext=Observer.forwardOnNext(observer),
+                 ~onNext=Subscriber.forwardOnNext(subscriber),
                  ~onComplete,
                )
             |> CompositeDisposable.asDisposable
           );
         | [] =>
-          observer |> Observer.complete;
+          subscriber |> Subscriber.complete;
           Disposable.disposed;
         };
 
@@ -37,7 +37,7 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
     };
 
     scheduleSubscription(observables);
-    observer
-    |> Observer.addDisposable(SerialDisposable.asDisposable(subscription))
+    subscriber
+    |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription))
     |> ignore;
   });

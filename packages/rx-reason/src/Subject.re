@@ -1,26 +1,28 @@
 type t('a) = {
-  observer: Observer.t('a),
+  subscriber: Subscriber.t('a),
   observable: Observable.t('a),
 };
 
-let disposed = {observer: Observer.disposed, observable: Observable.never};
+let disposed = {subscriber: Subscriber.disposed, observable: Observable.never};
 
-let complete = (~exn=?, {observer}) => observer |> Observer.complete(~exn?);
+let complete = (~exn=?, {subscriber}) => subscriber |> Subscriber.complete(~exn?);
 
-let completeWithResult = (~exn=?, {observer}) =>
-  observer |> Observer.completeWithResult(~exn?);
+let completeWithResult = (~exn=?, {subscriber}) =>
+  subscriber |> Subscriber.completeWithResult(~exn?);
 
-let dispose = ({observer}) => observer |> Observer.dispose;
+let dispose = ({subscriber}) => subscriber |> Subscriber.dispose;
 
-let isDisposed = ({observer}) => observer |> Observer.isDisposed;
+let isDisposed = ({subscriber}) => subscriber |> Subscriber.isDisposed;
 
-let next = (next, {observer}) => observer |> Observer.next(next);
+let isStopped = ({subscriber}) => subscriber |> Subscriber.isStopped;
 
-let notify = (notif, {observer}) => observer |> Observer.notify(notif);
+let next = (next, {subscriber}) => subscriber |> Subscriber.next(next);
 
-let raiseIfDisposed = ({observer}) => observer |> Observer.raiseIfDisposed;
+let notify = (notif, {subscriber}) => subscriber |> Subscriber.notify(notif);
 
-let asDisposable = ({observer}) => observer |> Observer.asDisposable;
+let raiseIfDisposed = ({subscriber}) => subscriber |> Subscriber.raiseIfDisposed;
+
+let asDisposable = ({subscriber}) => subscriber |> Subscriber.asDisposable;
 
 let asObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
@@ -46,8 +48,8 @@ let createWithCallbacks =
     let currentSubscribers = subscribers^;
     onComplete(exn);
     currentSubscribers
-    |> CopyOnWriteArray.forEach(observer =>
-         observer |> Observer.complete(~exn?)
+    |> CopyOnWriteArray.forEach(subscriber =>
+         subscriber |> Subscriber.complete(~exn?)
        );
   };
 
@@ -55,16 +57,16 @@ let createWithCallbacks =
     onNext(next);
     let currentSubscribers = subscribers^;
     currentSubscribers
-    |> CopyOnWriteArray.forEach(observer => observer |> Observer.next(next));
+    |> CopyOnWriteArray.forEach(subscriber => subscriber |> Subscriber.next(next));
   };
-  let observer =
-    Observer.create(~onComplete, ~onNext)
-    |> Observer.addTeardown(onDispose)
-    |> Observer.addTeardown(() => subscribers := CopyOnWriteArray.empty());
+  let subscriber =
+    Subscriber.create(~onComplete, ~onNext)
+    |> Subscriber.addTeardown(onDispose)
+    |> Subscriber.addTeardown(() => subscribers := CopyOnWriteArray.empty());
 
   let observable =
     Observable.create(subscriber => {
-      observer |> Observer.raiseIfDisposed;
+      subscriber |> Subscriber.raiseIfDisposed;
       subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
 
       onSubscribe(subscriber);
@@ -79,9 +81,9 @@ let createWithCallbacks =
              );
       };
 
-      subscriber |> Observer.addTeardown(teardown) |> ignore;
+      subscriber |> Subscriber.addTeardown(teardown) |> ignore;
     });
-  {observer, observable};
+  {subscriber, observable};
 };
 
 let create = () =>
@@ -123,14 +125,14 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
       },
     ~onDispose=() => buffer := CopyOnWriteArray.empty(),
     ~onSubscribe=
-      observer => {
+      subscriber => {
         let currentBuffer = buffer^;
         CopyOnWriteArray.forEach(
-          Observer.forwardOnNext(observer),
+          Subscriber.forwardOnNext(subscriber),
           currentBuffer,
         );
         if (completed^) {
-          (); /*observer |> Observer.complete(~exn=(completedValue^)?);*/
+          (); /*subscriber |> Subscriber.complete(~exn=(completedValue^)?);*/
         };
       },
   );

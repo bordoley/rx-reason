@@ -152,7 +152,7 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
  * Returns an Observable from the specified subscribe function.
  */
 let create:
-  (Observer.t('a) => unit) =>
+  (Subscriber.t('a) => unit) =>
   t('a);
 
 /**
@@ -445,7 +445,7 @@ let subscribeOn: (Scheduler.t, t('a)) => t('a);
 let switch_: t(t('a)) => t('a);
 
 /**
- * Returns an Observable that utilizes locking, to ensure observer
+ * Returns an Observable that utilizes locking, to ensure subscriber
  * callbacks are synchronized.
  *
  * Note: Only defined to support a future native ocaml version.

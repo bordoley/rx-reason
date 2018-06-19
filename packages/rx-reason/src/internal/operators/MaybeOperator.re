@@ -1,14 +1,14 @@
-let operator = observer => {
+let operator = subscriber => {
   let onComplete = exn => {
     let exn =
       switch (exn) {
       | Some(EmptyException.Exn) => None
       | _ => exn
       };
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
-  observer
-  |> Observer.delegate(~onNext=Observer.forwardOnNext(observer), ~onComplete);
+  subscriber
+  |> Subscriber.delegate(~onNext=Subscriber.forwardOnNext(subscriber), ~onComplete);
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

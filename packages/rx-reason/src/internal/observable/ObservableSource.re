@@ -1,4 +1,4 @@
-type source('a) = Observer.t('a) => unit;
+type source('a) = Subscriber.t('a) => unit;
 
 type t('a) =
   | Source(source('a)): t('a)
@@ -27,16 +27,16 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   | Lift2(source, op0, op1) => Lift3(source, op0, op1, operator)
   | Lift3(source, op0, op1, op2) => Lift4(source, op0, op1, op2, operator)
   | Lift4(source, op0, op1, op2, op3) =>
-    let op0 = observer => op0 @@ op1 @@ op2 @@ op3 @@ operator @@ observer;
+    let op0 = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ operator @@ subscriber;
     Lift1(source, op0);
   };
 
 let never = Source(Functions.alwaysUnit);
 
-let subscribeSafe = (observer, source) =>
-  try (source(observer)) {
+let subscribeSafe = (subscriber, source) =>
+  try (source(subscriber)) {
   | exn =>
-    let shouldRaise = observer |> Observer.completeWithResult(~exn) |> (!);
+    let shouldRaise = subscriber |> Subscriber.completeWithResult(~exn) |> (!);
     if (shouldRaise) {
       /* This could happen when the onComplete is called synchronously in the
        * subscribe function which also throws.
@@ -47,28 +47,28 @@ let subscribeSafe = (observer, source) =>
     };
   };
 
-let subscribeObserver = (observer, observable) =>
+let subscribeSubscriber = (subscriber, observable) =>
   switch (observable) {
-  | Source(source) => source |> subscribeSafe(observer)
+  | Source(source) => source |> subscribeSafe(subscriber)
   | Lift1(source, operator) =>
-    let observer = operator(observer);
-    source |> subscribeSafe(observer);
+    let subscriber = operator(subscriber);
+    source |> subscribeSafe(subscriber);
   | Lift2(source, op0, op1) =>
-    let observer = op0(op1(observer));
-    source |> subscribeSafe(observer);
+    let subscriber = op0(op1(subscriber));
+    source |> subscribeSafe(subscriber);
   | Lift3(source, op0, op1, op2) =>
-    let observer = op0(op1(op2(observer)));
-    source |> subscribeSafe(observer);
+    let subscriber = op0(op1(op2(subscriber)));
+    source |> subscribeSafe(subscriber);
   | Lift4(source, op0, op1, op2, op3) =>
-    let observer = op0(op1(op2(op3(observer))));
-    source |> subscribeSafe(observer);
+    let subscriber = op0(op1(op2(op3(subscriber))));
+    source |> subscribeSafe(subscriber);
   };
 
 let subscribeWith = (~onNext, ~onComplete, observable) => {
-  let observer = Observer.createAutoDisposing(~onNext, ~onComplete);
+  let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
 
-  subscribeObserver(observer, observable);
-  observer |> Observer.asCompositeDisposable;
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
 };
 
 let subscribe =
@@ -110,13 +110,13 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   let exn = Some(exn);
 
   scheduler === Scheduler.immediate ?
-    create(observer => observer |> Observer.complete(~exn?)) :
-    create(observer => {
+    create(subscriber => subscriber |> Subscriber.complete(~exn?)) :
+    create(subscriber => {
       let schedulerDisposable =
         scheduler(() => {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
           Disposable.disposed;
         });
-      observer |> Observer.addDisposable(schedulerDisposable) |> ignore;
+      subscriber |> Subscriber.addDisposable(schedulerDisposable) |> ignore;
     });
 };

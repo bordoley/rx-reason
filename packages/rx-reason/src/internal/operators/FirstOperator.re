@@ -1,12 +1,12 @@
 exception CompleteWithoutErrorException;
 let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let operator = observer => {
-  let firstObserver = ref(Observer.disposed);
+let operator = subscriber => {
+  let firstSubscriber = ref(Subscriber.disposed);
 
   let onNext = next => {
-    observer |> Observer.next(next);
-    firstObserver^ |> Observer.complete(~exn=?completeWithoutErrorExn);
+    subscriber |> Subscriber.next(next);
+    firstSubscriber^ |> Subscriber.complete(~exn=?completeWithoutErrorExn);
   };
 
   let onComplete = exn => {
@@ -16,11 +16,11 @@ let operator = observer => {
       | Some(_) => exn
       | _ => Some(EmptyException.Exn)
       };
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
 
-  firstObserver := observer |> Observer.delegate(~onNext, ~onComplete);
-  firstObserver^;
+  firstSubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+  firstSubscriber^;
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

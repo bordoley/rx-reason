@@ -3,17 +3,17 @@ type t('a) = Observable.t('a);
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
 let create = subscribe =>
-  Observable.create(observer => {
+  Observable.create(subscriber => {
     let teardown =
       subscribe(
         ~onSuccess=
           result => {
-            observer |> Observer.next(result);
-            observer |> Observer.complete;
+            subscriber |> Subscriber.next(result);
+            subscriber |> Subscriber.complete;
           },
-        ~onError=exn => observer |> Observer.complete(~exn),
+        ~onError=exn => subscriber |> Subscriber.complete(~exn),
       );
-    observer |> Observer.addTeardown(teardown) |> ignore;
+    subscriber |> Subscriber.addTeardown(teardown) |> ignore;
   });
 
 let defer = Observable.defer;

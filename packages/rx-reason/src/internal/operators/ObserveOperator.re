@@ -1,14 +1,14 @@
-let operator = (~onNext, ~onComplete, observer) => {
-  let observeObserver = ref(Observer.disposed);
+let operator = (~onNext, ~onComplete, subscriber) => {
+  let observeSubscriber = ref(Subscriber.disposed);
   
   let onNext =
     Functions.earlyReturnsUnit1(next => {
       try (onNext(next)) {
       | exn =>
-        observeObserver^ |> Observer.complete(~exn);
+        observeSubscriber^ |> Subscriber.complete(~exn);
         Functions.returnUnit();
       };
-      observer |> Observer.next(next);
+      subscriber |> Subscriber.next(next);
     });
 
   let onComplete = exn => {
@@ -21,11 +21,11 @@ let operator = (~onNext, ~onComplete, observer) => {
       ) {
       | exn => Some(exn)
       };
-    observer |> Observer.complete(~exn?);
+    subscriber |> Subscriber.complete(~exn?);
   };
 
-  observeObserver := observer |> Observer.delegate(~onNext, ~onComplete);
-  observeObserver^;
+  observeSubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+  observeSubscriber^;
 };
 
 let lift = (~onNext, ~onComplete, observable) =>

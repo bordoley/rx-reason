@@ -5,7 +5,7 @@ let combineLatest2 =
       observable1: ObservableSource.t('b),
     )
     : ObservableSource.t('c) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
@@ -17,10 +17,10 @@ let combineLatest2 =
           let next =
             try (selector(MutableOption.get(v0), MutableOption.get(v1))) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -34,11 +34,11 @@ let combineLatest2 =
     let doOnComplete = (other, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete = CompositeDisposable.isDisposed(other^);
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -56,8 +56,8 @@ let combineLatest2 =
     s1 := doSubscribe(observable1, v1, s0);
     let (s0, s1) = (s0^, s1^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          MutableOption.unset(v0);
@@ -74,7 +74,7 @@ let combineLatest3 =
       observable2: ObservableSource.t('c),
     )
     : ObservableSource.t('d) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1, v2) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -98,10 +98,10 @@ let combineLatest3 =
               )
             ) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -115,14 +115,14 @@ let combineLatest3 =
     let doOnComplete = (d0, d1, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete =
           CompositeDisposable.isDisposed(d0^)
           && CompositeDisposable.isDisposed(d1^);
 
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -144,8 +144,8 @@ let combineLatest3 =
 
     let (s0, s1, s2) = (s0^, s1^, s2^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          s2 |> CompositeDisposable.dispose;
@@ -165,7 +165,7 @@ let combineLatest4 =
       observable3: ObservableSource.t('d),
     )
     : ObservableSource.t('e) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1, v2, v3) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -193,10 +193,10 @@ let combineLatest4 =
               )
             ) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -210,7 +210,7 @@ let combineLatest4 =
     let doOnComplete = (d0, d1, d2, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete =
           CompositeDisposable.isDisposed(d0^)
@@ -218,7 +218,7 @@ let combineLatest4 =
           && CompositeDisposable.isDisposed(d2^);
 
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -246,8 +246,8 @@ let combineLatest4 =
 
     let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          s2 |> CompositeDisposable.dispose;
@@ -270,7 +270,7 @@ let combineLatest5 =
       observable4: ObservableSource.t('e),
     )
     : ObservableSource.t('f) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1, v2, v3, v4) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -301,10 +301,10 @@ let combineLatest5 =
               )
             ) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -318,7 +318,7 @@ let combineLatest5 =
     let doOnComplete = (d0, d1, d2, d3, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete =
           CompositeDisposable.isDisposed(d0^)
@@ -327,7 +327,7 @@ let combineLatest5 =
           && CompositeDisposable.isDisposed(d3^);
 
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -357,8 +357,8 @@ let combineLatest5 =
 
     let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          s2 |> CompositeDisposable.dispose;
@@ -384,7 +384,7 @@ let combineLatest6 =
       observable5: ObservableSource.t('f),
     )
     : ObservableSource.t('g) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1, v2, v3, v4, v5) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -418,10 +418,10 @@ let combineLatest6 =
               )
             ) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -435,7 +435,7 @@ let combineLatest6 =
     let doOnComplete = (d0, d1, d2, d3, d4, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete =
           CompositeDisposable.isDisposed(d0^)
@@ -445,7 +445,7 @@ let combineLatest6 =
           && CompositeDisposable.isDisposed(d4^);
 
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -477,8 +477,8 @@ let combineLatest6 =
 
     let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          s2 |> CompositeDisposable.dispose;
@@ -507,7 +507,7 @@ let combineLatest7 =
       observable6: ObservableSource.t('g),
     )
     : ObservableSource.t('h) =>
-  ObservableSource.create(observer => {
+  ObservableSource.create(subscriber => {
     let (v0, v1, v2, v3, v4, v5, v6) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -544,10 +544,10 @@ let combineLatest7 =
               )
             ) {
             | exn =>
-              observer |> Observer.complete(~exn);
+              subscriber |> Subscriber.complete(~exn);
               Functions.returnUnit();
             };
-          observer |> Observer.next(next);
+          subscriber |> Subscriber.next(next);
         };
       });
 
@@ -561,7 +561,7 @@ let combineLatest7 =
     let doOnComplete = (d0, d1, d2, d3, d4, d5, exn) => {
       Lock.acquire(lock);
       switch (exn) {
-      | Some(_) => observer |> Observer.complete(~exn?)
+      | Some(_) => subscriber |> Subscriber.complete(~exn?)
       | None =>
         let shouldComplete =
           CompositeDisposable.isDisposed(d0^)
@@ -572,7 +572,7 @@ let combineLatest7 =
           && CompositeDisposable.isDisposed(d5^);
 
         if (shouldComplete) {
-          observer |> Observer.complete(~exn?);
+          subscriber |> Subscriber.complete(~exn?);
         };
       };
       Lock.release(lock);
@@ -606,8 +606,8 @@ let combineLatest7 =
 
     let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 
-    observer
-    |> Observer.addTeardown(() => {
+    subscriber
+    |> Subscriber.addTeardown(() => {
          s0 |> CompositeDisposable.dispose;
          s1 |> CompositeDisposable.dispose;
          s2 |> CompositeDisposable.dispose;

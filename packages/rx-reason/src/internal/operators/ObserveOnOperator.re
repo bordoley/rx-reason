@@ -3,7 +3,7 @@ let operator =
       ~bufferStrategy=BufferStrategy.Throw,
       ~bufferSize=(-1),
       scheduler,
-      observer,
+      subscriber,
     ) => {
   let queue =
     QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
@@ -22,11 +22,11 @@ let operator =
     switch (QueueWithBufferStrategy.tryDeque(queue)) {
     | _ when innerSubscription |> Disposable.isDisposed => Disposable.disposed
     | Some(next) =>
-      observer |> Observer.next(next);
+      subscriber |> Subscriber.next(next);
       Interlocked.decrement(wip) !== 0 ?
         scheduler(doWorkStep) : Disposable.disposed;
     | _ when Interlocked.exchange(false, shouldComplete) =>
-      observer |> Observer.complete(~exn=?completedState^);
+      subscriber |> Subscriber.complete(~exn=?completedState^);
       innerSubscription |> Disposable.dispose;
       Disposable.disposed;
     | _ => Disposable.disposed
@@ -48,9 +48,9 @@ let operator =
     schedule();
   };
 
-  observer
-  |> Observer.delegate(~onNext, ~onComplete)
-  |> Observer.addDisposable(innerSubscription);
+  subscriber
+  |> Subscriber.delegate(~onNext, ~onComplete)
+  |> Subscriber.addDisposable(innerSubscription);
 };
 
 let lift =

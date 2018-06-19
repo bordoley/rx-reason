@@ -1,13 +1,13 @@
 let operator = scheduler => {
   let timeoutObservable =
     ObservableSource.raise(~scheduler, TimeoutException.Exn);
-  observer => {
+  subscriber => {
     let timeoutSubscription = SerialDisposable.create();
-    let timeOutObserver = ref(Observer.disposed);
+    let timeOutSubscriber = ref(Subscriber.disposed);
     let connect =
       ObservableSource.publishTo(
         ~onNext=Functions.alwaysUnit,
-        ~onComplete=exn => timeOutObserver^ |> Observer.complete(~exn?),
+        ~onComplete=exn => timeOutSubscriber^ |> Subscriber.complete(~exn?),
         timeoutObservable,
       );
 
@@ -17,24 +17,24 @@ let operator = scheduler => {
     };
 
     let onNext = next => {
-      observer |> Observer.next(next);
+      subscriber |> Subscriber.next(next);
       subscribeToTimeout();
     };
 
     let onComplete = exn => {
       timeoutSubscription |> SerialDisposable.dispose;
-      observer |> Observer.complete(~exn?);
+      subscriber |> Subscriber.complete(~exn?);
     };
 
-    timeOutObserver :=
-      observer
-      |> Observer.delegate(~onNext, ~onComplete)
-      |> Observer.addDisposable(
+    timeOutSubscriber :=
+      subscriber
+      |> Subscriber.delegate(~onNext, ~onComplete)
+      |> Subscriber.addDisposable(
            SerialDisposable.asDisposable(timeoutSubscription),
          );
 
     subscribeToTimeout();
-    timeOutObserver^;
+    timeOutSubscriber^;
   };
 };
 
