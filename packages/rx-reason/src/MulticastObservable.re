@@ -23,8 +23,7 @@ let shareInternal = (~createSubject, source) => {
     let currentSubject = subject^;
 
     let subscription =
-    currentSubject
-      |> Subject.subscribeWith(~onNext, ~onComplete);
+      currentSubject |> Subject.subscribeWith(~onNext, ~onComplete);
 
     if (refCount^ === 0) {
       sourceSubscription
@@ -32,13 +31,14 @@ let shareInternal = (~createSubject, source) => {
            Observable.subscribeWith(
              ~onNext=next => currentSubject |> Subject.next(next),
              ~onComplete=exn => currentSubject |> Subject.complete(~exn?),
-             source
-            ) |> CompositeDisposable.asDisposable,
+             source,
+           )
+           |> CompositeDisposable.asDisposable,
          );
     };
 
     if (subscription |> CompositeDisposable.isDisposed) {
-      Functions.alwaysUnit
+      TeardownLogic.none;
     } else {
       incr(refCount);
       () => {

@@ -124,7 +124,7 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   scheduler === Scheduler.immediate ?
     create((~onNext as _, ~onComplete) => {
       onComplete(exn);
-      Functions.alwaysUnit;
+      TeardownLogic.none
     }) :
     create((~onNext as _, ~onComplete) => {
       let schedulerDisposable =

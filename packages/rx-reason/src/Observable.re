@@ -86,7 +86,7 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
     create((~onNext as _, ~onComplete) => {
       onComplete(None);
-      Functions.alwaysUnit;
+      TeardownLogic.none;
     }) :
     create((~onNext as _, ~onComplete) => {
       let schedulerSubscription =
@@ -140,7 +140,7 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
         | [] => onComplete(None)
         };
       loop(list);
-      Functions.alwaysUnit;
+      TeardownLogic.none;
     }) :
     create((~onNext, ~onComplete) => {
       let rec loop = (list, ()) =>
@@ -232,7 +232,7 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
     create((~onNext, ~onComplete) => {
       onNext(value);
       onComplete(None);
-      Functions.alwaysUnit;
+      TeardownLogic.none;
     }) :
     create((~onNext, ~onComplete) => {
       let schedulerSubscription =

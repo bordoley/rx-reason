@@ -651,7 +651,7 @@ let test =
                   onNext(10);
                   onNext(20);
                   onComplete(None);
-                  Functions.alwaysUnit;
+                  TeardownLogic.none;
                 }),
             ~expected=[Next(10), Next(20), Complete],
             (),
@@ -1314,7 +1314,7 @@ let test =
                   onNext(1);
                   onNext(2);
                   onComplete(Some(Division_by_zero));
-                  Functions.alwaysUnit;
+                  TeardownLogic.none
                 })
                 |> Observable.retry(~predicate);
               },

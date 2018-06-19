@@ -66,16 +66,18 @@ let raiseIfDisposed = ({disposable}) =>
   disposable |> Disposable.raiseIfDisposed;
 
 let addTeardown = (cb, {lock, teardown} as disposable) => {
-  lock |> Lock.acquire;
-  let isDisposed = disposable |> isDisposed;
+  if (cb !== TeardownLogic.none) {
+    lock |> Lock.acquire;
+    let isDisposed = disposable |> isDisposed;
 
-  if (! isDisposed) {
-    teardown := [cb, ...teardown^];
-  };
-  lock |> Lock.release;
+    if (! isDisposed) {
+      teardown := [cb, ...teardown^];
+    };
+    lock |> Lock.release;
 
-  if (isDisposed) {
-    cb();
+    if (isDisposed) {
+      cb();
+    };
   };
 
   disposable;

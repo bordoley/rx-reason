@@ -50,7 +50,7 @@ let compose: list(t) => t;
  * Constructs a Disposable instance which executes
  * the provided function exactly once when disposed.
  */
-let create: (unit => unit) => t;
+let create: (TeardownLogic.t) => t;
 
 /**
  * A disposed Disposable instance.

@@ -21,7 +21,7 @@ let toSingle = (
     };
 
     promise |. promiseThen(onSuccessIfNotDisposed, onErrorIfNotDisposed) |> ignore;
-    () => ();
+    () => disposable |> RxReason.Disposable.dispose;
   },
 );
 

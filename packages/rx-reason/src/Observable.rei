@@ -152,7 +152,7 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
  * Returns an Observable from the specified subscribe function.
  */
 let create:
-  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit, unit) => unit) =>
+  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => TeardownLogic.t) =>
   t('a);
 
 /**
@@ -381,7 +381,7 @@ let onNext: ('a => unit, t('a)) => t('a);
  * calling the specified function when subscribed to, and
  * disposing the returned Disposable when disposed.
  */
-let onSubscribe: ((unit, unit) => unit, t('a)) => t('a);
+let onSubscribe: (unit => TeardownLogic.t, t('a)) => t('a);
 
 /**
  * Returns an Observable that completes with the specified exception
