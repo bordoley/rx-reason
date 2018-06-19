@@ -11,7 +11,7 @@ let asObservable: t('a) => Observable.t('a);
  * Returns a Single from the specified subscribe function.
  */
 let create:
-  ((~onSuccess: 'a => unit, ~onError: exn => unit) => Disposable.t) => t('a);
+  ((~onSuccess: 'a => unit, ~onError: exn => unit) => unit => unit) => t('a);
 
 /**
  * Returns a Single that calls a Single factory to

@@ -4,7 +4,7 @@ let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 let operator = (predicate, observer) => {
   let everyTrueObserver = ref(Observer.disposed);
   everyTrueObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         next =>
           if (! next) {
@@ -25,11 +25,10 @@ let operator = (predicate, observer) => {
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=Observer.forwardOnDispose(observer),
+      observer,
     );
   everyTrueObserver^ |> MapOperator.operator(predicate);
 };
-
 
 let lift = (predicate, observable) =>
   observable |> ObservableSource.lift(operator(predicate));

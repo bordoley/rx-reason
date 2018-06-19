@@ -58,11 +58,11 @@ let some = Observable.some;
 let subscribeWith =
     (~onSuccess: 'a => unit, ~onError: exn => unit, single)
     : Disposable.t => {
-  let innerSubscription = ref(Disposable.disposed);
+  let innerSubscription = ref(CompositeDisposable.disposed);
   let subscription =
     Disposable.create(() =>
-      Interlocked.exchange(Disposable.disposed, innerSubscription)
-      |> Disposable.dispose
+      Interlocked.exchange(CompositeDisposable.disposed, innerSubscription)
+      |> CompositeDisposable.dispose
     );
   innerSubscription :=
     single

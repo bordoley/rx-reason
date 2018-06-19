@@ -1,7 +1,7 @@
 let operator = (~onNext, ~onComplete, observer) => {
   let observeObserver = ref(Observer.disposed);
   observeObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         Functions.earlyReturnsUnit1(next => {
           try (onNext(next)) {
@@ -24,7 +24,7 @@ let operator = (~onNext, ~onComplete, observer) => {
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=Observer.forwardOnDispose(observer),
+      observer,
     );
   observeObserver^;
 };

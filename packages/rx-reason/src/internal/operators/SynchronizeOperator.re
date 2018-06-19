@@ -1,6 +1,6 @@
 let operator = observer => {
   let gate = Lock.create();
-  Observer.create(
+  Observer.delegate(
     ~onComplete=
       exn => {
         Lock.acquire(gate);
@@ -13,7 +13,7 @@ let operator = observer => {
         observer |> Observer.next(next);
         Lock.release(gate);
       },
-    ~onDispose=Observer.forwardOnDispose(observer),
+      observer,
   );
 };
 

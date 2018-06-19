@@ -28,19 +28,20 @@ let operator = (shouldRetry, observable, observer) => {
                  ~onNext=Observer.forwardOnNext(observer),
                  ~onComplete,
                );
-          subscription |> SerialDisposable.set(newInnerSubscription);
+          subscription
+          |> SerialDisposable.set(
+               newInnerSubscription |> CompositeDisposable.asDisposable,
+             );
         };
       }
     );
 
-  Observer.create(
+  Observer.delegate(
     ~onNext=Observer.forwardOnNext(observer),
     ~onComplete,
-    ~onDispose=() => {
-      subscription |> SerialDisposable.dispose;
-      observer |> Observer.dispose;
-    },
-  );
+    observer,
+  )
+  |> Observer.addTeardown(() => subscription |> SerialDisposable.dispose);
 };
 
 let lift = (shouldRetry, observable) =>

@@ -5,7 +5,7 @@ let operator =
   observer => {
     let isEmptyObserver = ref(Observer.disposed);
     isEmptyObserver :=
-      Observer.create(
+      Observer.delegate(
         ~onNext=
           _ => {
             observer |> Observer.next(false);
@@ -24,7 +24,7 @@ let operator =
               };
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=Observer.forwardOnDispose(observer),
+        observer,
       );
     isEmptyObserver^;
   };

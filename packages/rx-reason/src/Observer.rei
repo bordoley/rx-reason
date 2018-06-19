@@ -11,7 +11,7 @@ type observer('a) = t('a);
 module type S1 = {
   type t('a);
 
-  include Disposable.S1 with type t('a) := t('a);
+  include CompositeDisposable.S1 with type t('a) := t('a);
 
   /** Cast to Observer.t. */
   let asObserver: t('a) => observer('a);
@@ -19,18 +19,18 @@ module type S1 = {
   /** Notify the observer that no more notifications will be sent, optionally with an exception. */
   let complete: (~exn: exn=?, t('a)) => unit;
 
-  /** 
-   * Notify the Observer that no more notifications will be sent, optionally with an exception. 
+  /**
+   * Notify the Observer that no more notifications will be sent, optionally with an exception.
    * Returns true if the Observer has not previously been completed, otherwise false.
    */
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
 
   /** Returns true if the Observer has been completed or disposed. */
   let isStopped: t('a) => bool;
-  
+
   /* Notify the observer of the next element to observe. */
   let next: ('a, t('a)) => unit;
-  
+
   /* Notify the observer of the next notification to observe. */
   let notify: (Notification.t('a), t('a)) => unit;
 };
@@ -38,25 +38,18 @@ module type S1 = {
 include S1 with type t('a) := t('a);
 
 /** Construct a new Observer with the provided callbacks. */
-let create:
-  (
-    ~onNext: 'a => unit,
-    ~onComplete: option(exn) => unit,
-    ~onDispose: unit => unit
-  ) =>
-  t('a);
+let create: (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
 
-/** 
- * Construct a new Observer with the provided callbacks which automatically disposes 
- * itself when completed. 
+/**
+ * Construct a new Observer with the provided callbacks which automatically disposes
+ * itself when completed.
  * */
 let createAutoDisposing:
-  (
-    ~onNext: 'a => unit,
-    ~onComplete: option(exn) => unit,
-    ~onDispose: unit => unit
-  ) =>
-  t('a);
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
+
+/** Construct a new Observer with the provided callbacks that delegates its disposal to another Observer. */
+let delegate:
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('b)) => t('a);
 
 /**
  * A disposed Observer instance.

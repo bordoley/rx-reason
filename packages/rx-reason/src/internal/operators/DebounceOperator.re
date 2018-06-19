@@ -16,7 +16,7 @@ let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
       Disposable.disposed;
     };
 
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         next => {
           clearDebounce();
@@ -32,12 +32,11 @@ let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
           };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=
-        () => {
-          debounceSubscription |> SerialDisposable.dispose;
-          observer |> Observer.dispose;
-        },
-    );
+      observer,
+    )
+    |> Observer.addTeardown(() =>
+         debounceSubscription |> SerialDisposable.dispose
+       );
   };
 
 let lift = (scheduler, observable) =>

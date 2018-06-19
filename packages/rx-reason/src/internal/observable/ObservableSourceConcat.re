@@ -17,6 +17,7 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
                    scheduleSubscription(tail);
                  }
                )
+            |> CompositeDisposable.asDisposable
           )
         | [] =>
           onComplete(None);
@@ -32,5 +33,5 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
     };
 
     scheduleSubscription(observables);
-    subscription |> SerialDisposable.asDisposable;
+    () => subscription |> SerialDisposable.dispose;
   });

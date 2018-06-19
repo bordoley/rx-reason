@@ -36,7 +36,7 @@ let combineLatest2 =
       switch (exn) {
       | Some(_) => onComplete(exn)
       | None =>
-        let shouldComplete = Disposable.isDisposed(other^);
+        let shouldComplete = CompositeDisposable.isDisposed(other^);
         if (shouldComplete) {
           onComplete(None);
         };
@@ -51,17 +51,17 @@ let combineLatest2 =
            ~onComplete=doOnComplete(s),
          );
 
-    let (s0, s1) = Disposable.(ref(disposed), ref(disposed));
+    let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
     s0 := doSubscribe(observable0, v0, s1);
     s1 := doSubscribe(observable1, v1, s0);
     let (s0, s1) = (s0^, s1^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
-    });
+    };
   });
 
 let combineLatest3 =
@@ -116,7 +116,7 @@ let combineLatest3 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          Disposable.isDisposed(d0^) && Disposable.isDisposed(d1^);
+          CompositeDisposable.isDisposed(d0^) && CompositeDisposable.isDisposed(d1^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -132,11 +132,8 @@ let combineLatest3 =
            ~onComplete=doOnComplete(s0, s1),
          );
 
-    let (s0, s1, s2) = (
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-    );
+    let (s0, s1, s2) =
+      CompositeDisposable.(ref(disposed), ref(disposed), ref(disposed));
 
     s0 := doSubscribe(observable0, v0, s1, s2);
     s1 := doSubscribe(observable1, v1, s0, s2);
@@ -144,14 +141,14 @@ let combineLatest3 =
 
     let (s0, s1, s2) = (s0^, s1^, s2^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
-      s2 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
+      s2 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
       MutableOption.unset(v2);
-    });
+    };
   });
 
 let combineLatest4 =
@@ -211,9 +208,9 @@ let combineLatest4 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          Disposable.isDisposed(d0^)
-          && Disposable.isDisposed(d1^)
-          && Disposable.isDisposed(d2^);
+          CompositeDisposable.isDisposed(d0^)
+          && CompositeDisposable.isDisposed(d1^)
+          && CompositeDisposable.isDisposed(d2^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -229,12 +226,13 @@ let combineLatest4 =
            ~onComplete=doOnComplete(s0, s1, s2),
          );
 
-    let (s0, s1, s2, s3) = (
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-    );
+    let (s0, s1, s2, s3) =
+      CompositeDisposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
 
     s0 := doSubscribe(observable0, v0, s1, s2, s3);
     s1 := doSubscribe(observable1, v1, s0, s2, s3);
@@ -243,16 +241,16 @@ let combineLatest4 =
 
     let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
-      s2 |> Disposable.dispose;
-      s3 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
+      s2 |> CompositeDisposable.dispose;
+      s3 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
       MutableOption.unset(v2);
       MutableOption.unset(v3);
-    });
+    };
   });
 
 let combineLatest5 =
@@ -316,10 +314,10 @@ let combineLatest5 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          Disposable.isDisposed(d0^)
-          && Disposable.isDisposed(d1^)
-          && Disposable.isDisposed(d2^)
-          && Disposable.isDisposed(d3^);
+          CompositeDisposable.isDisposed(d0^)
+          && CompositeDisposable.isDisposed(d1^)
+          && CompositeDisposable.isDisposed(d2^)
+          && CompositeDisposable.isDisposed(d3^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -335,13 +333,14 @@ let combineLatest5 =
            ~onComplete=doOnComplete(s0, s1, s2, s3),
          );
 
-    let (s0, s1, s2, s3, s4) = (
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-    );
+    let (s0, s1, s2, s3, s4) =
+      CompositeDisposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
 
     s0 := doSubscribe(observable0, v0, s1, s2, s3, s4);
     s1 := doSubscribe(observable1, v1, s0, s2, s3, s4);
@@ -351,18 +350,18 @@ let combineLatest5 =
 
     let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
-      s2 |> Disposable.dispose;
-      s3 |> Disposable.dispose;
-      s4 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
+      s2 |> CompositeDisposable.dispose;
+      s3 |> CompositeDisposable.dispose;
+      s4 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
       MutableOption.unset(v2);
       MutableOption.unset(v3);
       MutableOption.unset(v4);
-    });
+    };
   });
 
 let combineLatest6 =
@@ -430,11 +429,11 @@ let combineLatest6 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          Disposable.isDisposed(d0^)
-          && Disposable.isDisposed(d1^)
-          && Disposable.isDisposed(d2^)
-          && Disposable.isDisposed(d3^)
-          && Disposable.isDisposed(d4^);
+          CompositeDisposable.isDisposed(d0^)
+          && CompositeDisposable.isDisposed(d1^)
+          && CompositeDisposable.isDisposed(d2^)
+          && CompositeDisposable.isDisposed(d3^)
+          && CompositeDisposable.isDisposed(d4^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -450,14 +449,15 @@ let combineLatest6 =
            ~onComplete=doOnComplete(s0, s1, s2, s3, s4),
          );
 
-    let (s0, s1, s2, s3, s4, s5) = (
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-    );
+    let (s0, s1, s2, s3, s4, s5) =
+      CompositeDisposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
 
     s0 := doSubscribe(observable0, v0, s1, s2, s3, s4, s5);
     s1 := doSubscribe(observable1, v1, s0, s2, s3, s4, s5);
@@ -468,20 +468,20 @@ let combineLatest6 =
 
     let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
-      s2 |> Disposable.dispose;
-      s3 |> Disposable.dispose;
-      s4 |> Disposable.dispose;
-      s5 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
+      s2 |> CompositeDisposable.dispose;
+      s3 |> CompositeDisposable.dispose;
+      s4 |> CompositeDisposable.dispose;
+      s5 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
       MutableOption.unset(v2);
       MutableOption.unset(v3);
       MutableOption.unset(v4);
       MutableOption.unset(v5);
-    });
+    };
   });
 
 let combineLatest7 =
@@ -553,12 +553,12 @@ let combineLatest7 =
       | Some(_) => onComplete(exn)
       | None =>
         let shouldComplete =
-          Disposable.isDisposed(d0^)
-          && Disposable.isDisposed(d1^)
-          && Disposable.isDisposed(d2^)
-          && Disposable.isDisposed(d3^)
-          && Disposable.isDisposed(d4^)
-          && Disposable.isDisposed(d5^);
+          CompositeDisposable.isDisposed(d0^)
+          && CompositeDisposable.isDisposed(d1^)
+          && CompositeDisposable.isDisposed(d2^)
+          && CompositeDisposable.isDisposed(d3^)
+          && CompositeDisposable.isDisposed(d4^)
+          && CompositeDisposable.isDisposed(d5^);
 
         if (shouldComplete) {
           onComplete(None);
@@ -574,15 +574,16 @@ let combineLatest7 =
            ~onComplete=doOnComplete(s0, s1, s2, s3, s4, s5),
          );
 
-    let (s0, s1, s2, s3, s4, s5, s6) = (
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-      ref(Disposable.disposed),
-    );
+    let (s0, s1, s2, s3, s4, s5, s6) =
+      CompositeDisposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
 
     s0 := doSubscribe(observable0, v0, s1, s2, s3, s4, s5, s6);
     s1 := doSubscribe(observable1, v1, s0, s2, s3, s4, s5, s6);
@@ -594,14 +595,14 @@ let combineLatest7 =
 
     let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 
-    Disposable.create(() => {
-      s0 |> Disposable.dispose;
-      s1 |> Disposable.dispose;
-      s2 |> Disposable.dispose;
-      s3 |> Disposable.dispose;
-      s4 |> Disposable.dispose;
-      s5 |> Disposable.dispose;
-      s6 |> Disposable.dispose;
+    () => {
+      s0 |> CompositeDisposable.dispose;
+      s1 |> CompositeDisposable.dispose;
+      s2 |> CompositeDisposable.dispose;
+      s3 |> CompositeDisposable.dispose;
+      s4 |> CompositeDisposable.dispose;
+      s5 |> CompositeDisposable.dispose;
+      s6 |> CompositeDisposable.dispose;
       MutableOption.unset(v0);
       MutableOption.unset(v1);
       MutableOption.unset(v2);
@@ -609,5 +610,5 @@ let combineLatest7 =
       MutableOption.unset(v4);
       MutableOption.unset(v5);
       MutableOption.unset(v6);
-    });
+    };
   });

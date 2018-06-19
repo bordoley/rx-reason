@@ -17,7 +17,7 @@ let operator = scheduler => {
     };
 
     timeOutObserver :=
-      Observer.create(
+      Observer.delegate(
         ~onNext=
           next => {
             observer |> Observer.next(next);
@@ -28,12 +28,11 @@ let operator = scheduler => {
             timeoutSubscription |> SerialDisposable.dispose;
             observer |> Observer.complete(~exn?);
           },
-        ~onDispose=
-          () => {
-            timeoutSubscription |> SerialDisposable.dispose;
-            observer |> Observer.dispose;
-          },
-      );
+        observer,
+      )
+      |> Observer.addTeardown(() =>
+           timeoutSubscription |> SerialDisposable.dispose
+         );
 
     subscribeToTimeout();
     timeOutObserver^;

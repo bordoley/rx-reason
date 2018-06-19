@@ -1,5 +1,5 @@
 let operator = observer =>
-  Observer.create(
+  Observer.delegate(
     ~onNext=Observer.forwardOnNext(observer),
     ~onComplete=
       exn => {
@@ -10,7 +10,7 @@ let operator = observer =>
           };
         observer |> Observer.complete(~exn?);
       },
-    ~onDispose=Observer.forwardOnDispose(observer),
+    observer,
   );
 
 let lift = observable => observable |> ObservableSource.lift(operator);

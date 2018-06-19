@@ -14,7 +14,6 @@ let test =
               Observer.create(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
@@ -30,7 +29,6 @@ let test =
               Observer.create(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=exn => observedExn := exn,
-                ~onDispose=Functions.alwaysUnit,
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
@@ -50,7 +48,6 @@ let test =
               Observer.create(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
@@ -64,7 +61,6 @@ let test =
               Observer.create(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
 
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;
@@ -86,7 +82,6 @@ let test =
               Observer.createAutoDisposing(
                 ~onNext=_ => raise(Division_by_zero),
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
             (() => observer |> Observer.next(6)) |> Expect.shouldRaise;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
@@ -98,7 +93,6 @@ let test =
               Observer.createAutoDisposing(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=_ => raise(Division_by_zero),
-                ~onDispose=Functions.alwaysUnit,
               );
             (() => observer |> Observer.complete) |> Expect.shouldRaise;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
@@ -108,7 +102,6 @@ let test =
               Observer.createAutoDisposing(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
             observer |> Observer.complete;
             observer |> Observer.isDisposed |> Expect.toBeEqualToTrue;
@@ -124,7 +117,6 @@ let test =
               Observer.create(
                 ~onNext=next => observedNext := next,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
@@ -137,7 +129,6 @@ let test =
               Observer.create(
                 ~onNext=next => observedNext := next,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
             observer |> Observer.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
@@ -155,7 +146,6 @@ let test =
               Observer.create(
                 ~onNext=Functions.alwaysUnit,
                 ~onComplete=Functions.alwaysUnit,
-                ~onDispose=Functions.alwaysUnit,
               );
             observer |> Observer.isDisposed |> Expect.toBeEqualToFalse;
             observer |> Observer.isStopped |> Expect.toBeEqualToFalse;

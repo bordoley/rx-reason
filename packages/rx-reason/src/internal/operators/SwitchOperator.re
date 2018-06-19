@@ -1,4 +1,3 @@
-
 let operator = observer => {
   let switchObserver = ref(Observer.disposed);
   let innerSubscription = SerialDisposable.create();
@@ -28,11 +27,14 @@ let operator = observer => {
             },
         next,
       );
-    innerSubscription |> SerialDisposable.set(newInnerSubscription);
+    innerSubscription
+    |> SerialDisposable.set(
+         newInnerSubscription |> CompositeDisposable.asDisposable,
+       );
   };
 
   switchObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         next => {
           lock |> Lock.acquire;
@@ -49,14 +51,12 @@ let operator = observer => {
           observer |> Observer.complete(~exn?);
           lock |> Lock.release;
         },
-      ~onDispose=
-        () => {
-          innerSubscription |> SerialDisposable.dispose;
-          observer |> Observer.dispose;
-        },
-    );
+      observer,
+    )
+    |> Observer.addTeardown(() =>
+         innerSubscription |> SerialDisposable.dispose
+       );
   switchObserver^;
 };
 
-let lift = observable =>
-  observable |> ObservableSource.lift(operator);
+let lift = observable => observable |> ObservableSource.lift(operator);

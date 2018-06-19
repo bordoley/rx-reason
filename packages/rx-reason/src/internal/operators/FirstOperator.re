@@ -4,7 +4,7 @@ let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 let operator = observer => {
   let firstObserver = ref(Observer.disposed);
   firstObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         next => {
           observer |> Observer.next(next);
@@ -20,7 +20,7 @@ let operator = observer => {
             };
           observer |> Observer.complete(~exn?);
         },
-      ~onDispose=Observer.forwardOnDispose(observer),
+      observer
     );
   firstObserver^;
 };

@@ -22,11 +22,11 @@ module type S1 = {
 
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
-    Disposable.t;
+    CompositeDisposable.t;
 
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-    Disposable.t;
+    CompositeDisposable.t;
 };
 
 let asObservable = Functions.identity;
@@ -86,14 +86,17 @@ let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
     create((~onNext as _, ~onComplete) => {
       onComplete(None);
-      Disposable.disposed;
+      Functions.alwaysUnit;
     }) :
-    create((~onNext as _, ~onComplete) =>
-      scheduler(() => {
-        onComplete(None);
-        Disposable.disposed;
-      })
-    );
+    create((~onNext as _, ~onComplete) => {
+      let schedulerSubscription =
+        scheduler(() => {
+          onComplete(None);
+          Disposable.disposed;
+        });
+
+      () => schedulerSubscription |> Disposable.dispose;
+    });
 
 let ofAbsoluteTimeNotifications =
     (
@@ -120,7 +123,10 @@ let ofAbsoluteTimeNotifications =
       | [] => Disposable.disposed
       };
 
-    loop(notifications);
+    let loopSubscription = loop(notifications);
+    observer
+    |> Observer.addTeardown(() => loopSubscription |> Disposable.dispose)
+    |> ignore;
   });
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
@@ -134,7 +140,7 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
         | [] => onComplete(None)
         };
       loop(list);
-      Disposable.disposed;
+      Functions.alwaysUnit;
     }) :
     create((~onNext, ~onComplete) => {
       let rec loop = (list, ()) =>
@@ -150,7 +156,9 @@ let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
           onComplete(None);
           Disposable.disposed;
         };
-      scheduler(loop(list));
+
+      let schedulerSubscription = scheduler(loop(list));
+      () => schedulerSubscription |> Disposable.dispose;
     });
 
 let ofNotifications =
@@ -170,7 +178,6 @@ let ofNotifications =
           | [] => ()
           };
         loop(notifications);
-        Disposable.disposed;
       } :
       (
         observer => {
@@ -184,7 +191,12 @@ let ofNotifications =
               schedule(loop(tail));
             | [] => Disposable.disposed
             };
-          schedule(loop(notifications));
+          let schedulerSubscription = schedule(loop(notifications));
+          observer
+          |> Observer.addTeardown(() =>
+               schedulerSubscription |> Disposable.dispose
+             )
+          |> ignore;
         }
       ),
   );
@@ -209,7 +221,10 @@ let ofRelativeTimeNotifications =
       | [] => Disposable.disposed
       };
 
-    loop(notifications, 0.0);
+    let loopSubscription = loop(notifications, 0.0);
+    observer
+    |> Observer.addTeardown(() => loopSubscription |> Disposable.dispose)
+    |> ignore;
   });
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
@@ -217,17 +232,20 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
     create((~onNext, ~onComplete) => {
       onNext(value);
       onComplete(None);
-      Disposable.disposed;
+      Functions.alwaysUnit;
     }) :
-    create((~onNext, ~onComplete) =>
-      scheduler(() => {
-        onNext(value);
+    create((~onNext, ~onComplete) => {
+      let schedulerSubscription =
         scheduler(() => {
-          onComplete(None);
-          Disposable.disposed;
+          onNext(value);
+          scheduler(() => {
+            onComplete(None);
+            Disposable.disposed;
+          });
         });
-      })
-    );
+
+      () => schedulerSubscription |> Disposable.dispose;
+    });
 
 let repeat = (~predicate=Functions.alwaysTrue, observable) =>
   RepeatOperator.lift(
@@ -257,14 +275,20 @@ let startWithValue =
     (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
   concat([ofValue(~scheduler, value), observable]);
 
-
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
-  createWithObserver(observer =>
-    scheduler(() => observable |> subscribeObserver(observer))
-  );
+  createWithObserver(observer => {
+    let schedulerSubscription =
+      scheduler(() => {
+        observable |> subscribeObserver(observer);
+        Disposable.disposed;
+      });
+    observer
+    |> Observer.addTeardown(() => schedulerSubscription |> Disposable.dispose)
+    |> ignore;
+  });
 
 let toList = observable =>
-  observable 
+  observable
   |> scan((acc, next) => [next, ...acc], [])
   |> last
   |> map(List.rev);

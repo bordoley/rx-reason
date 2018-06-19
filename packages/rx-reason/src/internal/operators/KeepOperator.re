@@ -2,7 +2,7 @@ let operator = predicate =>
   observer => {
     let keepObserver = ref(Observer.disposed);
     keepObserver :=
-      Observer.create(
+      Observer.delegate(
         ~onNext=
           Functions.earlyReturnsUnit1(next => {
             let shouldKeep =
@@ -16,7 +16,7 @@ let operator = predicate =>
             };
           }),
         ~onComplete=Observer.forwardOnComplete(observer),
-        ~onDispose=Observer.forwardOnDispose(observer),
+        observer,
       );
     keepObserver^;
   };

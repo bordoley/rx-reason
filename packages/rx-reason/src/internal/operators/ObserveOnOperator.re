@@ -37,7 +37,7 @@ let operator =
       scheduler(doWorkStep) |> ignore;
     };
 
-  Observer.create(
+  Observer.delegate(
     ~onNext=
       next => {
         queue |> QueueWithBufferStrategy.enqueue(next);
@@ -49,15 +49,13 @@ let operator =
         completedState := exn;
         schedule();
       },
-    ~onDispose=
-      () => {
-        innerSubscription |> Disposable.dispose;
-        observer |> Observer.dispose;
-      },
-  );
+    observer,
+  )
+  |> Observer.addTeardown(() => innerSubscription |> Disposable.dispose);
 };
 
-let lift = (~bufferStrategy=?, ~bufferSize=?, scheduler: Scheduler.t, observable) =>
+let lift =
+    (~bufferStrategy=?, ~bufferSize=?, scheduler: Scheduler.t, observable) =>
   observable
   |> ObservableSource.lift(
        operator(~bufferStrategy?, ~bufferSize?, scheduler),

@@ -1,6 +1,6 @@
 let operator = observer => {
   let last = MutableOption.create();
-  Observer.create(
+  Observer.delegate(
     ~onNext=next => MutableOption.set(next, last),
     ~onComplete=
       exn => {
@@ -18,12 +18,9 @@ let operator = observer => {
           };
         observer |> Observer.complete(~exn?);
       },
-    ~onDispose=
-      () => {
-        MutableOption.unset(last);
-        observer |> Observer.dispose;
-      },
-  );
+    observer,
+  )
+  |> Observer.addTeardown(() => MutableOption.unset(last));
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

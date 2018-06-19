@@ -5,7 +5,7 @@ let operator = (~selector, other, observer) => {
   let otherSubscription = ref(Disposable.disposed);
 
   withLatestObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         Functions.earlyReturnsUnit1(next =>
           if (MutableOption.isNotEmpty(otherLatest)) {
@@ -24,12 +24,9 @@ let operator = (~selector, other, observer) => {
           observer |> Observer.complete(~exn?);
           otherSubscription^ |> Disposable.dispose;
         },
-      ~onDispose=
-        () => {
-          otherSubscription^ |> Disposable.dispose;
-          observer |> Observer.dispose;
-        },
-    );
+      observer,
+    )
+    |> Observer.addTeardown(() => otherSubscription^ |> Disposable.dispose);
 
   otherSubscription :=
     ObservableSource.subscribeWith(
@@ -41,7 +38,8 @@ let operator = (~selector, other, observer) => {
           | _ => ()
           },
       other,
-    );
+    )
+    |> CompositeDisposable.asDisposable;
 
   withLatestObserver^;
 };

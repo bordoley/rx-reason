@@ -47,7 +47,7 @@ module type S1 = {
    */
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
-    Disposable.t;
+    CompositeDisposable.t;
 
   /**
    * Subscribes to the Observable with the supplied item and completion handlers.
@@ -57,7 +57,7 @@ module type S1 = {
    */
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-    Disposable.t;
+    CompositeDisposable.t;
 };
 
 include S1 with type t('a) := t('a);
@@ -152,14 +152,14 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
  * Returns an Observable from the specified subscribe function.
  */
 let create:
-  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => Disposable.t) =>
+  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit, unit) => unit) =>
   t('a);
 
 /**
- * Returns an Observable which drops items from the source that 
- * are followed by another item within a debounce duration 
- * determined by the scheduler. 
- * 
+ * Returns an Observable which drops items from the source that
+ * are followed by another item within a debounce duration
+ * determined by the scheduler.
+ *
  * For instance, a DelayScheduler can be used debounce items every 5 ms:
  * ```re
  * someObservable
@@ -181,7 +181,7 @@ let defaultIfEmpty: ('a, t('a)) => t('a);
 let defer: (unit => t('a)) => t('a);
 
 /**
- * Returns an Observable which emits items that are distinct from 
+ * Returns an Observable which emits items that are distinct from
  * their immediate predecessors based upon the provided
  * equality function. By default, reference equality is
  * used.
@@ -196,33 +196,33 @@ let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 /**
  * Returns an Observable that emits a single true value if all
  * items emitted by the source satisfy the predicate.
- * 
+ *
  * Note: If the source completes before emitting any values,
  * completes with true.
  */
 let every: ('a => bool, t('a)) => t(bool);
 
-/** 
+/**
  * Returns an Observable that flattens Observable items,
  * dropping inner Observables until the current inner
  * Observable completes. Also see: switch_
  */
 let exhaust: t(t('a)) => t('a);
 
-/** 
+/**
  * Returns an Observable which emits the first observed item
  * from the source which satisfies the predicate.
  */
 let find: ('a => bool, t('a)) => t('a);
 
-/** 
- * Returns an Observable which emits the first observed item 
+/**
+ * Returns an Observable which emits the first observed item
  * from the source or completes with EmptyException.
  */
 let first: t('a) => t('a);
 
-/** 
- * Returns an Observable which emits Some of the first observed 
+/**
+ * Returns an Observable which emits Some of the first observed
  * item from the source or emits None.
  */
 let firstOrNone: t('a) => t(option('a));
@@ -244,14 +244,14 @@ let isEmpty: t('a) => t(bool);
  */
 let keep: ('a => bool, t('a)) => t('a);
 
-/** 
+/**
  * Returns an Observable which emits the last observed item or
  * completes with EmptyException.
  */
 let last: t('a) => t('a);
 
-/** 
- * Returns an Observable which emits Some of the last observed 
+/**
+ * Returns an Observable which emits Some of the last observed
  * item or emits None.
  */
 let lastOrNone: t('a) => t(option('a));
@@ -381,7 +381,7 @@ let onNext: ('a => unit, t('a)) => t('a);
  * calling the specified function when subscribed to, and
  * disposing the returned Disposable when disposed.
  */
-let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
+let onSubscribe: ((unit, unit) => unit, t('a)) => t('a);
 
 /**
  * Returns an Observable that completes with the specified exception

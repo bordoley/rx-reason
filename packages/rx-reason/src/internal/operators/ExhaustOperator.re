@@ -11,7 +11,7 @@ let operator = observer => {
   };
 
   exhaustObserver :=
-    Observer.create(
+    Observer.delegate(
       ~onNext=
         next => {
           let hasActiveSubscription = hasActiveSubscription();
@@ -28,7 +28,10 @@ let operator = observer => {
                     },
                 next,
               );
-            innerSubscription |> SerialDisposable.set(subscription);
+            innerSubscription
+            |> SerialDisposable.set(
+                 subscription |> CompositeDisposable.asDisposable,
+               );
           };
         },
       ~onComplete=
@@ -40,12 +43,11 @@ let operator = observer => {
           | _ => ()
           };
         },
-      ~onDispose=
-        () => {
-          innerSubscription |> SerialDisposable.dispose;
-          observer |> Observer.dispose;
-        },
-    );
+      observer,
+    )
+    |> Observer.addTeardown(() =>
+         innerSubscription |> SerialDisposable.dispose
+       );
   exhaustObserver^;
 };
 

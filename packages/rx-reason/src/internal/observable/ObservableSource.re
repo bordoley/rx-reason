@@ -1,4 +1,4 @@
-type source('a) = Observer.t('a) => Disposable.t;
+type source('a) = Observer.t('a) => unit;
 
 type t('a) =
   | Source(source('a)): t('a)
@@ -22,11 +22,14 @@ let createWithObserver = onSubscribe => Source(onSubscribe);
 
 let create = onSubscribe =>
   Source(
-    observer =>
-      onSubscribe(
-        ~onNext=Observer.forwardOnNext(observer),
-        ~onComplete=Observer.forwardOnComplete(observer),
-      ),
+    observer => {
+      let teardown =
+        onSubscribe(
+          ~onNext=Observer.forwardOnNext(observer),
+          ~onComplete=Observer.forwardOnComplete(observer),
+        );
+      observer |> Observer.addTeardown(teardown) |> ignore;
+    },
   );
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
@@ -40,7 +43,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
     Lift1(source, op0);
   };
 
-let never = Source(_ => Disposable.empty());
+let never = Source(Functions.alwaysUnit);
 
 let subscribeSafe = (observer, source) =>
   try (source(observer)) {
@@ -54,7 +57,6 @@ let subscribeSafe = (observer, source) =>
         exn,
       );
     };
-    Disposable.disposed;
   };
 
 let subscribeObserver = (observer, observable) =>
@@ -75,16 +77,10 @@ let subscribeObserver = (observer, observable) =>
   };
 
 let subscribeWith = (~onNext, ~onComplete, observable) => {
-  let subscription = SerialDisposable.create();
+  let observer = Observer.createAutoDisposing(~onNext, ~onComplete);
 
-  let observer =
-    Observer.createAutoDisposing(~onNext, ~onComplete, ~onDispose=() =>
-      subscription |> SerialDisposable.dispose
-    );
-
-  subscription
-  |> SerialDisposable.set(subscribeObserver(observer, observable));
-  observer |> Observer.asDisposable;
+  subscribeObserver(observer, observable);
+  observer |> Observer.asCompositeDisposable;
 };
 
 let subscribe =
@@ -104,7 +100,7 @@ let publishTo = (~onNext, ~onComplete, observable) => {
       let subscription = observable |> subscribeWith(~onNext, ~onComplete);
       let newConnection =
         Disposable.create(() => {
-          subscription |> Disposable.dispose;
+          subscription |> CompositeDisposable.dispose;
           Volatile.write(false, active);
         });
 
@@ -128,12 +124,15 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   scheduler === Scheduler.immediate ?
     create((~onNext as _, ~onComplete) => {
       onComplete(exn);
-      Disposable.disposed;
+      Functions.alwaysUnit;
     }) :
-    create((~onNext as _, ~onComplete) =>
-      scheduler(() => {
-        onComplete(exn);
-        Disposable.disposed;
-      })
-    );
+    create((~onNext as _, ~onComplete) => {
+      let schedulerDisposable =
+        scheduler(() => {
+          onComplete(exn);
+          Disposable.disposed;
+        });
+
+      () => schedulerDisposable |> Disposable.dispose;
+    });
 };

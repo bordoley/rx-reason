@@ -27,30 +27,29 @@ let shareInternal = (~createSubject, source) => {
       |> Subject.subscribeWith(~onNext, ~onComplete);
 
     if (refCount^ === 0) {
-      let observer = currentSubject |> Subject.asObserver;
       sourceSubscription
       |> SerialDisposable.set(
            Observable.subscribeWith(
-             ~onNext=Observer.forwardOnNext(observer), 
-             ~onComplete=Observer.forwardOnComplete(observer),
+             ~onNext=next => currentSubject |> Subject.next(next),
+             ~onComplete=exn => currentSubject |> Subject.complete(~exn?),
              source
-            ),
+            ) |> CompositeDisposable.asDisposable,
          );
     };
 
-    if (subscription |> Disposable.isDisposed) {
-      Disposable.disposed;
+    if (subscription |> CompositeDisposable.isDisposed) {
+      Functions.alwaysUnit
     } else {
       incr(refCount);
-      Disposable.create(() => {
+      () => {
         decr(refCount);
         if (refCount^ === 0) {
           sourceSubscription |> SerialDisposable.set(Disposable.disposed);
           currentSubject |> Subject.dispose;
           subject := Subject.disposed;
         };
-        subscription |> Disposable.dispose;
-      });
+        subscription |> CompositeDisposable.dispose;
+      };
     };
   });
 };

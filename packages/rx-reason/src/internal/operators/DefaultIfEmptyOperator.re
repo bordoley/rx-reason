@@ -1,6 +1,6 @@
 let operator = (default, observer) => {
   let isEmpty = ref(true);
-  Observer.create(
+  Observer.delegate(
     ~onNext=
       next => {
         observer |> Observer.next(next);
@@ -20,7 +20,7 @@ let operator = (default, observer) => {
           };
         observer |> Observer.complete(~exn?);
       },
-    ~onDispose=Observer.forwardOnDispose(observer),
+    observer,
   );
 };
 

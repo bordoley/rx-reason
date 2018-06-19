@@ -3,7 +3,7 @@ type t('a) = {
   isStopped: ref(bool),
   onComplete: option(exn) => unit,
   onNext: 'a => unit,
-  disposable: Disposable.t,
+  disposable: CompositeDisposable.t,
 };
 
 type observer('a) = t('a);
@@ -11,7 +11,7 @@ type observer('a) = t('a);
 module type S1 = {
   type t('a);
 
-  include Disposable.S1 with type t('a) := t('a);
+  include CompositeDisposable.S1 with type t('a) := t('a);
 
   let asObserver: t('a) => observer('a);
   let complete: (~exn: exn=?, t('a)) => unit;
@@ -21,39 +21,56 @@ module type S1 = {
   let notify: (Notification.t('a), t('a)) => unit;
 };
 
-let asDisposable = ({disposable}: t('a)) : Disposable.t => disposable;
+let asCompositeDisposable = ({disposable}) => disposable;
+
+let addTeardown = (teardown, observer) => {
+  observer
+  |> asCompositeDisposable
+  |> CompositeDisposable.addTeardown(teardown)
+  |> ignore;
+  observer;
+};
+
+let asDisposable = observer =>
+  observer |> asCompositeDisposable |> CompositeDisposable.asDisposable;
 
 let asObserver = Functions.identity;
 
-let createInternal = (~isAutoDispose, ~onNext, ~onComplete, ~onDispose) => {
+let createInternal = (~isAutoDispose, ~onNext, ~onComplete, ~disposable) => {
   let isStopped = ref(false);
-  {
-    isAutoDispose,
-    isStopped,
-    onComplete,
-    onNext,
-    disposable:
-      Disposable.create(() => {
-        Volatile.write(true, isStopped);
-        onDispose();
-      }),
-  };
+  disposable
+  |> CompositeDisposable.addTeardown(() => Volatile.write(true, isStopped))
+  |> ignore;
+  {isAutoDispose, isStopped, onComplete, onNext, disposable};
 };
 
-let create = (~onNext, ~onComplete, ~onDispose) =>
-  createInternal(~isAutoDispose=false, ~onNext, ~onComplete, ~onDispose);
+let delegate = (~onNext, ~onComplete, observer) => {
+  let disposable = observer |> asCompositeDisposable;
+  createInternal(~isAutoDispose=false, ~onNext, ~onComplete, ~disposable);
+};
 
-let createAutoDisposing = (~onNext, ~onComplete, ~onDispose) =>
-  createInternal(~isAutoDispose=true, ~onNext, ~onComplete, ~onDispose);
+let create = (~onNext, ~onComplete) =>
+  createInternal(
+    ~isAutoDispose=false,
+    ~onNext,
+    ~onComplete,
+    ~disposable=CompositeDisposable.create(),
+  );
+
+let createAutoDisposing = (~onNext, ~onComplete) =>
+  createInternal(
+    ~isAutoDispose=true,
+    ~onNext,
+    ~onComplete,
+    ~disposable=CompositeDisposable.create(),
+  );
 
 let autoDispose = ({isAutoDispose, disposable}) =>
   if (isAutoDispose) {
-    disposable |> Disposable.dispose;
+    disposable |> CompositeDisposable.dispose;
   };
 
-let completeWithResult =
-    (~exn=?, {isStopped, onComplete} as observer)
-    : bool => {
+let completeWithResult = (~exn=?, {isStopped, onComplete} as observer) : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
     try (onComplete(exn)) {
@@ -69,7 +86,7 @@ let completeWithResult =
 let complete = (~exn=?, observer: t('a)) : unit =>
   observer |> completeWithResult(~exn?) |> ignore;
 
-let dispose = ({disposable}) => disposable |> Disposable.dispose;
+let dispose = ({disposable}) => disposable |> CompositeDisposable.dispose;
 
 let disposedIsStopped = ref(true);
 let disposed = {
@@ -77,16 +94,15 @@ let disposed = {
   isStopped: disposedIsStopped,
   onComplete: Functions.alwaysUnit,
   onNext: Functions.alwaysUnit,
-  disposable: Disposable.disposed,
+  disposable: CompositeDisposable.disposed,
 };
 
-let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
+let isDisposed = ({disposable}) =>
+  disposable |> CompositeDisposable.isDisposed;
 
 let isStopped = ({isStopped}) => Volatile.read(isStopped);
 
-let next =
-    (next: 'a, {onNext, isStopped} as observer)
-    : unit => {
+let next = (next: 'a, {onNext, isStopped} as observer) : unit => {
   let isStopped = Volatile.read(isStopped);
   if (! isStopped) {
     try (onNext(next)) {
@@ -105,7 +121,7 @@ let notify = (notif, observer) =>
   };
 
 let raiseIfDisposed = ({disposable}) =>
-  disposable |> Disposable.raiseIfDisposed;
+  disposable |> CompositeDisposable.raiseIfDisposed;
 
 let forwardOnComplete = (observer, exn) => observer |> complete(~exn?);
 

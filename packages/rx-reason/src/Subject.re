@@ -14,8 +14,6 @@ let dispose = ({observer}) => observer |> Observer.dispose;
 
 let isDisposed = ({observer}) => observer |> Observer.isDisposed;
 
-let isStopped = ({observer}) => observer |> Observer.isStopped;
-
 let next = (next, {observer}) => observer |> Observer.next(next);
 
 let notify = (notif, {observer}) => observer |> Observer.notify(notif);
@@ -24,23 +22,17 @@ let raiseIfDisposed = ({observer}) => observer |> Observer.raiseIfDisposed;
 
 let asDisposable = ({observer}) => observer |> Observer.asDisposable;
 
-let asObserver = ({observer}: t('a)) : Observer.t('a) => observer;
-
 let asObservable = ({observable}: t('a)) : Observable.t('a) => observable;
 
 let publishTo = (~onNext, ~onComplete, subject) =>
-  subject
-  |> asObservable
-  |> Observable.publishTo(~onNext, ~onComplete);
+  subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
 
 let publish =
     (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
   subject |> publishTo(~onNext, ~onComplete);
 
 let subscribeWith = (~onNext, ~onComplete, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith(~onNext, ~onComplete);
+  subject |> asObservable |> Observable.subscribeWith(~onNext, ~onComplete);
 
 let subscribe =
     (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
@@ -66,12 +58,11 @@ let createWithCallbacks =
           currentSubscribers
           |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
         },
-      ~onDispose=
-        () => {
-          onDispose();
-          subscribers := CopyOnWriteArray.empty();
-        },
-    );
+    )
+    |> Observer.addTeardown(() => {
+         onDispose();
+         subscribers := CopyOnWriteArray.empty();
+       });
 
   let observable =
     Observable.create((~onNext, ~onComplete) => {
@@ -82,7 +73,7 @@ let createWithCallbacks =
 
       onSubscribe(~onNext, ~onComplete);
 
-      Disposable.create(() => {
+      () => {
         let currentSubscribers = subscribers^;
         subscribers :=
           currentSubscribers
@@ -90,7 +81,7 @@ let createWithCallbacks =
                Functions.referenceEquality,
                subscriber,
              );
-      });
+      };
     });
   {observer, observable};
 };
