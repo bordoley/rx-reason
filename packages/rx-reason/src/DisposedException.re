@@ -1,4 +1,4 @@
-exception DisposedException;
+exception Exn;
 
-let exn = DisposedException;
+let exn = Exn;
 let raise = () => raise(exn);

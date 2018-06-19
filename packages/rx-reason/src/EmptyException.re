@@ -1,4 +1,4 @@
-exception EmptyException;
+exception Exn;
 
-let exn = EmptyException;
+let exn = Exn;
 let raise = () => raise(exn);

@@ -1,4 +1,4 @@
-exception TimeoutException;
+exception Exn;
 
-let exn = TimeoutException;
+let exn = Exn;
 let raise = () => raise(exn);
