@@ -1,6 +1,6 @@
 let operator = scheduler => {
   let timeoutObservable =
-    ObservableSource.raise(~scheduler, TimeoutException.exn);
+    ObservableSource.raise(~scheduler, TimeoutException.Exn);
   observer => {
     let timeoutSubscription = SerialDisposable.create();
     let timeOutObserver = ref(Observer.disposed);
