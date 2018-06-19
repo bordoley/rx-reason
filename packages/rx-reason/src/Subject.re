@@ -132,7 +132,8 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
           currentBuffer,
         );
         if (completed^) {
-          (); /*subscriber |> Subscriber.complete(~exn=(completedValue^)?);*/
+          let exn = completedValue^;
+          subscriber |> Subscriber.complete(~exn?);
         };
       },
   );
