@@ -79,16 +79,15 @@ let addInternal = (teardownLogicOrDisposable, {lock, teardown} as disposable) =>
     disposable.teardown = [teardownLogicOrDisposable, ...teardown];
   };
   lock |> Lock.release;
+  isDisposed;
 };
 
 let addTeardown = (cb, self) => {
   if (cb !== TeardownLogic.none) {
-    self |> addInternal(TeardownLogic(cb));
-  };
-
-  let isDisposed = self |> isDisposed;
-  if (isDisposed) {
-    cb();
+    let isDisposed = self |> addInternal(TeardownLogic(cb));
+    if (isDisposed) {
+      cb();
+    };
   };
 
   self;
@@ -96,12 +95,10 @@ let addTeardown = (cb, self) => {
 
 let addDisposable = (disposable, self) => {
   if (! Disposable.isDisposed(disposable)) {
-    self |> addInternal(Disposable(disposable));
-  };
-
-  let isDisposed = self |> isDisposed;
-  if (isDisposed) {
-    disposable |> Disposable.dispose;
+    let isDisposed = self |> addInternal(Disposable(disposable));
+    if (isDisposed) {
+      disposable |> Disposable.dispose;
+    };
   };
 
   self;
