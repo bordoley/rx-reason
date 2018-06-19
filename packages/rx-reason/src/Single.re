@@ -3,16 +3,18 @@ type t('a) = Observable.t('a);
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
 let create = subscribe =>
-  Observable.create((~onNext, ~onComplete) =>
-    subscribe(
-      ~onSuccess=
-        result => {
-          onNext(result);
-          onComplete(None);
-        },
-      ~onError=exn => onComplete(Some(exn)),
-    )
-  );
+  Observable.create(observer => {
+    let teardown =
+      subscribe(
+        ~onSuccess=
+          result => {
+            observer |> Observer.next(result);
+            observer |> Observer.complete;
+          },
+        ~onError=exn => observer |> Observer.complete(~exn),
+      );
+    observer |> Observer.addTeardown(teardown) |> ignore;
+  });
 
 let defer = Observable.defer;
 

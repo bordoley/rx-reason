@@ -1,7 +1,7 @@
 let merge = observables => {
   let count = observables |> List.length;
 
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let activeCount = ref(count);
     let lock = Lock.create();
     let onNext = next => {

@@ -15,7 +15,7 @@ let shareInternal = (~createSubject, source) => {
   let sourceSubscription = SerialDisposable.create();
   let refCount = ref(0);
 
-  Observable.create((~onNext, ~onComplete) => {
+  Observable.create(observer => {
     /* FIXME: Should probably add some locking here */
     if (refCount^ === 0) {
       subject := createSubject();
@@ -23,7 +23,11 @@ let shareInternal = (~createSubject, source) => {
     let currentSubject = subject^;
 
     let subscription =
-      currentSubject |> Subject.subscribeWith(~onNext, ~onComplete);
+      currentSubject
+      |> Subject.subscribeWith(
+           ~onNext=Observer.forwardOnNext(observer),
+           ~onComplete=Observer.forwardOnComplete(observer),
+         );
 
     if (refCount^ === 0) {
       sourceSubscription
@@ -37,19 +41,19 @@ let shareInternal = (~createSubject, source) => {
          );
     };
 
-    if (subscription |> CompositeDisposable.isDisposed) {
-      TeardownLogic.none;
-    } else {
-      incr(refCount);
-      () => {
-        decr(refCount);
-        if (refCount^ === 0) {
-          sourceSubscription |> SerialDisposable.set(Disposable.disposed);
-          currentSubject |> Subject.dispose;
-          subject := Subject.disposed;
-        };
-        subscription |> CompositeDisposable.dispose;
+    let teardown = () => {
+      decr(refCount);
+      if (refCount^ === 0) {
+        sourceSubscription |> SerialDisposable.set(Disposable.disposed);
+        currentSubject |> Subject.dispose;
+        subject := Subject.disposed;
       };
+      subscription |> CompositeDisposable.dispose;
+    };
+
+    if (!CompositeDisposable.isDisposed(subscription)) {
+      incr(refCount);
+      observer |> Observer.addTeardown(teardown) |> ignore;
     };
   });
 };

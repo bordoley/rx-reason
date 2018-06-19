@@ -152,7 +152,7 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
  * Returns an Observable from the specified subscribe function.
  */
 let create:
-  ((~onNext: 'a => unit, ~onComplete: option(exn) => unit) => TeardownLogic.t) =>
+  (Observer.t('a) => unit) =>
   t('a);
 
 /**

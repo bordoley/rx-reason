@@ -1,5 +1,5 @@
 let concat = (~scheduler=Scheduler.immediate, observables) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let subscription = SerialDisposable.create();
 
     let rec scheduleSubscription = observables => {
@@ -14,7 +14,7 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
               subscription |> SerialDisposable.set(Disposable.disposed);
               scheduleSubscription(tail);
             };
-            
+
           scheduler(() =>
             hd
             |> ObservableSource.subscribeWith(

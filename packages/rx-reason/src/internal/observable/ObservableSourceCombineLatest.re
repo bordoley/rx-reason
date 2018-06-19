@@ -5,7 +5,7 @@ let combineLatest2 =
       observable1: ObservableSource.t('b),
     )
     : ObservableSource.t('c) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
@@ -74,7 +74,7 @@ let combineLatest3 =
       observable2: ObservableSource.t('c),
     )
     : ObservableSource.t('d) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1, v2) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -165,7 +165,7 @@ let combineLatest4 =
       observable3: ObservableSource.t('d),
     )
     : ObservableSource.t('e) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1, v2, v3) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -270,7 +270,7 @@ let combineLatest5 =
       observable4: ObservableSource.t('e),
     )
     : ObservableSource.t('f) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1, v2, v3, v4) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -384,7 +384,7 @@ let combineLatest6 =
       observable5: ObservableSource.t('f),
     )
     : ObservableSource.t('g) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1, v2, v3, v4, v5) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -507,7 +507,7 @@ let combineLatest7 =
       observable6: ObservableSource.t('g),
     )
     : ObservableSource.t('h) =>
-  ObservableSource.createWithObserver(observer => {
+  ObservableSource.create(observer => {
     let (v0, v1, v2, v3, v4, v5, v6) = (
       MutableOption.create(),
       MutableOption.create(),

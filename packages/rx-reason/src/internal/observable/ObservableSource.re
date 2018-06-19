@@ -18,19 +18,7 @@ type t('a) =
            Operator.t('b, 'a),
          ): t('a);
 
-let createWithObserver = onSubscribe => Source(onSubscribe);
-
-let create = onSubscribe =>
-  Source(
-    observer => {
-      let teardown =
-        onSubscribe(
-          ~onNext=Observer.forwardOnNext(observer),
-          ~onComplete=Observer.forwardOnComplete(observer),
-        );
-      observer |> Observer.addTeardown(teardown) |> ignore;
-    },
-  );
+let create = onSubscribe => Source(onSubscribe);
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   switch (observable) {
@@ -122,17 +110,13 @@ let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   let exn = Some(exn);
 
   scheduler === Scheduler.immediate ?
-    create((~onNext as _, ~onComplete) => {
-      onComplete(exn);
-      TeardownLogic.none
-    }) :
-    create((~onNext as _, ~onComplete) => {
+    create(observer => observer |> Observer.complete(~exn?)) :
+    create(observer => {
       let schedulerDisposable =
         scheduler(() => {
-          onComplete(exn);
+          observer |> Observer.complete(~exn?);
           Disposable.disposed;
         });
-
-      () => schedulerDisposable |> Disposable.dispose;
+      observer |> Observer.addDisposable(schedulerDisposable) |> ignore;
     });
 };

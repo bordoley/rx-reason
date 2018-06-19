@@ -37,7 +37,6 @@ let combineLatest5 = ObservableSourceCombineLatest.combineLatest5;
 let combineLatest6 = ObservableSourceCombineLatest.combineLatest6;
 let combineLatest7 = ObservableSourceCombineLatest.combineLatest7;
 let concat = ObservableSourceConcat.concat;
-let createWithObserver = ObservableSource.createWithObserver;
 let create = ObservableSource.create;
 let debounce = DebounceOperator.lift;
 let defaultIfEmpty = DefaultIfEmptyOperator.lift;
@@ -80,22 +79,18 @@ let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
 
 let defer = (f: unit => t('a)) : t('a) =>
-  createWithObserver(observer => f() |> subscribeObserver(observer));
+  create(observer => f() |> subscribeObserver(observer));
 
 let empty = (~scheduler=Scheduler.immediate, ()) =>
   scheduler === Scheduler.immediate ?
-    create((~onNext as _, ~onComplete) => {
-      onComplete(None);
-      TeardownLogic.none;
-    }) :
-    create((~onNext as _, ~onComplete) => {
+    create(observer => observer |> Observer.complete) :
+    create(observer => {
       let schedulerSubscription =
         scheduler(() => {
-          onComplete(None);
+          observer |> Observer.complete;
           Disposable.disposed;
         });
-
-      () => schedulerSubscription |> Disposable.dispose;
+      observer |> Observer.addDisposable(schedulerSubscription) |> ignore;
     });
 
 let ofAbsoluteTimeNotifications =
@@ -104,7 +99,7 @@ let ofAbsoluteTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(observer => {
+  create(observer => {
     let rec loop = lst =>
       switch (lst) {
       | [(time, notif), ...tail] =>
@@ -124,41 +119,38 @@ let ofAbsoluteTimeNotifications =
       };
 
     let loopSubscription = loop(notifications);
-    observer
-    |> Observer.addDisposable(loopSubscription)
-    |> ignore;
+    observer |> Observer.addDisposable(loopSubscription) |> ignore;
   });
 
 let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
   scheduler === Scheduler.immediate ?
-    create((~onNext, ~onComplete) => {
+    create(observer => {
       let rec loop = list =>
         switch (list) {
         | [hd, ...tail] =>
-          onNext(hd);
+          observer |> Observer.next(hd);
           loop(tail);
-        | [] => onComplete(None)
+        | [] => observer |> Observer.complete
         };
       loop(list);
-      TeardownLogic.none;
     }) :
-    create((~onNext, ~onComplete) => {
+    create(observer => {
       let rec loop = (list, ()) =>
         switch (list) {
         | [hd] =>
-          onNext(hd);
-          onComplete(None);
+          observer |> Observer.next(hd);
+          observer |> Observer.complete;
           Disposable.disposed;
         | [hd, ...tail] =>
-          onNext(hd);
+          observer |> Observer.next(hd);
           scheduler(loop(tail));
         | [] =>
-          onComplete(None);
+          observer |> Observer.complete;
           Disposable.disposed;
         };
 
       let schedulerSubscription = scheduler(loop(list));
-      () => schedulerSubscription |> Disposable.dispose;
+      observer |> Observer.addDisposable(schedulerSubscription) |> ignore;
     });
 
 let ofNotifications =
@@ -167,7 +159,7 @@ let ofNotifications =
       notifications: list(Notification.t('a)),
     )
     : t('a) =>
-  createWithObserver(
+  create(
     schedule === Scheduler.immediate ?
       observer => {
         let rec loop = list =>
@@ -192,9 +184,7 @@ let ofNotifications =
             | [] => Disposable.disposed
             };
           let schedulerSubscription = schedule(loop(notifications));
-          observer
-          |> Observer.addDisposable(schedulerSubscription)
-          |> ignore;
+          observer |> Observer.addDisposable(schedulerSubscription) |> ignore;
         }
       ),
   );
@@ -205,7 +195,7 @@ let ofRelativeTimeNotifications =
       notifications: list((float, Notification.t('a))),
     )
     : t('a) =>
-  createWithObserver(observer => {
+  create(observer => {
     let rec loop = (lst, previousDelay) =>
       switch (lst) {
       | [(delay, notif), ...tail] =>
@@ -220,29 +210,26 @@ let ofRelativeTimeNotifications =
       };
 
     let loopSubscription = loop(notifications, 0.0);
-    observer
-    |> Observer.addDisposable(loopSubscription)
-    |> ignore;
+    observer |> Observer.addDisposable(loopSubscription) |> ignore;
   });
 
 let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
   scheduler === Scheduler.immediate ?
-    create((~onNext, ~onComplete) => {
-      onNext(value);
-      onComplete(None);
-      TeardownLogic.none;
+    create(observer => {
+      observer |> Observer.next(value);
+      observer |> Observer.complete;
     }) :
-    create((~onNext, ~onComplete) => {
+    create(observer => {
       let schedulerSubscription =
         scheduler(() => {
-          onNext(value);
+          observer |> Observer.next(value);
           scheduler(() => {
-            onComplete(None);
+            observer |> Observer.complete;
             Disposable.disposed;
           });
         });
 
-      () => schedulerSubscription |> Disposable.dispose;
+      observer |> Observer.addDisposable(schedulerSubscription) |> ignore;
     });
 
 let repeat = (~predicate=Functions.alwaysTrue, observable) =>
@@ -274,15 +261,13 @@ let startWithValue =
   concat([ofValue(~scheduler, value), observable]);
 
 let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
-  createWithObserver(observer => {
+  create(observer => {
     let schedulerSubscription =
       scheduler(() => {
         observable |> subscribeObserver(observer);
         Disposable.disposed;
       });
-    observer
-    |> Observer.addDisposable(schedulerSubscription)
-    |> ignore;
+    observer |> Observer.addDisposable(schedulerSubscription) |> ignore;
   });
 
 let toList = observable =>

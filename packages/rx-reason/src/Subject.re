@@ -42,38 +42,34 @@ let createWithCallbacks =
     (~onNext, ~onComplete, ~onDispose, ~onSubscribe)
     : t('a) => {
   let subscribers = ref(CopyOnWriteArray.empty());
+  let onComplete = exn => {
+    let currentSubscribers = subscribers^;
+    onComplete(exn);
+    currentSubscribers
+    |> CopyOnWriteArray.forEach(observer =>
+         observer |> Observer.complete(~exn?)
+       );
+  };
+
+  let onNext = next => {
+    onNext(next);
+    let currentSubscribers = subscribers^;
+    currentSubscribers
+    |> CopyOnWriteArray.forEach(observer => observer |> Observer.next(next));
+  };
   let observer =
-    Observer.create(
-      ~onComplete=
-        exn => {
-          let currentSubscribers = subscribers^;
-          onComplete(exn);
-          currentSubscribers
-          |> CopyOnWriteArray.forEach(((_, onComplete)) => onComplete(exn));
-        },
-      ~onNext=
-        next => {
-          onNext(next);
-          let currentSubscribers = subscribers^;
-          currentSubscribers
-          |> CopyOnWriteArray.forEach(((onNext, _)) => onNext(next));
-        },
-    )
+    Observer.create(~onComplete, ~onNext)
     |> Observer.addTeardown(onDispose)
-    |> Observer.addTeardown(() => {
-         subscribers := CopyOnWriteArray.empty();
-       });
+    |> Observer.addTeardown(() => subscribers := CopyOnWriteArray.empty());
 
   let observable =
-    Observable.create((~onNext, ~onComplete) => {
+    Observable.create(subscriber => {
       observer |> Observer.raiseIfDisposed;
-
-      let subscriber = (onNext, onComplete);
       subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
 
-      onSubscribe(~onNext, ~onComplete);
+      onSubscribe(subscriber);
 
-      () => {
+      let teardown = () => {
         let currentSubscribers = subscribers^;
         subscribers :=
           currentSubscribers
@@ -82,6 +78,8 @@ let createWithCallbacks =
                subscriber,
              );
       };
+
+      subscriber |> Observer.addTeardown(teardown) |> ignore;
     });
   {observer, observable};
 };
@@ -91,8 +89,7 @@ let create = () =>
     ~onNext=Functions.alwaysUnit,
     ~onComplete=Functions.alwaysUnit,
     ~onDispose=Functions.alwaysUnit,
-    ~onSubscribe=(~onNext as _, ~onComplete as _) =>
-    ()
+    ~onSubscribe=Functions.alwaysUnit,
   );
 
 let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
@@ -126,11 +123,14 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
       },
     ~onDispose=() => buffer := CopyOnWriteArray.empty(),
     ~onSubscribe=
-      (~onNext, ~onComplete) => {
+      observer => {
         let currentBuffer = buffer^;
-        CopyOnWriteArray.forEach(onNext, currentBuffer);
+        CopyOnWriteArray.forEach(
+          Observer.forwardOnNext(observer),
+          currentBuffer,
+        );
         if (completed^) {
-          onComplete(completedValue^);
+          (); /*observer |> Observer.complete(~exn=(completedValue^)?);*/
         };
       },
   );
