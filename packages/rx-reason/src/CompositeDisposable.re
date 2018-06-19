@@ -1,6 +1,10 @@
+type teardownLogicOrDisposable =
+  | TeardownLogic(TeardownLogic.t)
+  | Disposable(Disposable.t);
+
 type t = {
   lock: Lock.t,
-  teardown: ref(list(unit => unit)),
+  mutable teardown: list(teardownLogicOrDisposable),
   disposable: Disposable.t,
 };
 
@@ -15,7 +19,6 @@ module type S = {
 
   let addTeardown: (unit => unit, t) => t;
 
-  /** Cast to Disposable.t. */
   let asCompositeDisposable: t => compositeDisposable;
 };
 
@@ -28,7 +31,6 @@ module type S1 = {
 
   let addTeardown: (unit => unit, t('a)) => t('a);
 
-  /** Cast to Disposable.t. */
   let asCompositeDisposable: t('a) => compositeDisposable;
 };
 
@@ -36,60 +38,71 @@ let asCompositeDisposable = Functions.identity;
 
 let asDisposable = ({disposable}) => disposable;
 
-let create = () => {
+let disposed = {
   let lock = Lock.create();
-  let teardown = ref([]);
-  {
-    lock,
-    teardown,
-    disposable:
-      Disposable.create(() => {
-        lock |> Lock.acquire;
-        let teardown = Interlocked.exchange([], teardown);
-        teardown |> List.iter(f => f());
-        lock |> Lock.release;
-      }),
+  {lock, teardown: [], disposable: Disposable.disposed};
+};
+
+let create = () => {
+  let retval = ref(disposed);
+  let lock = Lock.create();
+
+  let teardown = () => {
+    lock |> Lock.acquire;
+    let teardown = retval^.teardown;
+    teardown
+    |> List.iter(ele =>
+         switch (ele) {
+         | TeardownLogic(tdl) => tdl()
+         | Disposable(disposable) => disposable |> Disposable.dispose
+         }
+       );
+    lock |> Lock.release;
   };
+
+  retval := {lock, teardown: [], disposable: Disposable.create(teardown)};
+  retval^;
 };
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;
-
-let disposed = {
-  let disposedLock = Lock.create();
-  let disposedTeardown = ref([]);
-  {
-    lock: disposedLock,
-    teardown: disposedTeardown,
-    disposable: Disposable.disposed,
-  };
-};
 
 let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
 let raiseIfDisposed = ({disposable}) =>
   disposable |> Disposable.raiseIfDisposed;
 
-let addTeardown = (cb, {lock, teardown} as disposable) => {
-  if (cb !== TeardownLogic.none) {
-    lock |> Lock.acquire;
-    let isDisposed = disposable |> isDisposed;
+let addInternal = (teardownLogicOrDisposable, {lock, teardown} as disposable) => {
+  lock |> Lock.acquire;
+  let isDisposed = disposable |> isDisposed;
 
-    if (! isDisposed) {
-      teardown := [cb, ...teardown^];
-    };
-    lock |> Lock.release;
-
-    if (isDisposed) {
-      cb();
-    };
+  if (! isDisposed) {
+    disposable.teardown = [teardownLogicOrDisposable, ...teardown];
   };
-
-  disposable;
+  lock |> Lock.release;
 };
 
-let addDisposable = (disposable, self) =>
-  if (Disposable.isDisposed(disposable)) {
-    self
-  } else {
-    self |> addTeardown(() => Disposable.dispose(disposable));
+let addTeardown = (cb, self) => {
+  if (cb !== TeardownLogic.none) {
+    self |> addInternal(TeardownLogic(cb));
   };
+
+  let isDisposed = self |> isDisposed;
+  if (isDisposed) {
+    cb();
+  };
+
+  self;
+};
+
+let addDisposable = (disposable, self) => {
+  if (! Disposable.isDisposed(disposable)) {
+    self |> addInternal(Disposable(disposable));
+  };
+
+  let isDisposed = self |> isDisposed;
+  if (isDisposed) {
+    disposable |> Disposable.dispose;
+  };
+
+  self;
+};
