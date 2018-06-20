@@ -1,7 +1,5 @@
 [@bs.send] external promiseThen : (Js.Promise.t('a), 'a => unit, Js.Promise.error => unit) => Js.Promise.t('a) = "then";
 
-exception JSPromiseErrorException(Js.Promise.error);
-
 let toSingle = (
   promise: Js.Promise.t('a),
 ): RxReason.Single.t('a) => RxReason.Single.create(
@@ -16,7 +14,7 @@ let toSingle = (
 
     let onErrorIfNotDisposed = err => {
       if(!RxReason.Disposable.isDisposed(disposable)) {
-        onError(JSPromiseErrorException(err));
+        onError(PromiseException.Exn(err));
       };
     };
 

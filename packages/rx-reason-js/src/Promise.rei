@@ -1,8 +1,7 @@
 /** 
  * Interoperability functions for converting between Promises and Singles.
  * 
- */
-exception JSPromiseErrorException(Js.Promise.error);
+ */;
 
 /** 
  * Converts a JS Promise to a Single. 
