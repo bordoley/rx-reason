@@ -44,7 +44,7 @@
           "public": "none",
           "subdirs": [
             {
-              "dir": "observable",
+              "dir": "observables",
               "public": "none"
             },
             {
