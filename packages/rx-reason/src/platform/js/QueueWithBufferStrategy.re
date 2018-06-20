@@ -19,7 +19,7 @@ let enqueue = (v, {queue, bufferStrategy, maxSize} as this) => {
   let shouldApplyBackPressure = maxSize > 0 && Js.Array.length(queue) === maxSize;
   switch (bufferStrategy) {
   | Throw when shouldApplyBackPressure =>
-    failwith("BufferException")
+    BufferCapacityExceededException.raise(maxSize);
   | DropOldest when shouldApplyBackPressure =>
     tryDeque(this) |> ignore;
     queue |> Js.Array.push(v) |> ignore;
