@@ -6,17 +6,6 @@ type t('a) = {
   disposable: CompositeDisposable.t,
 };
 
-type subscriber('a) = t('a);
-
-module type S1 = {
-  type t('a);
-
-  include CompositeDisposable.S1 with type t('a) := t('a);
-  include Observer.S1 with type t('a) := t('a);
-
-  let asSubscriber: t('a) => subscriber('a);
-};
-
 let asCompositeDisposable = ({disposable}) => disposable;
 
 let addDisposable = (disposable, subscriber) => {
@@ -37,8 +26,6 @@ let addTeardown = (teardown, subscriber) => {
 
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> CompositeDisposable.asDisposable;
-
-let asSubscriber = Functions.identity;
 
 let createInternal = (~isAutoDispose, ~onNext, ~onComplete, ~disposable) => {
   let isStopped = ref(false);
@@ -74,7 +61,9 @@ let autoDispose = ({isAutoDispose, disposable}) =>
     disposable |> CompositeDisposable.dispose;
   };
 
-let completeWithResult = (~exn=?, {isStopped, onComplete} as subscriber) : bool => {
+let completeWithResult =
+    (~exn=?, {isStopped, onComplete} as subscriber)
+    : bool => {
   let shouldComplete = ! Interlocked.exchange(true, isStopped);
   if (shouldComplete) {
     try (onComplete(exn)) {

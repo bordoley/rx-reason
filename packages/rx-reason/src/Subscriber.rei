@@ -6,19 +6,8 @@
  */;
 type t('a);
 
-type subscriber('a) = t('a);
-
-module type S1 = {
-  type t('a);
-
-  include CompositeDisposable.S1 with type t('a) := t('a);
-  include Observer.S1 with type t('a) := t('a);
-
-  /** Cast to Subscriber.t. */
-  let asSubscriber: t('a) => subscriber('a);
-};
-
-include S1 with type t('a) := t('a);
+include CompositeDisposable.S1 with type t('a) := t('a);
+include Observer.S1 with type t('a) := t('a);
 
 /** Construct a new Subscriber with the provided callbacks. */
 let create: (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
@@ -44,3 +33,6 @@ let forwardOnComplete: (t('a), option(exn)) => unit;
 
 /** Returns an onNext function which forwards the notifcation to the provided Subscriber. */
 let forwardOnNext: (t('a), 'a) => unit;
+
+/** Returns true if the Observer has been completed or disposed. */
+let isStopped: t('a) => bool;

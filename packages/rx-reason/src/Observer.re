@@ -10,9 +10,6 @@ module type S1 = {
    */
   let completeWithResult: (~exn: exn=?, t('a)) => bool;
 
-  /** Returns true if the Observer has been completed or disposed. */
-  let isStopped: t('a) => bool;
-
   /* Notify the Observer of the next element to observe. */
   let next: ('a, t('a)) => unit;
 
