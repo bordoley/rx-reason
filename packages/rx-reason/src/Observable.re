@@ -5,6 +5,7 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
+  /** Cast to Observable.t. */
   let asObservable: t('a) => observable('a);
 
   let publish:
@@ -24,8 +25,68 @@ module type S1 = {
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     CompositeDisposable.t;
 
+  let subscribe1:
+    (
+      ~onNext: ('ctx0, 'a) => unit=?,
+      ~onComplete: ('ctx0, option(exn)) => unit=?,
+      'ctx0,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe2:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe3:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+    CompositeDisposable.t;
+
+  let subscribeWith1:
+    (
+      ~onNext: ('ctx0, 'a) => unit,
+      ~onComplete: ('ctx0, option(exn)) => unit,
+      'ctx0,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith2:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith3:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      t('a)
+    ) =>
     CompositeDisposable.t;
 };
 
@@ -73,7 +134,13 @@ let some = SomeOperator.lift;
 let switch_ = SwitchOperator.lift;
 let subscribeSubscriber = ObservableSource.subscribeSubscriber;
 let subscribeWith = ObservableSource.subscribeWith;
+let subscribeWith1 = ObservableSource.subscribeWith1;
+let subscribeWith2 = ObservableSource.subscribeWith2;
+let subscribeWith3 = ObservableSource.subscribeWith3;
 let subscribe = ObservableSource.subscribe;
+let subscribe1 = ObservableSource.subscribe1;
+let subscribe2 = ObservableSource.subscribe2;
+let subscribe3 = ObservableSource.subscribe3;
 let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;

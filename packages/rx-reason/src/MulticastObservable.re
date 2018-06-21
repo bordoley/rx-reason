@@ -1,13 +1,16 @@
 type t('a) = Observable.t('a);
 
 let asObservable = Functions.identity;
-
-let subscribe = Observable.subscribe;
-
 let subscribeWith = Observable.subscribeWith;
+let subscribeWith1 = Observable.subscribeWith1;
+let subscribeWith2 = Observable.subscribeWith2;
+let subscribeWith3 = Observable.subscribeWith3;
+let subscribe = Observable.subscribe;
+let subscribe1 = Observable.subscribe1;
+let subscribe2 = Observable.subscribe2;
+let subscribe3 = Observable.subscribe3;
 
 let publish = Observable.publish;
-
 let publishTo = Observable.publishTo;
 
 let shareInternal = {
@@ -36,17 +39,19 @@ let shareInternal = {
 
       let subscription =
         currentSubject
-        |> Subject.subscribeWith(
-             ~onNext=next => subscriber |> Subscriber.next(next),
-             ~onComplete=exn => subscriber |> Subscriber.complete(~exn?),
+        |> Subject.subscribeWith1(
+             ~onNext=Subscriber.delegateOnNext,
+             ~onComplete=Subscriber.delegateOnComplete,
+             subscriber,
            );
 
       if (refCount^ === 0) {
         sourceSubscription
         |> SerialDisposable.set(
-             Observable.subscribeWith(
-               ~onNext=next => currentSubject |> Subject.next(next),
-               ~onComplete=exn => currentSubject |> Subject.complete(~exn?),
+             Observable.subscribeWith1(
+               ~onNext=Subject.delegateOnNext,
+               ~onComplete=Subject.delegateOnComplete,
+               currentSubject,
                source,
              )
              |> CompositeDisposable.asDisposable,

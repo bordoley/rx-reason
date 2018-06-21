@@ -1393,10 +1393,11 @@ let test =
                 let observable = subject^ |> Subject.asObservable;
                 let subscription =
                   observable
-                  |> Observable.subscribeWith(
-                       ~onNext=next => subscriber |> Subscriber.next(next),
+                  |> Observable.subscribeWith1(
+                       ~onNext=(subscriber, next) => subscriber |> Subscriber.next(next),
                        ~onComplete=
-                         exn => subscriber |> Subscriber.complete(~exn?),
+                         (subscriber, exn) => subscriber |> Subscriber.complete(~exn?),
+                        subscriber,
                      );
 
                 subscriber

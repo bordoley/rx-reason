@@ -62,22 +62,29 @@ let subscribeWith = {
     Interlocked.exchange(CompositeDisposable.disposed, innerSubscription)
     |> CompositeDisposable.dispose;
 
+  let onNext = (subscription, onSuccess, _, next) => {
+    onSuccess(next);
+    subscription |> Disposable.dispose;
+  };
+
+  let onComplete = (_, _, onError, exn) =>
+    switch (exn) {
+    | Some(exn) => onError(exn)
+    | None => onError(EmptyException.Exn)
+    };
+
   (~onSuccess: 'a => unit, ~onError: exn => unit, single) => {
     let innerSubscription = ref(CompositeDisposable.disposed);
     let subscription = Disposable.create1(teardown, innerSubscription);
 
     innerSubscription :=
       single
-      |> Observable.subscribeWith(
-           ~onNext=
-             next => {
-               onSuccess(next);
-               subscription |> Disposable.dispose;
-             },
-           ~onComplete=
-             fun
-             | Some(exn) => onError(exn)
-             | None => onError(EmptyException.Exn),
+      |> Observable.subscribeWith3(
+           ~onNext,
+           ~onComplete,
+           subscription,
+           onSuccess,
+           onError,
          );
     subscription;
   };

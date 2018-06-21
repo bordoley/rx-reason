@@ -43,6 +43,29 @@ let createAutoDisposing3:
   ) =>
   t('a);
 
+let createAutoDisposing4:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3
+  ) =>
+  t('a);
+
+let createAutoDisposing5:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4
+  ) =>
+  t('a);
+
 /** Construct a new Subscriber with the provided callbacks that delegates its disposal to another Subscriber. */
 let delegate:
   (
@@ -81,16 +104,6 @@ let delegate3:
     t('b)
   ) =>
   t('a);
-
-let delegateOnComplete: (t('a), option(exn)) => unit;
-let delegateOnComplete1: ('ctx0, t('a), option(exn)) => unit;
-let delegateOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
-let delegateOnComplete3: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit;
-
-let delegateOnNext: (t('a), 'a) => unit;
-let delegateOnNext1: ('ctx0, t('a), 'a) => unit;
-let delegateOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
-let delegateOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
 
 /**
  * A disposed Subscriber instance.

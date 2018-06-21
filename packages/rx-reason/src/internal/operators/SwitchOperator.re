@@ -6,35 +6,42 @@ type context('a) = {
 };
 
 let operator = {
-  let doSubscribeInner =
-      (id, {innerSubscription, lock, latest} as ctx, delegate, next) => {
-    innerSubscription |> SerialDisposable.set(Disposable.disposed);
-
-    let newInnerSubscription = {
-      let onNext = next => {
-        lock |> Lock.acquire;
-        if (latest^ === id) {
-          delegate |> Subscriber.next(next);
-        };
-        lock |> Lock.release;
+  let doSubscribeInner = {
+    let onNext = (id, ctx, delegate, next) => {
+      ctx.lock |> Lock.acquire;
+      if (ctx.latest^ === id) {
+        delegate |> Subscriber.next(next);
       };
-
-      let onComplete = exn =>
-        switch (exn) {
-        | Some(_) =>
-          if (latest^ === id) {
-            ctx.self |> Subscriber.complete(~exn?);
-          }
-        | None => ()
-        };
-
-      next |> ObservableSource.subscribeWith(~onNext, ~onComplete);
+      ctx.lock |> Lock.release;
     };
 
-    innerSubscription
-    |> SerialDisposable.set(
-         newInnerSubscription |> CompositeDisposable.asDisposable,
-       );
+    let onComplete = (id, ctx, _, exn) =>
+      switch (exn) {
+      | Some(_) =>
+        if (ctx.latest^ === id) {
+          ctx.self |> Subscriber.complete(~exn?);
+        }
+      | None => ()
+      };
+
+    (id, {innerSubscription} as ctx, delegate, next) => {
+      innerSubscription |> SerialDisposable.set(Disposable.disposed);
+
+      let newInnerSubscription =
+        ObservableSource.subscribeWith3(
+          ~onNext,
+          ~onComplete,
+          id,
+          ctx,
+          delegate,
+          next,
+        );
+
+      innerSubscription
+      |> SerialDisposable.set(
+           newInnerSubscription |> CompositeDisposable.asDisposable,
+         );
+    };
   };
 
   let onNext = ({latest, lock} as ctx, delegate, next) => {
@@ -69,6 +76,4 @@ let operator = {
   };
 };
 
-
-let lift = (observable) =>
-  observable |> ObservableSource.lift(operator);
+let lift = observable => observable |> ObservableSource.lift(operator);

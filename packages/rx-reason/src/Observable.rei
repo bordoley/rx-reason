@@ -49,6 +49,36 @@ module type S1 = {
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
     CompositeDisposable.t;
 
+  let subscribe1:
+    (
+      ~onNext: ('ctx0, 'a) => unit=?,
+      ~onComplete: ('ctx0, option(exn)) => unit=?,
+      'ctx0,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe2:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe3:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
   /**
    * Subscribes to the Observable with the supplied item and completion handlers.
    *
@@ -57,6 +87,36 @@ module type S1 = {
    */
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
+    CompositeDisposable.t;
+
+  let subscribeWith1:
+    (
+      ~onNext: ('ctx0, 'a) => unit,
+      ~onComplete: ('ctx0, option(exn)) => unit,
+      'ctx0,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith2:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith3:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      t('a)
+    ) =>
     CompositeDisposable.t;
 };
 
@@ -151,9 +211,7 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 /**
  * Returns an Observable from the specified subscribe function.
  */
-let create:
-  (Subscriber.t('a) => unit) =>
-  t('a);
+let create: (Subscriber.t('a) => unit) => t('a);
 
 /**
  * Returns an Observable which drops items from the source that

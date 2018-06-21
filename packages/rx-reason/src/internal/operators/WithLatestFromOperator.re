@@ -28,6 +28,15 @@ let operator = {
     otherSubscription |> Disposable.dispose;
   };
 
+  let otherOnNext = (_, otherLatest, next) =>
+    otherLatest |> MutableOption.set(next);
+
+  let otherOnComplete = (self, _, exn) =>
+    switch (exn) {
+    | Some(_) as exn => self |> Subscriber.complete(~exn?)
+    | _ => ()
+    };
+
   (~selector, other, subscriber) => {
     let otherLatest = MutableOption.create();
     let context = {
@@ -41,12 +50,11 @@ let operator = {
       subscriber |> Subscriber.delegate1(~onNext, ~onComplete, context);
 
     context.otherSubscription =
-      ObservableSource.subscribeWith(
-        ~onNext=next => otherLatest |> MutableOption.set(next),
-        ~onComplete=
-          fun
-          | Some(_) as exn => self |> Subscriber.complete(~exn?)
-          | _ => (),
+      ObservableSource.subscribeWith2(
+        ~onNext=otherOnNext,
+        ~onComplete=otherOnComplete,
+        self,
+        otherLatest,
         other,
       )
       |> CompositeDisposable.asDisposable;
