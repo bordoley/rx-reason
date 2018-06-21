@@ -6,19 +6,18 @@ type t('a) =
       /** disposable */ CompositeDisposable.t,
     )
   | Delegating(
-                /** delegate */ t('b),
                 /** context */ 'ctx,
                 /** onNext */ (('ctx, t('b), 'a) => unit),
                 /** onComplete */ (('ctx, t('b), option(exn)) => unit),
                 /** stopped */ ref(bool),
-                /** disposable */ CompositeDisposable.t,
+                /** delegate */ t('b),
               ): t('a)
   | Disposed;
 
-let asCompositeDisposable =
+let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   fun
-  | AutoDisposing(_, _, _, disposable)
-  | Delegating(_, _, _, _, _, disposable) => disposable
+  | AutoDisposing(_, _, _, disposable) => disposable
+  | Delegating(_, _, _, _, delegate) => delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
 let addDisposable = (disposable, subscriber) => {
@@ -56,11 +55,8 @@ let delegate = (~onNext, ~onComplete, context, subscriber) => {
    * asCompositeDisposable recursively on the enclosed subscriber in this case.
    */
   let stopped = ref(false);
-  let disposable = subscriber |> asCompositeDisposable;
-  disposable
-  |> CompositeDisposable.addTeardown(() => Volatile.write(true, stopped))
-  |> ignore;
-  Delegating(subscriber, context, onNext, onComplete, stopped, disposable);
+  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  Delegating(context, onNext, onComplete, stopped, subscriber);
 };
 
 let dispose = subscriber =>
@@ -74,7 +70,7 @@ let isDisposed = subscriber =>
 let isStopped =
   fun
   | AutoDisposing(_, _, stopped, _)
-  | Delegating(_, _, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating(_, _, _, stopped, _) => Volatile.read(stopped)
   | Disposed => true;
 
 let completeWithResult = (~exn=?, subscriber) =>
@@ -90,7 +86,7 @@ let completeWithResult = (~exn=?, subscriber) =>
     };
     disposable |> CompositeDisposable.dispose;
     shouldComplete;
-  | Delegating(delegate, ctx, _, onComplete, stopped, _) =>
+  | Delegating(ctx, _, onComplete, stopped, delegate) =>
     let shouldComplete = ! Interlocked.exchange(true, stopped);
     if (shouldComplete) {
       onComplete(ctx, delegate, exn);
@@ -113,7 +109,7 @@ let next = (next, subscriber) =>
         raise(exn);
       };
     };
-  | Delegating(delegate, ctx, onNext, _, _, _) =>
+  | Delegating(ctx, onNext, _, _, delegate) =>
     let isStopped = subscriber |> isStopped;
     if (! isStopped) {
       onNext(ctx, delegate, next);
@@ -121,7 +117,8 @@ let next = (next, subscriber) =>
   | Disposed => ()
   };
 
-let forwardOnComplete = (_, subscriber, exn) => subscriber |> complete(~exn?);
+let forwardOnComplete = (_, subscriber, exn) =>
+  subscriber |> complete(~exn?);
 
 let forwardOnNext = (_, subscriber, v) => subscriber |> next(v);
 
@@ -134,18 +131,3 @@ let notify = (notif, subscriber) =>
 
 let raiseIfDisposed = subscriber =>
   subscriber |> asCompositeDisposable |> CompositeDisposable.raiseIfDisposed;
-
-
-/*
-
-
- let create = (~onNext, ~onComplete) =>
-   createInternal(
-     ~isAutoDispose=false,
-     ~onNext,
-     ~onComplete,
-     ~disposable=CompositeDisposable.create(),
-   );
-
-
- */
