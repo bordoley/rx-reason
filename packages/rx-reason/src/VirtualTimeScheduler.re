@@ -9,8 +9,7 @@ type t = {
 let create = () => {
   let currentTime = ref(-1);
   let timeQueue = Belt.MutableMap.Int.make();
-  let disposable =
-    Disposable.create(() => timeQueue |> Belt.MutableMap.Int.clear);
+  let disposable = Disposable.create1(Belt.MutableMap.Int.clear, timeQueue);
   let scheduler = (delay, work) => {
     Disposable.raiseIfDisposed(disposable);
     let currentTime = currentTime^;

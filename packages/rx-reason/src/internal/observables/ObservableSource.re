@@ -36,7 +36,8 @@ let never = Source(Functions.alwaysUnit1);
 let subscribeSafe = (subscriber, source) =>
   try (source(subscriber)) {
   | exn =>
-    let shouldRaise = subscriber |> Subscriber.completeWithResult(~exn) |> (!);
+    let shouldRaise =
+      subscriber |> Subscriber.completeWithResult(~exn) |> (!);
     if (shouldRaise) {
       /* This could happen when the onComplete is called synchronously in the
        * subscribe function which also throws.
@@ -79,22 +80,26 @@ let subscribe =
     ) =>
   observable |> subscribeWith(~onNext, ~onComplete);
 
-let publishTo = (~onNext, ~onComplete, observable) => {
-  let connection = ref(Disposable.disposed);
-  let active = ref(false);
+let publishTo = {
+  let teardown = (subscription, active) => {
+    subscription |> CompositeDisposable.dispose;
+    Volatile.write(false, active);
+  };
 
-  () => {
-    if (! Interlocked.exchange(true, active)) {
-      let subscription = observable |> subscribeWith(~onNext, ~onComplete);
-      let newConnection =
-        Disposable.create(() => {
-          subscription |> CompositeDisposable.dispose;
-          Volatile.write(false, active);
-        });
+  (~onNext, ~onComplete, observable) => {
+    let connection = ref(Disposable.disposed);
+    let active = ref(false);
 
-      Volatile.write(newConnection, connection);
+    () => {
+      if (! Interlocked.exchange(true, active)) {
+        let subscription = observable |> subscribeWith(~onNext, ~onComplete);
+        let newConnection =
+          Disposable.create2(teardown, subscription, active);
+
+        Volatile.write(newConnection, connection);
+      };
+      Volatile.read(connection);
     };
-    Volatile.read(connection);
   };
 };
 

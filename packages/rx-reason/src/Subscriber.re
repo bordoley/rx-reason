@@ -127,9 +127,9 @@ let isDisposed = subscriber =>
 let isStopped =
   fun
   | AutoDisposing(_, _, stopped, _)
-  | Delegating0(_, _, stopped, _) => Volatile.read(stopped)
-  | Delegating1(_, _, _, stopped, _) => Volatile.read(stopped)
-  | Delegating2(_, _, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating0(_, _, stopped, _) 
+  | Delegating1(_, _, _, stopped, _)
+  | Delegating2(_, _, _, _, stopped, _)
   | Delegating3(_, _, _, _, _, stopped, _) => Volatile.read(stopped)
   | Disposed => true;
 

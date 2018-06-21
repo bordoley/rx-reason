@@ -54,13 +54,10 @@ let disposed = {
   {lock, teardown: [], disposable: Disposable.disposed};
 };
 
-let create = () => {
-  let retval = ref(disposed);
-  let lock = Lock.create();
-
-  let teardown = () => {
+let create = {
+  let teardown = (lock, self) => {
     lock |> Lock.acquire;
-    let teardown = retval^.teardown;
+    let teardown = self^.teardown;
     teardown
     |> List.iter(
          fun
@@ -72,8 +69,18 @@ let create = () => {
     lock |> Lock.release;
   };
 
-  retval := {lock, teardown: [], disposable: Disposable.create(teardown)};
-  retval^;
+  () => {
+    let retval = ref(disposed);
+    let lock = Lock.create();
+
+    retval :=
+      {
+        lock,
+        teardown: [],
+        disposable: Disposable.create2(teardown, lock, retval),
+      };
+    retval^;
+  };
 };
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;

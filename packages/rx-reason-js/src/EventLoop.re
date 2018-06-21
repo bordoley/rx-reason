@@ -33,7 +33,7 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
         int_of_float(delay),
       );
     let timeoutDisposable =
-      RxReason.Disposable.create(() => Js.Global.clearTimeout(timeoutId));
+      RxReason.Disposable.create1(Js.Global.clearTimeout, timeoutId);
     disposable |> RxReason.SerialDisposable.set(timeoutDisposable);
     disposable |> RxReason.SerialDisposable.asDisposable;
   };

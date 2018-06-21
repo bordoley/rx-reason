@@ -1,7 +1,8 @@
-type t = {
-  onDispose: ref(unit => unit),
-  isDisposed: ref(bool),
-};
+/** FIXME: In ocaml >4.06 you can embed records in GADTs and use mutable fields instead of refs  */
+type t =
+  | Disposable(unit => unit, ref(bool))
+  | Disposable1('ctx0 => unit, 'ctx0, ref(bool)): t
+  | Disposable2(('ctx0, 'ctx1) => unit, 'ctx0, 'ctx1, ref(bool)): t;
 
 type disposable = t;
 
@@ -25,22 +26,38 @@ module type S1 = {
 
 let asDisposable = Functions.identity;
 
-let create = (onDispose) : t => {
-  onDispose: ref(onDispose),
-  isDisposed: ref(false),
-};
+let create = onDispose : t => Disposable(onDispose, ref(false));
 
-let dispose = ({onDispose, isDisposed}: t) : unit => {
-  let shouldDispose = ! Interlocked.exchange(true, isDisposed);
-  if (shouldDispose) {
-    let onDispose = Interlocked.exchange(Functions.alwaysUnit1, onDispose);
-    onDispose();
+let create1 = (onDispose, d0) : t => Disposable1(onDispose, d0, ref(false));
+
+let create2 = (onDispose, d0, d1) : t =>
+  Disposable2(onDispose, d0, d1, ref(false));
+
+let dispose = {
+  let shouldDispose =
+    fun
+    | Disposable(_, isDisposed)
+    | Disposable1(_, _, isDisposed)
+    | Disposable2(_, _, _, isDisposed) =>
+      ! Interlocked.exchange(true, isDisposed);
+
+  let doDispose =
+    fun
+    | Disposable(dispose, _) => dispose()
+    | Disposable1(dispose, a0, _) => dispose(a0)
+    | Disposable2(dispose, a0, a1, _) => dispose(a0, a1);
+
+  disposable => {
+    let shouldDispose = shouldDispose(disposable);
+    if (shouldDispose) {
+      doDispose(disposable);
+    };
   };
 };
 
-let compose = (disposables: list(t)) : t => {
-  let dispose = () => disposables |> List.iter(Functions.(dispose >> ignore));
-  create(dispose);
+let compose = {
+  let dispose = List.iter(Functions.(dispose >> ignore));
+  disposables => create1(dispose, disposables);
 };
 
 let empty = () => create(Functions.alwaysUnit1);
@@ -51,9 +68,13 @@ let disposed: t = {
   retval;
 };
 
-let isDisposed = ({isDisposed}: t) : bool => Volatile.read(isDisposed);
+let isDisposed =
+  fun
+  | Disposable(_, isDisposed)
+  | Disposable1(_, _, isDisposed)
+  | Disposable2(_, _, _, isDisposed) => Volatile.read(isDisposed);
 
-let raiseIfDisposed = (disposable: t)  =>
+let raiseIfDisposed = (disposable: t) =>
   if (isDisposed(disposable)) {
     DisposedException.raise();
   };

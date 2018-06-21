@@ -52,6 +52,10 @@ let compose: list(t) => t;
  */
 let create: (TeardownLogic.t) => t;
 
+let create1: (TeardownLogic.t1('a), 'a) => t;
+
+let create2: (TeardownLogic.t2('a, 'b), 'a, 'b) => t;
+
 /**
  * A disposed Disposable instance.
  */

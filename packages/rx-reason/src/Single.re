@@ -57,33 +57,30 @@ let reduce =
 
 let some = Observable.some;
 
-let subscribeWith =
-    (~onSuccess: 'a => unit, ~onError: exn => unit, single)
-    : Disposable.t => {
-  let innerSubscription = ref(CompositeDisposable.disposed);
-  let subscription =
-    Disposable.create(() =>
-      Interlocked.exchange(CompositeDisposable.disposed, innerSubscription)
-      |> CompositeDisposable.dispose
-    );
-  innerSubscription :=
-    single
-    |> Observable.subscribeWith(
-         ~onNext=
-           next => {
-             onSuccess(next);
-             subscription |> Disposable.dispose;
-           },
-         ~onComplete=
-           fun
-           | Some(exn) => onError(exn)
-           | None =>
-             /* This case should never happen due to how the constructors of Single
-              * instances  protect against it.
-              */
-             onError(EmptyException.Exn),
-       );
-  subscription;
+let subscribeWith = {
+  let teardown = innerSubscription =>
+    Interlocked.exchange(CompositeDisposable.disposed, innerSubscription)
+    |> CompositeDisposable.dispose;
+
+  (~onSuccess: 'a => unit, ~onError: exn => unit, single) => {
+    let innerSubscription = ref(CompositeDisposable.disposed);
+    let subscription = Disposable.create1(teardown, innerSubscription);
+
+    innerSubscription :=
+      single
+      |> Observable.subscribeWith(
+           ~onNext=
+             next => {
+               onSuccess(next);
+               subscription |> Disposable.dispose;
+             },
+           ~onComplete=
+             fun
+             | Some(exn) => onError(exn)
+             | None => onError(EmptyException.Exn),
+         );
+    subscription;
+  };
 };
 
 let subscribe =

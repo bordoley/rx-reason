@@ -14,7 +14,7 @@ let test =
             let composed =
               Disposable.compose([
                 Disposable.create(onDispose),
-                Disposable.create(onDispose),
+                Disposable.create1(incr, count),
                 Disposable.create(onDispose),
               ]);
             composed |> Disposable.dispose;
