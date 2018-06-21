@@ -1,30 +1,32 @@
 exception CompleteWithoutErrorException;
-let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let operator = (predicate, subscriber) => {
-  let someTrueSubscriber = ref(Subscriber.disposed);
+let operator = {
+  let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-  let onNext = next =>
+  let onNext = (self, _, next) =>
     if (next) {
-      someTrueSubscriber^ |> Subscriber.complete(~exn=?completeWithoutErrorExn);
+      self^ |> Subscriber.complete(~exn=?completeWithoutErrorExn);
     };
 
-  let onComplete = exn => {
+  let onComplete = (_, delegate, exn) => {
     let exn =
       switch (exn) {
       | Some(CompleteWithoutErrorException) =>
-        subscriber |> Subscriber.next(true);
+        delegate |> Subscriber.next(true);
         None;
       | None =>
-        subscriber |> Subscriber.next(false);
+        delegate |> Subscriber.next(false);
         None;
       | _ => exn
       };
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
   };
 
-  someTrueSubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
-  someTrueSubscriber^ |> MapOperator.operator(predicate);
+  (predicate, subscriber) => {
+    let self = ref(Subscriber.disposed);
+    self := subscriber |> Subscriber.delegate(~onNext, ~onComplete, self);
+    self^ |> MapOperator.operator(predicate);
+  };
 };
 
 let lift = (predicate, observable) =>

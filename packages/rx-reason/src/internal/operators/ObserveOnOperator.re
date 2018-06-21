@@ -37,19 +37,19 @@ let operator =
       scheduler(doWorkStep) |> ignore;
     };
 
-  let onNext = next => {
+  let onNext = (_, _, next) => {
     queue |> QueueWithBufferStrategy.enqueue(next);
     schedule();
   };
 
-  let onComplete = exn => {
+  let onComplete = (_, _, exn) => {
     shouldComplete := true;
     completedState := exn;
     schedule();
   };
 
   subscriber
-  |> Subscriber.delegate(~onNext, ~onComplete)
+  |> Subscriber.delegate(~onNext, ~onComplete, ())
   |> Subscriber.addDisposable(innerSubscription);
 };
 

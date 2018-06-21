@@ -1,59 +1,76 @@
-let operator = subscriber => {
-  let switchSubscriber = ref(Subscriber.disposed);
-  let innerSubscription = SerialDisposable.create();
-  let latest = ref(0);
-  let lock = Lock.create();
+type context('a) = {
+  innerSubscription: SerialDisposable.t,
+  latest: ref(int),
+  lock: Lock.t,
+  mutable self: Subscriber.t('a),
+};
 
-  let doSubscribeInner = (id, next) => {
+let operator = {
+  let doSubscribeInner =
+      (id, {innerSubscription, lock, latest} as ctx, delegate, next) => {
     innerSubscription |> SerialDisposable.set(Disposable.disposed);
-    let onNext = next => {
-      lock |> Lock.acquire;
-      if (latest^ === id) {
-        subscriber |> Subscriber.next(next);
+
+    let newInnerSubscription = {
+      let onNext = next => {
+        lock |> Lock.acquire;
+        if (latest^ === id) {
+          delegate |> Subscriber.next(next);
+        };
+        lock |> Lock.release;
       };
-      lock |> Lock.release;
+
+      let onComplete = exn =>
+        switch (exn) {
+        | Some(_) =>
+          if (latest^ === id) {
+            ctx.self |> Subscriber.complete(~exn?);
+          }
+        | None => ()
+        };
+
+      next |> ObservableSource.subscribeWith(~onNext, ~onComplete);
     };
 
-    let onComplete = exn =>
-      switch (exn) {
-      | Some(_) =>
-        if (latest^ === id) {
-          switchSubscriber^ |> Subscriber.complete(~exn?);
-        }
-      | None => ()
-      };
-
-    let newInnerSubscription =
-      next |> ObservableSource.subscribeWith(~onNext, ~onComplete);
     innerSubscription
     |> SerialDisposable.set(
          newInnerSubscription |> CompositeDisposable.asDisposable,
        );
   };
 
-  let onNext = next => {
+  let onNext = ({latest, lock} as ctx, delegate, next) => {
     lock |> Lock.acquire;
     incr(latest);
     let id = latest^;
     lock |> Lock.release;
 
-    doSubscribeInner(id, next);
+    doSubscribeInner(id, ctx, delegate, next);
   };
 
-  let onComplete = exn => {
+  let onComplete = ({innerSubscription, lock}, delegate, exn) => {
     lock |> Lock.acquire;
     innerSubscription |> SerialDisposable.dispose;
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
     lock |> Lock.release;
   };
 
-  switchSubscriber :=
-    subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete)
-    |> Subscriber.addDisposable(
-         SerialDisposable.asDisposable(innerSubscription),
-       );
-  switchSubscriber^;
+  subscriber => {
+    let context = {
+      innerSubscription: SerialDisposable.create(),
+      latest: ref(0),
+      lock: Lock.create(),
+      self: Subscriber.disposed,
+    };
+
+    context.self =
+      subscriber
+      |> Subscriber.delegate(~onNext, ~onComplete, context)
+      |> Subscriber.addDisposable(
+           SerialDisposable.asDisposable(context.innerSubscription),
+         );
+    context.self;
+  };
 };
 
-let lift = observable => observable |> ObservableSource.lift(operator);
+
+let lift = (observable) =>
+  observable |> ObservableSource.lift(operator);

@@ -1,12 +1,18 @@
 type t('a) = {
   subscriber: Subscriber.t('a),
   observable: Observable.t('a),
+  disposable: Disposable.t,
 };
 
 let disposed = {
   subscriber: Subscriber.disposed,
   observable: Observable.never,
+  disposable: Disposable.disposed,
 };
+
+let asDisposable = ({disposable}) => disposable;
+
+let asObservable = ({observable}) => observable;
 
 let complete = (~exn=?, {subscriber}) =>
   subscriber |> Subscriber.complete(~exn?);
@@ -14,21 +20,17 @@ let complete = (~exn=?, {subscriber}) =>
 let completeWithResult = (~exn=?, {subscriber}) =>
   subscriber |> Subscriber.completeWithResult(~exn?);
 
-let dispose = ({subscriber}) => subscriber |> Subscriber.dispose;
+let dispose = self => self |> asDisposable |> Disposable.dispose;
 
-let isDisposed = ({subscriber}) => subscriber |> Subscriber.isDisposed;
+let isDisposed = self => self |> asDisposable |> Disposable.isDisposed;
 
 let next = (next, {subscriber}) => subscriber |> Subscriber.next(next);
 
 let notify = (notif, {subscriber}) =>
   subscriber |> Subscriber.notify(notif);
 
-let raiseIfDisposed = ({subscriber}) =>
-  subscriber |> Subscriber.raiseIfDisposed;
-
-let asDisposable = ({subscriber}) => subscriber |> Subscriber.asDisposable;
-
-let asObservable = ({observable}: t('a)) : Observable.t('a) => observable;
+let raiseIfDisposed = self =>
+  self |> asDisposable |> Disposable.raiseIfDisposed;
 
 let publishTo = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
@@ -65,14 +67,17 @@ let createWithCallbacks =
          subscriber |> Subscriber.next(next)
        );
   };
-  let subscriber =
-    Subscriber.create(~onComplete, ~onNext)
-    |> Subscriber.addTeardown(onDispose)
-    |> Subscriber.addTeardown(() => subscribers := CopyOnWriteArray.empty());
+  let subscriber = Subscriber.createAutoDisposing(~onComplete, ~onNext);
+
+  let disposable =
+    Disposable.create(() => {
+      onDispose();
+      subscribers := CopyOnWriteArray.empty();
+    });
 
   let observable =
     Observable.create(subscriber => {
-      subscriber |> Subscriber.raiseIfDisposed;
+      disposable |> Disposable.raiseIfDisposed;
       subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
 
       onSubscribe(subscriber);
@@ -89,7 +94,8 @@ let createWithCallbacks =
 
       subscriber |> Subscriber.addTeardown(teardown) |> ignore;
     });
-  {subscriber, observable};
+
+  {subscriber, observable, disposable};
 };
 
 let create = () =>
@@ -134,7 +140,7 @@ let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {
       subscriber => {
         let currentBuffer = buffer^;
         CopyOnWriteArray.forEach(
-          Subscriber.forwardOnNext(subscriber),
+          next => subscriber |> Subscriber.next(next),
           currentBuffer,
         );
         if (completed^) {

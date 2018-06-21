@@ -9,9 +9,6 @@ type t('a);
 include CompositeDisposable.S1 with type t('a) := t('a);
 include Observer.S1 with type t('a) := t('a);
 
-/** Construct a new Subscriber with the provided callbacks. */
-let create: (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
-
 /**
  * Construct a new Subscriber with the provided callbacks which automatically disposes
  * itself when completed.
@@ -21,7 +18,13 @@ let createAutoDisposing:
 
 /** Construct a new Subscriber with the provided callbacks that delegates its disposal to another Subscriber. */
 let delegate:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('b)) => t('a);
+  (
+    ~onNext: ('ctx, t('b), 'a) => unit,
+    ~onComplete: ('ctx, t('b), option(exn)) => unit,
+    'ctx,
+    t('b)
+  ) =>
+  t('a);
 
 /**
  * A disposed Subscriber instance.
@@ -29,10 +32,10 @@ let delegate:
 let disposed: t('a);
 
 /** Returns an onComplete function which forwards the notifcation to the provided Subscriber. */
-let forwardOnComplete: (t('a), option(exn)) => unit;
+let forwardOnComplete: ('ctx, t('a), option(exn)) => unit;
 
 /** Returns an onNext function which forwards the notifcation to the provided Subscriber. */
-let forwardOnNext: (t('a), 'a) => unit;
+let forwardOnNext: ('ctx, t('a), 'a) => unit;
 
 /** Returns true if the Observer has been completed or disposed. */
 let isStopped: t('a) => bool;

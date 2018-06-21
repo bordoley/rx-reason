@@ -1,27 +1,30 @@
 exception CompleteWithoutErrorException;
-let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let operator = subscriber => {
-  let isEmptySubscriber = ref(Subscriber.disposed);
+let operator = {
+  let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-  let onNext = _ => {
-    subscriber |> Subscriber.next(false);
-    isEmptySubscriber^ |> Subscriber.complete(~exn=?completeWithoutErrorExn);
+  let onNext = (self, delegate, _) => {
+    delegate |> Subscriber.next(false);
+    self^ |> Subscriber.complete(~exn=?completeWithoutErrorExn);
   };
 
-  let onComplete = exn => {
+  let onComplete = (_, delegate, exn) => {
     let exn =
       switch (exn) {
       | Some(CompleteWithoutErrorException) => None
       | Some(_) => exn
       | None =>
-        subscriber |> Subscriber.next(true);
+        delegate |> Subscriber.next(true);
         exn;
       };
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
   };
-  isEmptySubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
-  isEmptySubscriber^;
+
+  subscriber => {
+    let self = ref(Subscriber.disposed);
+    self := subscriber |> Subscriber.delegate(~onNext, ~onComplete, self);
+    self^;
+  };
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

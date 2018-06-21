@@ -1,43 +1,61 @@
-let operator = (~selector, other, subscriber) => {
-  let otherLatest = MutableOption.create();
-  let withLatestSubscriber = ref(Subscriber.disposed);
-  let otherSubscription = ref(Disposable.disposed);
+type context('a, 'b, 'c) = {
+  otherLatest: MutableOption.t('b),
+  mutable otherSubscription: Disposable.t,
+  selector: ('a, 'b) => 'c,
+  mutable self: Subscriber.t('a),
+};
 
-  let onNext =
-    Functions.earlyReturnsUnit1(next =>
+let operator = {
+  let onNext = {
+    let impl = ({otherLatest, selector, self}, delegate, next) =>
       if (MutableOption.isNotEmpty(otherLatest)) {
         let latest = otherLatest |> MutableOption.get;
         let nextWithLatest =
           try (selector(next, latest)) {
           | exn =>
-            withLatestSubscriber^ |> Subscriber.complete(~exn);
+            self |> Subscriber.complete(~exn);
             Functions.returnUnit();
           };
-        subscriber |> Subscriber.next(nextWithLatest);
-      }
-    );
+        delegate |> Subscriber.next(nextWithLatest);
+      };
 
-  let onComplete = exn => {
-    subscriber |> Subscriber.complete(~exn?);
-    otherSubscription^ |> Disposable.dispose;
+    (ctx, delegate, next) =>
+      Functions.earlyReturnsUnit3(impl, ctx, delegate, next);
   };
 
-  withLatestSubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+  let onComplete = ({otherSubscription}, delegate, exn) => {
+    delegate |> Subscriber.complete(~exn?);
+    otherSubscription |> Disposable.dispose;
+  };
 
-  otherSubscription :=
-    ObservableSource.subscribeWith(
-      ~onNext=next => otherLatest |> MutableOption.set(next),
-      ~onComplete=
-        exn =>
-          switch (exn) {
-          | Some(_) => withLatestSubscriber^ |> Subscriber.complete(~exn?)
-          | _ => ()
-          },
-      other,
-    )
-    |> CompositeDisposable.asDisposable;
+  (~selector, other, subscriber) => {
+    let otherLatest = MutableOption.create();
+    let context = {
+      otherLatest,
+      otherSubscription: Disposable.disposed,
+      selector,
+      self: Subscriber.disposed,
+    };
 
-  withLatestSubscriber^ |> Subscriber.addDisposable(otherSubscription^);
+    let self =
+      subscriber |> Subscriber.delegate(~onNext, ~onComplete, context);
+
+    context.otherSubscription =
+      ObservableSource.subscribeWith(
+        ~onNext=next => otherLatest |> MutableOption.set(next),
+        ~onComplete=
+          exn =>
+            switch (exn) {
+            | Some(_) => self |> Subscriber.complete(~exn?)
+            | _ => ()
+            },
+        other,
+      )
+      |> CompositeDisposable.asDisposable;
+
+    context.self = self |> Subscriber.addDisposable(context.otherSubscription);
+    self 
+  };
 };
 
 let lift = (~selector, other, source) =>

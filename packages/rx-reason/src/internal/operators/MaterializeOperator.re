@@ -1,17 +1,18 @@
-let operator = subscriber => {
-  let onNext = next => subscriber |> Subscriber.next(Notification.Next(next));
+let operator = {
+  let onNext = (_, delegate, next) =>
+    delegate |> Subscriber.next(Notification.Next(next));
 
-  let onComplete = exn => {
+  let onComplete = (_, delegate, exn) => {
     let next =
       switch (exn) {
       | Some(exn) => Notification.CompleteWithException(exn)
       | None => Notification.Complete
       };
-    subscriber |> Subscriber.next(next);
-    subscriber |> Subscriber.complete;
+    delegate |> Subscriber.next(next);
+    delegate |> Subscriber.complete;
   };
-  
-  subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+
+  subscriber => subscriber |> Subscriber.delegate(~onNext, ~onComplete, None);
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

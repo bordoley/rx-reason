@@ -1,26 +1,32 @@
-let operator = (default, subscriber) => {
-  let isEmpty = ref(true);
+type context('a) = {
+  default: 'a,
+  mutable isEmpty: bool,
+};
 
-  let onNext = next => {
-    subscriber |> Subscriber.next(next);
-    Volatile.write(false, isEmpty);
+let operator = {
+  let onNext = (ctx, delegate, next) => {
+    delegate |> Subscriber.next(next);
+    ctx.isEmpty = false;
   };
 
-  let onComplete = exn => {
+  let onComplete = ({default, isEmpty}, delegate, exn) => {
     let exn =
       switch (exn) {
       | Some(EmptyException.Exn)
       | None =>
-        if (Volatile.read(isEmpty)) {
-          subscriber |> Subscriber.next(default);
+        if (isEmpty) {
+          delegate |> Subscriber.next(default);
         };
         None;
       | Some(_) => exn
       };
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
   };
-  
-  subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+
+  (default, subscriber) => {
+    let ctx = {default, isEmpty: true};
+    subscriber |> Subscriber.delegate(~onNext, ~onComplete, ctx);
+  };
 };
 
 let lift = (default, observable) =>

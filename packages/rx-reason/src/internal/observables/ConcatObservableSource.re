@@ -18,7 +18,7 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
           scheduler(() =>
             hd
             |> ObservableSource.subscribeWith(
-                 ~onNext=Subscriber.forwardOnNext(subscriber),
+                 ~onNext=next => subscriber |> Subscriber.next(next),
                  ~onComplete,
                )
             |> CompositeDisposable.asDisposable

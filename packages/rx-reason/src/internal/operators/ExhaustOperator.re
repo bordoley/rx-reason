@@ -1,27 +1,29 @@
-let operator = subscriber => {
-  let innerSubscription = SerialDisposable.create();
-  let exhaustSubscriber = ref(Subscriber.disposed);
+type context('a) = {
+  innerSubscription: SerialDisposable.t,
+  mutable self: Subscriber.t('a),
+};
 
-  let hasActiveSubscription = () =>
+let operator = {
+  let hasActiveSubscription = ({innerSubscription}) =>
     innerSubscription |> SerialDisposable.get |> Disposable.isDisposed |> (!);
 
-  let completeSubscriber = exn => {
+  let completeSubscriber = ({innerSubscription}, delegate, exn) => {
     innerSubscription |> SerialDisposable.dispose;
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
   };
 
-  let onNext = next => {
-    let hasActiveSubscription = hasActiveSubscription();
+  let onNext = ({innerSubscription} as ctx, delegate, next) => {
+    let hasActiveSubscription = hasActiveSubscription(ctx);
     if (! hasActiveSubscription) {
       let subscription =
         ObservableSource.subscribeWith(
-          ~onNext=Subscriber.forwardOnNext(subscriber),
+          ~onNext=next => delegate |> Subscriber.next(next),
           ~onComplete=
             exn =>
-              if (exhaustSubscriber^ |> Subscriber.isStopped) {
-                completeSubscriber(exn);
+              if (ctx.self |> Subscriber.isStopped) {
+                completeSubscriber(ctx, delegate, exn);
               } else if (exn !== None) {
-                exhaustSubscriber^ |> Subscriber.complete(~exn?);
+                ctx.self |> Subscriber.complete(~exn?);
               },
           next,
         );
@@ -32,22 +34,29 @@ let operator = subscriber => {
     };
   };
 
-  let onComplete = exn => {
-    let hasActiveSubscription = hasActiveSubscription();
+  let onComplete = (ctx, delegate, exn) => {
+    let hasActiveSubscription = hasActiveSubscription(ctx);
     switch (exn) {
     | Some(_)
-    | None when ! hasActiveSubscription => completeSubscriber(exn)
+    | None when ! hasActiveSubscription =>
+      completeSubscriber(ctx, delegate, exn)
     | _ => ()
     };
   };
 
-  exhaustSubscriber :=
-    subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete)
-    |> Subscriber.addDisposable(
-         innerSubscription |> SerialDisposable.asDisposable,
-       );
-  exhaustSubscriber^;
+  subscriber => {
+    let context = {
+      innerSubscription: SerialDisposable.create(),
+      self: Subscriber.disposed,
+    };
+    context.self =
+      subscriber
+      |> Subscriber.delegate(~onNext, ~onComplete, context)
+      |> Subscriber.addDisposable(
+           context.innerSubscription |> SerialDisposable.asDisposable,
+         );
+    context.self;
+  };
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

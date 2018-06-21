@@ -1,19 +1,20 @@
-let operator = subscriber => {
-  let gate = Lock.create();
-  
-  let onNext = next => {
+let operator =  {
+  let onNext = (gate, delegate, next) => {
     Lock.acquire(gate);
-    subscriber |> Subscriber.next(next);
+    delegate |> Subscriber.next(next);
     Lock.release(gate);
   };
 
-  let onComplete = exn => {
+  let onComplete = (gate, delegate, exn) => {
     Lock.acquire(gate);
-    subscriber |> Subscriber.complete(~exn?);
+    delegate |> Subscriber.complete(~exn?);
     Lock.release(gate);
   };
 
-  subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+  subscriber => {
+    let gate = Lock.create();
+    subscriber |> Subscriber.delegate(~onNext, ~onComplete, gate);
+  };
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

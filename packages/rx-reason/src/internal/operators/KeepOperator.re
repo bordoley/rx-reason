@@ -1,26 +1,39 @@
-let operator = (predicate, subscriber) => {
-  let keepSubscriber = ref(Subscriber.disposed);
+type context('a) = {
+  predicate: 'a => bool,
+  mutable self: Subscriber.t('a),
+};
 
-  let onNext =
-    Functions.earlyReturnsUnit1(next => {
+let operator = {
+  let onNext = {
+    let impl = ({predicate, self}, subscriber, next) => {
       let shouldKeep =
         try (predicate(next)) {
         | exn =>
-          keepSubscriber^ |> Subscriber.complete(~exn);
+          self |> Subscriber.complete(~exn);
           Functions.returnUnit();
         };
       if (shouldKeep) {
         subscriber |> Subscriber.next(next);
       };
-    });
+    };
 
-  keepSubscriber :=
-    subscriber
-    |> Subscriber.delegate(
-         ~onNext,
-         ~onComplete=Subscriber.forwardOnComplete(subscriber),
-       );
-  keepSubscriber^;
+    (ctx, subscriber, next) =>
+      Functions.earlyReturnsUnit3(impl, ctx, subscriber, next);
+  };
+
+  (predicate, subscriber) => {
+    let context = {predicate, self: Subscriber.disposed};
+
+    context.self =
+      subscriber
+      |> Subscriber.delegate(
+           ~onNext,
+           ~onComplete=Subscriber.forwardOnComplete,
+           context,
+         );
+
+    context.self;
+  };
 };
 
 let lift = (predicate, observable) =>

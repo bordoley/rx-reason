@@ -1,41 +1,53 @@
-let operator = (scheduler: Scheduler.t) : Operator.t('a, 'a) =>
-  subscriber => {
-    let lastValue = MutableOption.create();
-    let debounceSubscription = SerialDisposable.create();
+type context('a) = {
+  debounceSubscription: SerialDisposable.t,
+  lastValue: MutableOption.t('a),
+  scheduler: Scheduler.t,
+};
 
-    let clearDebounce = () =>
-      debounceSubscription |> SerialDisposable.set(Disposable.disposed);
+let operator = {
+  let clearDebounce = ({debounceSubscription}) =>
+    debounceSubscription |> SerialDisposable.set(Disposable.disposed);
 
-    let debouncedNext = () => {
-      clearDebounce();
-      if (MutableOption.isNotEmpty(lastValue)) {
-        let next = MutableOption.get(lastValue);
-        MutableOption.unset(lastValue);
-        subscriber |> Subscriber.next(next);
-      };
-      Disposable.disposed;
+  let debounceNext = ({lastValue} as ctx, delegate) => {
+    clearDebounce(ctx);
+    if (MutableOption.isNotEmpty(lastValue)) {
+      let next = MutableOption.get(lastValue);
+      MutableOption.unset(lastValue);
+      delegate |> Subscriber.next(next);
     };
+    Disposable.disposed;
+  };
 
-    let onNext = next => {
-      clearDebounce();
-      MutableOption.set(next, lastValue);
-      debounceSubscription |> SerialDisposable.set(scheduler(debouncedNext));
+  let onNext =
+      ({debounceSubscription, lastValue, scheduler} as ctx, delegate, next) => {
+    clearDebounce(ctx);
+    MutableOption.set(next, lastValue);
+    let schedulerDisposable = scheduler(() => debounceNext(ctx, delegate));
+    debounceSubscription |> SerialDisposable.set(schedulerDisposable);
+  };
+
+  let onComplete = (ctx, delegate, exn) => {
+    switch (exn) {
+    | Some(_) => clearDebounce(ctx)
+    | None => debounceNext(ctx, delegate) |> ignore
     };
+    delegate |> Subscriber.complete(~exn?);
+  };
 
-    let onComplete = exn => {
-      switch (exn) {
-      | Some(_) => clearDebounce()
-      | None => debouncedNext() |> ignore
-      };
-      subscriber |> Subscriber.complete(~exn?);
+  (scheduler, subscriber) => {
+    let ctx = {
+      debounceSubscription: SerialDisposable.create(),
+      lastValue: MutableOption.create(),
+      scheduler,
     };
 
     subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete)
+    |> Subscriber.delegate(~onNext, ~onComplete, ctx)
     |> Subscriber.addDisposable(
-         SerialDisposable.asDisposable(debounceSubscription),
+         SerialDisposable.asDisposable(ctx.debounceSubscription),
        );
   };
+};
 
 let lift = (scheduler, observable) =>
   observable |> ObservableSource.lift(operator(scheduler));

@@ -1,17 +1,25 @@
-let operator = (~onNext, ~onComplete, subscriber) => {
-  let observeSubscriber = ref(Subscriber.disposed);
-  
-  let onNext =
-    Functions.earlyReturnsUnit1(next => {
+type context('a) = {
+  onNext: 'a => unit,
+  onComplete: option(exn) => unit,
+  mutable self: Subscriber.t('a),
+};
+
+let operator = {
+  let onNext = {
+    let impl = ({onNext, self}, subscriber, next) => {
       try (onNext(next)) {
       | exn =>
-        observeSubscriber^ |> Subscriber.complete(~exn);
+        self |> Subscriber.complete(~exn);
         Functions.returnUnit();
       };
       subscriber |> Subscriber.next(next);
-    });
+    };
 
-  let onComplete = exn => {
+    (ctx, subscriber, next) =>
+      Functions.earlyReturnsUnit3(impl, ctx, subscriber, next);
+  };
+
+  let onComplete = ({onComplete}, subscriber, exn) => {
     let exn =
       try (
         {
@@ -24,8 +32,11 @@ let operator = (~onNext, ~onComplete, subscriber) => {
     subscriber |> Subscriber.complete(~exn?);
   };
 
-  observeSubscriber := subscriber |> Subscriber.delegate(~onNext, ~onComplete);
-  observeSubscriber^;
+  (~onNext as observeOnNext, ~onComplete as observeOnComplete, subscriber) => {
+    let context = {onNext: observeOnNext, onComplete: observeOnComplete, self: Subscriber.disposed};
+    context.self = subscriber |> Subscriber.delegate(~onNext, ~onComplete, context);
+    context.self;
+  };
 };
 
 let lift = (~onNext, ~onComplete, observable) =>

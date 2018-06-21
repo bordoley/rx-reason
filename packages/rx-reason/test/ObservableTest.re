@@ -1394,8 +1394,9 @@ let test =
                 let subscription =
                   observable
                   |> Observable.subscribeWith(
-                       ~onNext=Subscriber.forwardOnNext(subscriber),
-                       ~onComplete=Subscriber.forwardOnComplete(subscriber),
+                       ~onNext=next => subscriber |> Subscriber.next(next),
+                       ~onComplete=
+                         exn => subscriber |> Subscriber.complete(~exn?),
                      );
 
                 subscriber

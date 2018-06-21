@@ -25,8 +25,8 @@ let shareInternal = (~createSubject, source) => {
     let subscription =
       currentSubject
       |> Subject.subscribeWith(
-           ~onNext=Subscriber.forwardOnNext(subscriber),
-           ~onComplete=Subscriber.forwardOnComplete(subscriber),
+           ~onNext=next => subscriber |> Subscriber.next(next),
+           ~onComplete=exn => subscriber |> Subscriber.complete(~exn?),
          );
 
     if (refCount^ === 0) {
@@ -51,7 +51,7 @@ let shareInternal = (~createSubject, source) => {
       subscription |> CompositeDisposable.dispose;
     };
 
-    if (!CompositeDisposable.isDisposed(subscription)) {
+    if (! CompositeDisposable.isDisposed(subscription)) {
       incr(refCount);
       subscriber |> Subscriber.addTeardown(teardown) |> ignore;
     };

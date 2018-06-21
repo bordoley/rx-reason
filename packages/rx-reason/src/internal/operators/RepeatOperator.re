@@ -1,48 +1,62 @@
-let operator = (shouldRetry, observable, subscriber) => {
-  let subscription = SerialDisposable.create();
-  let setupSubscription = ref(Functions.alwaysUnit);
+type context('a) = {
+  observable: ObservableSource.t('a),
+  shouldRepeat: option(exn) => bool,
+  subscription: SerialDisposable.t,
+};
 
-  let onComplete =
-    Functions.earlyReturnsUnit1(exn => {
+let operator = {
+  let rec onComplete = {
+    let impl = ({shouldRepeat} as ctx, delegate, exn) => {
       let shouldComplete =
-        try (! shouldRetry(exn)) {
+        try (! shouldRepeat(exn)) {
         | exn =>
-          subscriber |> Subscriber.complete(~exn);
+          delegate |> Subscriber.complete(~exn);
           Functions.returnUnit();
         };
 
       shouldComplete ?
-        subscriber |> Subscriber.complete(~exn?) : setupSubscription^();
-    });
+        delegate |> Subscriber.complete(~exn?) :
+        setupSubscription(ctx, delegate);
+    };
 
-  setupSubscription :=
-    (
-      () => {
-        let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
+    (ctx, delegate, exn) =>
+      Functions.earlyReturnsUnit3(impl, ctx, delegate, exn);
+  }
+  and setupSubscription = ({observable, subscription} as ctx, delegate) => {
+    let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
 
-        if (! alreadyDisposed) {
-          subscription |> SerialDisposable.get |> Disposable.dispose;
-          let newInnerSubscription =
-            observable
-            |> ObservableSource.subscribeWith(
-                 ~onNext=Subscriber.forwardOnNext(subscriber),
-                 ~onComplete,
-               );
-          subscription
-          |> SerialDisposable.set(
-               newInnerSubscription |> CompositeDisposable.asDisposable,
-             );
-        };
-      }
-    );
+    if (! alreadyDisposed) {
+      subscription |> SerialDisposable.get |> Disposable.dispose;
+      let newInnerSubscription =
+        observable
+        |> ObservableSource.subscribeWith(
+             ~onNext=next => delegate |> Subscriber.next(next),
+             ~onComplete=exn => onComplete(ctx, delegate, exn),
+           );
+      subscription
+      |> SerialDisposable.set(
+           newInnerSubscription |> CompositeDisposable.asDisposable,
+         );
+    };
+  };
 
-  subscriber
-  |> Subscriber.delegate(
-       ~onNext=Subscriber.forwardOnNext(subscriber),
-       ~onComplete,
-     )
-  |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription));
+  (shouldRepeat, observable, subscriber) => {
+    let context = {
+      observable,
+      shouldRepeat,
+      subscription: SerialDisposable.create(),
+    };
+    subscriber
+    |> Subscriber.delegate(
+         ~onNext=Subscriber.forwardOnNext,
+         ~onComplete,
+         context,
+       )
+    |> Subscriber.addDisposable(
+         SerialDisposable.asDisposable(context.subscription),
+       );
+  };
 };
 
-let lift = (shouldRetry, observable) =>
-  observable |> ObservableSource.lift(operator(shouldRetry, observable));
+let lift = (shouldRepeat, observable) =>
+  observable |> ObservableSource.lift(operator(shouldRepeat, observable));

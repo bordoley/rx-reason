@@ -1,40 +1,51 @@
-let operator = scheduler => {
-  let timeoutObservable =
-    ObservableSource.raise(~scheduler, TimeoutException.Exn);
-  subscriber => {
-    let timeoutSubscription = SerialDisposable.create();
-    let timeOutSubscriber = ref(Subscriber.disposed);
-    let connect =
-      ObservableSource.publishTo(
-        ~onNext=Functions.alwaysUnit,
-        ~onComplete=exn => timeOutSubscriber^ |> Subscriber.complete(~exn?),
-        timeoutObservable,
-      );
+type context('a) = {
+  mutable connect: unit => Disposable.t,
+  timeoutSubscription: SerialDisposable.t,
+};
 
-    let subscribeToTimeout = () => {
-      timeoutSubscription |> SerialDisposable.get |> Disposable.dispose;
-      timeoutSubscription |> SerialDisposable.set(connect());
+let operator = {
+  let subscribeToTimeout = ({connect, timeoutSubscription}) => {
+    timeoutSubscription |> SerialDisposable.get |> Disposable.dispose;
+    timeoutSubscription |> SerialDisposable.set(connect());
+  };
+
+  let onNext = (ctx, delegate, next) => {
+    delegate |> Subscriber.next(next);
+    subscribeToTimeout(ctx);
+  };
+
+  let onComplete = ({timeoutSubscription}, delegate, exn) => {
+    timeoutSubscription |> SerialDisposable.dispose;
+    delegate |> Subscriber.complete(~exn?);
+  };
+
+  scheduler => {
+    let timeoutObservable =
+      ObservableSource.raise(~scheduler, TimeoutException.Exn);
+
+    subscriber => {
+      let context = {
+        connect: Disposable.empty,
+        timeoutSubscription: SerialDisposable.create(),
+      };
+
+      let self =
+        subscriber
+        |> Subscriber.delegate(~onNext, ~onComplete, context)
+        |> Subscriber.addDisposable(
+             SerialDisposable.asDisposable(context.timeoutSubscription),
+           );
+
+      context.connect =
+        ObservableSource.publishTo(
+          ~onNext=Functions.alwaysUnit,
+          ~onComplete=exn => self |> Subscriber.complete(~exn?),
+          timeoutObservable,
+        );
+      
+      subscribeToTimeout(context);
+      self;
     };
-
-    let onNext = next => {
-      subscriber |> Subscriber.next(next);
-      subscribeToTimeout();
-    };
-
-    let onComplete = exn => {
-      timeoutSubscription |> SerialDisposable.dispose;
-      subscriber |> Subscriber.complete(~exn?);
-    };
-
-    timeOutSubscriber :=
-      subscriber
-      |> Subscriber.delegate(~onNext, ~onComplete)
-      |> Subscriber.addDisposable(
-           SerialDisposable.asDisposable(timeoutSubscription),
-         );
-
-    subscribeToTimeout();
-    timeOutSubscriber^;
   };
 };
 
