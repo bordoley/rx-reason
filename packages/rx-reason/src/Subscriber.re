@@ -90,12 +90,11 @@ let completeWithResult = (~exn=?, subscriber) =>
     };
     disposable |> CompositeDisposable.dispose;
     shouldComplete;
-  | Delegating(delegate, ctx, _, onComplete, stopped, disposable) =>
+  | Delegating(delegate, ctx, _, onComplete, stopped, _) =>
     let shouldComplete = ! Interlocked.exchange(true, stopped);
     if (shouldComplete) {
       onComplete(ctx, delegate, exn);
     };
-    disposable |> CompositeDisposable.dispose;
     shouldComplete;
   | Disposed => false
   };
