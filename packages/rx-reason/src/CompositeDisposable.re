@@ -147,25 +147,27 @@ let disposed = {
 };
 
 let create = {
-  let teardown = (lock, self) => {
-    lock |> Lock.acquire;
-    let teardown = self^.teardown;
-    teardown
-    |> List.iter(
-         fun
-         | TeardownLogic(tdl) => tdl()
-         | TeardownLogic1(tdl, d0) => tdl(d0)
-         | TeardownLogic2(tdl, d0, d1) => tdl(d0, d1)
-         | TeardownLogic3(tdl, d0, d1, d2) => tdl(d0, d1, d2)
-         | TeardownLogic4(tdl, d0, d1, d2, d3) => tdl(d0, d1, d2, d3)
-         | TeardownLogic5(tdl, d0, d1, d2, d3, d4) => tdl(d0, d1, d2, d3, d4)
-         | TeardownLogic6(tdl, d0, d1, d2, d3, d4, d5) =>
-           tdl(d0, d1, d2, d3, d4, d5)
-         | TeardownLogic7(tdl, d0, d1, d2, d3, d4, d5, d6) =>
-           tdl(d0, d1, d2, d3, d4, d5, d6)
-         | Disposable(disposable) => disposable |> Disposable.dispose,
-       );
-    lock |> Lock.release;
+  let teardown = {
+    let doTeardown =
+      fun
+      | TeardownLogic(tdl) => tdl()
+      | TeardownLogic1(tdl, d0) => tdl(d0)
+      | TeardownLogic2(tdl, d0, d1) => tdl(d0, d1)
+      | TeardownLogic3(tdl, d0, d1, d2) => tdl(d0, d1, d2)
+      | TeardownLogic4(tdl, d0, d1, d2, d3) => tdl(d0, d1, d2, d3)
+      | TeardownLogic5(tdl, d0, d1, d2, d3, d4) => tdl(d0, d1, d2, d3, d4)
+      | TeardownLogic6(tdl, d0, d1, d2, d3, d4, d5) =>
+        tdl(d0, d1, d2, d3, d4, d5)
+      | TeardownLogic7(tdl, d0, d1, d2, d3, d4, d5, d6) =>
+        tdl(d0, d1, d2, d3, d4, d5, d6)
+      | Disposable(disposable) => disposable |> Disposable.dispose;
+
+    (lock, self) => {
+      lock |> Lock.acquire;
+      let teardown = self^.teardown;
+      teardown |> List.iter(doTeardown);
+      lock |> Lock.release;
+    };
   };
 
   () => {

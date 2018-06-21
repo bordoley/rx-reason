@@ -137,7 +137,7 @@ let dispose = {
 };
 
 let compose = {
-  let dispose = List.iter(Functions.(dispose >> ignore));
+  let dispose = List.iter(dispose);
   disposables => create1(dispose, disposables);
 };
 
