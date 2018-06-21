@@ -1,36 +1,50 @@
 let merge = observables => {
   let count = observables |> List.length;
 
+  let onNext = (_, lock, subscriber, next) => {
+    Lock.acquire(lock);
+    subscriber |> Subscriber.next(next);
+    Lock.release(lock);
+  };
+
+  let onComplete = (activeCount, lock, subscriber, exn) => {
+    Lock.acquire(lock);
+    let shouldComplete =
+      switch (exn) {
+      | Some(_) => true
+      | None =>
+        let oldActiveCount = Interlocked.decrement(activeCount);
+        oldActiveCount <= 0;
+      };
+    if (shouldComplete) {
+      subscriber |> Subscriber.complete(~exn?);
+    };
+    Lock.release(lock);
+  };
+
   ObservableSource.create(subscriber => {
     let activeCount = ref(count);
     let lock = Lock.create();
-    let onNext = next => {
-      Lock.acquire(lock);
-      subscriber |> Subscriber.next(next);
-      Lock.release(lock);
-    };
 
-    let onComplete = exn => {
-      Lock.acquire(lock);
-      let shouldComplete =
-        switch (exn) {
-        | Some(_) => true
-        | None =>
-          let oldActiveCount = Interlocked.decrement(activeCount);
-          oldActiveCount <= 0;
-        };
-      if (shouldComplete) {
-        subscriber |> Subscriber.complete(~exn?);
-      };
-      Lock.release(lock);
-    };
+    let rec loop =
+      fun
+      | [hd, ...tail] => {
+          let subscription =
+            ObservableSource.subscribeWith3(
+              ~onNext,
+              ~onComplete,
+              activeCount,
+              lock,
+              subscriber,
+              hd,
+            );
+          subscriber
+          |> Subscriber.addCompositeDisposable(subscription)
+          |> ignore;
+          loop(tail);
+        }
+      | [] => ();
 
-    observables
-    |> List.map(ObservableSource.subscribeWith(~onNext, ~onComplete))
-    |> List.iter(d =>
-         subscriber
-         |> Subscriber.addCompositeDisposable(d)
-         |> ignore
-       );
+    loop(observables);
   });
 };

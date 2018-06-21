@@ -72,6 +72,27 @@ let subscribeWith = (~onNext, ~onComplete, observable) => {
   subscriber |> Subscriber.asCompositeDisposable;
 };
 
+let subscribeWith1 = (~onNext, ~onComplete, ctx0, observable) => {
+  let subscriber = Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
+let subscribeWith2 = (~onNext, ~onComplete, ctx0, ctx1, observable) => {
+  let subscriber = Subscriber.createAutoDisposing2(~onNext, ~onComplete, ctx0, ctx1);
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
+let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
+  let subscriber = Subscriber.createAutoDisposing3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
 let subscribe =
     (
       ~onNext=Functions.alwaysUnit1,

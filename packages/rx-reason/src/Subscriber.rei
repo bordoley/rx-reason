@@ -16,6 +16,33 @@ include Observer.S1 with type t('a) := t('a);
 let createAutoDisposing:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
 
+let createAutoDisposing1:
+  (
+    ~onNext: ('ctx0, 'a) => unit,
+    ~onComplete: ('ctx0, option(exn)) => unit,
+    'ctx0
+  ) =>
+  t('a);
+
+let createAutoDisposing2:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+    'ctx0,
+    'ctx1
+  ) =>
+  t('a);
+
+let createAutoDisposing3:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2
+  ) =>
+  t('a);
+
 /** Construct a new Subscriber with the provided callbacks that delegates its disposal to another Subscriber. */
 let delegate:
   (
