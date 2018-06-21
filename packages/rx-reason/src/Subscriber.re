@@ -49,11 +49,6 @@ let createAutoDisposing = (~onNext, ~onComplete) => {
 };
 
 let delegate = (~onNext, ~onComplete, context, subscriber) => {
-  /**
-   * Ideally the delegating constructor would only require a single reference
-   * to the subscriber, but the type system won't allow calling
-   * asCompositeDisposable recursively on the enclosed subscriber in this case.
-   */
   let stopped = ref(false);
   subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
   Delegating(context, onNext, onComplete, stopped, subscriber);
