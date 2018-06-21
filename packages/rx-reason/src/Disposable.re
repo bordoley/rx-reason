@@ -25,7 +25,7 @@ module type S1 = {
 
 let asDisposable = Functions.identity;
 
-let create = (onDispose: unit => unit) : t => {
+let create = (onDispose) : t => {
   onDispose: ref(onDispose),
   isDisposed: ref(false),
 };
@@ -33,7 +33,7 @@ let create = (onDispose: unit => unit) : t => {
 let dispose = ({onDispose, isDisposed}: t) : unit => {
   let shouldDispose = ! Interlocked.exchange(true, isDisposed);
   if (shouldDispose) {
-    let onDispose = Interlocked.exchange(Functions.alwaysUnit, onDispose);
+    let onDispose = Interlocked.exchange(Functions.alwaysUnit1, onDispose);
     onDispose();
   };
 };
@@ -43,7 +43,7 @@ let compose = (disposables: list(t)) : t => {
   create(dispose);
 };
 
-let empty = () => create(Functions.alwaysUnit);
+let empty = () => create(Functions.alwaysUnit1);
 
 let disposed: t = {
   let retval = empty();

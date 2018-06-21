@@ -1,6 +1,8 @@
-let alwaysTrue = _ => true;
+let alwaysTrue1 = _ => true;
 
-let alwaysUnit = _ : unit => ();
+let alwaysUnit1 = _ => ();
+
+let alwaysUnit: unit => unit = alwaysUnit1;
 
 let alwaysUnit2 = (_, _) : unit => ();
 

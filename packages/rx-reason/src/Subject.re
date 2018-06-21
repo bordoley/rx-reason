@@ -36,85 +36,89 @@ let publishTo = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
 
 let publish =
-    (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
+    (~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1, subject) =>
   subject |> publishTo(~onNext, ~onComplete);
 
 let subscribeWith = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.subscribeWith(~onNext, ~onComplete);
 
 let subscribe =
-    (~onNext=Functions.alwaysUnit, ~onComplete=Functions.alwaysUnit, subject) =>
+    (~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1, subject) =>
   subject |> subscribeWith(~onNext, ~onComplete);
 
-let createWithCallbacks =
-    (~onNext, ~onComplete, ~onDispose, ~onSubscribe)
-    : t('a) => {
-  let subscribers = ref(CopyOnWriteArray.empty());
-  let onComplete = exn => {
+let createWithCallbacks = {
+  let teardown = (subscriber, subscribers) => {
     let currentSubscribers = subscribers^;
-    onComplete(exn);
-    currentSubscribers
-    |> CopyOnWriteArray.forEach(subscriber =>
-         subscriber |> Subscriber.complete(~exn?)
-       );
+    subscribers :=
+      currentSubscribers
+      |> CopyOnWriteArray.findAndRemove(
+           Functions.referenceEquality,
+           subscriber,
+         );
   };
-
-  let onNext = next => {
-    onNext(next);
-    let currentSubscribers = subscribers^;
-    currentSubscribers
-    |> CopyOnWriteArray.forEach(subscriber =>
-         subscriber |> Subscriber.next(next)
-       );
-  };
-
-  let onComplete = exn => {
-    onComplete(exn);
-    let currentSubscribers = subscribers^;
-    currentSubscribers
-    |> CopyOnWriteArray.forEach(subscriber =>
-         subscriber |> Subscriber.complete(~exn?)
-       );
-  };
-
-  let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
-
-  let disposable =
-    Disposable.create(() => {
-      subscriber |> Subscriber.dispose;
-      onDispose();
-      subscribers := CopyOnWriteArray.empty();
-    });
-
-  let observable =
-    Observable.create(subscriber => {
-      disposable |> Disposable.raiseIfDisposed;
-      subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
-
-      onSubscribe(subscriber);
-
-      let teardown = () => {
+  (~onNext, ~onComplete, ~onDispose, ~onSubscribe) => (
+    {
+      let subscribers = ref(CopyOnWriteArray.empty());
+      let onComplete = exn => {
         let currentSubscribers = subscribers^;
-        subscribers :=
-          currentSubscribers
-          |> CopyOnWriteArray.findAndRemove(
-               Functions.referenceEquality,
-               subscriber,
-             );
+        onComplete(exn);
+        currentSubscribers
+        |> CopyOnWriteArray.forEach(subscriber =>
+             subscriber |> Subscriber.complete(~exn?)
+           );
       };
 
-      subscriber |> Subscriber.addTeardown(teardown) |> ignore;
-    });
+      let onNext = next => {
+        onNext(next);
+        let currentSubscribers = subscribers^;
+        currentSubscribers
+        |> CopyOnWriteArray.forEach(subscriber =>
+             subscriber |> Subscriber.next(next)
+           );
+      };
 
-  {subscriber, observable, disposable};
+      let onComplete = exn => {
+        onComplete(exn);
+        let currentSubscribers = subscribers^;
+        currentSubscribers
+        |> CopyOnWriteArray.forEach(subscriber =>
+             subscriber |> Subscriber.complete(~exn?)
+           );
+      };
+
+      let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+
+      let disposable =
+        Disposable.create(() => {
+          subscriber |> Subscriber.dispose;
+          onDispose();
+          subscribers := CopyOnWriteArray.empty();
+        });
+
+      let observable =
+        Observable.create(subscriber => {
+          disposable |> Disposable.raiseIfDisposed;
+          subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
+
+          onSubscribe(subscriber);
+
+          subscriber
+          |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
+          |> ignore;
+        });
+
+      {subscriber, observable, disposable};
+    }:
+      t('a)
+  );
 };
 
 let create = () =>
   createWithCallbacks(
-    ~onNext=Functions.alwaysUnit,
-    ~onComplete=Functions.alwaysUnit,
-    ~onDispose=Functions.alwaysUnit,
-    ~onSubscribe=Functions.alwaysUnit,
+    ~onNext=Functions.alwaysUnit1,
+    ~onComplete=Functions.alwaysUnit1,
+    ~onDispose=Functions.alwaysUnit1,
+    ~onSubscribe=Functions.alwaysUnit1,
   );
 
 let createWithReplayBuffer = (maxBufferCount: int) : t('a) => {

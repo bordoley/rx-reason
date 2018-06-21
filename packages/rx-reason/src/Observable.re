@@ -234,7 +234,7 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
       subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
     });
 
-let repeat = (~predicate=Functions.alwaysTrue, observable) =>
+let repeat = (~predicate=Functions.alwaysTrue1, observable) =>
   RepeatOperator.lift(
     fun
     | None => predicate()
@@ -242,7 +242,7 @@ let repeat = (~predicate=Functions.alwaysTrue, observable) =>
     observable,
   );
 
-let retry = (~predicate=Functions.alwaysTrue, observable) =>
+let retry = (~predicate=Functions.alwaysTrue1, observable) =>
   RepeatOperator.lift(
     fun
     | None => false

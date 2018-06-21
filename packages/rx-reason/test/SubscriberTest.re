@@ -12,7 +12,7 @@ let test =
             let observedExn = ref(None);
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
                 ~onComplete=exn => observedExn := exn,
               );
 
@@ -27,7 +27,7 @@ let test =
             let observedExn = ref(None);
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
                 ~onComplete=exn => observedExn := exn,
               );
 
@@ -46,8 +46,8 @@ let test =
           it("returns true if not stopped", () => {
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
+                ~onComplete=Functions.alwaysUnit1,
               );
 
             subscriber |> Subscriber.isStopped |> Expect.toBeEqualToFalse;
@@ -59,8 +59,8 @@ let test =
           it("returns false if stopped", () => {
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
+                ~onComplete=Functions.alwaysUnit1,
               );
 
             subscriber |> Subscriber.isStopped |> Expect.toBeEqualToFalse;
@@ -81,7 +81,7 @@ let test =
             let subscriber =
               Subscriber.createAutoDisposing(
                 ~onNext=_ => raise(Division_by_zero),
-                ~onComplete=Functions.alwaysUnit,
+                ~onComplete=Functions.alwaysUnit1,
               );
             (() => subscriber |> Subscriber.next(6)) |> Expect.shouldRaise;
             subscriber |> Subscriber.isDisposed |> Expect.toBeEqualToTrue;
@@ -91,7 +91,7 @@ let test =
             () => {
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
                 ~onComplete=_ => raise(Division_by_zero),
               );
             (() => subscriber |> Subscriber.complete) |> Expect.shouldRaise;
@@ -100,8 +100,8 @@ let test =
           it("disposes when the subscriber completes", () => {
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
+                ~onComplete=Functions.alwaysUnit1,
               );
             subscriber |> Subscriber.complete;
             subscriber |> Subscriber.isDisposed |> Expect.toBeEqualToTrue;
@@ -116,7 +116,7 @@ let test =
             let subscriber =
               Subscriber.createAutoDisposing(
                 ~onNext=next => observedNext := next,
-                ~onComplete=Functions.alwaysUnit,
+                ~onComplete=Functions.alwaysUnit1,
               );
             subscriber |> Subscriber.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
@@ -128,7 +128,7 @@ let test =
             let subscriber =
               Subscriber.createAutoDisposing(
                 ~onNext=next => observedNext := next,
-                ~onComplete=Functions.alwaysUnit,
+                ~onComplete=Functions.alwaysUnit1,
               );
             subscriber |> Subscriber.next(5);
             observedNext^ |> Expect.toBeEqualToInt(5);
@@ -144,8 +144,8 @@ let test =
           it("stops and disposes the subscriber", () => {
             let subscriber =
               Subscriber.createAutoDisposing(
-                ~onNext=Functions.alwaysUnit,
-                ~onComplete=Functions.alwaysUnit,
+                ~onNext=Functions.alwaysUnit1,
+                ~onComplete=Functions.alwaysUnit1,
               );
             subscriber |> Subscriber.isDisposed |> Expect.toBeEqualToFalse;
             subscriber |> Subscriber.isStopped |> Expect.toBeEqualToFalse;

@@ -63,6 +63,23 @@ let addTeardown = (teardown, subscriber) => {
   subscriber;
 };
 
+let addTeardown1 = (teardown, d0, subscriber) => {
+  subscriber
+  |> asCompositeDisposable
+  |> CompositeDisposable.addTeardown1(teardown, d0)
+  |> ignore;
+  subscriber;
+};
+
+let addTeardown2 = (teardown, d0, d1, subscriber) => {
+  subscriber
+  |> asCompositeDisposable
+  |> CompositeDisposable.addTeardown2(teardown, d0, d1)
+  |> ignore;
+  subscriber;
+};
+
+
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> CompositeDisposable.asDisposable;
 
@@ -70,32 +87,32 @@ let createAutoDisposing = (~onNext, ~onComplete) => {
   let isStopped = ref(false);
   let disposable = CompositeDisposable.create();
   disposable
-  |> CompositeDisposable.addTeardown(() => Volatile.write(true, isStopped))
+  |> CompositeDisposable.addTeardown1(Volatile.writeTrue, isStopped)
   |> ignore;
   AutoDisposing(onNext, onComplete, isStopped, disposable);
 };
 
 let delegate = (~onNext, ~onComplete, subscriber) => {
   let stopped = ref(false);
-  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
   Delegating0(onNext, onComplete, stopped, subscriber);
 };
 
 let delegate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
   let stopped = ref(false);
-  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
   Delegating1(ctx0, onNext, onComplete, stopped, subscriber);
 };
 
 let delegate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
   let stopped = ref(false);
-  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
   Delegating2(ctx0, ctx1, onNext, onComplete, stopped, subscriber);
 };
 
 let delegate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
   let stopped = ref(false);
-  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
   Delegating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
 };
 

@@ -1303,7 +1303,7 @@ let test =
             ~source=
               _ =>
                 Observable.ofList([1, 2])
-                |> Observable.onComplete(Functions.alwaysUnit),
+                |> Observable.onComplete(Functions.alwaysUnit1),
             ~expected=[Next(1), Next(2), Complete],
             (),
           ),
@@ -1328,7 +1328,7 @@ let test =
             ~source=
               _ =>
                 Observable.ofList([1, 2])
-                |> Observable.onNext(Functions.alwaysUnit),
+                |> Observable.onNext(Functions.alwaysUnit1),
             ~expected=[Next(1), Next(2), Complete],
             (),
           ),

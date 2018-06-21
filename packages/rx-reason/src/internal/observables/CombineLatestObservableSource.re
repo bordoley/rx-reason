@@ -57,12 +57,10 @@ let combineLatest2 =
     let (s0, s1) = (s0^, s1^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
     |> ignore;
   });
 
@@ -145,14 +143,12 @@ let combineLatest3 =
     let (s0, s1, s2) = (s0^, s1^, s2^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         s2 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-         MutableOption.unset(v2);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s2 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
     |> ignore;
   });
 
@@ -247,16 +243,14 @@ let combineLatest4 =
     let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         s2 |> CompositeDisposable.dispose;
-         s3 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-         MutableOption.unset(v2);
-         MutableOption.unset(v3);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s2 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s3 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
     |> ignore;
   });
 
@@ -358,18 +352,16 @@ let combineLatest5 =
     let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         s2 |> CompositeDisposable.dispose;
-         s3 |> CompositeDisposable.dispose;
-         s4 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-         MutableOption.unset(v2);
-         MutableOption.unset(v3);
-         MutableOption.unset(v4);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s2 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s3 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s4 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
     |> ignore;
   });
 
@@ -478,20 +470,18 @@ let combineLatest6 =
     let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         s2 |> CompositeDisposable.dispose;
-         s3 |> CompositeDisposable.dispose;
-         s4 |> CompositeDisposable.dispose;
-         s5 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-         MutableOption.unset(v2);
-         MutableOption.unset(v3);
-         MutableOption.unset(v4);
-         MutableOption.unset(v5);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s2 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s3 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s4 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s5 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
+    |> Subscriber.addTeardown1(MutableOption.unset, v5)
     |> ignore;
   });
 
@@ -607,21 +597,19 @@ let combineLatest7 =
     let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 
     subscriber
-    |> Subscriber.addTeardown(() => {
-         s0 |> CompositeDisposable.dispose;
-         s1 |> CompositeDisposable.dispose;
-         s2 |> CompositeDisposable.dispose;
-         s3 |> CompositeDisposable.dispose;
-         s4 |> CompositeDisposable.dispose;
-         s5 |> CompositeDisposable.dispose;
-         s6 |> CompositeDisposable.dispose;
-         MutableOption.unset(v0);
-         MutableOption.unset(v1);
-         MutableOption.unset(v2);
-         MutableOption.unset(v3);
-         MutableOption.unset(v4);
-         MutableOption.unset(v5);
-         MutableOption.unset(v6);
-       })
+    |> Subscriber.addDisposable(s0 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s1 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s2 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s3 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s4 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s5 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addDisposable(s6 |> CompositeDisposable.asDisposable)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
+    |> Subscriber.addTeardown1(MutableOption.unset, v5)
+    |> Subscriber.addTeardown1(MutableOption.unset, v6)
     |> ignore;
   });

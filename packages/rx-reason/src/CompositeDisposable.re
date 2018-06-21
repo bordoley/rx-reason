@@ -1,9 +1,12 @@
 type teardownLogicOrDisposable =
-  | TeardownLogic(TeardownLogic.t)
+  | TeardownLogic(TeardownLogic.t): teardownLogicOrDisposable
+  | TeardownLogic1(TeardownLogic.t1('a), 'a): teardownLogicOrDisposable
+  | TeardownLogic2(TeardownLogic.t2('a, 'b), 'a, 'b): teardownLogicOrDisposable
   | Disposable(Disposable.t);
 
 type t = {
   lock: Lock.t,
+  /* FIXME: Change to mutable vector and profit */
   mutable teardown: list(teardownLogicOrDisposable),
   disposable: Disposable.t,
 };
@@ -17,7 +20,11 @@ module type S = {
 
   let addDisposable: (Disposable.t, t) => t;
 
-  let addTeardown: (unit => unit, t) => t;
+  let addTeardown: (TeardownLogic.t, t) => t;
+
+  let addTeardown1: (TeardownLogic.t1('b), 'b, t) => t;
+
+  let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t) => t;
 
   let asCompositeDisposable: t => compositeDisposable;
 };
@@ -29,7 +36,11 @@ module type S1 = {
 
   let addDisposable: (Disposable.t, t('a)) => t('a);
 
-  let addTeardown: (unit => unit, t('a)) => t('a);
+  let addTeardown: (TeardownLogic.t, t('a)) => t('a);
+
+  let addTeardown1: (TeardownLogic.t1('b), 'b, t('a)) => t('a);
+
+  let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t('a)) => t('a);
 
   let asCompositeDisposable: t('a) => compositeDisposable;
 };
@@ -54,6 +65,8 @@ let create = () => {
     |> List.iter(
          fun
          | TeardownLogic(tdl) => tdl()
+         | TeardownLogic1(tdl, d0) => tdl(d0)
+         | TeardownLogic2(tdl, d0, d1) => tdl(d0, d1)
          | Disposable(disposable) => disposable |> Disposable.dispose,
        );
     lock |> Lock.release;
@@ -85,6 +98,24 @@ let addTeardown = (cb, self) => {
   let isDisposed = self |> addInternal(TeardownLogic(cb));
   if (isDisposed) {
     cb();
+  };
+
+  self;
+};
+
+let addTeardown1 = (cb, d0, self) => {
+  let isDisposed = self |> addInternal(TeardownLogic1(cb, d0));
+  if (isDisposed) {
+    cb(d0);
+  };
+
+  self;
+};
+
+let addTeardown2 = (cb, d0, d1, self) => {
+  let isDisposed = self |> addInternal(TeardownLogic2(cb, d0, d1));
+  if (isDisposed) {
+    cb(d0, d1);
   };
 
   self;

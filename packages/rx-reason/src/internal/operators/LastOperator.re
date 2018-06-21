@@ -21,7 +21,7 @@ let operator = {
     let last = MutableOption.create();
     subscriber
     |> Subscriber.delegate1(~onNext, ~onComplete, last)
-    |> Subscriber.addTeardown(() => MutableOption.unset(last));
+    |> Subscriber.addTeardown1(MutableOption.unset, last);
   };
 };
 

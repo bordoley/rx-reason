@@ -11,6 +11,10 @@ module type S = {
 
   let addTeardown: (TeardownLogic.t, t) => t;
 
+  let addTeardown1: (TeardownLogic.t1('b), 'b, t) => t;
+
+  let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t) => t;
+
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t => compositeDisposable;
 };
@@ -23,6 +27,10 @@ module type S1 = {
   let addDisposable: (Disposable.t, t('a)) => t('a);
 
   let addTeardown: (TeardownLogic.t, t('a)) => t('a);
+
+  let addTeardown1: (TeardownLogic.t1('b), 'b, t('a)) => t('a);
+
+  let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t('a)) => t('a);
 
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t('a) => compositeDisposable;

@@ -31,7 +31,7 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
     Lift1(source, op0);
   };
 
-let never = Source(Functions.alwaysUnit);
+let never = Source(Functions.alwaysUnit1);
 
 let subscribeSafe = (subscriber, source) =>
   try (source(subscriber)) {
@@ -73,8 +73,8 @@ let subscribeWith = (~onNext, ~onComplete, observable) => {
 
 let subscribe =
     (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
+      ~onNext=Functions.alwaysUnit1,
+      ~onComplete=Functions.alwaysUnit1,
       observable,
     ) =>
   observable |> subscribeWith(~onNext, ~onComplete);
@@ -100,8 +100,8 @@ let publishTo = (~onNext, ~onComplete, observable) => {
 
 let publish =
     (
-      ~onNext=Functions.alwaysUnit,
-      ~onComplete=Functions.alwaysUnit,
+      ~onNext=Functions.alwaysUnit1,
+      ~onComplete=Functions.alwaysUnit1,
       observable,
     ) =>
   publishTo(~onNext, ~onComplete, observable);

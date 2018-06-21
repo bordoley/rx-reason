@@ -87,5 +87,5 @@ let subscribeWith =
 };
 
 let subscribe =
-    (~onSuccess=Functions.alwaysUnit, ~onError=Functions.alwaysUnit, single) =>
+    (~onSuccess=Functions.alwaysUnit1, ~onError=Functions.alwaysUnit1, single) =>
   subscribeWith(~onSuccess, ~onError, single);

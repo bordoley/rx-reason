@@ -38,7 +38,7 @@ let operator = {
 
       context.connect =
         ObservableSource.publishTo(
-          ~onNext=Functions.alwaysUnit,
+          ~onNext=Functions.alwaysUnit1,
           ~onComplete=exn => self |> Subscriber.complete(~exn?),
           timeoutObservable,
         );
