@@ -12,25 +12,30 @@ let operator = {
     delegate |> Subscriber.complete(~exn?);
   };
 
-  let onNext = ({innerSubscription} as ctx, delegate, next) => {
-    let hasActiveSubscription = hasActiveSubscription(ctx);
-    if (! hasActiveSubscription) {
-      let subscription =
-        ObservableSource.subscribeWith(
-          ~onNext=next => delegate |> Subscriber.next(next),
-          ~onComplete=
-            exn =>
-              if (ctx.self |> Subscriber.isStopped) {
-                completeSubscriber(ctx, delegate, exn);
-              } else if (exn !== None) {
-                ctx.self |> Subscriber.complete(~exn?);
-              },
-          next,
-        );
-      innerSubscription
-      |> SerialDisposable.set(
-           subscription |> CompositeDisposable.asDisposable,
-         );
+  let onNext = {
+    let onComplete = (ctx, delegate, exn) =>
+      if (ctx.self |> Subscriber.isStopped) {
+        completeSubscriber(ctx, delegate, exn);
+      } else if (exn !== None) {
+        ctx.self |> Subscriber.complete(~exn?);
+      };
+
+    ({innerSubscription} as ctx, delegate, next) => {
+      let hasActiveSubscription = hasActiveSubscription(ctx);
+      if (! hasActiveSubscription) {
+        let subscription =
+          ObservableSource.subscribeWith2(
+            ~onNext=Subscriber.delegateOnNext1,
+            ~onComplete,
+            ctx,
+            delegate,
+            next,
+          );
+        innerSubscription
+        |> SerialDisposable.set(
+             subscription |> CompositeDisposable.asDisposable,
+           );
+      };
     };
   };
 
@@ -49,6 +54,7 @@ let operator = {
       innerSubscription: SerialDisposable.create(),
       self: Subscriber.disposed,
     };
+
     context.self =
       subscriber
       |> Subscriber.delegate1(~onNext, ~onComplete, context)
