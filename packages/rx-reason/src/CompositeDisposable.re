@@ -51,11 +51,10 @@ let create = () => {
     lock |> Lock.acquire;
     let teardown = retval^.teardown;
     teardown
-    |> List.iter(ele =>
-         switch (ele) {
+    |> List.iter(
+         fun
          | TeardownLogic(tdl) => tdl()
-         | Disposable(disposable) => disposable |> Disposable.dispose
-         }
+         | Disposable(disposable) => disposable |> Disposable.dispose,
        );
     lock |> Lock.release;
   };
@@ -83,11 +82,9 @@ let addInternal = (teardownLogicOrDisposable, {lock, teardown} as disposable) =>
 };
 
 let addTeardown = (cb, self) => {
-  if (cb !== TeardownLogic.none) {
-    let isDisposed = self |> addInternal(TeardownLogic(cb));
-    if (isDisposed) {
-      cb();
-    };
+  let isDisposed = self |> addInternal(TeardownLogic(cb));
+  if (isDisposed) {
+    cb();
   };
 
   self;

@@ -6,14 +6,15 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
       let newSubscription =
         switch (observables) {
         | [hd, ...tail] =>
-          let onComplete = exn =>
-            switch (exn) {
-            | Some(_) => subscriber |> Subscriber.complete(~exn?)
-            | None =>
-              /* Cancel the current subscription here */
-              subscription |> SerialDisposable.set(Disposable.disposed);
-              scheduleSubscription(tail);
-            };
+          let onComplete = (
+            fun
+            | Some(_) as exn => subscriber |> Subscriber.complete(~exn?)
+            | None => {
+                /* Cancel the current subscription here */
+                subscription |> SerialDisposable.set(Disposable.disposed);
+                scheduleSubscription(tail);
+              }
+          );
 
           scheduler(() =>
             hd

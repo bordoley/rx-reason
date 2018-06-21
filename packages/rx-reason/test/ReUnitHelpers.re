@@ -14,11 +14,11 @@ let expectObservableToProduce =
        ),
      )
   |> Observable.first
-  |> Observable.subscribe(~onComplete=exn =>
-       switch (exn) {
-       | Some(exn) => raise(exn)
-       | _ => ()
-       }
+  |> Observable.subscribe(
+       ~onComplete=
+         fun
+         | Some(exn) => raise(exn)
+         | _ => (),
      );
 
 let observableIt =

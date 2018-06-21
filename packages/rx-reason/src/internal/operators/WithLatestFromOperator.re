@@ -44,17 +44,16 @@ let operator = {
       ObservableSource.subscribeWith(
         ~onNext=next => otherLatest |> MutableOption.set(next),
         ~onComplete=
-          exn =>
-            switch (exn) {
-            | Some(_) => self |> Subscriber.complete(~exn?)
-            | _ => ()
-            },
+          fun
+          | Some(_) as exn => self |> Subscriber.complete(~exn?)
+          | _ => (),
         other,
       )
       |> CompositeDisposable.asDisposable;
 
-    context.self = self |> Subscriber.addDisposable(context.otherSubscription);
-    self 
+    context.self =
+      self |> Subscriber.addDisposable(context.otherSubscription);
+    self;
   };
 };
 

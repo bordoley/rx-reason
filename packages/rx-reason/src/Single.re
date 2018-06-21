@@ -75,15 +75,13 @@ let subscribeWith =
              subscription |> Disposable.dispose;
            },
          ~onComplete=
-           exn =>
-             switch (exn) {
-             | Some(exn) => onError(exn)
-             | None =>
-               /* This case should never happen due to how the constructors of Single
-                * instances  protect against it.
-                */
-               onError(EmptyException.Exn)
-             },
+           fun
+           | Some(exn) => onError(exn)
+           | None =>
+             /* This case should never happen due to how the constructors of Single
+              * instances  protect against it.
+              */
+             onError(EmptyException.Exn),
        );
   subscription;
 };

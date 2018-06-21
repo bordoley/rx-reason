@@ -381,7 +381,7 @@ let onNext: ('a => unit, t('a)) => t('a);
  * calling the specified function when subscribed to, and
  * disposing the returned Disposable when disposed.
  */
-let onSubscribe: (unit => TeardownLogic.t, t('a)) => t('a);
+let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
 
 /**
  * Returns an Observable that completes with the specified exception

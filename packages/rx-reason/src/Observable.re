@@ -184,7 +184,9 @@ let ofNotifications =
             | [] => Disposable.disposed
             };
           let schedulerSubscription = schedule(loop(notifications));
-          subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+          subscriber
+          |> Subscriber.addDisposable(schedulerSubscription)
+          |> ignore;
         }
       ),
   );
@@ -234,21 +236,17 @@ let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
 
 let repeat = (~predicate=Functions.alwaysTrue, observable) =>
   RepeatOperator.lift(
-    exn =>
-      switch (exn) {
-      | None => predicate()
-      | Some(_) => false
-      },
+    fun
+    | None => predicate()
+    | Some(_) => false,
     observable,
   );
 
 let retry = (~predicate=Functions.alwaysTrue, observable) =>
   RepeatOperator.lift(
-    exn =>
-      switch (exn) {
-      | None => false
-      | Some(exn) => predicate(exn)
-      },
+    fun
+    | None => false
+    | Some(exn) => predicate(exn),
     observable,
   );
 
