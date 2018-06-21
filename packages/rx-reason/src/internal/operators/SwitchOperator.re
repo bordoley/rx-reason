@@ -63,7 +63,7 @@ let operator = {
 
     context.self =
       subscriber
-      |> Subscriber.delegate(~onNext, ~onComplete, context)
+      |> Subscriber.delegate1(~onNext, ~onComplete, context)
       |> Subscriber.addDisposable(
            SerialDisposable.asDisposable(context.innerSubscription),
          );

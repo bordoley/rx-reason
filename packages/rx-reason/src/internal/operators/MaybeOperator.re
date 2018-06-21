@@ -1,5 +1,5 @@
 let operator = {
-  let onComplete = (_, delegate, exn) => {
+  let onComplete = (delegate, exn) => {
     let exn =
       switch (exn) {
       | Some(EmptyException.Exn) => None
@@ -11,9 +11,8 @@ let operator = {
   subscriber =>
     subscriber
     |> Subscriber.delegate(
-         ~onNext=Subscriber.forwardOnNext,
+         ~onNext=Subscriber.delegateOnNext,
          ~onComplete,
-         None,
        );
 };
 

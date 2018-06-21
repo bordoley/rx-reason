@@ -1,12 +1,6 @@
-type context('a) = {
-  observable: ObservableSource.t('a),
-  shouldRepeat: option(exn) => bool,
-  subscription: SerialDisposable.t,
-};
-
 let operator = {
   let rec onComplete = {
-    let impl = ({shouldRepeat} as ctx, delegate, exn) => {
+    let impl = (observable, shouldRepeat, subscription, delegate, exn) => {
       let shouldComplete =
         try (! shouldRepeat(exn)) {
         | exn =>
@@ -16,13 +10,20 @@ let operator = {
 
       shouldComplete ?
         delegate |> Subscriber.complete(~exn?) :
-        setupSubscription(ctx, delegate);
+        setupSubscription(observable, shouldRepeat, subscription, delegate);
     };
 
-    (ctx, delegate, exn) =>
-      Functions.earlyReturnsUnit3(impl, ctx, delegate, exn);
+    (observable, shouldRepeat, subscription, delegate, exn) =>
+      Functions.earlyReturnsUnit5(
+        impl,
+        observable,
+        shouldRepeat,
+        subscription,
+        delegate,
+        exn,
+      );
   }
-  and setupSubscription = ({observable, subscription} as ctx, delegate) => {
+  and setupSubscription = (observable, shouldRepeat, subscription, delegate) => {
     let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
 
     if (! alreadyDisposed) {
@@ -31,7 +32,15 @@ let operator = {
         observable
         |> ObservableSource.subscribeWith(
              ~onNext=next => delegate |> Subscriber.next(next),
-             ~onComplete=exn => onComplete(ctx, delegate, exn),
+             ~onComplete=
+               exn =>
+                 onComplete(
+                   observable,
+                   shouldRepeat,
+                   subscription,
+                   delegate,
+                   exn,
+                 ),
            );
       subscription
       |> SerialDisposable.set(
@@ -41,20 +50,17 @@ let operator = {
   };
 
   (shouldRepeat, observable, subscriber) => {
-    let context = {
-      observable,
-      shouldRepeat,
-      subscription: SerialDisposable.create(),
-    };
+    let subscription = SerialDisposable.create();
+
     subscriber
-    |> Subscriber.delegate(
-         ~onNext=Subscriber.forwardOnNext,
+    |> Subscriber.delegate3(
+         ~onNext=Subscriber.delegateOnNext3,
          ~onComplete,
-         context,
+         observable,
+         shouldRepeat,
+         subscription,
        )
-    |> Subscriber.addDisposable(
-         SerialDisposable.asDisposable(context.subscription),
-       );
+    |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription));
   };
 };
 

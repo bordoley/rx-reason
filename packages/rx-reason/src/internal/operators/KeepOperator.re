@@ -26,9 +26,9 @@ let operator = {
 
     context.self =
       subscriber
-      |> Subscriber.delegate(
+      |> Subscriber.delegate1(
            ~onNext,
-           ~onComplete=Subscriber.forwardOnComplete,
+           ~onComplete=Subscriber.delegateOnComplete1,
            context,
          );
 

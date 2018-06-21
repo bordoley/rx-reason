@@ -38,7 +38,7 @@ let operator = {
     };
 
     let self =
-      subscriber |> Subscriber.delegate(~onNext, ~onComplete, context);
+      subscriber |> Subscriber.delegate1(~onNext, ~onComplete, context);
 
     context.otherSubscription =
       ObservableSource.subscribeWith(

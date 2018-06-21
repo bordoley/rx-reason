@@ -24,7 +24,7 @@ let operator = {
 
   (predicate, subscriber) => {
     let self = ref(Subscriber.disposed);
-    self := subscriber |> Subscriber.delegate(~onNext, ~onComplete, self);
+    self := subscriber |> Subscriber.delegate1(~onNext, ~onComplete, self);
     self^ |> MapOperator.operator(predicate);
   };
 };

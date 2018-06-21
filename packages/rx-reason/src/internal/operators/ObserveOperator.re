@@ -34,7 +34,7 @@ let operator = {
 
   (~onNext as observeOnNext, ~onComplete as observeOnComplete, subscriber) => {
     let context = {onNext: observeOnNext, onComplete: observeOnComplete, self: Subscriber.disposed};
-    context.self = subscriber |> Subscriber.delegate(~onNext, ~onComplete, context);
+    context.self = subscriber |> Subscriber.delegate1(~onNext, ~onComplete, context);
     context.self;
   };
 };

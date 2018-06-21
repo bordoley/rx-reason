@@ -1,23 +1,50 @@
 type t('a) =
   | AutoDisposing(
-      /** onNext */ ('a => unit),
-      /** onComplete */ (option(exn) => unit),
-      /** stopped */ ref(bool),
-      /** disposable */ CompositeDisposable.t,
+      'a => unit,
+      option(exn) => unit,
+      ref(bool),
+      CompositeDisposable.t,
     )
-  | Delegating(
-                /** context */ 'ctx,
-                /** onNext */ (('ctx, t('b), 'a) => unit),
-                /** onComplete */ (('ctx, t('b), option(exn)) => unit),
-                /** stopped */ ref(bool),
-                /** delegate */ t('b),
-              ): t('a)
+  | Delegating0(
+                 (t('b), 'a) => unit,
+                 (t('b), option(exn)) => unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating1(
+                 'ctx0,
+                 ('ctx0, t('b), 'a) => unit,
+                 ('ctx0, t('b), option(exn)) => unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating2(
+                 'ctx0,
+                 'ctx1,
+                 ('ctx0, 'ctx1, t('b), 'a) => unit,
+                 ('ctx0, 'ctx1, t('b), option(exn)) => unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating3(
+                 'ctx0,
+                 'ctx1,
+                 'ctx2,
+                 ('ctx0, 'ctx1, 'ctx2, t('b), 'a) => unit,
+                 ('ctx0, 'ctx1, 'ctx2, t('b), option(exn)) => unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
   | Disposed;
 
 let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   fun
   | AutoDisposing(_, _, _, disposable) => disposable
-  | Delegating(_, _, _, _, delegate) => delegate |> asCompositeDisposable
+  | Delegating0(_, _, _, delegate) => delegate |> asCompositeDisposable
+  | Delegating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
+  | Delegating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
+  | Delegating3(_, _, _, _, _, _, delegate) =>
+    delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
 let addDisposable = (disposable, subscriber) => {
@@ -48,10 +75,28 @@ let createAutoDisposing = (~onNext, ~onComplete) => {
   AutoDisposing(onNext, onComplete, isStopped, disposable);
 };
 
-let delegate = (~onNext, ~onComplete, context, subscriber) => {
+let delegate = (~onNext, ~onComplete, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
-  Delegating(context, onNext, onComplete, stopped, subscriber);
+  Delegating0(onNext, onComplete, stopped, subscriber);
+};
+
+let delegate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  Delegating1(ctx0, onNext, onComplete, stopped, subscriber);
+};
+
+let delegate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  Delegating2(ctx0, ctx1, onNext, onComplete, stopped, subscriber);
+};
+
+let delegate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown(() => Volatile.write(true, stopped)) |> ignore;
+  Delegating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
 };
 
 let dispose = subscriber =>
@@ -65,57 +110,100 @@ let isDisposed = subscriber =>
 let isStopped =
   fun
   | AutoDisposing(_, _, stopped, _)
-  | Delegating(_, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating0(_, _, stopped, _) => Volatile.read(stopped)
+  | Delegating1(_, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating2(_, _, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating3(_, _, _, _, _, stopped, _) => Volatile.read(stopped)
   | Disposed => true;
 
-let completeWithResult = (~exn=?, subscriber) =>
-  switch (subscriber) {
-  | AutoDisposing(_, onComplete, stopped, disposable) =>
-    let shouldComplete = ! Interlocked.exchange(true, stopped);
-    if (shouldComplete) {
+let shouldComplete =
+  fun
+  | AutoDisposing(_, _, stopped, _)
+  | Delegating0(_, _, stopped, _)
+  | Delegating1(_, _, _, stopped, _)
+  | Delegating2(_, _, _, _, stopped, _)
+  | Delegating3(_, _, _, _, _, stopped, _) =>
+    ! Interlocked.exchange(true, stopped)
+  | Disposed => false;
+
+let completeWithResult = {
+  let doComplete = (exn, subscriber) =>
+    switch (subscriber) {
+    | AutoDisposing(_, onComplete, _, disposable) =>
       try (onComplete(exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       };
+      disposable |> CompositeDisposable.dispose;
+    | Delegating0(_, onComplete, _, delegate) => onComplete(delegate, exn)
+    | Delegating1(ctx0, _, onComplete, _, delegate) =>
+      onComplete(ctx0, delegate, exn)
+    | Delegating2(ctx0, ctx1, _, onComplete, _, delegate) =>
+      onComplete(ctx0, ctx1, delegate, exn)
+    | Delegating3(ctx0, ctx1, ctx2, _, onComplete, _, delegate) =>
+      onComplete(ctx0, ctx1, ctx2, delegate, exn)
+    | Disposed => ()
     };
-    disposable |> CompositeDisposable.dispose;
-    shouldComplete;
-  | Delegating(ctx, _, onComplete, stopped, delegate) =>
-    let shouldComplete = ! Interlocked.exchange(true, stopped);
+
+  (~exn=?, subscriber) => {
+    let shouldComplete = shouldComplete(subscriber);
     if (shouldComplete) {
-      onComplete(ctx, delegate, exn);
+      doComplete(exn, subscriber);
     };
     shouldComplete;
-  | Disposed => false
   };
+};
 
 let complete = (~exn=?, subscriber) =>
   subscriber |> completeWithResult(~exn?) |> ignore;
 
-let next = (next, subscriber) =>
-  switch (subscriber) {
-  | AutoDisposing(onNext, _, _, _) =>
-    let isStopped = subscriber |> isStopped;
-    if (! isStopped) {
+let next = {
+  let doNext = (next, subscriber) =>
+    switch (subscriber) {
+    | AutoDisposing(onNext, _, _, disposable) =>
       try (onNext(next)) {
       | exn =>
-        subscriber |> dispose;
+        disposable |> CompositeDisposable.dispose;
         raise(exn);
-      };
+      }
+    | Delegating0(onNext, _, _, delegate) => onNext(delegate, next)
+    | Delegating1(ctx0, onNext, _, _, delegate) =>
+      onNext(ctx0, delegate, next)
+    | Delegating2(ctx0, ctx1, onNext, _, _, delegate) =>
+      onNext(ctx0, ctx1, delegate, next)
+    | Delegating3(ctx0, ctx1, ctx2, onNext, _, _, delegate) =>
+      onNext(ctx0, ctx1, ctx2, delegate, next)
+    | Disposed => ()
     };
-  | Delegating(ctx, onNext, _, _, delegate) =>
+
+  (next, subscriber) => {
     let isStopped = subscriber |> isStopped;
     if (! isStopped) {
-      onNext(ctx, delegate, next);
+      doNext(next, subscriber);
     };
-  | Disposed => ()
   };
+};
 
-let forwardOnComplete = (_, subscriber, exn) =>
+let delegateOnComplete = (subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let forwardOnNext = (_, subscriber, v) => subscriber |> next(v);
+let delegateOnComplete1 = (_, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
+let delegateOnComplete2 = (_, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
+let delegateOnComplete3 = (_, _, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
+let delegateOnNext = (subscriber, v) => subscriber |> next(v);
+
+let delegateOnNext1 = (_, subscriber, v) => subscriber |> next(v);
+
+let delegateOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
+
+let delegateOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
 
 let notify = (notif, subscriber) =>
   switch (notif) {

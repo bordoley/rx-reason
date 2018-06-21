@@ -25,7 +25,7 @@ let operator = {
 
   (default, subscriber) => {
     let ctx = {default, isEmpty: true};
-    subscriber |> Subscriber.delegate(~onNext, ~onComplete, ctx);
+    subscriber |> Subscriber.delegate1(~onNext, ~onComplete, ctx);
   };
 };
 

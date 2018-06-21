@@ -1,15 +1,9 @@
-type context('a) = {
-  debounceSubscription: SerialDisposable.t,
-  lastValue: MutableOption.t('a),
-  scheduler: Scheduler.t,
-};
-
 let operator = {
-  let clearDebounce = ({debounceSubscription}) =>
+  let clearDebounce = debounceSubscription =>
     debounceSubscription |> SerialDisposable.set(Disposable.disposed);
 
-  let debounceNext = ({lastValue} as ctx, delegate) => {
-    clearDebounce(ctx);
+  let debounceNext = (debounceSubscription, lastValue, delegate) => {
+    clearDebounce(debounceSubscription);
     if (MutableOption.isNotEmpty(lastValue)) {
       let next = MutableOption.get(lastValue);
       MutableOption.unset(lastValue);
@@ -18,33 +12,39 @@ let operator = {
     Disposable.disposed;
   };
 
-  let onNext =
-      ({debounceSubscription, lastValue, scheduler} as ctx, delegate, next) => {
-    clearDebounce(ctx);
+  let onNext = (debounceSubscription, lastValue, scheduler, delegate, next) => {
+    clearDebounce(debounceSubscription);
     MutableOption.set(next, lastValue);
-    let schedulerDisposable = scheduler(() => debounceNext(ctx, delegate));
+    let schedulerDisposable =
+      scheduler(() =>
+        debounceNext(debounceSubscription, lastValue, delegate)
+      );
     debounceSubscription |> SerialDisposable.set(schedulerDisposable);
   };
 
-  let onComplete = (ctx, delegate, exn) => {
+  let onComplete = (debounceSubscription, lastValue, _, delegate, exn) => {
     switch (exn) {
-    | Some(_) => clearDebounce(ctx)
-    | None => debounceNext(ctx, delegate) |> ignore
+    | Some(_) => clearDebounce(debounceSubscription)
+    | None =>
+      debounceNext(debounceSubscription, lastValue, delegate) |> ignore
     };
     delegate |> Subscriber.complete(~exn?);
   };
 
   (scheduler, subscriber) => {
-    let ctx = {
-      debounceSubscription: SerialDisposable.create(),
-      lastValue: MutableOption.create(),
-      scheduler,
-    };
+    let debounceSubscription = SerialDisposable.create();
+    let lastValue = MutableOption.create();
 
     subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete, ctx)
+    |> Subscriber.delegate3(
+         ~onNext,
+         ~onComplete,
+         debounceSubscription,
+         lastValue,
+         scheduler,
+       )
     |> Subscriber.addDisposable(
-         SerialDisposable.asDisposable(ctx.debounceSubscription),
+         SerialDisposable.asDisposable(debounceSubscription),
        );
   };
 };

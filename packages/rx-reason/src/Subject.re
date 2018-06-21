@@ -67,10 +67,21 @@ let createWithCallbacks =
          subscriber |> Subscriber.next(next)
        );
   };
-  let subscriber = Subscriber.createAutoDisposing(~onComplete, ~onNext);
+
+  let onComplete = exn => {
+    onComplete(exn);
+    let currentSubscribers = subscribers^;
+    currentSubscribers
+    |> CopyOnWriteArray.forEach(subscriber =>
+         subscriber |> Subscriber.complete(~exn?)
+       );
+  };
+
+  let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
 
   let disposable =
     Disposable.create(() => {
+      subscriber |> Subscriber.dispose;
       onDispose();
       subscribers := CopyOnWriteArray.empty();
     });

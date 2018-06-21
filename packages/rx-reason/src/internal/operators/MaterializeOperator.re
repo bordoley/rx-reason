@@ -1,8 +1,8 @@
 let operator = {
-  let onNext = (_, delegate, next) =>
+  let onNext = (delegate, next) =>
     delegate |> Subscriber.next(Notification.Next(next));
 
-  let onComplete = (_, delegate, exn) => {
+  let onComplete = (delegate, exn) => {
     let next =
       switch (exn) {
       | Some(exn) => Notification.CompleteWithException(exn)
@@ -12,7 +12,7 @@ let operator = {
     delegate |> Subscriber.complete;
   };
 
-  subscriber => subscriber |> Subscriber.delegate(~onNext, ~onComplete, None);
+  subscriber => subscriber |> Subscriber.delegate(~onNext, ~onComplete);
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

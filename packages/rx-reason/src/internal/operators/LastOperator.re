@@ -20,7 +20,7 @@ let operator = {
   subscriber => {
     let last = MutableOption.create();
     subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete, last)
+    |> Subscriber.delegate1(~onNext, ~onComplete, last)
     |> Subscriber.addTeardown(() => MutableOption.unset(last));
   };
 };
