@@ -19,6 +19,31 @@ module type S = {
 
   let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t) => t;
 
+  let addTeardown3: (TeardownLogic.t3('b, 'c, 'd), 'b, 'c, 'd, t) => t;
+
+  let addTeardown4:
+    (TeardownLogic.t4('b, 'c, 'd, 'e), 'b, 'c, 'd, 'e, t) => t;
+
+  let addTeardown5:
+    (TeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t) => t;
+
+  let addTeardown6:
+    (TeardownLogic.t6('b, 'c, 'd, 'e, 'f, 'g), 'b, 'c, 'd, 'e, 'f, 'g, t) => t;
+
+  let addTeardown7:
+    (
+      TeardownLogic.t7('b, 'c, 'd, 'e, 'f, 'g, 'h),
+      'b,
+      'c,
+      'd,
+      'e,
+      'f,
+      'g,
+      'h,
+      t
+    ) =>
+    t;
+
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t => compositeDisposable;
 };
@@ -39,6 +64,43 @@ module type S1 = {
   let addTeardown1: (TeardownLogic.t1('b), 'b, t('a)) => t('a);
 
   let addTeardown2: (TeardownLogic.t2('b, 'c), 'b, 'c, t('a)) => t('a);
+
+  let addTeardown3:
+    (TeardownLogic.t3('b, 'c, 'd), 'b, 'c, 'd, t('a)) => t('a);
+
+  let addTeardown4:
+    (TeardownLogic.t4('b, 'c, 'd, 'e), 'b, 'c, 'd, 'e, t('a)) => t('a);
+
+  let addTeardown5:
+    (TeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t('a)) =>
+    t('a);
+
+  let addTeardown6:
+    (
+      TeardownLogic.t6('b, 'c, 'd, 'e, 'f, 'g),
+      'b,
+      'c,
+      'd,
+      'e,
+      'f,
+      'g,
+      t('a)
+    ) =>
+    t('a);
+
+  let addTeardown7:
+    (
+      TeardownLogic.t7('b, 'c, 'd, 'e, 'f, 'g, 'h),
+      'b,
+      'c,
+      'd,
+      'e,
+      'f,
+      'g,
+      'h,
+      t('a)
+    ) =>
+    t('a);
 
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t('a) => compositeDisposable;

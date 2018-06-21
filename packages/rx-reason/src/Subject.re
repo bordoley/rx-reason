@@ -36,14 +36,22 @@ let publishTo = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
 
 let publish =
-    (~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1, subject) =>
+    (
+      ~onNext=Functions.alwaysUnit1,
+      ~onComplete=Functions.alwaysUnit1,
+      subject,
+    ) =>
   subject |> publishTo(~onNext, ~onComplete);
 
 let subscribeWith = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.subscribeWith(~onNext, ~onComplete);
 
 let subscribe =
-    (~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1, subject) =>
+    (
+      ~onNext=Functions.alwaysUnit1,
+      ~onComplete=Functions.alwaysUnit1,
+      subject,
+    ) =>
   subject |> subscribeWith(~onNext, ~onComplete);
 
 let createWithCallbacks = {
@@ -56,61 +64,59 @@ let createWithCallbacks = {
            subscriber,
          );
   };
-  (~onNext, ~onComplete, ~onDispose, ~onSubscribe) => (
-    {
-      let subscribers = ref(CopyOnWriteArray.empty());
-      let onComplete = exn => {
-        let currentSubscribers = subscribers^;
-        onComplete(exn);
-        currentSubscribers
-        |> CopyOnWriteArray.forEach(subscriber =>
-             subscriber |> Subscriber.complete(~exn?)
-           );
-      };
+  
+  (~onNext, ~onComplete, ~onDispose, ~onSubscribe) => {
+    let subscribers = ref(CopyOnWriteArray.empty());
+    let onComplete = exn => {
+      let currentSubscribers = subscribers^;
+      onComplete(exn);
+      currentSubscribers
+      |> CopyOnWriteArray.forEach(subscriber =>
+           subscriber |> Subscriber.complete(~exn?)
+         );
+    };
 
-      let onNext = next => {
-        onNext(next);
-        let currentSubscribers = subscribers^;
-        currentSubscribers
-        |> CopyOnWriteArray.forEach(subscriber =>
-             subscriber |> Subscriber.next(next)
-           );
-      };
+    let onNext = next => {
+      onNext(next);
+      let currentSubscribers = subscribers^;
+      currentSubscribers
+      |> CopyOnWriteArray.forEach(subscriber =>
+           subscriber |> Subscriber.next(next)
+         );
+    };
 
-      let onComplete = exn => {
-        onComplete(exn);
-        let currentSubscribers = subscribers^;
-        currentSubscribers
-        |> CopyOnWriteArray.forEach(subscriber =>
-             subscriber |> Subscriber.complete(~exn?)
-           );
-      };
+    let onComplete = exn => {
+      onComplete(exn);
+      let currentSubscribers = subscribers^;
+      currentSubscribers
+      |> CopyOnWriteArray.forEach(subscriber =>
+           subscriber |> Subscriber.complete(~exn?)
+         );
+    };
 
-      let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+    let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
 
-      let disposable =
-        Disposable.create(() => {
-          subscriber |> Subscriber.dispose;
-          onDispose();
-          subscribers := CopyOnWriteArray.empty();
-        });
+    let disposable =
+      Disposable.create(() => {
+        subscriber |> Subscriber.dispose;
+        onDispose();
+        subscribers := CopyOnWriteArray.empty();
+      });
 
-      let observable =
-        Observable.create(subscriber => {
-          disposable |> Disposable.raiseIfDisposed;
-          subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
+    let observable =
+      Observable.create(subscriber => {
+        disposable |> Disposable.raiseIfDisposed;
+        subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
 
-          onSubscribe(subscriber);
+        onSubscribe(subscriber);
 
-          subscriber
-          |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
-          |> ignore;
-        });
+        subscriber
+        |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
+        |> ignore;
+      });
 
-      {subscriber, observable, disposable};
-    }:
-      t('a)
-  );
+    {subscriber, observable, disposable};
+  };
 };
 
 let create = () =>

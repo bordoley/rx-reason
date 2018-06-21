@@ -56,6 +56,16 @@ let create1: (TeardownLogic.t1('a), 'a) => t;
 
 let create2: (TeardownLogic.t2('a, 'b), 'a, 'b) => t;
 
+let create3: (TeardownLogic.t3('a, 'b, 'c), 'a, 'b, 'c) => t;
+
+let create4: (TeardownLogic.t4('a, 'b, 'c, 'd), 'a, 'b, 'c, 'd) => t;
+
+let create5: (TeardownLogic.t5('a, 'b, 'c, 'd, 'e), 'a, 'b, 'c, 'd, 'e) => t;
+
+let create6: (TeardownLogic.t6('a, 'b, 'c, 'd, 'e, 'f), 'a, 'b, 'c, 'd, 'e, 'f) => t;
+
+let create7: (TeardownLogic.t7('a, 'b, 'c, 'd, 'e, 'f, 'g), 'a, 'b, 'c, 'd, 'e, 'f, 'g) => t;
+
 /**
  * A disposed Disposable instance.
  */

@@ -10,52 +10,64 @@ let publish = Observable.publish;
 
 let publishTo = Observable.publishTo;
 
-let shareInternal = (~createSubject, source) => {
-  let subject = ref(Subject.disposed);
-  let sourceSubscription = SerialDisposable.create();
-  let refCount = ref(0);
-
-  Observable.create(subscriber => {
-    /* FIXME: Should probably add some locking here */
+let shareInternal = {
+  let teardown =
+      (refCount, sourceSubscription, currentSubject, subject, subscription) => {
+    decr(refCount);
     if (refCount^ === 0) {
-      subject := createSubject();
+      sourceSubscription |> SerialDisposable.set(Disposable.disposed);
+      currentSubject |> Subject.dispose;
+      subject := Subject.disposed;
     };
-    let currentSubject = subject^;
+    subscription |> CompositeDisposable.dispose;
+  };
 
-    let subscription =
-      currentSubject
-      |> Subject.subscribeWith(
-           ~onNext=next => subscriber |> Subscriber.next(next),
-           ~onComplete=exn => subscriber |> Subscriber.complete(~exn?),
-         );
+  (~createSubject, source) => {
+    let subject = ref(Subject.disposed);
+    let sourceSubscription = SerialDisposable.create();
+    let refCount = ref(0);
 
-    if (refCount^ === 0) {
-      sourceSubscription
-      |> SerialDisposable.set(
-           Observable.subscribeWith(
-             ~onNext=next => currentSubject |> Subject.next(next),
-             ~onComplete=exn => currentSubject |> Subject.complete(~exn?),
-             source,
-           )
-           |> CompositeDisposable.asDisposable,
-         );
-    };
-
-    let teardown = () => {
-      decr(refCount);
+    Observable.create(subscriber => {
+      /* FIXME: Should probably add some locking here */
       if (refCount^ === 0) {
-        sourceSubscription |> SerialDisposable.set(Disposable.disposed);
-        currentSubject |> Subject.dispose;
-        subject := Subject.disposed;
+        subject := createSubject();
       };
-      subscription |> CompositeDisposable.dispose;
-    };
+      let currentSubject = subject^;
 
-    if (! CompositeDisposable.isDisposed(subscription)) {
-      incr(refCount);
-      subscriber |> Subscriber.addTeardown(teardown) |> ignore;
-    };
-  });
+      let subscription =
+        currentSubject
+        |> Subject.subscribeWith(
+             ~onNext=next => subscriber |> Subscriber.next(next),
+             ~onComplete=exn => subscriber |> Subscriber.complete(~exn?),
+           );
+
+      if (refCount^ === 0) {
+        sourceSubscription
+        |> SerialDisposable.set(
+             Observable.subscribeWith(
+               ~onNext=next => currentSubject |> Subject.next(next),
+               ~onComplete=exn => currentSubject |> Subject.complete(~exn?),
+               source,
+             )
+             |> CompositeDisposable.asDisposable,
+           );
+      };
+
+      if (! CompositeDisposable.isDisposed(subscription)) {
+        incr(refCount);
+        subscriber
+        |> Subscriber.addTeardown5(
+             teardown,
+             refCount,
+             sourceSubscription,
+             currentSubject,
+             subject,
+             subscription,
+           )
+        |> ignore;
+      };
+    });
+  };
 };
 
 let share = obs => shareInternal(~createSubject=Subject.create, obs);
