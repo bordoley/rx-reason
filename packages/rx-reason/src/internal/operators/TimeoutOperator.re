@@ -32,9 +32,7 @@ let operator = {
       let self =
         subscriber
         |> Subscriber.delegate1(~onNext, ~onComplete, context)
-        |> Subscriber.addDisposable(
-             SerialDisposable.asDisposable(context.timeoutSubscription),
-           );
+        |> Subscriber.addSerialDisposable(context.timeoutSubscription);
 
       context.connect =
         ObservableSource.publishTo(

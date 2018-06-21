@@ -43,9 +43,7 @@ let operator = {
          lastValue,
          scheduler,
        )
-    |> Subscriber.addDisposable(
-         SerialDisposable.asDisposable(debounceSubscription),
-       );
+    |> Subscriber.addSerialDisposable(debounceSubscription);
   };
 };
 

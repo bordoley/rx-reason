@@ -60,7 +60,7 @@ let operator = {
          shouldRepeat,
          subscription,
        )
-    |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription));
+    |> Subscriber.addSerialDisposable(subscription);
   };
 };
 

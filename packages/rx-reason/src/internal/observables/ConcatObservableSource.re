@@ -39,6 +39,6 @@ let concat = (~scheduler=Scheduler.immediate, observables) =>
 
     scheduleSubscription(observables);
     subscriber
-    |> Subscriber.addDisposable(SerialDisposable.asDisposable(subscription))
+    |> Subscriber.addSerialDisposable(subscription)
     |> ignore;
   });

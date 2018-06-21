@@ -1400,9 +1400,7 @@ let test =
                      );
 
                 subscriber
-                |> Subscriber.addDisposable(
-                     CompositeDisposable.asDisposable(subscription),
-                   )
+                |> Subscriber.addCompositeDisposable(subscription)
                 |> ignore;
               })
               |> Observable.retry

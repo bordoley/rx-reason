@@ -52,9 +52,7 @@ let operator = {
     context.self =
       subscriber
       |> Subscriber.delegate1(~onNext, ~onComplete, context)
-      |> Subscriber.addDisposable(
-           context.innerSubscription |> SerialDisposable.asDisposable,
-         );
+      |> Subscriber.addSerialDisposable(context.innerSubscription);
     context.self;
   };
 };

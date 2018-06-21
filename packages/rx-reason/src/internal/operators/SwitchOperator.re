@@ -64,9 +64,7 @@ let operator = {
     context.self =
       subscriber
       |> Subscriber.delegate1(~onNext, ~onComplete, context)
-      |> Subscriber.addDisposable(
-           SerialDisposable.asDisposable(context.innerSubscription),
-         );
+      |> Subscriber.addSerialDisposable(context.innerSubscription);
     context.self;
   };
 };

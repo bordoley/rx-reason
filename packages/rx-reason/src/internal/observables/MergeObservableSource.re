@@ -29,7 +29,7 @@ let merge = observables => {
     |> List.map(ObservableSource.subscribeWith(~onNext, ~onComplete))
     |> List.iter(d =>
          subscriber
-         |> Subscriber.addDisposable(CompositeDisposable.asDisposable(d))
+         |> Subscriber.addCompositeDisposable(d)
          |> ignore
        );
   });

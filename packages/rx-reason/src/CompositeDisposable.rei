@@ -7,7 +7,11 @@ module type S = {
 
   include Disposable.S with type t := t;
 
+  let addCompositeDisposable: (compositeDisposable, t) => t;
+
   let addDisposable: (Disposable.t, t) => t;
+
+  let addSerialDisposable: (SerialDisposable.t, t) => t;
 
   let addTeardown: (TeardownLogic.t, t) => t;
 
@@ -24,7 +28,11 @@ module type S1 = {
 
   include Disposable.S1 with type t('a) := t('a);
 
+  let addCompositeDisposable: (compositeDisposable, t('a)) => t('a);
+
   let addDisposable: (Disposable.t, t('a)) => t('a);
+
+  let addSerialDisposable: (SerialDisposable.t, t('a)) => t('a);
 
   let addTeardown: (TeardownLogic.t, t('a)) => t('a);
 

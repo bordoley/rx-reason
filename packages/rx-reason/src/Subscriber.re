@@ -55,6 +55,23 @@ let addDisposable = (disposable, subscriber) => {
   subscriber;
 };
 
+let addCompositeDisposable = (disposable, subscriber) => {
+  subscriber
+  |> asCompositeDisposable
+  |> CompositeDisposable.addCompositeDisposable(disposable)
+  |> ignore;
+  subscriber;
+};
+
+
+let addSerialDisposable = (disposable, subscriber) => {
+  subscriber
+  |> asCompositeDisposable
+  |> CompositeDisposable.addSerialDisposable(disposable)
+  |> ignore;
+  subscriber;
+};
+
 let addTeardown = (teardown, subscriber) => {
   subscriber
   |> asCompositeDisposable
@@ -78,7 +95,6 @@ let addTeardown2 = (teardown, d0, d1, subscriber) => {
   |> ignore;
   subscriber;
 };
-
 
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> CompositeDisposable.asDisposable;
