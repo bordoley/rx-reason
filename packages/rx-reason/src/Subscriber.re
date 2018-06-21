@@ -467,6 +467,9 @@ let delegateOnComplete2 = (_, _, subscriber, exn) =>
 let delegateOnComplete3 = (_, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
+let delegateOnComplete4 = (_, _, _, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
 let delegateOnNext = (subscriber, v) => subscriber |> next(v);
 
 let delegateOnNext1 = (_, subscriber, v) => subscriber |> next(v);
@@ -474,6 +477,8 @@ let delegateOnNext1 = (_, subscriber, v) => subscriber |> next(v);
 let delegateOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
 
 let delegateOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
+
+let delegateOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
 
 let notify = (notif, subscriber) =>
   switch (notif) {

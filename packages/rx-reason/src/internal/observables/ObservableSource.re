@@ -96,6 +96,14 @@ let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
   subscriber |> Subscriber.asCompositeDisposable;
 };
 
+let subscribeWith4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) => {
+  let subscriber =
+    Subscriber.createAutoDisposing4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3);
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
 let subscribe =
     (
       ~onNext=Functions.alwaysUnit1,
@@ -133,6 +141,18 @@ let subscribe3 =
       observable,
     ) =>
   observable |> subscribeWith3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
+
+  let subscribe4 =
+  (
+    ~onNext=Functions.alwaysUnit5,
+    ~onComplete=Functions.alwaysUnit5,
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    observable,
+  ) =>
+observable |> subscribeWith4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3);
 
 let publishTo = {
   let teardown = (subscription, active) => {

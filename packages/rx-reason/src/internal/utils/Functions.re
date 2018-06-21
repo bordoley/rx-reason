@@ -10,6 +10,8 @@ let alwaysUnit3 = (_, _, _) : unit => ();
 
 let alwaysUnit4 = (_, _, _, _) : unit => ();
 
+let alwaysUnit5 = (_, _, _, _, _) : unit => ();
+
 let identity = a => a;
 
 let referenceEquality = (===);

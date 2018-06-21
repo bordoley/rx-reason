@@ -32,6 +32,9 @@ let delegateOnComplete2 = (_, _, {subscriber}, exn) =>
 let delegateOnComplete3 = (_, _, _, {subscriber}, exn) =>
   subscriber |> Subscriber.complete(~exn?);
 
+let delegateOnComplete4 = (_, _, _, _, {subscriber}, exn) =>
+  subscriber |> Subscriber.complete(~exn?);
+
 let delegateOnNext = ({subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
@@ -42,6 +45,9 @@ let delegateOnNext2 = (_, _, {subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
 let delegateOnNext3 = (_, _, _, {subscriber}, next) =>
+  subscriber |> Subscriber.next(next);
+
+let delegateOnNext4 = (_, _, _, _, {subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
 let dispose = self => self |> asDisposable |> Disposable.dispose;

@@ -20,9 +20,12 @@ module type S1 = {
   let delegateOnComplete1: ('ctx0, t('a), option(exn)) => unit;
   let delegateOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
   let delegateOnComplete3: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit;
+  let delegateOnComplete4:
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), option(exn)) => unit;
 
   let delegateOnNext: (t('a), 'a) => unit;
   let delegateOnNext1: ('ctx0, t('a), 'a) => unit;
   let delegateOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
   let delegateOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
+  let delegateOnNext4: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), 'a) => unit;
 };

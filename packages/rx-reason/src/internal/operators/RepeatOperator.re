@@ -30,17 +30,13 @@ let operator = {
       subscription |> SerialDisposable.get |> Disposable.dispose;
       let newInnerSubscription =
         observable
-        |> ObservableSource.subscribeWith(
-             ~onNext=next => delegate |> Subscriber.next(next),
-             ~onComplete=
-               exn =>
-                 onComplete(
-                   observable,
-                   shouldRepeat,
-                   subscription,
-                   delegate,
-                   exn,
-                 ),
+        |> ObservableSource.subscribeWith4(
+             ~onNext=Subscriber.delegateOnNext3,
+             ~onComplete,
+             observable,
+             shouldRepeat,
+             subscription,
+             delegate,
            );
       subscription
       |> SerialDisposable.set(
