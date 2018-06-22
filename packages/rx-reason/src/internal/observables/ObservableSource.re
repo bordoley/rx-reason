@@ -719,18 +719,3 @@ let publish1 =
       observable,
     ) =>
   publishTo1(~onNext, ~onComplete, ctx, observable);
-
-let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
-  let exn = Some(exn);
-
-  scheduler === Scheduler.immediate ?
-    create(subscriber => subscriber |> Subscriber.complete(~exn?)) :
-    create(subscriber => {
-      let schedulerDisposable =
-        scheduler(() => {
-          subscriber |> Subscriber.complete(~exn?);
-          Disposable.disposed;
-        });
-      subscriber |> Subscriber.addDisposable(schedulerDisposable) |> ignore;
-    });
-};

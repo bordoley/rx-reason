@@ -21,7 +21,7 @@ let operator = {
 
   scheduler => {
     let timeoutObservable =
-      ObservableSource.raise(~scheduler, TimeoutException.Exn);
+      RaiseObservableSource.raise(~scheduler, TimeoutException.Exn);
 
     subscriber => {
       let context = {
