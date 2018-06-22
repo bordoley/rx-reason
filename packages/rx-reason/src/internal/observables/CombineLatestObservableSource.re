@@ -1,156 +1,160 @@
-let combineLatest2 =
-    (
-      ~selector: ('a, 'b) => 'c,
-      observable0: ObservableSource.t('a),
-      observable1: ObservableSource.t('b),
-    )
-    : ObservableSource.t('c) =>
-  ObservableSource.create(subscriber => {
-    let (v0, v1) = (MutableOption.create(), MutableOption.create());
-    let lock = Lock.create();
+let combineLatest2 = {
+  let doOnNext = {
+    let tryOnNext = ((selector, v0, v1, _), subscriber) => {
+      let haveValues =
+        MutableOption.isNotEmpty(v0) && MutableOption.isNotEmpty(v1);
+      if (haveValues) {
+        let next =
+          try (selector(MutableOption.get(v0), MutableOption.get(v1))) {
+          | exn =>
+            subscriber |> Subscriber.complete(~exn);
+            Functions.returnUnit();
+          };
+        subscriber |> Subscriber.next(next);
+      };
+    };
 
-    let tryOnNext =
-      Functions.earlyReturnsUnit(() => {
-        let haveValues =
-          MutableOption.isNotEmpty(v0) && MutableOption.isNotEmpty(v1);
-        if (haveValues) {
-          let next =
-            try (selector(MutableOption.get(v0), MutableOption.get(v1))) {
-            | exn =>
-              subscriber |> Subscriber.complete(~exn);
-              Functions.returnUnit();
-            };
-          subscriber |> Subscriber.next(next);
-        };
-      });
-
-    let doOnNext = (v, next) => {
+    ((_, _, _, lock) as ctx, v, _, subscriber, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-      tryOnNext();
+      Functions.earlyReturnsUnit2(tryOnNext, ctx, subscriber);
       Lock.release(lock);
     };
+  };
 
-    let doOnComplete = (other, exn) => {
-      Lock.acquire(lock);
-      switch (exn) {
-      | Some(_) => subscriber |> Subscriber.complete(~exn?)
-      | None =>
-        let shouldComplete = CompositeDisposable.isDisposed(other^);
-        if (shouldComplete) {
-          subscriber |> Subscriber.complete(~exn?);
-        };
+  let doOnComplete = ((_, _, _, lock), _, other, subscriber, exn) => {
+    Lock.acquire(lock);
+    switch (exn) {
+    | Some(_) => subscriber |> Subscriber.complete(~exn?)
+    | None =>
+      let shouldComplete = CompositeDisposable.isDisposed(other^);
+      if (shouldComplete) {
+        subscriber |> Subscriber.complete(~exn?);
       };
-      Lock.release(lock);
     };
+    Lock.release(lock);
+  };
 
-    let doSubscribe = (observable, v, s) =>
-      observable
-      |> ObservableSource.subscribeWith(
-           ~onNext=doOnNext(v),
-           ~onComplete=doOnComplete(s),
-         );
-
-    let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
-    s0 := doSubscribe(observable0, v0, s1);
-    s1 := doSubscribe(observable1, v1, s0);
-    let (s0, s1) = (s0^, s1^);
-
-    subscriber
-    |> Subscriber.addCompositeDisposable(s0)
-    |> Subscriber.addCompositeDisposable(s1)
-    |> Subscriber.addTeardown1(MutableOption.unset, v0)
-    |> Subscriber.addTeardown1(MutableOption.unset, v1)
-    |> ignore;
-  });
-
-let combineLatest3 =
-    (
-      ~selector: ('a, 'b, 'c) => 'd,
-      observable0: ObservableSource.t('a),
-      observable1: ObservableSource.t('b),
-      observable2: ObservableSource.t('c),
-    )
-    : ObservableSource.t('d) =>
-  ObservableSource.create(subscriber => {
-    let (v0, v1, v2) = (
-      MutableOption.create(),
-      MutableOption.create(),
-      MutableOption.create(),
+  let doSubscribe = (ctx, v, s, subscriber, observable) =>
+    ObservableSource.subscribeWith4(
+      ~onNext=doOnNext,
+      ~onComplete=doOnComplete,
+      ctx,
+      v,
+      s,
+      subscriber,
+      observable,
     );
-    let lock = Lock.create();
 
-    let tryOnNext =
-      Functions.earlyReturnsUnit(() => {
-        let haveValues =
-          MutableOption.isNotEmpty(v0)
-          && MutableOption.isNotEmpty(v1)
-          && MutableOption.isNotEmpty(v2);
-        if (haveValues) {
-          let next =
-            try (
-              selector(
-                MutableOption.get(v0),
-                MutableOption.get(v1),
-                MutableOption.get(v2),
-              )
-            ) {
-            | exn =>
-              subscriber |> Subscriber.complete(~exn);
-              Functions.returnUnit();
-            };
-          subscriber |> Subscriber.next(next);
-        };
-      });
+  (~selector, observable0, observable1) =>
+    ObservableSource.create(subscriber => {
+      let (v0, v1) = (MutableOption.create(), MutableOption.create());
+      let lock = Lock.create();
 
-    let doOnNext = (v, next) => {
+      let ctx = (selector, v0, v1, lock);
+
+      let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
+      s0 := observable0 |> doSubscribe(ctx, v0, s1, subscriber);
+      s1 := observable1 |> doSubscribe(ctx, v1, s0, subscriber);
+      let (s0, s1) = (s0^, s1^);
+
+      subscriber
+      |> Subscriber.addCompositeDisposable(s0)
+      |> Subscriber.addCompositeDisposable(s1)
+      |> Subscriber.addTeardown1(MutableOption.unset, v0)
+      |> Subscriber.addTeardown1(MutableOption.unset, v1)
+      |> ignore;
+    });
+};
+
+let combineLatest3 = {
+  let doOnNext = {
+    let tryOnNext = ((selector, v0, v1, v2, _), subscriber) => {
+      let haveValues =
+        MutableOption.isNotEmpty(v0)
+        && MutableOption.isNotEmpty(v1)
+        && MutableOption.isNotEmpty(v2);
+      if (haveValues) {
+        let next =
+          try (
+            selector(
+              MutableOption.get(v0),
+              MutableOption.get(v1),
+              MutableOption.get(v2),
+            )
+          ) {
+          | exn =>
+            subscriber |> Subscriber.complete(~exn);
+            Functions.returnUnit();
+          };
+        subscriber |> Subscriber.next(next);
+      };
+    };
+
+    ((_, _, _, _, lock) as ctx, v, _, _, subscriber, next) => {
       Lock.acquire(lock);
       MutableOption.set(next, v);
-      tryOnNext();
+      Functions.earlyReturnsUnit2(tryOnNext, ctx, subscriber);
       Lock.release(lock);
     };
+  };
 
-    let doOnComplete = (d0, d1, exn) => {
-      Lock.acquire(lock);
-      switch (exn) {
-      | Some(_) => subscriber |> Subscriber.complete(~exn?)
-      | None =>
-        let shouldComplete =
-          CompositeDisposable.isDisposed(d0^)
-          && CompositeDisposable.isDisposed(d1^);
+  let doOnComplete = ((_, _, _, _, lock), _, d0, d1, subscriber, exn) => {
+    Lock.acquire(lock);
+    switch (exn) {
+    | Some(_) => subscriber |> Subscriber.complete(~exn?)
+    | None =>
+      let shouldComplete =
+        CompositeDisposable.isDisposed(d0^)
+        && CompositeDisposable.isDisposed(d1^);
 
-        if (shouldComplete) {
-          subscriber |> Subscriber.complete(~exn?);
-        };
+      if (shouldComplete) {
+        subscriber |> Subscriber.complete(~exn?);
       };
-      Lock.release(lock);
     };
+    Lock.release(lock);
+  };
 
-    let doSubscribe = (observable, v, s0, s1) =>
-      observable
-      |> ObservableSource.subscribeWith(
-           ~onNext=doOnNext(v),
-           ~onComplete=doOnComplete(s0, s1),
-         );
+  let doSubscribe = (ctx, v, s0, s1, subscriber, observable) =>
+    ObservableSource.subscribeWith5(
+      ~onNext=doOnNext,
+      ~onComplete=doOnComplete,
+      ctx,
+      v,
+      s0,
+      s1,
+      subscriber,
+      observable,
+    );
 
-    let (s0, s1, s2) =
-      CompositeDisposable.(ref(disposed), ref(disposed), ref(disposed));
+  (~selector, observable0, observable1, observable2) =>
+    ObservableSource.create(subscriber => {
+      let (v0, v1, v2) = (
+        MutableOption.create(),
+        MutableOption.create(),
+        MutableOption.create(),
+      );
+      let lock = Lock.create();
 
-    s0 := doSubscribe(observable0, v0, s1, s2);
-    s1 := doSubscribe(observable1, v1, s0, s2);
-    s2 := doSubscribe(observable2, v2, s0, s1);
+      let ctx = (selector, v0, v1, v2, lock);
 
-    let (s0, s1, s2) = (s0^, s1^, s2^);
+      let (s0, s1, s2) =
+        CompositeDisposable.(ref(disposed), ref(disposed), ref(disposed));
+      s0 := observable0 |> doSubscribe(ctx, v0, s1, s2, subscriber);
+      s1 := observable1 |> doSubscribe(ctx, v1, s0, s2, subscriber);
+      s2 := observable2 |> doSubscribe(ctx, v2, s0, s1, subscriber);
+      let (s0, s1, s2) = (s0^, s1^, s2^);
 
-    subscriber
-    |> Subscriber.addCompositeDisposable(s0)
-    |> Subscriber.addCompositeDisposable(s1)
-    |> Subscriber.addCompositeDisposable(s2)
-    |> Subscriber.addTeardown1(MutableOption.unset, v0)
-    |> Subscriber.addTeardown1(MutableOption.unset, v1)
-    |> Subscriber.addTeardown1(MutableOption.unset, v2)
-    |> ignore;
-  });
+      subscriber
+      |> Subscriber.addCompositeDisposable(s0)
+      |> Subscriber.addCompositeDisposable(s1)
+      |> Subscriber.addCompositeDisposable(s2)
+      |> Subscriber.addTeardown1(MutableOption.unset, v0)
+      |> Subscriber.addTeardown1(MutableOption.unset, v1)
+      |> Subscriber.addTeardown1(MutableOption.unset, v2)
+      |> ignore;
+    });
+};
 
 let combineLatest4 =
     (

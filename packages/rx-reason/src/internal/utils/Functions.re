@@ -12,6 +12,8 @@ let alwaysUnit4 = (_, _, _, _) : unit => ();
 
 let alwaysUnit5 = (_, _, _, _, _) : unit => ();
 
+let alwaysUnit6 = (_, _, _, _, _, _) : unit => ();
+
 let identity = a => a;
 
 let referenceEquality = (===);
@@ -30,8 +32,18 @@ let earlyReturnsUnit1 = (f, a) =>
   | ReturnUnitException => ()
   };
 
+let earlyReturnsUnit2 = (f, a, b) =>
+  try (f(a, b)) {
+  | ReturnUnitException => ()
+  };
+
 let earlyReturnsUnit3 = (f, a, b, c) =>
   try (f(a, b, c)) {
+  | ReturnUnitException => ()
+  };
+
+let earlyReturnsUnit4 = (f, a, b, c, d) =>
+  try (f(a, b, c, d)) {
   | ReturnUnitException => ()
   };
 
