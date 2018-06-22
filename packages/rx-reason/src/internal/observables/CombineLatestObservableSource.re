@@ -48,26 +48,28 @@ let combineLatest2 = {
       subscriber,
       observable,
     );
+  
+  let source = (selector, observable0, observable1, subscriber) => {
+    let (v0, v1) = (MutableOption.create(), MutableOption.create());
+    let lock = Lock.create();
+
+    let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
+    s0 :=
+      observable0 |> doSubscribe(selector, v0, v1, lock, v0, s1, subscriber);
+    s1 :=
+      observable1 |> doSubscribe(selector, v0, v1, lock, v1, s0, subscriber);
+    let (s0, s1) = (s0^, s1^);
+
+    subscriber
+    |> Subscriber.addCompositeDisposable(s0)
+    |> Subscriber.addCompositeDisposable(s1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> ignore;
+  };
 
   (~selector, observable0, observable1) =>
-    ObservableSource.create(subscriber => {
-      let (v0, v1) = (MutableOption.create(), MutableOption.create());
-      let lock = Lock.create();
-
-      let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
-      s0 :=
-        observable0 |> doSubscribe(selector, v0, v1, lock, v0, s1, subscriber);
-      s1 :=
-        observable1 |> doSubscribe(selector, v0, v1, lock, v1, s0, subscriber);
-      let (s0, s1) = (s0^, s1^);
-
-      subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addTeardown1(MutableOption.unset, v0)
-      |> Subscriber.addTeardown1(MutableOption.unset, v1)
-      |> ignore;
-    });
+    ObservableSource.create3(source, selector, observable0, observable1);
 };
 
 let combineLatest3 = {

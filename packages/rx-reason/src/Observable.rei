@@ -366,6 +366,24 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 let create: (Subscriber.t('a) => unit) => t('a);
 
 /**
+ * Returns an Observable from the specified subscribe function.
+ */
+let create1: (('ctx0, Subscriber.t('a)) => unit, 'ctx0) => t('a);
+
+/**
+ * Returns an Observable from the specified subscribe function.
+ */
+let create2:
+  (('ctx0, 'ctx1, Subscriber.t('a)) => unit, 'ctx0, 'ctx1) => t('a);
+
+/**
+ * Returns an Observable from the specified subscribe function.
+ */
+let create3:
+  (('ctx0, 'ctx1, 'ctx3, Subscriber.t('a)) => unit, 'ctx0, 'ctx1, 'ctx3) =>
+  t('a);
+
+/**
  * Returns an Observable which drops items from the source that
  * are followed by another item within a debounce duration
  * determined by the scheduler.

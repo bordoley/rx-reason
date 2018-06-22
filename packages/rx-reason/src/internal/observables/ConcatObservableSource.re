@@ -37,11 +37,13 @@ let concat = {
       scheduleSubscription(scheduler, observables, subscription, subscriber);
     };
 
-  (~scheduler=Scheduler.immediate, observables) =>
-    ObservableSource.create(subscriber => {
-      let subscription = SerialDisposable.create();
+  let source = (scheduler, observables, subscriber) => {
+    let subscription = SerialDisposable.create();
 
-      scheduleSubscription(scheduler, observables, subscription, subscriber);
-      subscriber |> Subscriber.addSerialDisposable(subscription) |> ignore;
-    });
+    scheduleSubscription(scheduler, observables, subscription, subscriber);
+    subscriber |> Subscriber.addSerialDisposable(subscription) |> ignore;
+  };
+
+  (~scheduler=Scheduler.immediate, observables) =>
+    ObservableSource.create2(source, scheduler, observables);
 };
