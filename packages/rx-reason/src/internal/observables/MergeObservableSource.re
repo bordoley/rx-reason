@@ -1,6 +1,4 @@
-let merge = observables => {
-  let count = observables |> List.length;
-
+let merge = {
   let onNext = (_, lock, subscriber, next) => {
     Lock.acquire(lock);
     subscriber |> Subscriber.next(next);
@@ -22,7 +20,7 @@ let merge = observables => {
     Lock.release(lock);
   };
 
-  ObservableSource.create(subscriber => {
+  let mergeSource = (count, observables, subscriber) => {
     let activeCount = ref(count);
     let lock = Lock.create();
 
@@ -46,5 +44,11 @@ let merge = observables => {
       | [] => ();
 
     loop(observables);
-  });
+  };
+
+  observables => {
+    let count = observables |> List.length;
+
+    ObservableSource.create2(mergeSource, count, observables);
+  };
 };
