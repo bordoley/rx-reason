@@ -50,6 +50,43 @@ type t('a) =
                     ref(bool),
                     CompositeDisposable.t,
                   ): t('a)
+  | AutoDisposing6(
+                    'ctx0,
+                    'ctx1,
+                    'ctx2,
+                    'ctx3,
+                    'ctx4,
+                    'ctx5,
+                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                    unit,
+                    ref(bool),
+                    CompositeDisposable.t,
+                  ): t('a)
+  | AutoDisposing7(
+                    'ctx0,
+                    'ctx1,
+                    'ctx2,
+                    'ctx3,
+                    'ctx4,
+                    'ctx5,
+                    'ctx6,
+                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) =>
+                    unit,
+                    (
+                      'ctx0,
+                      'ctx1,
+                      'ctx2,
+                      'ctx3,
+                      'ctx4,
+                      'ctx5,
+                      'ctx6,
+                      option(exn)
+                    ) =>
+                    unit,
+                    ref(bool),
+                    CompositeDisposable.t,
+                  ): t('a)
   | Delegating(
                 (t('b), 'a) => unit,
                 (t('b), option(exn)) => unit,
@@ -90,6 +127,8 @@ let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   | AutoDisposing3(_, _, _, _, _, _, disposable) => disposable
   | AutoDisposing4(_, _, _, _, _, _, _, disposable) => disposable
   | AutoDisposing5(_, _, _, _, _, _, _, _, disposable) => disposable
+  | AutoDisposing6(_, _, _, _, _, _, _, _, _, disposable) => disposable
+  | AutoDisposing7(_, _, _, _, _, _, _, _, _, _, disposable) => disposable
   | Delegating(_, _, _, delegate) => delegate |> asCompositeDisposable
   | Delegating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
   | Delegating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
@@ -262,6 +301,49 @@ let createAutoDisposing5 =
   );
 };
 
+let createAutoDisposing6 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5) => {
+  let isStopped = ref(false);
+  let disposable = CompositeDisposable.create();
+  disposable
+  |> CompositeDisposable.addTeardown1(Volatile.writeTrue, isStopped)
+  |> ignore;
+  AutoDisposing6(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    ctx4,
+    ctx5,
+    onNext,
+    onComplete,
+    isStopped,
+    disposable,
+  );
+};
+
+let createAutoDisposing7 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) => {
+  let isStopped = ref(false);
+  let disposable = CompositeDisposable.create();
+  disposable
+  |> CompositeDisposable.addTeardown1(Volatile.writeTrue, isStopped)
+  |> ignore;
+  AutoDisposing7(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    ctx4,
+    ctx5,
+    ctx6,
+    onNext,
+    onComplete,
+    isStopped,
+    disposable,
+  );
+};
+
 let delegate = (~onNext, ~onComplete, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
@@ -302,6 +384,8 @@ let isStopped =
   | AutoDisposing3(_, _, _, _, _, stopped, _)
   | AutoDisposing4(_, _, _, _, _, _, stopped, _)
   | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
+  | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
+  | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
   | Delegating(_, _, stopped, _)
   | Delegating1(_, _, _, stopped, _)
   | Delegating2(_, _, _, _, stopped, _)
@@ -316,6 +400,8 @@ let shouldComplete =
   | AutoDisposing3(_, _, _, _, _, stopped, _)
   | AutoDisposing4(_, _, _, _, _, _, stopped, _)
   | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
+  | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
+  | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
   | Delegating(_, _, stopped, _)
   | Delegating1(_, _, _, stopped, _)
   | Delegating2(_, _, _, _, stopped, _)
@@ -359,7 +445,8 @@ let completeWithResult = {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
-      }
+      };
+      disposable |> CompositeDisposable.dispose;
     | AutoDisposing5(
         ctx0,
         ctx1,
@@ -372,6 +459,43 @@ let completeWithResult = {
         disposable,
       ) =>
       try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, exn)) {
+      | exn =>
+        disposable |> CompositeDisposable.dispose;
+        raise(exn);
+      };
+      disposable |> CompositeDisposable.dispose;
+    | AutoDisposing6(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        _,
+        onComplete,
+        _,
+        disposable,
+      ) =>
+      try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, exn)) {
+      | exn =>
+        disposable |> CompositeDisposable.dispose;
+        raise(exn);
+      };
+      disposable |> CompositeDisposable.dispose;
+    | AutoDisposing7(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        ctx6,
+        _,
+        onComplete,
+        _,
+        disposable,
+      ) =>
+      try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
@@ -434,6 +558,41 @@ let next = {
       }
     | AutoDisposing5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, disposable) =>
       try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, next)) {
+      | exn =>
+        disposable |> CompositeDisposable.dispose;
+        raise(exn);
+      }
+    | AutoDisposing6(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        onNext,
+        _,
+        _,
+        disposable,
+      ) =>
+      try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, next)) {
+      | exn =>
+        disposable |> CompositeDisposable.dispose;
+        raise(exn);
+      }
+    | AutoDisposing7(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        ctx6,
+        onNext,
+        _,
+        _,
+        disposable,
+      ) =>
+      try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);

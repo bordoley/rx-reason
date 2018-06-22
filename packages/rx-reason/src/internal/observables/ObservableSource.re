@@ -129,6 +129,43 @@ let subscribeWith5 =
   subscriber |> Subscriber.asCompositeDisposable;
 };
 
+let subscribeWith6 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, observable) => {
+  let subscriber =
+    Subscriber.createAutoDisposing6(
+      ~onNext,
+      ~onComplete,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      ctx5,
+    );
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
+let subscribeWith7 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, observable) => {
+  let subscriber =
+    Subscriber.createAutoDisposing7(
+      ~onNext,
+      ~onComplete,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      ctx5,
+      ctx6,
+    );
+
+  subscribeSubscriber(subscriber, observable);
+  subscriber |> Subscriber.asCompositeDisposable;
+};
+
 let subscribe =
     (
       ~onNext=Functions.alwaysUnit1,
@@ -192,6 +229,37 @@ let subscribe5 =
     ) =>
   observable
   |> subscribeWith5(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4);
+
+let subscribe6 =
+    (
+      ~onNext=Functions.alwaysUnit7,
+      ~onComplete=Functions.alwaysUnit7,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      ctx5,
+      observable,
+    ) =>
+  observable
+  |> subscribeWith6(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5);
+
+let subscribe7 =
+    (
+      ~onNext=Functions.alwaysUnit8,
+      ~onComplete=Functions.alwaysUnit8,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      ctx5,
+      ctx6,
+      observable,
+    ) =>
+  observable
+  |> subscribeWith7(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6);
 
 let publishTo = {
   let teardown = (subscription, active) => {

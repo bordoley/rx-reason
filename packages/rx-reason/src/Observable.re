@@ -55,6 +55,73 @@ module type S1 = {
     ) =>
     CompositeDisposable.t;
 
+  let subscribe4:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe5:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe6:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                   unit
+                     =?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe7:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit=?,
+      ~onComplete: (
+                     'ctx0,
+                     'ctx1,
+                     'ctx2,
+                     'ctx3,
+                     'ctx4,
+                     'ctx5,
+                     'ctx6,
+                     option(exn)
+                   ) =>
+                   unit
+                     =?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      'ctx6,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
     CompositeDisposable.t;
@@ -85,6 +152,71 @@ module type S1 = {
       'ctx0,
       'ctx1,
       'ctx2,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith4:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith5:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith6:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                   unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith7:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
+      ~onComplete: (
+                     'ctx0,
+                     'ctx1,
+                     'ctx2,
+                     'ctx3,
+                     'ctx4,
+                     'ctx5,
+                     'ctx6,
+                     option(exn)
+                   ) =>
+                   unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      'ctx6,
       t('a)
     ) =>
     CompositeDisposable.t;
@@ -137,10 +269,18 @@ let subscribeWith = ObservableSource.subscribeWith;
 let subscribeWith1 = ObservableSource.subscribeWith1;
 let subscribeWith2 = ObservableSource.subscribeWith2;
 let subscribeWith3 = ObservableSource.subscribeWith3;
+let subscribeWith4 = ObservableSource.subscribeWith4;
+let subscribeWith5 = ObservableSource.subscribeWith5;
+let subscribeWith6 = ObservableSource.subscribeWith6;
+let subscribeWith7 = ObservableSource.subscribeWith7;
 let subscribe = ObservableSource.subscribe;
 let subscribe1 = ObservableSource.subscribe1;
 let subscribe2 = ObservableSource.subscribe2;
 let subscribe3 = ObservableSource.subscribe3;
+let subscribe4 = ObservableSource.subscribe4;
+let subscribe5 = ObservableSource.subscribe5;
+let subscribe6 = ObservableSource.subscribe6;
+let subscribe7 = ObservableSource.subscribe7;
 let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;

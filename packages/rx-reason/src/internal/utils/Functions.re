@@ -4,15 +4,19 @@ let alwaysUnit1 = _ => ();
 
 let alwaysUnit: unit => unit = alwaysUnit1;
 
-let alwaysUnit2 = (_, _) : unit => ();
+let alwaysUnit2 = (_, _) => ();
 
-let alwaysUnit3 = (_, _, _) : unit => ();
+let alwaysUnit3 = (_, _, _) => ();
 
-let alwaysUnit4 = (_, _, _, _) : unit => ();
+let alwaysUnit4 = (_, _, _, _) => ();
 
-let alwaysUnit5 = (_, _, _, _, _) : unit => ();
+let alwaysUnit5 = (_, _, _, _, _) => ();
 
-let alwaysUnit6 = (_, _, _, _, _, _) : unit => ();
+let alwaysUnit6 = (_, _, _, _, _, _) => ();
+
+let alwaysUnit7 = (_, _, _, _, _, _, _) => ();
+
+let alwaysUnit8 = (_, _, _, _, _, _, _, _) => ();
 
 let identity = a => a;
 
@@ -22,33 +26,43 @@ exception ReturnUnitException;
 
 let returnUnit = () => raise(ReturnUnitException);
 
-let earlyReturnsUnit = (f, ()) =>
-  try (f()) {
+let earlyReturnsUnit = (call, ()) =>
+  try (call()) {
   | ReturnUnitException => ()
   };
 
-let earlyReturnsUnit1 = (f, a) =>
-  try (f(a)) {
+let earlyReturnsUnit1 = (call, a) =>
+  try (call(a)) {
   | ReturnUnitException => ()
   };
 
-let earlyReturnsUnit2 = (f, a, b) =>
-  try (f(a, b)) {
+let earlyReturnsUnit2 = (call, a, b) =>
+  try (call(a, b)) {
   | ReturnUnitException => ()
   };
 
-let earlyReturnsUnit3 = (f, a, b, c) =>
-  try (f(a, b, c)) {
+let earlyReturnsUnit3 = (call, a, b, c) =>
+  try (call(a, b, c)) {
   | ReturnUnitException => ()
   };
 
-let earlyReturnsUnit4 = (f, a, b, c, d) =>
-  try (f(a, b, c, d)) {
+let earlyReturnsUnit4 = (call, a, b, c, d) =>
+  try (call(a, b, c, d)) {
   | ReturnUnitException => ()
   };
 
-let earlyReturnsUnit5 = (f, a, b, c, d, e) =>
-  try (f(a, b, c, d, e)) {
+let earlyReturnsUnit5 = (call, a, b, c, d, e) =>
+  try (call(a, b, c, d, e)) {
+  | ReturnUnitException => ()
+  };
+
+let earlyReturnsUnit6 = (call, a, b, c, d, e, f) =>
+  try (call(a, b, c, d, e, f)) {
+  | ReturnUnitException => ()
+  };
+
+let earlyReturnsUnit7 = (call, a, b, c, d, e, f, g) =>
+  try (call(a, b, c, d, e, f, g)) {
   | ReturnUnitException => ()
   };
 

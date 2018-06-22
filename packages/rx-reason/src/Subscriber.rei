@@ -66,6 +66,33 @@ let createAutoDisposing5:
   ) =>
   t('a);
 
+let createAutoDisposing6:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5
+  ) =>
+  t('a);
+
+let createAutoDisposing7:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
+  ) =>
+  t('a);
+
 /** Construct a new Subscriber with the provided callbacks that delegates its disposal to another Subscriber. */
 let delegate:
   (

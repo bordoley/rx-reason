@@ -79,6 +79,73 @@ module type S1 = {
     ) =>
     CompositeDisposable.t;
 
+  let subscribe4:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe5:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit=?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe6:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit=?,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                   unit
+                     =?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribe7:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit=?,
+      ~onComplete: (
+                     'ctx0,
+                     'ctx1,
+                     'ctx2,
+                     'ctx3,
+                     'ctx4,
+                     'ctx5,
+                     'ctx6,
+                     option(exn)
+                   ) =>
+                   unit
+                     =?,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      'ctx6,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
   /**
    * Subscribes to the Observable with the supplied item and completion handlers.
    *
@@ -115,6 +182,71 @@ module type S1 = {
       'ctx0,
       'ctx1,
       'ctx2,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith4:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith5:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith6:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+      ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                   unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      t('a)
+    ) =>
+    CompositeDisposable.t;
+
+  let subscribeWith7:
+    (
+      ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
+      ~onComplete: (
+                     'ctx0,
+                     'ctx1,
+                     'ctx2,
+                     'ctx3,
+                     'ctx4,
+                     'ctx5,
+                     'ctx6,
+                     option(exn)
+                   ) =>
+                   unit,
+      'ctx0,
+      'ctx1,
+      'ctx2,
+      'ctx3,
+      'ctx4,
+      'ctx5,
+      'ctx6,
       t('a)
     ) =>
     CompositeDisposable.t;
