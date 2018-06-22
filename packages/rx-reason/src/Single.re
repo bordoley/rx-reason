@@ -2,8 +2,8 @@ type t('a) = Observable.t('a);
 
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
-let create = subscribe =>
-  Observable.create(subscriber => {
+let create = {
+  let source = (subscribe, subscriber) => {
     let teardown =
       subscribe(
         ~onSuccess=
@@ -14,7 +14,10 @@ let create = subscribe =>
         ~onError=exn => subscriber |> Subscriber.complete(~exn),
       );
     subscriber |> Subscriber.addTeardown(teardown) |> ignore;
-  });
+  };
+
+  subscribe => Observable.create1(source, subscribe);
+};
 
 let defer = Observable.defer;
 

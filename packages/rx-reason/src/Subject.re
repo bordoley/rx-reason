@@ -253,6 +253,15 @@ let create = {
     subscribers := CopyOnWriteArray.empty();
   };
 
+  let observableSource = (subscribers, disposable, subscriber) => {
+    disposable |> Disposable.raiseIfDisposed;
+    subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
+
+    subscriber
+    |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
+    |> ignore;
+  };
+
   () => {
     let subscribers = ref(CopyOnWriteArray.empty());
 
@@ -266,15 +275,7 @@ let create = {
     let disposable =
       Disposable.create2(disposableTeardown, subscriber, subscribers);
 
-    let observable =
-      Observable.create(subscriber => {
-        disposable |> Disposable.raiseIfDisposed;
-        subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
-
-        subscriber
-        |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
-        |> ignore;
-      });
+    let observable = Observable.create2(observableSource, subscribers, disposable);
 
     {subscriber, observable, disposable};
   };
