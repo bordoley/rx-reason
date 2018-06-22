@@ -21,12 +21,19 @@ let toSingle = promise =>
     |> ignore;
   });
 
-let fromSingle = single =>
-  Js.Promise.make((~resolve, ~reject) =>
-    single
-    |> RxReason.Single.subscribeWith(
-         ~onSuccess=a => resolve(. a),
-         ~onError=e => reject(. e),
-       )
-    |> ignore
-  );
+let fromSingle = {
+  let onSuccess = (resolve, _, a) => resolve(. a);
+  let onError = (_, reject, exn) => reject(. exn);
+
+  single =>
+    Js.Promise.make((~resolve, ~reject) =>
+      single
+      |> RxReason.Single.subscribeWith2(
+           ~onSuccess,
+           ~onError,
+           resolve,
+           reject,
+         )
+      |> ignore
+    );
+};

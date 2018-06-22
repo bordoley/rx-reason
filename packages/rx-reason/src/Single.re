@@ -59,26 +59,23 @@ let reduce =
 let some = Observable.some;
 
 let subscribeWith = {
-  let teardown = innerSubscription =>
-    Interlocked.exchange(CompositeDisposable.disposed, innerSubscription)
-    |> CompositeDisposable.dispose;
-
   let onNext = (subscription, onSuccess, _, next) => {
     onSuccess(next);
-    subscription |> Disposable.dispose;
+    subscription^ |> CompositeDisposable.dispose;
   };
 
-  let onComplete = (_, _, onError, exn) =>
+  let onComplete = (subscription, _, onError, exn) => {
     switch (exn) {
     | Some(exn) => onError(exn)
     | None => onError(EmptyException.Exn)
     };
+    subscription^ |> CompositeDisposable.dispose;
+  };
 
-  (~onSuccess: 'a => unit, ~onError: exn => unit, single) => {
-    let innerSubscription = ref(CompositeDisposable.disposed);
-    let subscription = Disposable.create1(teardown, innerSubscription);
+  (~onSuccess, ~onError, single) => {
+    let subscription = ref(CompositeDisposable.disposed);
 
-    innerSubscription :=
+    subscription :=
       single
       |> Observable.subscribeWith3(
            ~onNext,
@@ -87,10 +84,92 @@ let subscribeWith = {
            onSuccess,
            onError,
          );
-    subscription;
+    subscription^;
+  };
+};
+
+let subscribeWith1 = {
+  let onNext = (ctx0, subscription, onSuccess, _, next) => {
+    onSuccess(ctx0, next);
+    subscription^ |> CompositeDisposable.dispose;
+  };
+
+  let onComplete = (ctx0, subscription, _, onError, exn) => {
+    switch (exn) {
+    | Some(exn) => onError(ctx0, exn)
+    | None => onError(ctx0, EmptyException.Exn)
+    };
+    subscription^ |> CompositeDisposable.dispose;
+  };
+
+  (~onSuccess, ~onError, ctx0, single) => {
+    let subscription = ref(CompositeDisposable.disposed);
+
+    subscription :=
+      single
+      |> Observable.subscribeWith4(
+           ~onNext,
+           ~onComplete,
+           ctx0,
+           subscription,
+           onSuccess,
+           onError,
+         );
+    subscription^;
+  };
+};
+
+let subscribeWith2 = {
+  let onNext = (ctx0, ctx1, subscription, onSuccess, _, next) => {
+    onSuccess(ctx0, ctx1, next);
+    subscription^ |> CompositeDisposable.dispose;
+  };
+
+  let onComplete = (ctx0, ctx1, subscription, _, onError, exn) => {
+    switch (exn) {
+    | Some(exn) => onError(ctx0, ctx1, exn)
+    | None => onError(ctx0, ctx1, EmptyException.Exn)
+    };
+    subscription^ |> CompositeDisposable.dispose;
+  };
+
+  (~onSuccess, ~onError, ctx0, ctx1, single) => {
+    let subscription = ref(CompositeDisposable.disposed);
+
+    subscription :=
+      single
+      |> Observable.subscribeWith5(
+           ~onNext,
+           ~onComplete,
+           ctx0,
+           ctx1,
+           subscription,
+           onSuccess,
+           onError,
+         );
+    subscription^;
   };
 };
 
 let subscribe =
     (~onSuccess=Functions.alwaysUnit1, ~onError=Functions.alwaysUnit1, single) =>
   subscribeWith(~onSuccess, ~onError, single);
+
+let subscribe1 =
+    (
+      ~onSuccess=Functions.alwaysUnit2,
+      ~onError=Functions.alwaysUnit2,
+      ctx0,
+      single,
+    ) =>
+  subscribeWith1(~onSuccess, ~onError, ctx0, single);
+
+let subscribe2 =
+    (
+      ~onSuccess=Functions.alwaysUnit3,
+      ~onError=Functions.alwaysUnit3,
+      ctx0,
+      ctx1,
+      single,
+    ) =>
+  subscribeWith2(~onSuccess, ~onError, ctx0, ctx1, single);

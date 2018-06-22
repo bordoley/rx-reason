@@ -129,7 +129,27 @@ let some: ('a => bool, Observable.t('a)) => t(bool);
  * Subscribes to the Single with the optional success and error handlers.
  */
 let subscribe:
-  (~onSuccess: 'a => unit=?, ~onError: exn => unit=?, t('a)) => Disposable.t;
+  (~onSuccess: 'a => unit=?, ~onError: exn => unit=?, t('a)) =>
+  CompositeDisposable.t;
+
+let subscribe1:
+  (
+    ~onSuccess: ('ctx0, 'a) => unit=?,
+    ~onError: ('ctx0, exn) => unit=?,
+    'ctx0,
+    t('a)
+  ) =>
+  CompositeDisposable.t;
+
+let subscribe2:
+  (
+    ~onSuccess: ('ctx0, 'ctx1, 'a) => unit=?,
+    ~onError: ('ctx0, 'ctx1, exn) => unit=?,
+    'ctx0,
+    'ctx1,
+    t('a)
+  ) =>
+  CompositeDisposable.t;
 
 /**
  * Subscribes to the Single with the provided success and error handlers.
@@ -138,4 +158,24 @@ let subscribe:
  * handlers or to avoid optional argument boxing.
  */
 let subscribeWith:
-  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;
+  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) =>
+  CompositeDisposable.t;
+
+let subscribeWith1:
+  (
+    ~onSuccess: ('ctx0, 'a) => unit,
+    ~onError: ('ctx0, exn) => unit,
+    'ctx0,
+    t('a)
+  ) =>
+  CompositeDisposable.t;
+
+let subscribeWith2:
+  (
+    ~onSuccess: ('ctx0, 'ctx1, 'a) => unit,
+    ~onError: ('ctx0, 'ctx1, exn) => unit,
+    'ctx0,
+    'ctx1,
+    t('a)
+  ) =>
+  CompositeDisposable.t;
