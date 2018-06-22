@@ -17,8 +17,28 @@ module type S1 = {
     ) =>
     Disposable.t;
 
+  let publish1:
+    (
+      ~onNext: ('ctx, 'a) => unit=?,
+      ~onComplete: ('ctx, option(exn)) => unit=?,
+      'ctx,
+      t('a),
+      unit
+    ) =>
+    Disposable.t;
+
   let publishTo:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
+    Disposable.t;
+
+  let publishTo1:
+    (
+      ~onNext: ('ctx, 'a) => unit,
+      ~onComplete: ('ctx, option(exn)) => unit,
+      'ctx,
+      t('a),
+      unit
+    ) =>
     Disposable.t;
 
   let subscribe:
@@ -259,7 +279,9 @@ let onComplete = OnCompleteOperator.lift;
 let onNext = OnNextOperator.lift;
 let onSubscribe = OnSubscribeOperator.lift;
 let publish = ObservableSource.publish;
+let publish1 = ObservableSource.publish1;
 let publishTo = ObservableSource.publishTo;
+let publishTo1 = ObservableSource.publishTo1;
 let raise = ObservableSource.raise;
 let scan = ScanOperator.lift;
 let some = SomeOperator.lift;

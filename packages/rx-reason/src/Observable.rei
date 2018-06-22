@@ -31,6 +31,16 @@ module type S1 = {
     ) =>
     Disposable.t;
 
+  let publish1:
+    (
+      ~onNext: ('ctx, 'a) => unit=?,
+      ~onComplete: ('ctx, option(exn)) => unit=?,
+      'ctx,
+      t('a),
+      unit
+    ) =>
+    Disposable.t;
+
   /**
    * Returns a delayed subscription to the Observablew ith the supplied
    * item and completion handlers.
@@ -40,6 +50,16 @@ module type S1 = {
    */
   let publishTo:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a), unit) =>
+    Disposable.t;
+
+  let publishTo1:
+    (
+      ~onNext: ('ctx, 'a) => unit,
+      ~onComplete: ('ctx, option(exn)) => unit,
+      'ctx,
+      t('a),
+      unit
+    ) =>
     Disposable.t;
 
   /**

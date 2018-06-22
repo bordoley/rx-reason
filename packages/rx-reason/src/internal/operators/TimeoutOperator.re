@@ -35,9 +35,10 @@ let operator = {
         |> Subscriber.addSerialDisposable(context.timeoutSubscription);
 
       context.connect =
-        ObservableSource.publishTo(
-          ~onNext=Functions.alwaysUnit1,
-          ~onComplete=exn => self |> Subscriber.complete(~exn?),
+        ObservableSource.publishTo1(
+          ~onNext=Functions.alwaysUnit2,
+          ~onComplete=Subscriber.delegateOnComplete,
+          self,
           timeoutObservable,
         );
       

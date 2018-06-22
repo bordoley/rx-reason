@@ -284,6 +284,29 @@ let publishTo = {
   };
 };
 
+let publishTo1 = {
+  let teardown = (subscription, active) => {
+    subscription |> CompositeDisposable.dispose;
+    Volatile.write(false, active);
+  };
+
+  (~onNext, ~onComplete, ctx0, observable) => {
+    let connection = ref(Disposable.disposed);
+    let active = ref(false);
+
+    () => {
+      if (! Interlocked.exchange(true, active)) {
+        let subscription = observable |> subscribeWith1(~onNext, ~onComplete, ctx0);
+        let newConnection =
+          Disposable.create2(teardown, subscription, active);
+
+        Volatile.write(newConnection, connection);
+      };
+      Volatile.read(connection);
+    };
+  };
+};
+
 let publish =
     (
       ~onNext=Functions.alwaysUnit1,
@@ -291,6 +314,15 @@ let publish =
       observable,
     ) =>
   publishTo(~onNext, ~onComplete, observable);
+
+let publish1 =
+  (
+    ~onNext=Functions.alwaysUnit2,
+    ~onComplete=Functions.alwaysUnit2,
+    ctx,
+    observable,
+  ) =>
+publishTo1(~onNext, ~onComplete, ctx, observable);
 
 let raise = (~scheduler=Scheduler.immediate, exn: exn) => {
   let exn = Some(exn);

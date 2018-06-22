@@ -19,7 +19,9 @@ let subscribe6 = Observable.subscribe6;
 let subscribe7 = Observable.subscribe7;
 
 let publish = Observable.publish;
+let publish1 = Observable.publish1;
 let publishTo = Observable.publishTo;
+let publishTo1 = Observable.publishTo1;
 
 let shareInternal = {
   let teardown =

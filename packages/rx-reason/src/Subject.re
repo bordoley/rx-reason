@@ -65,13 +65,14 @@ let raiseIfDisposed = self =>
 let publishTo = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
 
-let publish =
-    (
-      ~onNext=Functions.alwaysUnit1,
-      ~onComplete=Functions.alwaysUnit1,
-      subject,
-    ) =>
-  subject |> publishTo(~onNext, ~onComplete);
+let publishTo1 = (~onNext, ~onComplete, ctx0, subject) =>
+  subject |> asObservable |> Observable.publishTo1(~onNext, ~onComplete, ctx0);
+
+let publish = (~onNext=?, ~onComplete=?, subject) =>
+  subject |> asObservable |> Observable.publish(~onNext?, ~onComplete?);
+
+let publish1 = (~onNext=?, ~onComplete=?, ctx0, subject) =>
+  subject |> asObservable |> Observable.publish1(~onNext?, ~onComplete?, ctx0);
 
 let subscribeWith = (~onNext, ~onComplete, subject) =>
   subject |> asObservable |> Observable.subscribeWith(~onNext, ~onComplete);
