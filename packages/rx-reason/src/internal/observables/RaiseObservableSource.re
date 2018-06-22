@@ -4,11 +4,11 @@ let raise = {
 
   let sourceScheduled = (scheduler, exn, subscriber) => {
     let schedulerDisposable =
-          scheduler(() => {
-            subscriber |> Subscriber.complete(~exn?);
-            Disposable.disposed;
-          });
-        subscriber |> Subscriber.addDisposable(schedulerDisposable) |> ignore;
+      scheduler(() => {
+        subscriber |> Subscriber.complete(~exn?);
+        Disposable.disposed;
+      });
+    subscriber |> Subscriber.addDisposable(schedulerDisposable) |> ignore;
   };
 
   (~scheduler=Scheduler.immediate, exn: exn) => {
