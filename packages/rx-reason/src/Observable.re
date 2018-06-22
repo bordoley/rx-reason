@@ -256,7 +256,9 @@ let create2 = ObservableSource.create2;
 let create3 = ObservableSource.create3;
 let debounce = DebounceOperator.lift;
 let defaultIfEmpty = DefaultIfEmptyOperator.lift;
+let defer = DeferObservableSource.defer;
 let distinctUntilChanged = DistinctUntilChangedOperator.lift;
+let empty = EmptyObservableSource.empty;
 let every = EveryOperator.lift;
 let exhaust = ExhaustOperator.lift;
 let find = FindOperator.lift;
@@ -278,6 +280,8 @@ let never = ObservableSource.never;
 let none = NoneOperator.lift;
 let observe = ObserveOperator.lift;
 let observeOn = ObserveOnOperator.lift;
+let ofList = OfListObservableSource.ofList;
+let ofValue = OfValueObservableSource.ofValue;
 let onComplete = OnCompleteOperator.lift;
 let onNext = OnNextOperator.lift;
 let onSubscribe = OnSubscribeOperator.lift;
@@ -310,21 +314,6 @@ let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
 
-let defer = (f: unit => t('a)) : t('a) =>
-  create(subscriber => f() |> subscribeSubscriber(subscriber));
-
-let empty = (~scheduler=Scheduler.immediate, ()) =>
-  scheduler === Scheduler.immediate ?
-    create(subscriber => subscriber |> Subscriber.complete) :
-    create(subscriber => {
-      let schedulerSubscription =
-        scheduler(() => {
-          subscriber |> Subscriber.complete;
-          Disposable.disposed;
-        });
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
-    });
-
 let ofAbsoluteTimeNotifications =
     (
       ~scheduler as {now, scheduleWithDelay}: ClockScheduler.t,
@@ -353,37 +342,6 @@ let ofAbsoluteTimeNotifications =
     let loopSubscription = loop(notifications);
     subscriber |> Subscriber.addDisposable(loopSubscription) |> ignore;
   });
-
-let ofList = (~scheduler=Scheduler.immediate, list: list('a)) : t('a) =>
-  scheduler === Scheduler.immediate ?
-    create(subscriber => {
-      let rec loop = list =>
-        switch (list) {
-        | [hd, ...tail] =>
-          subscriber |> Subscriber.next(hd);
-          loop(tail);
-        | [] => subscriber |> Subscriber.complete
-        };
-      loop(list);
-    }) :
-    create(subscriber => {
-      let rec loop = (list, ()) =>
-        switch (list) {
-        | [hd] =>
-          subscriber |> Subscriber.next(hd);
-          subscriber |> Subscriber.complete;
-          Disposable.disposed;
-        | [hd, ...tail] =>
-          subscriber |> Subscriber.next(hd);
-          scheduler(loop(tail));
-        | [] =>
-          subscriber |> Subscriber.complete;
-          Disposable.disposed;
-        };
-
-      let schedulerSubscription = scheduler(loop(list));
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
-    });
 
 let ofNotifications =
     (
@@ -446,25 +404,6 @@ let ofRelativeTimeNotifications =
     let loopSubscription = loop(notifications, 0.0);
     subscriber |> Subscriber.addDisposable(loopSubscription) |> ignore;
   });
-
-let ofValue = (~scheduler=Scheduler.immediate, value: 'a) : t('a) =>
-  scheduler === Scheduler.immediate ?
-    create(subscriber => {
-      subscriber |> Subscriber.next(value);
-      subscriber |> Subscriber.complete;
-    }) :
-    create(subscriber => {
-      let schedulerSubscription =
-        scheduler(() => {
-          subscriber |> Subscriber.next(value);
-          scheduler(() => {
-            subscriber |> Subscriber.complete;
-            Disposable.disposed;
-          });
-        });
-
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
-    });
 
 let repeat = (~predicate=Functions.alwaysTrue1, observable) =>
   RepeatOperator.lift(
