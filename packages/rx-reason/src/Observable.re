@@ -313,6 +313,7 @@ let subscribe4 = ObservableSource.subscribe4;
 let subscribe5 = ObservableSource.subscribe5;
 let subscribe6 = ObservableSource.subscribe6;
 let subscribe7 = ObservableSource.subscribe7;
+let subscribeOn = SubscribeOnObservableSource.subscribeOn;
 let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
@@ -334,22 +335,12 @@ let retry = (~predicate=Functions.alwaysTrue1, observable) =>
   );
 
 let startWithList =
-    (~scheduler=Scheduler.immediate, values: list('a), observable: t('a)) =>
+    (~scheduler=Scheduler.immediate, values, observable) =>
   concat([ofList(~scheduler, values), observable]);
 
 let startWithValue =
-    (~scheduler=Scheduler.immediate, value: 'a, observable: t('a)) =>
+    (~scheduler=Scheduler.immediate, value, observable) =>
   concat([ofValue(~scheduler, value), observable]);
-
-let subscribeOn = (scheduler: Scheduler.t, observable: t('a)) : t('a) =>
-  create(subscriber => {
-    let schedulerSubscription =
-      scheduler(() => {
-        observable |> subscribeSubscriber(subscriber);
-        Disposable.disposed;
-      });
-    subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
-  });
 
 let toList = observable =>
   observable
