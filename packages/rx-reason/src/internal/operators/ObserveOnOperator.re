@@ -6,7 +6,7 @@ let operator = {
   };
 
   (
-    ~bufferStrategy=BufferStrategy.Throw,
+    ~bufferStrategy=BufferStrategy.Raise,
     ~bufferSize=(-1),
     scheduler,
     subscriber,

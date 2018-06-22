@@ -3,6 +3,6 @@
  * buffers within Operators. 
  */;
 type t =
-  | Throw
+  | Raise
   | DropLatest
   | DropOldest;
