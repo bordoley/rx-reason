@@ -3,18 +3,16 @@ type t('a) = Observable.t('a);
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
 let create = {
-  let source = (subscribe, subscriber) => {
-    let teardown =
-      subscribe(
-        ~onSuccess=
-          result => {
-            subscriber |> Subscriber.next(result);
-            subscriber |> Subscriber.complete;
-          },
-        ~onError=exn => subscriber |> Subscriber.complete(~exn),
-      );
-    subscriber |> Subscriber.addTeardown(teardown) |> ignore;
-  };
+  let source = (subscribe, subscriber) =>
+    subscribe(
+      ~onSuccess=
+        result => {
+          subscriber |> Subscriber.next(result);
+          subscriber |> Subscriber.complete;
+        },
+      ~onError=exn => subscriber |> Subscriber.complete(~exn),
+      ~cancellationToken=subscriber |> Subscriber.asCompositeDisposable,
+    );
 
   subscribe => Observable.create1(source, subscribe);
 };

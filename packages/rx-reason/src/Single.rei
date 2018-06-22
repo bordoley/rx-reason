@@ -11,7 +11,15 @@ let asObservable: t('a) => Observable.t('a);
  * Returns a Single from the specified subscribe function.
  */
 let create:
-  ((~onSuccess: 'a => unit, ~onError: exn => unit) => TeardownLogic.t) => t('a);
+  (
+    (
+      ~onSuccess: 'a => unit,
+      ~onError: exn => unit,
+      ~cancellationToken: CompositeDisposable.t
+    ) =>
+    unit
+  ) =>
+  t('a);
 
 /**
  * Returns a Single that calls a Single factory to
@@ -32,7 +40,7 @@ let every: ('a => bool, Observable.t('a)) => t(bool);
  * soure Observable which satisfies the predicate.
  *
  * If the Observable emits no items or no items satisfy the
- * predicte, the Single complete with an EmptyException error.
+ * predicate, the Single complete with an EmptyException error.
  */
 let find: ('a => bool, Observable.t('a)) => t('a);
 
