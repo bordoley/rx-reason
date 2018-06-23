@@ -335,11 +335,11 @@ let retry = (~predicate=Functions.alwaysTrue1, observable) =>
   );
 
 let startWithList =
-    (~scheduler=Scheduler.immediate, values, observable) =>
+    (~scheduler=SchedulerNew.immediate, values, observable) =>
   concat([ofList(~scheduler, values), observable]);
 
 let startWithValue =
-    (~scheduler=Scheduler.immediate, value, observable) =>
+    (~scheduler=SchedulerNew.immediate, value, observable) =>
   concat([ofValue(~scheduler, value), observable]);
 
 let toList = observable =>

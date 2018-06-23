@@ -46,26 +46,26 @@ let ofList = {
   };
 
   let ofListScheduledSource = (scheduler, list, subscriber) => {
-    let rec loop = (list, ()) =>
+    let loop = (continuation, list) =>
       switch (list) {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
         subscriber |> Subscriber.complete;
-        Disposable.disposed;
+        continuation |> SchedulerContinuation.dispose;
       | [hd, ...tail] =>
         subscriber |> Subscriber.next(hd);
-        scheduler(loop(tail));
+        continuation |> SchedulerContinuation.continue(tail);
       | [] =>
         subscriber |> Subscriber.complete;
-        Disposable.disposed;
+        continuation |> SchedulerContinuation.dispose;
       };
 
-    let schedulerSubscription = scheduler(loop(list));
+    let schedulerSubscription = scheduler |> SchedulerNew.schedule(loop, list);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
-  (~scheduler=Scheduler.immediate, list) =>
-    scheduler === Scheduler.immediate ?
+  (~scheduler=SchedulerNew.immediate, list) =>
+    scheduler === SchedulerNew.immediate ?
       ObservableSource.create1(ofListSynchronousSource, list) :
       ObservableSource.create2(ofListScheduledSource, scheduler, list);
 };
@@ -83,22 +83,23 @@ let ofNotifications = {
   };
 
   let ofNotificationsScheduledSource = (scheduler, notifications, subscriber) => {
-    let rec loop = (list, ()) =>
-      switch (list) {
+    let loop = (continuation, notifications) =>
+      switch (notifications) {
       | [hd] =>
         subscriber |> Subscriber.notify(hd);
-        Disposable.disposed;
+        continuation |> SchedulerContinuation.dispose;
       | [hd, ...tail] =>
         subscriber |> Subscriber.notify(hd);
-        scheduler(loop(tail));
-      | [] => Disposable.disposed
+        continuation |> SchedulerContinuation.continue(tail);
+      | [] => continuation |> SchedulerContinuation.dispose
       };
-    let schedulerSubscription = scheduler(loop(notifications));
+    let schedulerSubscription =
+      scheduler |> SchedulerNew.schedule(loop, notifications);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
-  (~scheduler=Scheduler.immediate, notifications) =>
-    scheduler === Scheduler.immediate ?
+  (~scheduler=SchedulerNew.immediate, notifications) =>
+    scheduler === SchedulerNew.immediate ?
       ObservableSource.create1(
         ofNotificationsSynchronousSource,
         notifications,
@@ -116,23 +117,10 @@ let ofValue = {
     subscriber |> Subscriber.complete;
   };
 
-  let ofValueScheduledSource = (scheduler, value, subscriber) => {
-    let schedulerSubscription =
-      scheduler(() => {
-        subscriber |> Subscriber.next(value);
-        scheduler(() => {
-          subscriber |> Subscriber.complete;
-          Disposable.disposed;
-        });
-      });
-
-    subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
-  };
-
-  (~scheduler=Scheduler.immediate, value) =>
-    scheduler === Scheduler.immediate ?
+  (~scheduler=SchedulerNew.immediate, value) =>
+    scheduler === SchedulerNew.immediate ?
       ObservableSource.create1(ofValueSynchronousSource, value) :
-      ObservableSource.create2(ofValueScheduledSource, scheduler, value);
+      ofList(~scheduler, [value]);
 };
 
 let ofRelativeTimeNotifications = {

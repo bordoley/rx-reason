@@ -571,14 +571,14 @@ let ofAbsoluteTimeNotifications:
 /**
  * Returns an Observable that emits the given items and then completes.
  */
-let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
+let ofList: (~scheduler: SchedulerNew.t=?, list('a)) => t('a);
 
 /**
  * Returns an Observable which emits the specified notifications
  * using the supplied scheduler.
  */
 let ofNotifications:
-  (~scheduler: Scheduler.t=?, list(Notification.t('a))) => t('a);
+  (~scheduler: SchedulerNew.t=?, list(Notification.t('a))) => t('a);
 
 /**
  * Returns an Observable which emits the specified notifications at the
@@ -591,7 +591,7 @@ let ofRelativeTimeNotifications:
 /**
   * Returns an Observable that emits the given item and then completes.
   */
-let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
+let ofValue: (~scheduler: SchedulerNew.t=?, 'a) => t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function when it completes.
@@ -651,13 +651,13 @@ let some: ('a => bool, t('a)) => t(bool);
  * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
+let startWithList: (~scheduler: SchedulerNew.t=?, list('a), t('a)) => t('a);
 
 /**
  * Returns an Observable that emits a specified item before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
+let startWithValue: (~scheduler: SchedulerNew.t=?, 'a, t('a)) => t('a);
 
 /**
  * Returns an Observable which subscribes to the provided source Observable
