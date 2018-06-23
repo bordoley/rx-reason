@@ -615,7 +615,7 @@ let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
  * Returns an Observable that completes with the specified exception
  * when subscribed to.
  */
-let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
+let raise: (~scheduler: SchedulerNew.t=?, exn) => t('a);
 
 /**
  * Returns an Observable that mirrors the source Observable,
@@ -691,7 +691,7 @@ let synchronize: t('a) => t('a);
  * |> Observable..timeout(scheduleWithDelay(5.0));
  * ```
  */
-let timeout: (Scheduler.t, t('a)) => t('a);
+let timeout: (SchedulerNew.t, t('a)) => t('a);
 
 /**
  * Returns an Observable which collects all observed items in a list
