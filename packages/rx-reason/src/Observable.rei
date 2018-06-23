@@ -419,7 +419,7 @@ let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, t('a)) => t('a);
 /**
  * Returns an Observable that emits no items and immediately completes.
  */
-let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
+let empty: (~scheduler: SchedulerNew.t=?, unit) => t('a);
 
 /**
  * Returns an Observable that emits a single true value if all
