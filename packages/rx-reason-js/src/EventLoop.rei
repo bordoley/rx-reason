@@ -13,6 +13,7 @@ let clockScheduler: RxReason.ClockScheduler.t;
  * a queued microtask to be processed on the next tick of the queue.
  */
 let schedule: RxReason.Scheduler.t;
+let schedulerNew: RxReason.SchedulerNew.t;
 
 /**
  * A DelayScheduler instance that schedules work on the javascript event loop.

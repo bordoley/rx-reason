@@ -24,8 +24,7 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
         () => {
           disposable
           |> RxReason.SerialDisposable.set(RxReason.Disposable.disposed);
-          let isDisposed =
-            disposable |> RxReason.SerialDisposable.isDisposed;
+          let isDisposed = disposable |> RxReason.SerialDisposable.isDisposed;
           if (! isDisposed) {
             disposable |> RxReason.SerialDisposable.set(work());
           };
@@ -38,8 +37,22 @@ let scheduleWithDelay: RxReason.DelayScheduler.t =
     disposable |> RxReason.SerialDisposable.asDisposable;
   };
 
-  let clockScheduler: RxReason.ClockScheduler.t = {
-    now: Js.Date.now,
-    schedule,
-    scheduleWithDelay,
+let clockScheduler: RxReason.ClockScheduler.t = {
+  now: Js.Date.now,
+  schedule,
+  scheduleWithDelay,
+};
+
+let schedulerNew: RxReason.SchedulerNew.t = {
+  let executor = (continuation, state, f) => {
+    let run = () => {
+      /* Cancel the inner disposable */
+      continuation |> RxReason.SchedulerContinuation.set(RxReason.Disposable.disposed);
+      
+      f(state, continuation);
+      resolveUnit;
+    };
+    resolveUnit |> Js.Promise.then_(run) |> ignore;
   };
+  {executor: executor};
+};
