@@ -108,7 +108,7 @@ let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
  * Returns a Single that fails with the given exception
  * when subscribed to.
  */
-let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
+let raise: (~scheduler: SchedulerNew.t=?, exn) => t('a);
 
 /**
  * Returns a Single which invokes the accumulator function to each
