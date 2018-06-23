@@ -5,6 +5,101 @@ let operator = {
     completedState := None;
   };
 
+  let doWorkStep =
+      (
+        innerSubscription,
+        wip,
+        queue,
+        shouldComplete,
+        completedState,
+        subscriber,
+        continuation,
+        (),
+      ) =>
+    switch (QueueWithBufferStrategy.tryDeque(queue)) {
+    | _ when innerSubscription |> Disposable.isDisposed => ()
+    | Some(next) =>
+      subscriber |> Subscriber.next(next);
+      Interlocked.decrement(wip) !== 0 ?
+        continuation |> SchedulerContinuation.continue() : ();
+    | _ when Interlocked.exchange(false, shouldComplete) =>
+      subscriber |> Subscriber.complete(~exn=?completedState^);
+      innerSubscription |> Disposable.dispose;
+    | _ => ()
+    };
+
+  let schedule =
+      (
+        scheduler,
+        innerSubscription,
+        wip,
+        queue,
+        shouldComplete,
+        completedState,
+        subscriber,
+      ) =>
+    if (Interlocked.increment(wip) === 1) {
+      scheduler
+      |> SchedulerNew.schedule6(
+           doWorkStep,
+           (),
+           innerSubscription,
+           wip,
+           queue,
+           shouldComplete,
+           completedState,
+           subscriber,
+         )
+      |> ignore;
+    };
+
+  let onNext =
+      (
+        scheduler,
+        innerSubscription,
+        wip,
+        queue,
+        shouldComplete,
+        completedState,
+        subscriber,
+        next,
+      ) => {
+    queue |> QueueWithBufferStrategy.enqueue(next);
+    schedule(
+      scheduler,
+      innerSubscription,
+      wip,
+      queue,
+      shouldComplete,
+      completedState,
+      subscriber,
+    );
+  };
+
+  let onComplete =
+      (
+        scheduler,
+        innerSubscription,
+        wip,
+        queue,
+        shouldComplete,
+        completedState,
+        subscriber,
+        exn,
+      ) => {
+    shouldComplete := true;
+    completedState := exn;
+    schedule(
+      scheduler,
+      innerSubscription,
+      wip,
+      queue,
+      shouldComplete,
+      completedState,
+      subscriber,
+    );
+  };
+
   (
     ~bufferStrategy=BufferStrategy.Raise,
     ~bufferSize=(-1),
@@ -15,9 +110,8 @@ let operator = {
       QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
     let shouldComplete = ref(false);
     let completedState = ref(None);
-
     let wip = ref(0);
-    
+
     let innerSubscription =
       Disposable.create3(
         innerSubscriptionTeardown,
@@ -26,44 +120,23 @@ let operator = {
         completedState,
       );
 
-    let rec doWorkStep = () =>
-      switch (QueueWithBufferStrategy.tryDeque(queue)) {
-      | _ when innerSubscription |> Disposable.isDisposed => Disposable.disposed
-      | Some(next) =>
-        subscriber |> Subscriber.next(next);
-        Interlocked.decrement(wip) !== 0 ?
-          scheduler(doWorkStep) : Disposable.disposed;
-      | _ when Interlocked.exchange(false, shouldComplete) =>
-        subscriber |> Subscriber.complete(~exn=?completedState^);
-        innerSubscription |> Disposable.dispose;
-        Disposable.disposed;
-      | _ => Disposable.disposed
-      };
-
-    let schedule = () =>
-      if (Interlocked.increment(wip) === 1) {
-        scheduler(doWorkStep) |> ignore;
-      };
-
-    let onNext = (_, next) => {
-      queue |> QueueWithBufferStrategy.enqueue(next);
-      schedule();
-    };
-
-    let onComplete = (_, exn) => {
-      shouldComplete := true;
-      completedState := exn;
-      schedule();
-    };
-
     subscriber
-    |> Subscriber.delegate(~onNext, ~onComplete)
+    |> Subscriber.delegate6(
+         ~onNext,
+         ~onComplete,
+         scheduler,
+         innerSubscription,
+         wip,
+         queue,
+         shouldComplete,
+         completedState,
+       )
     |> Subscriber.addDisposable(innerSubscription);
   };
 };
 
 let lift =
-    (~bufferStrategy=?, ~bufferSize=?, scheduler: Scheduler.t, observable) =>
+    (~bufferStrategy=?, ~bufferSize=?, scheduler: SchedulerNew.t, observable) =>
   observable
   |> ObservableSource.lift(
        operator(~bufferStrategy?, ~bufferSize?, scheduler),
