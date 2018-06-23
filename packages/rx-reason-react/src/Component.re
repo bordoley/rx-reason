@@ -68,7 +68,7 @@ module Make =
        * We should schedule using that instead of our home rolled eventloop.
        * https://github.com/facebook/react/tree/master/packages/react-scheduler
        */
-      |> RxReason.Observable.observeOn(RxReasonJs.EventLoop.schedule)
+      |> RxReason.Observable.observeOn(RxReasonJs.EventLoop.schedulerNew)
       |> ComponentSpec.createStore
       |> RxReason.Observable.observe(
            ~onNext=next => send(Next(next)),

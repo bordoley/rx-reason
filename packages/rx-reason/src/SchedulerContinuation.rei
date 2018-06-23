@@ -61,7 +61,7 @@ module Executor: {
     unit;
 };
 
-include CompositeDisposable.S1 with type t('state) := t('state);
+include SerialDisposable.S1 with type t('state) := t('state);
 
 let continue: ('state, t('state)) => unit;
 
