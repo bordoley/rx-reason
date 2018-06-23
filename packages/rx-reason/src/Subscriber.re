@@ -117,6 +117,85 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
+  | Delegating4(
+                 'ctx0,
+                 'ctx1,
+                 'ctx2,
+                 'ctx3,
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), 'a) => unit,
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), option(exn)) => unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating5(
+                 'ctx0,
+                 'ctx1,
+                 'ctx2,
+                 'ctx3,
+                 'ctx4,
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
+                 unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating6(
+                 'ctx0,
+                 'ctx1,
+                 'ctx2,
+                 'ctx3,
+                 'ctx4,
+                 'ctx5,
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('b), 'a) => unit,
+                 (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   t('b),
+                   option(exn)
+                 ) =>
+                 unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
+  | Delegating7(
+                 'ctx0,
+                 'ctx1,
+                 'ctx2,
+                 'ctx3,
+                 'ctx4,
+                 'ctx5,
+                 'ctx6,
+                 (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   t('b),
+                   'a
+                 ) =>
+                 unit,
+                 (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   t('b),
+                   option(exn)
+                 ) =>
+                 unit,
+                 ref(bool),
+                 t('b),
+               ): t('a)
   | Disposed;
 
 let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
@@ -133,6 +212,14 @@ let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   | Delegating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
   | Delegating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
   | Delegating3(_, _, _, _, _, _, delegate) =>
+    delegate |> asCompositeDisposable
+  | Delegating4(_, _, _, _, _, _, _, delegate) =>
+    delegate |> asCompositeDisposable
+  | Delegating5(_, _, _, _, _, _, _, _, delegate) =>
+    delegate |> asCompositeDisposable
+  | Delegating6(_, _, _, _, _, _, _, _, _, delegate) =>
+    delegate |> asCompositeDisposable
+  | Delegating7(_, _, _, _, _, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
@@ -368,6 +455,86 @@ let delegate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
   Delegating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
 };
 
+let delegate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
+  Delegating4(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    onNext,
+    onComplete,
+    stopped,
+    subscriber,
+  );
+};
+
+let delegate5 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
+  Delegating5(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    ctx4,
+    onNext,
+    onComplete,
+    stopped,
+    subscriber,
+  );
+};
+
+let delegate6 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
+  Delegating6(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    ctx4,
+    ctx5,
+    onNext,
+    onComplete,
+    stopped,
+    subscriber,
+  );
+};
+
+let delegate7 =
+    (
+      ~onNext,
+      ~onComplete,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      ctx5,
+      ctx6,
+      subscriber,
+    ) => {
+  let stopped = ref(false);
+  subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
+  Delegating7(
+    ctx0,
+    ctx1,
+    ctx2,
+    ctx3,
+    ctx4,
+    ctx5,
+    ctx6,
+    onNext,
+    onComplete,
+    stopped,
+    subscriber,
+  );
+};
+
 let dispose = subscriber =>
   subscriber |> asCompositeDisposable |> CompositeDisposable.dispose;
 
@@ -389,7 +556,12 @@ let isStopped =
   | Delegating(_, _, stopped, _)
   | Delegating1(_, _, _, stopped, _)
   | Delegating2(_, _, _, _, stopped, _)
-  | Delegating3(_, _, _, _, _, stopped, _) => Volatile.read(stopped)
+  | Delegating3(_, _, _, _, _, stopped, _)
+  | Delegating4(_, _, _, _, _, _, stopped, _)
+  | Delegating5(_, _, _, _, _, _, _, stopped, _)
+  | Delegating6(_, _, _, _, _, _, _, _, stopped, _)
+  | Delegating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
+    Volatile.read(stopped)
   | Disposed => true;
 
 let shouldComplete =
@@ -405,7 +577,11 @@ let shouldComplete =
   | Delegating(_, _, stopped, _)
   | Delegating1(_, _, _, stopped, _)
   | Delegating2(_, _, _, _, stopped, _)
-  | Delegating3(_, _, _, _, _, stopped, _) =>
+  | Delegating3(_, _, _, _, _, stopped, _)
+  | Delegating4(_, _, _, _, _, _, stopped, _)
+  | Delegating5(_, _, _, _, _, _, _, stopped, _)
+  | Delegating6(_, _, _, _, _, _, _, _, stopped, _)
+  | Delegating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
     ! Interlocked.exchange(true, stopped)
   | Disposed => false;
 
@@ -508,6 +684,37 @@ let completeWithResult = {
       onComplete(ctx0, ctx1, delegate, exn)
     | Delegating3(ctx0, ctx1, ctx2, _, onComplete, _, delegate) =>
       onComplete(ctx0, ctx1, ctx2, delegate, exn)
+    | Delegating4(ctx0, ctx1, ctx2, ctx3, _, onComplete, _, delegate) =>
+      onComplete(ctx0, ctx1, ctx2, ctx3, delegate, exn)
+    | Delegating5(ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete, _, delegate) =>
+      onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, exn)
+    | Delegating6(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        _,
+        onComplete,
+        _,
+        delegate,
+      ) =>
+      onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, exn)
+    | Delegating7(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        ctx6,
+        _,
+        onComplete,
+        _,
+        delegate,
+      ) =>
+      onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, exn)
     | Disposed => ()
     };
 
@@ -604,6 +811,26 @@ let next = {
       onNext(ctx0, ctx1, delegate, next)
     | Delegating3(ctx0, ctx1, ctx2, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, ctx2, delegate, next)
+    | Delegating4(ctx0, ctx1, ctx2, ctx3, onNext, _, _, delegate) =>
+      onNext(ctx0, ctx1, ctx2, ctx3, delegate, next)
+    | Delegating5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, delegate) =>
+      onNext(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, next)
+    | Delegating6(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _, _, delegate) =>
+      onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, next)
+    | Delegating7(
+        ctx0,
+        ctx1,
+        ctx2,
+        ctx3,
+        ctx4,
+        ctx5,
+        ctx6,
+        onNext,
+        _,
+        _,
+        delegate,
+      ) =>
+      onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, next)
     | Disposed => ()
     };
 
@@ -629,6 +856,15 @@ let delegateOnComplete3 = (_, _, _, subscriber, exn) =>
 let delegateOnComplete4 = (_, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
+let delegateOnComplete5 = (_, _, _, _, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
+let delegateOnComplete6 = (_, _, _, _, _, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
+let delegateOnComplete7 = (_, _, _, _, _, _, _, subscriber, exn) =>
+  subscriber |> complete(~exn?);
+
 let delegateOnNext = (subscriber, v) => subscriber |> next(v);
 
 let delegateOnNext1 = (_, subscriber, v) => subscriber |> next(v);
@@ -638,6 +874,15 @@ let delegateOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
 let delegateOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
 
 let delegateOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
+
+let delegateOnNext5 = (_, _, _, _, _, subscriber, v) =>
+  subscriber |> next(v);
+
+let delegateOnNext6 = (_, _, _, _, _, _, subscriber, v) =>
+  subscriber |> next(v);
+
+let delegateOnNext7 = (_, _, _, _, _, _, _, subscriber, v) =>
+  subscriber |> next(v);
 
 let notify = (notif, subscriber) =>
   switch (notif) {

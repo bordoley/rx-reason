@@ -69,7 +69,8 @@ let createAutoDisposing5:
 let createAutoDisposing6:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                 unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -82,14 +83,24 @@ let createAutoDisposing6:
 let createAutoDisposing7:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, option(exn)) => unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   option(exn)
+                 ) =>
+                 unit,
     'ctx0,
     'ctx1,
     'ctx2,
     'ctx3,
     'ctx4,
     'ctx5,
-    'ctx6,
+    'ctx6
   ) =>
   t('a);
 
@@ -128,6 +139,83 @@ let delegate3:
     'ctx0,
     'ctx1,
     'ctx2,
+    t('b)
+  ) =>
+  t('a);
+
+let delegate4:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t('b)
+  ) =>
+  t('a);
+
+let delegate5:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t('b)
+  ) =>
+  t('a);
+
+let delegate6:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('b), 'a) => unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   t('b),
+                   option(exn)
+                 ) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    t('b)
+  ) =>
+  t('a);
+
+let delegate7:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('b), 'a) =>
+             unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   t('b),
+                   option(exn)
+                 ) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
     t('b)
   ) =>
   t('a);

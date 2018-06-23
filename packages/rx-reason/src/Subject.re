@@ -35,6 +35,15 @@ let delegateOnComplete3 = (_, _, _, {subscriber}, exn) =>
 let delegateOnComplete4 = (_, _, _, _, {subscriber}, exn) =>
   subscriber |> Subscriber.complete(~exn?);
 
+let delegateOnComplete5 = (_, _, _, _, _, {subscriber}, exn) =>
+  subscriber |> Subscriber.complete(~exn?);
+
+let delegateOnComplete6 = (_, _, _, _, _, _, {subscriber}, exn) =>
+  subscriber |> Subscriber.complete(~exn?);
+
+let delegateOnComplete7 = (_, _, _, _, _, _, _, {subscriber}, exn) =>
+  subscriber |> Subscriber.complete(~exn?);
+
 let delegateOnNext = ({subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
@@ -48,6 +57,15 @@ let delegateOnNext3 = (_, _, _, {subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
 let delegateOnNext4 = (_, _, _, _, {subscriber}, next) =>
+  subscriber |> Subscriber.next(next);
+
+let delegateOnNext5 = (_, _, _, _, _, {subscriber}, next) =>
+  subscriber |> Subscriber.next(next);
+
+let delegateOnNext6 = (_, _, _, _, _, _, {subscriber}, next) =>
+  subscriber |> Subscriber.next(next);
+
+let delegateOnNext7 = (_, _, _, _, _, _, _, {subscriber}, next) =>
   subscriber |> Subscriber.next(next);
 
 let dispose = self => self |> asDisposable |> Disposable.dispose;
@@ -275,7 +293,8 @@ let create = {
     let disposable =
       Disposable.create2(disposableTeardown, subscriber, subscribers);
 
-    let observable = Observable.create2(observableSource, subscribers, disposable);
+    let observable =
+      Observable.create2(observableSource, subscribers, disposable);
 
     {subscriber, observable, disposable};
   };
