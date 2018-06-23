@@ -555,7 +555,7 @@ let observeOn:
   (
     ~bufferStrategy: BufferStrategy.t=?,
     ~bufferSize: int=?,
-    Scheduler.t,
+    SchedulerNew.t,
     t('a)
   ) =>
   t('a);
