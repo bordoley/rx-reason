@@ -358,7 +358,7 @@ let combineLatest7:
  * Returns an Observable which concatenates elements of each provided Observable
  * into a single sequence of elements without interleaving them.
  */
-let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
+let concat: (~scheduler: SchedulerNew.t=?, list(t('a))) => t('a);
 
 /**
  * Returns an Observable from the specified subscribe function.
@@ -394,7 +394,7 @@ let create3:
  * |> Observable.debounce(scheduleWithDelay(5.0);
  * ```
  */
-let debounce: (Scheduler.t, t('a)) => t('a);
+let debounce: (SchedulerNew.t, t('a)) => t('a);
 
 /**
  * Returns an Observable which emits a default value if the

@@ -1,49 +1,57 @@
 let concat = {
-  let rec scheduleSubscription =
-          (scheduler, observables, subscription, subscriber) => {
+  let onComplete =
+      (continuation, observables, innerSubscription, subscriber, exn) =>
+    switch (exn) {
+    | Some(_) as exn =>
+      subscriber |> Subscriber.complete(~exn?);
+      continuation |> SchedulerContinuation.dispose;
+    | None =>
+      innerSubscription |> SerialDisposable.set(Disposable.disposed);
+      continuation |> SchedulerContinuation.continue(observables);
+    };
+
+  let doWork = (innerSubscription, subscriber, continuation, observables) => {
     let newSubscription =
       switch (observables) {
-      | [hd, ...tail] =>
-        scheduler(() =>
-          hd
-          |> ObservableSource.subscribeWith4(
-               ~onNext=Subscriber.delegateOnNext3,
-               ~onComplete,
-               scheduler,
-               tail,
-               subscription,
-               subscriber,
-             )
-          |> CompositeDisposable.asDisposable
-        )
       | [] =>
         subscriber |> Subscriber.complete;
-        Disposable.disposed;
+        CompositeDisposable.disposed;
+      | [hd, ...tail] =>
+        hd
+        |> ObservableSource.subscribeWith4(
+             ~onNext=Subscriber.delegateOnNext3,
+             ~onComplete,
+             continuation,
+             tail,
+             innerSubscription,
+             subscriber,
+           )
       };
 
-    /* An observable may complete synchronously and continue with an
-     * async observable. Avoid canceling the async observable in that case.
-     */
-    if (! Disposable.isDisposed(newSubscription)) {
-      subscription |> SerialDisposable.set(newSubscription);
+    if (! CompositeDisposable.isDisposed(newSubscription)) {
+      innerSubscription
+      |> SerialDisposable.set(
+           CompositeDisposable.asDisposable(newSubscription),
+         );
     };
-  }
-  and onComplete = (scheduler, observables, subscription, subscriber, exn) =>
-    switch (exn) {
-    | Some(_) as exn => subscriber |> Subscriber.complete(~exn?)
-    | None =>
-      /* Cancel the current subscription here */
-      subscription |> SerialDisposable.set(Disposable.disposed);
-      scheduleSubscription(scheduler, observables, subscription, subscriber);
-    };
-
-  let source = (scheduler, observables, subscriber) => {
-    let subscription = SerialDisposable.create();
-
-    scheduleSubscription(scheduler, observables, subscription, subscriber);
-    subscriber |> Subscriber.addSerialDisposable(subscription) |> ignore;
   };
 
-  (~scheduler=Scheduler.immediate, observables) =>
+  let source = (scheduler, observables, subscriber) => {
+    let innerSubscription = SerialDisposable.create();
+    let subscription =
+      scheduler
+      |> SchedulerNew.schedule2(
+           doWork,
+           observables,
+           innerSubscription,
+           subscriber,
+         );
+    subscriber 
+    |> Subscriber.addDisposable(subscription)
+    |> Subscriber.addSerialDisposable(innerSubscription) 
+    |> ignore;
+  };
+
+  (~scheduler=SchedulerNew.immediate, observables) =>
     ObservableSource.create2(source, scheduler, observables);
 };
