@@ -1,10 +1,11 @@
 let subscribeOn = {
+  let doSubscribe = (observable, subscriber, _, _) =>
+    observable |> ObservableSource.subscribeSubscriber(subscriber);
+
   let subscribeOnSource = (scheduler, observable, subscriber) => {
     let schedulerSubscription =
-      scheduler(() => {
-        observable |> ObservableSource.subscribeSubscriber(subscriber);
-        Disposable.disposed;
-      });
+      scheduler
+      |> SchedulerNew.schedule2(doSubscribe, (), observable, subscriber);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 

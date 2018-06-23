@@ -663,7 +663,7 @@ let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
  * Returns an Observable which subscribes to the provided source Observable
  * on the specified scheduler.
  */
-let subscribeOn: (Scheduler.t, t('a)) => t('a);
+let subscribeOn: (SchedulerNew.t, t('a)) => t('a);
 
 /**
  * Returns an Observable that flattens Observable items,
