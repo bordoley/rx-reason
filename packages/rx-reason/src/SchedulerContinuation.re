@@ -207,6 +207,14 @@ let continue = {
 
   (state, continuation) =>
     if (! isDisposed(continuation)) {
+      let innerDisposableActive =
+        continuation |> get |> Disposable.isDisposed |> (!);
+
+      if (innerDisposableActive) {
+        /** FIXME: define a real exception type here */
+        failwith("continue called multiple times");
+      };
+
       let executor = continuation |> getExecutor;
       executor(continuation, state, execute);
     };
