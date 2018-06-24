@@ -387,12 +387,6 @@ let create3:
  * Returns an Observable which drops items from the source that
  * are followed by another item within a debounce duration
  * determined by the scheduler.
- *
- * For instance, a DelayScheduler can be used debounce items every 5 ms:
- * ```re
- * someObservable
- * |> Observable.debounce(scheduleWithDelay(5.0);
- * ```
  */
 let debounce: (SchedulerNew.t, t('a)) => t('a);
 
@@ -565,7 +559,7 @@ let observeOn:
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
-  (~scheduler: ClockScheduler.t, list((float, Notification.t('a)))) =>
+  (~scheduler: TimeScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
@@ -585,7 +579,7 @@ let ofNotifications:
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
-  (~scheduler: DelayScheduler.t, list((float, Notification.t('a)))) =>
+  (~scheduler: TimeScheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
@@ -684,12 +678,6 @@ let synchronize: t('a) => t('a);
  * Returns an Observable which completes with a TimeoutException if
  * no notifications are observed before a duration determined
  * by the scheduler.
- *
- * For instance, a DelayScheduler can be used to timeout items every 5 ms:
- * ```re
- * someObservable
- * |> Observable..timeout(scheduleWithDelay(5.0));
- * ```
  */
 let timeout: (SchedulerNew.t, t('a)) => t('a);
 
