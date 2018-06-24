@@ -6,6 +6,9 @@
 /** A ClockScheduler instance that schedules work on the javascript event loop. */
 let clockScheduler: RxReason.ClockScheduler.t;
 
+
+let relativeTimeScheduler: RxReason.RelativeTimeSchedulerNew.t;
+
 /**
  * A Scheduler instance that schedules work on the javascript event loop.
  * 
