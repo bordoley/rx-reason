@@ -3,41 +3,11 @@ type t = {
   disposable: Disposable.t,
   /* FIXME: Don't use Belt directly. Instead add a Multimap to platform */
   timeQueue: Belt.MutableMap.Int.t(MutableQueue.t(unit => unit)),
-  scheduler: DelayScheduler.t,
+  scheduler: SchedulerNew.t,
 };
 
-let create = () => {
-  let currentTime = ref(-1);
-  let timeQueue = Belt.MutableMap.Int.make();
-  let disposable = Disposable.create1(Belt.MutableMap.Int.clear, timeQueue);
-  let scheduler = (delay, work) => {
-    Disposable.raiseIfDisposed(disposable);
-    let currentTime = currentTime^;
-    let scheduleTime = currentTime + int_of_float(delay);
 
-    if (scheduleTime >= currentTime) {
-      let disposable = SerialDisposable.create();
-      let executeWork = () =>
-        if (! SerialDisposable.isDisposed(disposable)) {
-          disposable |> SerialDisposable.set(work());
-        };
-
-      switch (Belt.MutableMap.Int.get(timeQueue, scheduleTime)) {
-      | Some(queue) => queue |> MutableQueue.enqueue(executeWork)
-      | None =>
-        let queue = MutableQueue.create();
-        queue |> MutableQueue.enqueue(executeWork);
-        Belt.MutableMap.Int.set(timeQueue, scheduleTime, queue);
-      };
-
-      disposable |> SerialDisposable.asDisposable;
-    } else {
-      Disposable.disposed;
-    };
-  };
-
-  {currentTime, disposable, timeQueue, scheduler};
-};
+let asScheduler = ({scheduler}) => scheduler;
 
 let advance = ({disposable, timeQueue} as vts: t) => {
   let currentTime = vts.currentTime^;
@@ -56,7 +26,40 @@ let advance = ({disposable, timeQueue} as vts: t) => {
   incr(vts.currentTime);
 };
 
-let asDelayScheduler = ({scheduler}) => scheduler;
+let create = () => {
+  let currentTime = ref(-1);
+  let timeQueue = Belt.MutableMap.Int.make();
+  let disposable = Disposable.create1(Belt.MutableMap.Int.clear, timeQueue);
+
+  let schedule = (delay, work) => {
+    let currentTime = currentTime^;
+    let scheduleTime = currentTime + int_of_float(delay);
+
+    if (scheduleTime >= currentTime) {
+      switch (Belt.MutableMap.Int.get(timeQueue, scheduleTime)) {
+      | Some(queue) => queue |> MutableQueue.enqueue(work)
+      | None =>
+        let queue = MutableQueue.create();
+        queue |> MutableQueue.enqueue(work);
+        Belt.MutableMap.Int.set(timeQueue, scheduleTime, queue);
+      };
+    };
+  };
+
+  let scheduler: SchedulerNew.t = {
+    executor: () => {
+      (~delay, continuation, state, f) => {
+        let work = () => f(state, continuation);
+        schedule(delay, work);
+      };
+    },
+    now: () => currentTime^ |> float_of_int,
+  };
+
+  {currentTime, disposable, timeQueue, scheduler};
+};
+
+let now = ({currentTime}: t) => float_of_int(currentTime^);
 
 let run = ({disposable, timeQueue} as vts: t) => {
   Disposable.raiseIfDisposed(disposable);
@@ -69,14 +72,4 @@ let run = ({disposable, timeQueue} as vts: t) => {
       || Disposable.isDisposed(disposable);
   };
   disposable |> Disposable.dispose;
-};
-
-let now = ({currentTime}: t) => float_of_int(currentTime^);
-
-let toScheduler = vts => asDelayScheduler(vts, 0.0);
-
-let toClockScheduler = (vts: t) : ClockScheduler.t => {
-  now: () => now(vts),
-  schedule: toScheduler(vts),
-  scheduleWithDelay: asDelayScheduler(vts),
 };
