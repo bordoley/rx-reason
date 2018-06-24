@@ -149,6 +149,8 @@ module type S = {
 
 let asRelativeTimeScheduler = Functions.identity;
 
+let now = ({now}) => now();
+
 let scheduleAfter = (~delay, work, state, {executor}) => {
   let continuation =
     DelayableSchedulerContinuation.create(executor(), work);
