@@ -44,15 +44,23 @@ let clockScheduler: RxReason.ClockScheduler.t = {
 };
 
 let schedulerNew: RxReason.SchedulerNew.t = {
-  let executor = (continuation, state, f) => {
-    let run = () => {
-      /* Cancel the inner disposable */
-      continuation |> RxReason.SchedulerContinuation.set(RxReason.Disposable.disposed);
-      
+  let run = ((continuation, state, f, disposable)) => {
+    let shouldRun = ! RxReason.Disposable.isDisposed(disposable);
+    disposable |> RxReason.Disposable.dispose;
+
+    if (shouldRun) {
       f(state, continuation);
-      resolveUnit;
     };
-    resolveUnit |> Js.Promise.then_(run) |> ignore;
+    resolveUnit;
+  };
+
+  let executor = (continuation, state, f) => {
+    let disposable = RxReason.Disposable.empty();
+    continuation |> RxReason.SchedulerContinuation.set(disposable);
+
+    Js.Promise.resolve((continuation, state, f, disposable))
+    |> Js.Promise.then_(run)
+    |> ignore;
   };
   {executor: executor};
 };
