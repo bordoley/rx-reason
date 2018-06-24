@@ -3,7 +3,7 @@ external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId = "";
 
 let resolveUnit = Js.Promise.resolve();
 /*
-let scheduler: RxReason.SchedulerNew.t = {
+let scheduler: RxReason.Scheduler.t = {
   let run = ((continuation, state, f, disposable)) => {
     let shouldRun = ! RxReason.Disposable.isDisposed(disposable);
     disposable |> RxReason.Disposable.dispose;
@@ -37,7 +37,7 @@ type executorState('state) = {
 
 let defaultF = (_, _) => ();
 
-let scheduler: RxReason.SchedulerNew.t = {
+let scheduler: RxReason.Scheduler.t = {
   let run = self => {
     self.pending = false;
 

@@ -26,12 +26,12 @@ let ofList = {
       };
 
     let schedulerSubscription =
-      scheduler |> SchedulerNew.schedule(loop, list);
+      scheduler |> Scheduler.schedule(loop, list);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
-  (~scheduler=SchedulerNew.immediate, list) =>
-    scheduler === SchedulerNew.immediate ?
+  (~scheduler=Scheduler.immediate, list) =>
+    scheduler === Scheduler.immediate ?
       ObservableSource.create1(ofListSynchronousSource, list) :
       ObservableSource.create2(ofListScheduledSource, scheduler, list);
 };
@@ -62,13 +62,13 @@ let ofNotifications = {
 
     (scheduler, notifications, subscriber) => {
       let schedulerSubscription =
-        scheduler |> SchedulerNew.schedule1(loop, notifications, subscriber);
+        scheduler |> Scheduler.schedule1(loop, notifications, subscriber);
       subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
     };
   };
 
-  (~scheduler=SchedulerNew.immediate, notifications) =>
-    scheduler === SchedulerNew.immediate ?
+  (~scheduler=Scheduler.immediate, notifications) =>
+    scheduler === Scheduler.immediate ?
       ObservableSource.create1(
         ofNotificationsSynchronousSource,
         notifications,
@@ -86,8 +86,8 @@ let ofValue = {
     subscriber |> Subscriber.complete;
   };
 
-  (~scheduler=SchedulerNew.immediate, value) =>
-    scheduler === SchedulerNew.immediate ?
+  (~scheduler=Scheduler.immediate, value) =>
+    scheduler === Scheduler.immediate ?
       ObservableSource.create1(ofValueSynchronousSource, value) :
       ofList(~scheduler, [value]);
 };
@@ -116,7 +116,7 @@ let ofRelativeTimeNotifications = {
       | [(delay, notif), ...tail] =>
         let schedulerSubscription =
           scheduler
-          |> SchedulerNew.scheduleAfter1(
+          |> Scheduler.scheduleAfter1(
                ~delay,
                loop,
                (notif, delay, tail),
@@ -139,7 +139,7 @@ let ofRelativeTimeNotifications = {
 
 let ofAbsoluteTimeNotifications =
   (~scheduler, notifications) => {
-    let currentTime = scheduler |> SchedulerNew.now;
+    let currentTime = scheduler |> Scheduler.now;
 
     let relativeTimeNotifications = notifications |> List.rev_map(
       ((time, notif)) => (time -. currentTime, notif)

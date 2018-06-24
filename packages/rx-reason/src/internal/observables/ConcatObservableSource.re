@@ -40,7 +40,7 @@ let concat = {
     let innerSubscription = SerialDisposable.create();
     let subscription =
       scheduler
-      |> SchedulerNew.schedule2(
+      |> Scheduler.schedule2(
            doWork,
            observables,
            innerSubscription,
@@ -52,6 +52,6 @@ let concat = {
     |> ignore;
   };
 
-  (~scheduler=SchedulerNew.immediate, observables) =>
+  (~scheduler=Scheduler.immediate, observables) =>
     ObservableSource.create2(source, scheduler, observables);
 };

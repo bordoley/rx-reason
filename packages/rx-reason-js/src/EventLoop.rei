@@ -9,4 +9,4 @@
  * The underlying implementation uses a resolved javascript Promise to schedule
  * a queued microtask to be processed on the next tick of the queue.
  */
-let scheduler: RxReason.SchedulerNew.t;
+let scheduler: RxReason.Scheduler.t;

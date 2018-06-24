@@ -102,13 +102,13 @@ let none: ('a => bool, Observable.t('a)) => t(bool);
  * Returns a Single that always succeeds with the given item
  * when subscribed to.
  */
-let ofValue: (~scheduler: SchedulerNew.t=?, 'a) => t('a);
+let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
 /**
  * Returns a Single that fails with the given exception
  * when subscribed to.
  */
-let raise: (~scheduler: SchedulerNew.t=?, exn) => t('a);
+let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 
 /**
  * Returns a Single which invokes the accumulator function to each

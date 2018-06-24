@@ -10,15 +10,15 @@ let raise = {
 
     (scheduler, exn, subscriber) => {
       let schedulerSubscription =
-        scheduler |> SchedulerNew.schedule2(doWork, (), subscriber, exn);
+        scheduler |> Scheduler.schedule2(doWork, (), subscriber, exn);
       subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
     };
   };
 
-  (~scheduler=SchedulerNew.immediate, exn: exn) => {
+  (~scheduler=Scheduler.immediate, exn: exn) => {
     let exn = Some(exn);
 
-    scheduler === SchedulerNew.immediate ?
+    scheduler === Scheduler.immediate ?
       ObservableSource.create1(raiseSynchronousSource, exn) :
       ObservableSource.create2(raiseScheduledSource, scheduler, exn);
   };

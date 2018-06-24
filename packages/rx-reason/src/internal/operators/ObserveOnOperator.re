@@ -40,7 +40,7 @@ let operator = {
       ) =>
     if (Interlocked.increment(wip) === 1) {
       scheduler
-      |> SchedulerNew.schedule6(
+      |> Scheduler.schedule6(
            doWorkStep,
            (),
            innerSubscription,
@@ -136,7 +136,7 @@ let operator = {
 };
 
 let lift =
-    (~bufferStrategy=?, ~bufferSize=?, scheduler: SchedulerNew.t, observable) =>
+    (~bufferStrategy=?, ~bufferSize=?, scheduler: Scheduler.t, observable) =>
   observable
   |> ObservableSource.lift(
        operator(~bufferStrategy?, ~bufferSize?, scheduler),
