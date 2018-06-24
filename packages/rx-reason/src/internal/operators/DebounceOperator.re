@@ -16,7 +16,7 @@ let operator = {
     MutableOption.set(next, lastValue);
     let schedulerDisposable =
       scheduler
-      |> SchedulerNew.schedule3(
+      |> Scheduler.schedule3(
            debounceNext,
            (),
            debounceSubscription,

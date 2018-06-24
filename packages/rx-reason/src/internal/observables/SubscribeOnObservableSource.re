@@ -5,7 +5,7 @@ let subscribeOn = {
   let subscribeOnSource = (scheduler, observable, subscriber) => {
     let schedulerSubscription =
       scheduler
-      |> SchedulerNew.schedule2(doSubscribe, (), observable, subscriber);
+      |> Scheduler.schedule2(doSubscribe, (), observable, subscriber);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 

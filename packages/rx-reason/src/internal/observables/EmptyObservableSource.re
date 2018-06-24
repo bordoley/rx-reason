@@ -9,13 +9,13 @@ let empty = {
 
     (scheduler, subscriber) => {
       let schedulerSubscription =
-        scheduler |> SchedulerNew.schedule1(doWork, (), subscriber);
+        scheduler |> Scheduler.schedule1(doWork, (), subscriber);
       subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
     };
   };
 
-  (~scheduler=SchedulerNew.immediate, ()) =>
-    scheduler === SchedulerNew.immediate ?
+  (~scheduler=Scheduler.immediate, ()) =>
+    scheduler === Scheduler.immediate ?
       ObservableSource.create(emptySynchronousSource) :
       ObservableSource.create1(emptyScheduledSource, scheduler);
 };

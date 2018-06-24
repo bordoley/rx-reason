@@ -358,7 +358,7 @@ let combineLatest7:
  * Returns an Observable which concatenates elements of each provided Observable
  * into a single sequence of elements without interleaving them.
  */
-let concat: (~scheduler: SchedulerNew.t=?, list(t('a))) => t('a);
+let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 
 /**
  * Returns an Observable from the specified subscribe function.
@@ -388,7 +388,7 @@ let create3:
  * are followed by another item within a debounce duration
  * determined by the scheduler.
  */
-let debounce: (SchedulerNew.t, t('a)) => t('a);
+let debounce: (Scheduler.t, t('a)) => t('a);
 
 /**
  * Returns an Observable which emits a default value if the
@@ -413,7 +413,7 @@ let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, t('a)) => t('a);
 /**
  * Returns an Observable that emits no items and immediately completes.
  */
-let empty: (~scheduler: SchedulerNew.t=?, unit) => t('a);
+let empty: (~scheduler: Scheduler.t=?, unit) => t('a);
 
 /**
  * Returns an Observable that emits a single true value if all
@@ -549,7 +549,7 @@ let observeOn:
   (
     ~bufferStrategy: BufferStrategy.t=?,
     ~bufferSize: int=?,
-    SchedulerNew.t,
+    Scheduler.t,
     t('a)
   ) =>
   t('a);
@@ -559,33 +559,33 @@ let observeOn:
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
-  (~scheduler: SchedulerNew.t, list((float, Notification.t('a)))) =>
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
  * Returns an Observable that emits the given items and then completes.
  */
-let ofList: (~scheduler: SchedulerNew.t=?, list('a)) => t('a);
+let ofList: (~scheduler: Scheduler.t=?, list('a)) => t('a);
 
 /**
  * Returns an Observable which emits the specified notifications
  * using the supplied scheduler.
  */
 let ofNotifications:
-  (~scheduler: SchedulerNew.t=?, list(Notification.t('a))) => t('a);
+  (~scheduler: Scheduler.t=?, list(Notification.t('a))) => t('a);
 
 /**
  * Returns an Observable which emits the specified notifications at the
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
-  (~scheduler: SchedulerNew.t, list((float, Notification.t('a)))) =>
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
   * Returns an Observable that emits the given item and then completes.
   */
-let ofValue: (~scheduler: SchedulerNew.t=?, 'a) => t('a);
+let ofValue: (~scheduler: Scheduler.t=?, 'a) => t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function when it completes.
@@ -609,7 +609,7 @@ let onSubscribe: (unit => Disposable.t, t('a)) => t('a);
  * Returns an Observable that completes with the specified exception
  * when subscribed to.
  */
-let raise: (~scheduler: SchedulerNew.t=?, exn) => t('a);
+let raise: (~scheduler: Scheduler.t=?, exn) => t('a);
 
 /**
  * Returns an Observable that mirrors the source Observable,
@@ -645,19 +645,19 @@ let some: ('a => bool, t('a)) => t(bool);
  * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithList: (~scheduler: SchedulerNew.t=?, list('a), t('a)) => t('a);
+let startWithList: (~scheduler: Scheduler.t=?, list('a), t('a)) => t('a);
 
 /**
  * Returns an Observable that emits a specified item before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithValue: (~scheduler: SchedulerNew.t=?, 'a, t('a)) => t('a);
+let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
 
 /**
  * Returns an Observable which subscribes to the provided source Observable
  * on the specified scheduler.
  */
-let subscribeOn: (SchedulerNew.t, t('a)) => t('a);
+let subscribeOn: (Scheduler.t, t('a)) => t('a);
 
 /**
  * Returns an Observable that flattens Observable items,
@@ -679,7 +679,7 @@ let synchronize: t('a) => t('a);
  * no notifications are observed before a duration determined
  * by the scheduler.
  */
-let timeout: (SchedulerNew.t, t('a)) => t('a);
+let timeout: (Scheduler.t, t('a)) => t('a);
 
 /**
  * Returns an Observable which collects all observed items in a list

@@ -5,7 +5,7 @@
 type t;
 
 /** Returns a new Scheduler instance that schedules work on the specified VirtualTimeScheduler.  */
-let asScheduler: t => SchedulerNew.t;
+let asScheduler: t => Scheduler.t;
 
 /** Advances the scheduler by 1 virtual ms. */
 let advance: t => unit;

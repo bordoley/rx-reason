@@ -3,7 +3,7 @@ type t = {
   disposable: Disposable.t,
   /* FIXME: Don't use Belt directly. Instead add a Multimap to platform */
   timeQueue: Belt.MutableMap.Int.t(MutableQueue.t(unit => unit)),
-  scheduler: SchedulerNew.t,
+  scheduler: Scheduler.t,
 };
 
 
@@ -46,7 +46,7 @@ let create = () => {
     };
   };
 
-  let scheduler: SchedulerNew.t = {
+  let scheduler: Scheduler.t = {
     executor: () => {
       (~delay, continuation, state, f) => {
         let work = () => f(state, continuation);
