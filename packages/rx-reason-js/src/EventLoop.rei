@@ -10,5 +10,3 @@
  * a queued microtask to be processed on the next tick of the queue.
  */
 let scheduler: RxReason.SchedulerNew.t;
-
-let timeScheduler: RxReason.TimeScheduler.t;

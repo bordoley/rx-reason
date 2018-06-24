@@ -103,11 +103,11 @@ let ofRelativeTimeNotifications = {
           let delay = max(0.0, delay -. previousDelay);
 
           continuation
-          |> DelayableSchedulerContinuation.continue(
+          |> SchedulerContinuation.continueAfter(
                ~delay,
                (notif, delay, tail, ),
              );
-        | [] => continuation |> DelayableSchedulerContinuation.dispose
+        | [] => continuation |> SchedulerContinuation.dispose
         };
       };
 
@@ -116,7 +116,7 @@ let ofRelativeTimeNotifications = {
       | [(delay, notif), ...tail] =>
         let schedulerSubscription =
           scheduler
-          |> TimeScheduler.scheduleAfter1(
+          |> SchedulerNew.scheduleAfter1(
                ~delay,
                loop,
                (notif, delay, tail),
@@ -139,7 +139,7 @@ let ofRelativeTimeNotifications = {
 
 let ofAbsoluteTimeNotifications =
   (~scheduler, notifications) => {
-    let currentTime = scheduler |> TimeScheduler.now;
+    let currentTime = scheduler |> SchedulerNew.now;
 
     let relativeTimeNotifications = notifications |> List.rev_map(
       ((time, notif)) => (time -. currentTime, notif)

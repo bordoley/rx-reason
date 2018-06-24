@@ -12,7 +12,7 @@ and work6('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) =
 and work7('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) =
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('state), 'state) => unit
 and executor('state) =
-  (t('state), 'state, ('state, t('state)) => unit) => unit
+  (~delay: float, t('state), 'state, ('state, t('state)) => unit) => unit
 and t('state) =
   | C0(executor('state), SerialDisposable.t, work('state))
   | C1(executor('state), SerialDisposable.t, work1('state, 'ctx0), 'ctx0): t(
@@ -74,7 +74,8 @@ and t('state) =
         'ctx4,
         'ctx5,
         'ctx6,
-      ): t('state);
+      ): t('state)
+  | Disposed;
 
 type schedulerContinuation('state) = t('state);
 
@@ -106,7 +107,8 @@ let asSerialDisposable =
   | C4(_, disposable, _, _, _, _, _)
   | C5(_, disposable, _, _, _, _, _, _)
   | C6(_, disposable, _, _, _, _, _, _, _)
-  | C7(_, disposable, _, _, _, _, _, _, _, _) => disposable;
+  | C7(_, disposable, _, _, _, _, _, _, _, _) => disposable
+  | Disposed => SerialDisposable.disposed;
 
 let asDisposable = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.asDisposable;
@@ -116,6 +118,8 @@ let get = continuation =>
 
 let set = (disposable, continuation) =>
   continuation |> asSerialDisposable |> SerialDisposable.set(disposable);
+
+let disposed = Disposed;
 
 let create = (executor, work) =>
   C0(executor, SerialDisposable.create(), work);
@@ -171,17 +175,21 @@ let isDisposed = continuation =>
 let raiseIfDisposed = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.raiseIfDisposed;
 
-let continue = {
+let continueAfter = {
   let getExecutor =
     fun
-    | C0(executor, _, _)
-    | C1(executor, _, _, _)
-    | C2(executor, _, _, _, _)
-    | C3(executor, _, _, _, _, _)
-    | C4(executor, _, _, _, _, _, _)
-    | C5(executor, _, _, _, _, _, _, _)
-    | C6(executor, _, _, _, _, _, _, _, _)
-    | C7(executor, _, _, _, _, _, _, _, _, _) => executor;
+    | C0(executor, _, _) as self
+    | C1(executor, _, _, _) as self
+    | C2(executor, _, _, _, _) as self
+    | C3(executor, _, _, _, _, _) as self
+    | C4(executor, _, _, _, _, _, _) as self
+    | C5(executor, _, _, _, _, _, _, _) as self
+    | C6(executor, _, _, _, _, _, _, _, _) as self
+    | C7(executor, _, _, _, _, _, _, _, _, _) as self => {
+        raiseIfDisposed(self);
+        executor;
+      }
+    | Disposed => DisposedException.raise();
 
   let doWork = (state, continuation) =>
     switch (continuation) {
@@ -198,6 +206,7 @@ let continue = {
       work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, continuation, state)
     | C7(_, _, work, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) =>
       work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, continuation, state)
+    | Disposed => ()
     };
 
   let execute = (state, continuation) =>
@@ -205,17 +214,21 @@ let continue = {
       doWork(state, continuation);
     };
 
-  (state, continuation) =>
-    if (! isDisposed(continuation)) {
-      let innerDisposableActive =
-        continuation |> get |> Disposable.isDisposed |> (!);
+  (~delay, state, continuation) => {
+    raiseIfDisposed(continuation);
 
-      if (innerDisposableActive) {
-        /** FIXME: define a real exception type here */
-        failwith("continue called multiple times");
-      };
+    let innerDisposableActive =
+      continuation |> get |> Disposable.isDisposed |> (!);
 
-      let executor = continuation |> getExecutor;
-      executor(continuation, state, execute);
+    if (innerDisposableActive) {
+      /** FIXME: define a real exception type here */
+      failwith("continue called multiple times");
     };
+
+    let executor = continuation |> getExecutor;
+    executor(~delay, continuation, state, execute);
+  };
 };
+
+let continue = (state, continuation) =>
+  continueAfter(~delay=0.0, state, continuation);

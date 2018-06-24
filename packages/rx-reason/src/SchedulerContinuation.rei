@@ -54,6 +54,7 @@ module Work: {
 module Executor: {
   type t('state) =
     (
+      ~delay: float,
       schedulerContinuation('state),
       'state,
       ('state, schedulerContinuation('state)) => unit
@@ -64,6 +65,8 @@ module Executor: {
 include SerialDisposable.S1 with type t('state) := t('state);
 
 let continue: ('state, t('state)) => unit;
+
+let continueAfter: (~delay: float, 'state, t('state)) => unit;
 
 let create: (Executor.t('state), Work.t('state)) => t('state);
 
@@ -133,3 +136,5 @@ let create7:
     'ctx6
   ) =>
   t('state);
+
+let disposed: t('state);
