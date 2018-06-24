@@ -2,7 +2,7 @@
 external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId = "";
 
 let resolveUnit = Js.Promise.resolve();
-
+/*
 let scheduler: RxReason.SchedulerNew.t = {
   let run = ((continuation, state, f, disposable)) => {
     let shouldRun = ! RxReason.Disposable.isDisposed(disposable);
@@ -23,21 +23,21 @@ let scheduler: RxReason.SchedulerNew.t = {
     |> ignore;
   };
   {executor: executor};
-};
+};*/
 
-type relativeTimeExecutorState('state) = {
+type executorState('state) = {
   mutable interval: RxReason.Disposable.t,
   mutable pending: bool,
   mutable delay: float,
-  mutable continuation: RxReason.DelayableSchedulerContinuation.t('state),
+  mutable continuation: RxReason.SchedulerContinuation.t('state),
   mutable f:
-    ('state, RxReason.DelayableSchedulerContinuation.t('state)) => unit,
+    ('state, RxReason.SchedulerContinuation.t('state)) => unit,
   mutable state: option('state),
 };
 
 let defaultF = (_, _) => ();
 
-let timeScheduler: RxReason.TimeScheduler.t = {
+let scheduler: RxReason.SchedulerNew.t = {
   let run = self => {
     self.pending = false;
 
@@ -45,7 +45,7 @@ let timeScheduler: RxReason.TimeScheduler.t = {
     self.f = defaultF;
 
     let continuation = self.continuation;
-    self.continuation = RxReason.DelayableSchedulerContinuation.disposed;
+    self.continuation = RxReason.SchedulerContinuation.disposed;
 
     switch (self.state) {
     | Some(state) =>
@@ -68,7 +68,7 @@ let timeScheduler: RxReason.TimeScheduler.t = {
       interval: RxReason.Disposable.disposed,
       pending: false,
       delay: (-1.0),
-      continuation: RxReason.DelayableSchedulerContinuation.disposed,
+      continuation: RxReason.SchedulerContinuation.disposed,
       f: defaultF,
       state: None,
     };
@@ -82,7 +82,7 @@ let timeScheduler: RxReason.TimeScheduler.t = {
         let interval = scheduleInterval(delay, self);
         self.interval = interval;
 
-        continuation |> RxReason.DelayableSchedulerContinuation.set(interval);
+        continuation |> RxReason.SchedulerContinuation.set(interval);
       };
 
       self.pending = true;
@@ -93,5 +93,5 @@ let timeScheduler: RxReason.TimeScheduler.t = {
     };
   };
 
-  {executor: factory, now: Js.Date.now, scheduler};
+  {executor: factory, now: Js.Date.now};
 };

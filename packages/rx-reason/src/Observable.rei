@@ -559,7 +559,7 @@ let observeOn:
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
-  (~scheduler: TimeScheduler.t, list((float, Notification.t('a)))) =>
+  (~scheduler: SchedulerNew.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
@@ -579,7 +579,7 @@ let ofNotifications:
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
-  (~scheduler: TimeScheduler.t, list((float, Notification.t('a)))) =>
+  (~scheduler: SchedulerNew.t, list((float, Notification.t('a)))) =>
   t('a);
 
 /**
