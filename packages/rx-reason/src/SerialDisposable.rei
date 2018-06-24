@@ -47,3 +47,5 @@ include S with type t := t;
 /** Constructs a new SerialDisposable instance containing a disposed disposable. */
 let create: unit => t;
 
+let disposed: t;
+

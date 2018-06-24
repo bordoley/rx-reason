@@ -1,3 +1,7 @@
+[@bs.val]
+external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId = "";
+
+
 let resolveUnit = Js.Promise.resolve();
 
 let schedule: RxReason.Scheduler.t =
@@ -54,7 +58,7 @@ let schedulerNew: RxReason.SchedulerNew.t = {
     resolveUnit;
   };
 
-  let executor = (continuation, state, f) => {
+  let executor = ((), continuation, state, f) => {
     let disposable = RxReason.Disposable.empty();
     continuation |> RxReason.SchedulerContinuation.set(disposable);
 
@@ -63,4 +67,74 @@ let schedulerNew: RxReason.SchedulerNew.t = {
     |> ignore;
   };
   {executor: executor};
+};
+
+type relativeTimeExecutorState('state) = {
+  mutable interval: RxReason.Disposable.t,
+  mutable pending: bool,
+  mutable delay: float,
+  mutable continuation: RxReason.RelativeTimeSchedulerContinuation.t('state),
+  mutable f:
+    ('state, RxReason.RelativeTimeSchedulerContinuation.t('state)) => unit,
+  mutable state: option('state),
+};
+
+let defaultF = (_, _) => ();
+
+let relativeTimeScheduler: RxReason.RelativeTimeSchedulerNew.t = {
+  let run = self => {
+    self.pending = false;
+
+    let f = self.f;
+    self.f = defaultF;
+
+    let continuation = self.continuation;
+    self.continuation = RxReason.RelativeTimeSchedulerContinuation.disposed;
+
+    switch (self.state) {
+    | Some(state) =>
+      self.state = None;
+      f(state, continuation);
+    | _ => ()
+    };
+  };
+
+  let shouldRecycleInterval = (delay, self) =>
+    ! self.pending && self.delay === delay;
+
+  let scheduleInterval = (delay, self) => {
+    let intervalId = setInterval1(run, delay, self);
+    RxReason.Disposable.create1(Js.Global.clearInterval, intervalId);
+  };
+
+  let factory = () => {
+    let self = {
+      interval: RxReason.Disposable.disposed,
+      pending: false,
+      delay: (-1.0),
+      continuation: RxReason.RelativeTimeSchedulerContinuation.disposed,
+      f: defaultF,
+      state: None
+    };
+
+    (~delay, continuation, state, f) => {
+      if (! shouldRecycleInterval(delay, self)) {
+        self.interval |> RxReason.Disposable.dispose;
+
+        let interval = scheduleInterval(delay, self);
+        self.interval = interval;
+
+        continuation
+        |> RxReason.RelativeTimeSchedulerContinuation.set(interval);
+      };
+
+      self.pending = true;
+      self.delay = delay;
+      self.continuation = continuation;
+      self.f = f;
+      self.state = Some(state);
+    };
+  };
+
+  {executor: factory, scheduler: schedulerNew};
 };

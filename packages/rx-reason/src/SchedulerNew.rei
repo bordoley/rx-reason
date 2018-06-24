@@ -1,4 +1,4 @@
-type t = {executor: 'state .SchedulerContinuation.Executor.t('state)};
+type t = {executor: 'state . unit => SchedulerContinuation.Executor.t('state)};
 
 type scheduler = t;
 

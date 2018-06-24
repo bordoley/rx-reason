@@ -1,4 +1,6 @@
-type t = {executor: 'state .SchedulerContinuation.Executor.t('state)};
+type t = {
+  executor: 'state .unit => SchedulerContinuation.Executor.t('state),
+};
 
 type scheduler = t;
 
@@ -110,34 +112,34 @@ module type S = {
 let asScheduler = Functions.identity;
 
 let schedule = (work, state, {executor}) => {
-  let continuation = SchedulerContinuation.create(executor, work);
+  let continuation = SchedulerContinuation.create(executor(), work);
   continuation |> SchedulerContinuation.continue(state);
   continuation |> SchedulerContinuation.asDisposable;
 };
 
 let schedule1 = (work, state, ctx0, {executor}) => {
-  let continuation = SchedulerContinuation.create1(executor, work, ctx0);
+  let continuation = SchedulerContinuation.create1(executor(), work, ctx0);
   continuation |> SchedulerContinuation.continue(state);
   continuation |> SchedulerContinuation.asDisposable;
 };
 
 let schedule2 = (work, state, ctx0, ctx1, {executor}) => {
   let continuation =
-    SchedulerContinuation.create2(executor, work, ctx0, ctx1);
+    SchedulerContinuation.create2(executor(), work, ctx0, ctx1);
   continuation |> SchedulerContinuation.continue(state);
   continuation |> SchedulerContinuation.asDisposable;
 };
 
 let schedule3 = (work, state, ctx0, ctx1, ctx2, {executor}) => {
   let continuation =
-    SchedulerContinuation.create3(executor, work, ctx0, ctx1, ctx2);
+    SchedulerContinuation.create3(executor(), work, ctx0, ctx1, ctx2);
   continuation |> SchedulerContinuation.continue(state);
   continuation |> SchedulerContinuation.asDisposable;
 };
 
 let schedule4 = (work, state, ctx0, ctx1, ctx2, ctx3, {executor}) => {
   let continuation =
-    SchedulerContinuation.create4(executor, work, ctx0, ctx1, ctx2, ctx3);
+    SchedulerContinuation.create4(executor(), work, ctx0, ctx1, ctx2, ctx3);
   continuation |> SchedulerContinuation.continue(state);
   continuation |> SchedulerContinuation.asDisposable;
 };
@@ -145,7 +147,7 @@ let schedule4 = (work, state, ctx0, ctx1, ctx2, ctx3, {executor}) => {
 let schedule5 = (work, state, ctx0, ctx1, ctx2, ctx3, ctx4, {executor}) => {
   let continuation =
     SchedulerContinuation.create5(
-      executor,
+      executor(),
       work,
       ctx0,
       ctx1,
@@ -160,7 +162,7 @@ let schedule5 = (work, state, ctx0, ctx1, ctx2, ctx3, ctx4, {executor}) => {
 let schedule6 = (work, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, {executor}) => {
   let continuation =
     SchedulerContinuation.create6(
-      executor,
+      executor(),
       work,
       ctx0,
       ctx1,
@@ -177,7 +179,7 @@ let schedule7 =
     (work, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, {executor}) => {
   let continuation =
     SchedulerContinuation.create7(
-      executor,
+      executor(),
       work,
       ctx0,
       ctx1,
@@ -193,5 +195,6 @@ let schedule7 =
 
 let immediate: t = {
   let immediateExecutor = (continuation, state, f) => f(state, continuation);
-  {executor: immediateExecutor};
+
+  {executor: () => immediateExecutor};
 };

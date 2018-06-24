@@ -56,6 +56,11 @@ let create = {
 
 let dispose = ({disposable}) => disposable |> Disposable.dispose;
 
+let disposed = {
+  disposableRef: ref(Disposable.disposed),
+  disposable: Disposable.disposed,
+};
+
 let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
 
 let raiseIfDisposed = ({disposable}) =>
