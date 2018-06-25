@@ -31,17 +31,17 @@
               "public": "none"
             },
             {
-              "dir": "utils",
-              "public": "none"
-            }
-          ]
-        },
-        {
-          "dir": "platform",
-          "public": "none",
-          "subdirs": [
+              "dir": "platform",
+              "public": "none",
+              "subdirs": [
+                {
+                  "dir": "js",
+                  "public": "none"
+                }
+              ]
+            },
             {
-              "dir": "js",
+              "dir": "utils",
               "public": "none"
             }
           ]
