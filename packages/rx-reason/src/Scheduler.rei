@@ -144,13 +144,7 @@ let scheduleAfter3:
 let scheduleAfter4:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t4(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-    ),
+    SchedulerContinuation.Work.t4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3),
     'state,
     'ctx0,
     'ctx1,
@@ -163,14 +157,7 @@ let scheduleAfter4:
 let scheduleAfter5:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t5(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-      'ctx4,
-    ),
+    SchedulerContinuation.Work.t5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4),
     'state,
     'ctx0,
     'ctx1,
@@ -217,6 +204,85 @@ let scheduleAfter7:
       'ctx5,
       'ctx6,
     ),
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleBy: (~time: float, 'state => unit, 'state, t) => Disposable.t;
+
+let scheduleBy1:
+  (~time: float, ('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
+
+let scheduleBy2:
+  (~time: float, ('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) =>
+  Disposable.t;
+
+let scheduleBy3:
+  (
+    ~time: float,
+    ('ctx0, 'ctx1, 'ctx2, 'state) => unit,
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleBy4:
+  (
+    ~time: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleBy5:
+  (
+    ~time: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleBy6:
+  (
+    ~time: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleBy7:
+  (
+    ~time: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,

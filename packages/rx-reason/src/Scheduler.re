@@ -165,7 +165,7 @@ let scheduleBy = (~time, work, state, scheduler) => {
   let delay = time -. now;
   if (! (delay < 0.0)) {
     let work = (_, state) => work(state);
-    scheduleAfter(~delay=0.0, work, state, scheduler);
+    scheduleAfter(~delay, work, state, scheduler);
   } else {
     Disposable.disposed;
   };
@@ -175,8 +175,8 @@ let scheduleBy1 = (~time, work, state, ctx0, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, _, state) => work(ctx0, state);
-    scheduleAfter1(~delay=0.0, work, state, scheduler, ctx0);
+    let work = (ctx0 , _, state) => work(ctx0, state);
+    scheduleAfter1(~delay=0.0, work, state, ctx0, scheduler);
   } else {
     Disposable.disposed;
   };
@@ -187,7 +187,7 @@ let scheduleBy2 = (~time, work, state, ctx0, ctx1, scheduler) => {
   let delay = time -. now;
   if (! (delay < 0.0)) {
     let work = (ctx0, ctx1, _, state) => work(ctx0, ctx1, state);
-    scheduleAfter2(~delay=0.0, work, state, scheduler, ctx0, ctx1);
+    scheduleAfter2(~delay=0.0, work, state, ctx0, ctx1, scheduler);
   } else {
     Disposable.disposed;
   };
@@ -198,7 +198,7 @@ let scheduleBy3 = (~time, work, state, ctx0, ctx1, ctx2, scheduler) => {
   let delay = time -. now;
   if (! (delay < 0.0)) {
     let work = (ctx0, ctx1, ctx2, _, state) => work(ctx0, ctx1, ctx2, state);
-    scheduleAfter3(~delay=0.0, work, state, scheduler, ctx0, ctx1, ctx2);
+    scheduleAfter3(~delay=0.0, work, state, ctx0, ctx1, ctx2, scheduler);
   } else {
     Disposable.disposed;
   };
@@ -214,11 +214,11 @@ let scheduleBy4 = (~time, work, state, ctx0, ctx1, ctx2, ctx3, scheduler) => {
       ~delay=0.0,
       work,
       state,
-      scheduler,
       ctx0,
       ctx1,
       ctx2,
       ctx3,
+      scheduler,
     );
   } else {
     Disposable.disposed;
@@ -236,12 +236,12 @@ let scheduleBy5 =
       ~delay=0.0,
       work,
       state,
-      scheduler,
       ctx0,
       ctx1,
       ctx2,
       ctx3,
       ctx4,
+      scheduler,
     );
   } else {
     Disposable.disposed;
@@ -259,13 +259,13 @@ let scheduleBy6 =
       ~delay=0.0,
       work,
       state,
-      scheduler,
       ctx0,
       ctx1,
       ctx2,
       ctx3,
       ctx4,
       ctx5,
+      scheduler,
     );
   } else {
     Disposable.disposed;
@@ -283,7 +283,6 @@ let scheduleBy7 =
       ~delay=0.0,
       work,
       state,
-      scheduler,
       ctx0,
       ctx1,
       ctx2,
@@ -291,6 +290,7 @@ let scheduleBy7 =
       ctx4,
       ctx5,
       ctx6,
+      scheduler,
     );
   } else {
     Disposable.disposed;
