@@ -15,11 +15,13 @@ let raise = {
     };
   };
 
-  (~scheduler=Scheduler.immediate, exn: exn) => {
+  (~scheduler=?, exn: exn) => {
     let exn = Some(exn);
 
-    scheduler === Scheduler.immediate ?
-      ObservableSource.create1(raiseSynchronousSource, exn) :
-      ObservableSource.create2(raiseScheduledSource, scheduler, exn);
+    switch (scheduler) {
+    | Some(scheduler) =>
+      ObservableSource.create2(raiseScheduledSource, scheduler, exn)
+    | None => ObservableSource.create1(raiseSynchronousSource, exn)
+    };
   };
 };

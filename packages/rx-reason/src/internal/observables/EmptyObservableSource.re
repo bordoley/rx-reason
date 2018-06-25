@@ -14,8 +14,10 @@ let empty = {
     };
   };
 
-  (~scheduler=Scheduler.immediate, ()) =>
-    scheduler === Scheduler.immediate ?
-      ObservableSource.create(emptySynchronousSource) :
-      ObservableSource.create1(emptyScheduledSource, scheduler);
+  (~scheduler=?, ()) =>
+    switch (scheduler) {
+    | Some(scheduler) =>
+      ObservableSource.create1(emptyScheduledSource, scheduler)
+    | None => ObservableSource.create(emptySynchronousSource)
+    };
 };

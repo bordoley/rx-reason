@@ -2,13 +2,13 @@ let subscribeOn = {
   let doSubscribe = (observable, subscriber, _, _) =>
     observable |> ObservableSource.subscribeSubscriber(subscriber);
 
-  let subscribeOnSource = (scheduler, observable, subscriber) => {
+  let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
     let schedulerSubscription =
       scheduler
-      |> Scheduler.schedule2(doSubscribe, (), observable, subscriber);
+      |> Scheduler.scheduleAfter2(~delay, doSubscribe, (), observable, subscriber);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
-  (scheduler, observable) =>
-    ObservableSource.create2(subscribeOnSource, scheduler, observable);
+  (~delay=0.0, scheduler, observable) =>
+    ObservableSource.create3(subscribeOnSource, delay, scheduler, observable);
 };

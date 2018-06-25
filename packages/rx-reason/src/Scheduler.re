@@ -296,8 +296,3 @@ let scheduleBy7 =
     Disposable.disposed;
   };
 };
-
-let immediate: t = {
-  let fail = () => failwith("attempting to schedule on the none scheduler");
-  {executor: fail, now: fail};
-};

@@ -294,5 +294,3 @@ let scheduleBy7:
     t
   ) =>
   Disposable.t;
-
-let immediate: t;

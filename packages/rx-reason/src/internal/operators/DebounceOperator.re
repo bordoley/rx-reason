@@ -11,12 +11,14 @@ let operator = {
     };
   };
 
-  let onNext = (debounceSubscription, lastValue, scheduler, delegate, next) => {
+  let onNext =
+      (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
     clearDebounce(debounceSubscription);
     MutableOption.set(next, lastValue);
     let schedulerDisposable =
       scheduler
-      |> Scheduler.schedule3(
+      |> Scheduler.scheduleAfter3(
+           ~delay=dueTime,
            debounceNext,
            (),
            debounceSubscription,
@@ -27,7 +29,7 @@ let operator = {
     debounceSubscription |> SerialDisposable.set(schedulerDisposable);
   };
 
-  let onComplete = (debounceSubscription, lastValue, _, delegate, exn) => {
+  let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {
     switch (exn) {
     | Some(_) => clearDebounce(debounceSubscription)
     | None =>
@@ -36,21 +38,22 @@ let operator = {
     delegate |> Subscriber.complete(~exn?);
   };
 
-  (scheduler, subscriber) => {
+  (scheduler, dueTime, subscriber) => {
     let debounceSubscription = SerialDisposable.create();
     let lastValue = MutableOption.create();
 
     subscriber
-    |> Subscriber.delegate3(
+    |> Subscriber.delegate4(
          ~onNext,
          ~onComplete,
          debounceSubscription,
          lastValue,
          scheduler,
+         dueTime,
        )
     |> Subscriber.addSerialDisposable(debounceSubscription);
   };
 };
 
-let lift = (scheduler, observable) =>
-  observable |> ObservableSource.lift(operator(scheduler));
+let lift = (~scheduler, ~dueTime, observable) =>
+  observable |> ObservableSource.lift(operator(scheduler, dueTime));

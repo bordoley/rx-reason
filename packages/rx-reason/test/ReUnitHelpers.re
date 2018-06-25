@@ -26,7 +26,7 @@ let observableIt =
       name,
       ~nextEquals=(===),
       ~nextToString,
-      ~source: ClockScheduler.t => Observable.t('a),
+      ~source: Scheduler.t => Observable.t('a),
       ~expected: list(Notification.t('b)),
       (),
     ) =>
@@ -34,7 +34,7 @@ let observableIt =
     name,
     () => {
       let vts = VirtualTimeScheduler.create();
-      let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+      let scheduler = vts |> VirtualTimeScheduler.asScheduler;
 
       let subscription =
         source(scheduler)

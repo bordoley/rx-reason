@@ -257,6 +257,7 @@ let create3 = ObservableSource.create3;
 let debounce = DebounceOperator.lift;
 let defaultIfEmpty = DefaultIfEmptyOperator.lift;
 let defer = DeferObservableSource.defer;
+let delay = DelayOperator.lift;
 let distinctUntilChanged = DistinctUntilChangedOperator.lift;
 let empty = EmptyObservableSource.empty;
 let every = EveryOperator.lift;
@@ -335,12 +336,12 @@ let retry = (~predicate=Functions.alwaysTrue1, observable) =>
   );
 
 let startWithList =
-    (~scheduler=Scheduler.immediate, values, observable) =>
-  concat([ofList(~scheduler, values), observable]);
+    (~scheduler=?, values, observable) =>
+  concat([ofList(~scheduler?, values), observable]);
 
 let startWithValue =
-    (~scheduler=Scheduler.immediate, value, observable) =>
-  concat([ofValue(~scheduler, value), observable]);
+    (~scheduler=?, value, observable) =>
+  concat([ofValue(~scheduler?, value), observable]);
 
 let toList = observable =>
   observable

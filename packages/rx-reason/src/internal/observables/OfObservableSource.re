@@ -25,15 +25,16 @@ let ofList = {
         continuation |> SchedulerContinuation.dispose;
       };
 
-    let schedulerSubscription =
-      scheduler |> Scheduler.schedule(loop, list);
+    let schedulerSubscription = scheduler |> Scheduler.schedule(loop, list);
     subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
-  (~scheduler=Scheduler.immediate, list) =>
-    scheduler === Scheduler.immediate ?
-      ObservableSource.create1(ofListSynchronousSource, list) :
-      ObservableSource.create2(ofListScheduledSource, scheduler, list);
+  (~scheduler=?, list) =>
+    switch (scheduler) {
+    | Some(scheduler) =>
+      ObservableSource.create2(ofListScheduledSource, scheduler, list)
+    | None => ObservableSource.create1(ofListSynchronousSource, list)
+    };
 };
 
 let ofNotifications = {
@@ -67,17 +68,20 @@ let ofNotifications = {
     };
   };
 
-  (~scheduler=Scheduler.immediate, notifications) =>
-    scheduler === Scheduler.immediate ?
-      ObservableSource.create1(
-        ofNotificationsSynchronousSource,
-        notifications,
-      ) :
+  (~scheduler=?, notifications) =>
+    switch (scheduler) {
+    | Some(scheduler) =>
       ObservableSource.create2(
         ofNotificationsScheduledSource,
         scheduler,
         notifications,
-      );
+      )
+    | None =>
+      ObservableSource.create1(
+        ofNotificationsSynchronousSource,
+        notifications,
+      )
+    };
 };
 
 let ofValue = {
@@ -86,30 +90,28 @@ let ofValue = {
     subscriber |> Subscriber.complete;
   };
 
-  (~scheduler=Scheduler.immediate, value) =>
-    scheduler === Scheduler.immediate ?
-      ObservableSource.create1(ofValueSynchronousSource, value) :
-      ofList(~scheduler, [value]);
+  (~scheduler=?, value) =>
+    switch (scheduler) {
+    | Some(scheduler) => ofList(~scheduler, [value])
+    | None => ObservableSource.create1(ofValueSynchronousSource, value)
+    };
 };
 
 let ofRelativeTimeNotifications = {
   let ofRelativeTimeNotificationsScheduledSource = {
     let loop =
-      (subscriber, continuation, (notif, previousDelay, notifications)) => {
-        subscriber |> Subscriber.notify(notif);
+        (subscriber, continuation, (notif, previousDelay, notifications)) => {
+      subscriber |> Subscriber.notify(notif);
 
-        switch (notifications) {
-        | [(delay, notif), ...tail] =>
-          let delay = max(0.0, delay -. previousDelay);
+      switch (notifications) {
+      | [(delay, notif), ...tail] =>
+        let delay = max(0.0, delay -. previousDelay);
 
-          continuation
-          |> SchedulerContinuation.continueAfter(
-               ~delay,
-               (notif, delay, tail, ),
-             );
-        | [] => continuation |> SchedulerContinuation.dispose
-        };
+        continuation
+        |> SchedulerContinuation.continueAfter(~delay, (notif, delay, tail));
+      | [] => continuation |> SchedulerContinuation.dispose
       };
+    };
 
     (scheduler, notifications, subscriber) =>
       switch (notifications) {
@@ -137,13 +139,12 @@ let ofRelativeTimeNotifications = {
     );
 };
 
-let ofAbsoluteTimeNotifications =
-  (~scheduler, notifications) => {
-    let currentTime = scheduler |> Scheduler.now;
+let ofAbsoluteTimeNotifications = (~scheduler, notifications) => {
+  let currentTime = scheduler |> Scheduler.now;
 
-    let relativeTimeNotifications = notifications |> List.rev_map(
-      ((time, notif)) => (time -. currentTime, notif)
-    );
+  let relativeTimeNotifications =
+    notifications
+    |> List.rev_map(((time, notif)) => (time -. currentTime, notif));
 
-    ofRelativeTimeNotifications(~scheduler, relativeTimeNotifications);
+  ofRelativeTimeNotifications(~scheduler, relativeTimeNotifications);
 };
