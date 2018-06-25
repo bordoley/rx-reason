@@ -27,7 +27,7 @@ let advance = ({disposable, timeQueue} as vts: t) => {
 };
 
 let create = () => {
-  let currentTime = ref(-1);
+  let currentTime = ref(0);
   let timeQueue = Belt.MutableMap.Int.make();
   let disposable = Disposable.create1(Belt.MutableMap.Int.clear, timeQueue);
 

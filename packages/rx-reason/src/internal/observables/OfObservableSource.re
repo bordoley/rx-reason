@@ -104,11 +104,11 @@ let ofRelativeTimeNotifications = {
       subscriber |> Subscriber.notify(notif);
 
       switch (notifications) {
-      | [(delay, notif), ...tail] =>
-        let delay = max(0.0, delay -. previousDelay);
+      | [(requestedDelay, notif), ...tail] =>
+        let computedDelay = max(0.0, requestedDelay -. previousDelay);
 
         continuation
-        |> SchedulerContinuation.continueAfter(~delay, (notif, delay, tail));
+        |> SchedulerContinuation.continueAfter(~delay = computedDelay, (notif, requestedDelay, tail));
       | [] => continuation |> SchedulerContinuation.dispose
       };
     };

@@ -746,7 +746,7 @@ let test =
                     (15.0, Next(4)),
                     (16.0, Next(5)),
                     (17.0, Next(6)),
-                    (18.0, Complete),
+                    (30.0, Complete),
                   ],
                 )
                 |> Observable.debounce(~scheduler, ~dueTime=5.0),
