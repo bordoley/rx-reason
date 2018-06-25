@@ -5,7 +5,7 @@ type context('a) = {
 
 let operator = {
   let hasActiveSubscription = ({innerSubscription}) =>
-    innerSubscription |> SerialDisposable.get |> Disposable.isDisposed |> (!);
+    innerSubscription |> SerialDisposable.getInnerDisposable |> Disposable.isDisposed |> (!);
 
   let completeSubscriber = ({innerSubscription}, delegate, exn) => {
     innerSubscription |> SerialDisposable.dispose;
@@ -32,7 +32,7 @@ let operator = {
             next,
           );
         innerSubscription
-        |> SerialDisposable.set(
+        |> SerialDisposable.setInnerDisposable(
              subscription |> CompositeDisposable.asDisposable,
            );
       };

@@ -5,8 +5,8 @@ type context('a) = {
 
 let operator = {
   let subscribeToTimeout = ({connect, timeoutSubscription}) => {
-    timeoutSubscription |> SerialDisposable.get |> Disposable.dispose;
-    timeoutSubscription |> SerialDisposable.set(connect());
+    timeoutSubscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
+    timeoutSubscription |> SerialDisposable.setInnerDisposable(connect());
   };
 
   let onNext = (ctx, delegate, next) => {

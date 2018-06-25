@@ -48,7 +48,7 @@ let create = () => {
   let scheduler: Scheduler.t = {
     executor: ((), ~delay, continuation, state, f) => {
       let disposable = Disposable.empty();
-      continuation |> SchedulerContinuation.set(disposable);
+      continuation |> SchedulerContinuation.setInnerDisposable(disposable);
 
       let work = () => {
         let shouldRun = ! Disposable.isDisposed(disposable);

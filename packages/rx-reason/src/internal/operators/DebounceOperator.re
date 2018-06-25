@@ -1,6 +1,6 @@
 let operator = {
   let clearDebounce = debounceSubscription =>
-    debounceSubscription |> SerialDisposable.set(Disposable.disposed);
+    debounceSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
   let debounceNext = (debounceSubscription, lastValue, delegate) => {
     clearDebounce(debounceSubscription);
@@ -30,7 +30,7 @@ let operator = {
            delegate,
          );
 
-    debounceSubscription |> SerialDisposable.set(schedulerDisposable);
+    debounceSubscription |> SerialDisposable.setInnerDisposable(schedulerDisposable);
   };
 
   let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {

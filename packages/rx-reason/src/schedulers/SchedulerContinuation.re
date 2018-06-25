@@ -113,11 +113,11 @@ let asSerialDisposable =
 let asDisposable = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.asDisposable;
 
-let get = continuation =>
-  continuation |> asSerialDisposable |> SerialDisposable.get;
+let getInnerDisposable = continuation =>
+  continuation |> asSerialDisposable |> SerialDisposable.getInnerDisposable;
 
-let set = (disposable, continuation) =>
-  continuation |> asSerialDisposable |> SerialDisposable.set(disposable);
+let setInnerDisposable = (disposable, continuation) =>
+  continuation |> asSerialDisposable |> SerialDisposable.setInnerDisposable(disposable);
 
 let disposed = Disposed;
 
@@ -213,7 +213,7 @@ let continueAfter = {
 
   (~delay, state, continuation) => {
     let innerDisposableActive =
-      continuation |> get |> Disposable.isDisposed |> (!);
+      continuation |> getInnerDisposable |> Disposable.isDisposed |> (!);
 
     if (innerDisposableActive) {
       /** FIXME: define a real exception type here */

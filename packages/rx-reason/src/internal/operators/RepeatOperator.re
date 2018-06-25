@@ -27,7 +27,7 @@ let operator = {
     let alreadyDisposed = subscription |> SerialDisposable.isDisposed;
 
     if (! alreadyDisposed) {
-      subscription |> SerialDisposable.get |> Disposable.dispose;
+      subscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
       let newInnerSubscription =
         observable
         |> ObservableSource.subscribeWith4(
@@ -39,7 +39,7 @@ let operator = {
              delegate,
            );
       subscription
-      |> SerialDisposable.set(
+      |> SerialDisposable.setInnerDisposable(
            newInnerSubscription |> CompositeDisposable.asDisposable,
          );
     };

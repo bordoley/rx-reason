@@ -16,7 +16,7 @@ let scheduler: RxReason.Scheduler.t = {
 
   let executor = ((), continuation, state, f) => {
     let disposable = RxReason.Disposable.empty();
-    continuation |> RxReason.SchedulerContinuation.set(disposable);
+    continuation |> RxReason.SchedulerContinuation.setInnerDisposable(disposable);
 
     Js.Promise.resolve((continuation, state, f, disposable))
     |> Js.Promise.then_(run)
@@ -82,7 +82,7 @@ let scheduler: RxReason.Scheduler.t = {
         let interval = scheduleInterval(delay, self);
         self.interval = interval;
 
-        continuation |> RxReason.SchedulerContinuation.set(interval);
+        continuation |> RxReason.SchedulerContinuation.setInnerDisposable(interval);
       };
 
       self.pending = true;

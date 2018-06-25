@@ -25,7 +25,7 @@ let operator = {
       };
 
     (id, {innerSubscription} as ctx, delegate, next) => {
-      innerSubscription |> SerialDisposable.set(Disposable.disposed);
+      innerSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
         ObservableSource.subscribeWith3(
@@ -38,7 +38,7 @@ let operator = {
         );
 
       innerSubscription
-      |> SerialDisposable.set(
+      |> SerialDisposable.setInnerDisposable(
            newInnerSubscription |> CompositeDisposable.asDisposable,
          );
     };

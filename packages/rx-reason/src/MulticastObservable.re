@@ -28,7 +28,7 @@ let shareInternal = {
       (refCount, sourceSubscription, currentSubject, subject, subscription) => {
     decr(refCount);
     if (refCount^ === 0) {
-      sourceSubscription |> SerialDisposable.set(Disposable.disposed);
+      sourceSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
       currentSubject |> Subject.dispose;
       subject := Subject.disposed;
     };
@@ -57,7 +57,7 @@ let shareInternal = {
 
       if (refCount^ === 0) {
         sourceSubscription
-        |> SerialDisposable.set(
+        |> SerialDisposable.setInnerDisposable(
              Observable.subscribeWith1(
                ~onNext=Subject.delegateOnNext,
                ~onComplete=Subject.delegateOnComplete,

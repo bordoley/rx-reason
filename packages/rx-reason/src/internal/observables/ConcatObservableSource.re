@@ -7,7 +7,7 @@ let concat = {
         subscriber |> Subscriber.complete(~exn?);
         continuation |> SchedulerContinuation.dispose;
       | None =>
-        innerSubscription |> SerialDisposable.set(Disposable.disposed);
+        innerSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
         continuation |> SchedulerContinuation.continue(observables);
       };
 
@@ -31,7 +31,7 @@ let concat = {
 
       if (! CompositeDisposable.isDisposed(newSubscription)) {
         innerSubscription
-        |> SerialDisposable.set(
+        |> SerialDisposable.setInnerDisposable(
              CompositeDisposable.asDisposable(newSubscription),
            );
       };
@@ -74,7 +74,7 @@ let concat = {
                      subscriber |> Subscriber.complete(~exn?)
                    | None =>
                      innerSubscription
-                     |> SerialDisposable.set(Disposable.disposed);
+                     |> SerialDisposable.setInnerDisposable(Disposable.disposed);
                      loop(tail);
                    },
                subscriber,
@@ -83,7 +83,7 @@ let concat = {
 
       if (! CompositeDisposable.isDisposed(newSubscription)) {
         innerSubscription
-        |> SerialDisposable.set(
+        |> SerialDisposable.setInnerDisposable(
              CompositeDisposable.asDisposable(newSubscription),
            );
       };
