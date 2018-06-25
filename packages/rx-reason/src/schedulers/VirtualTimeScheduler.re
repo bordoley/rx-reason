@@ -6,7 +6,6 @@ type t = {
   scheduler: Scheduler.t,
 };
 
-
 let asScheduler = ({scheduler}) => scheduler;
 
 let advance = ({disposable, timeQueue} as vts: t) => {
@@ -47,11 +46,19 @@ let create = () => {
   };
 
   let scheduler: Scheduler.t = {
-    executor: () => {
-      (~delay, continuation, state, f) => {
-        let work = () => f(state, continuation);
-        schedule(delay, work);
+    executor: ((), ~delay, continuation, state, f) => {
+      let disposable = Disposable.empty();
+      continuation |> SchedulerContinuation.set(disposable);
+
+      let work = () => {
+        let shouldRun = ! Disposable.isDisposed(disposable);
+        disposable |> Disposable.dispose;
+
+        if (shouldRun) {
+          f(state, continuation);
+        };
       };
+      schedule(delay, work);
     },
     now: () => currentTime^ |> float_of_int,
   };

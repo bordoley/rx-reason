@@ -178,17 +178,14 @@ let raiseIfDisposed = continuation =>
 let continueAfter = {
   let getExecutor =
     fun
-    | C0(executor, _, _) as self
-    | C1(executor, _, _, _) as self
-    | C2(executor, _, _, _, _) as self
-    | C3(executor, _, _, _, _, _) as self
-    | C4(executor, _, _, _, _, _, _) as self
-    | C5(executor, _, _, _, _, _, _, _) as self
-    | C6(executor, _, _, _, _, _, _, _, _) as self
-    | C7(executor, _, _, _, _, _, _, _, _, _) as self => {
-        raiseIfDisposed(self);
-        executor;
-      }
+    | C0(executor, _, _)
+    | C1(executor, _, _, _)
+    | C2(executor, _, _, _, _)
+    | C3(executor, _, _, _, _, _)
+    | C4(executor, _, _, _, _, _, _)
+    | C5(executor, _, _, _, _, _, _, _)
+    | C6(executor, _, _, _, _, _, _, _, _)
+    | C7(executor, _, _, _, _, _, _, _, _, _) => executor
     | Disposed => DisposedException.raise();
 
   let doWork = (state, continuation) =>
@@ -215,8 +212,6 @@ let continueAfter = {
     };
 
   (~delay, state, continuation) => {
-    raiseIfDisposed(continuation);
-
     let innerDisposableActive =
       continuation |> get |> Disposable.isDisposed |> (!);
 
