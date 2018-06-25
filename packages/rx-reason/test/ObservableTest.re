@@ -746,7 +746,7 @@ let test =
                     (15.0, Next(4)),
                     (16.0, Next(5)),
                     (17.0, Next(6)),
-                    (30.0, Complete),
+                    (18.0, Complete),
                   ],
                 )
                 |> Observable.debounce(~scheduler, ~dueTime=5.0),
@@ -832,7 +832,7 @@ let test =
             "completes with false on the first observed value that fails the predicate",
             ~nextToString=string_of_int,
             ~source=
-              ({now} as scheduler) =>
+              scheduler =>
                 Observable.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
@@ -844,7 +844,9 @@ let test =
                   ],
                 )
                 |> Observable.every(i => i > 10)
-                |> Observable.map(_ => now() |> int_of_float),
+                |> Observable.map(_ =>
+                     scheduler |> Scheduler.now |> int_of_float
+                   ),
             ~expected=[Next(2), Complete],
             (),
           ),

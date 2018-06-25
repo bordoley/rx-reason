@@ -2,13 +2,17 @@ let operator = {
   let clearDebounce = debounceSubscription =>
     debounceSubscription |> SerialDisposable.set(Disposable.disposed);
 
-  let debounceNext = (debounceSubscription, lastValue, delegate, _, _) => {
+  let debounceNext = (debounceSubscription, lastValue, delegate) => {
     clearDebounce(debounceSubscription);
     if (MutableOption.isNotEmpty(lastValue)) {
       let next = MutableOption.get(lastValue);
       MutableOption.unset(lastValue);
       delegate |> Subscriber.next(next);
     };
+  };
+
+  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _, _) => {
+    debounceNext (debounceSubscription, lastValue, delegate);
   };
 
   let onNext =
@@ -19,7 +23,7 @@ let operator = {
       scheduler
       |> Scheduler.scheduleAfter3(
            ~delay=dueTime,
-           debounceNext,
+           onDebounceScheduled,
            (),
            debounceSubscription,
            lastValue,
@@ -33,7 +37,7 @@ let operator = {
     switch (exn) {
     | Some(_) => clearDebounce(debounceSubscription)
     | None =>
-      debounceNext(debounceSubscription, lastValue, delegate) |> ignore
+      debounceNext(debounceSubscription, lastValue, delegate);
     };
     delegate |> Subscriber.complete(~exn?);
   };
