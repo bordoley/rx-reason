@@ -40,6 +40,12 @@
       "dir": "packages/rx-reason/src",
       "subdirs": [
         {
+          "dir": "disposables"
+        },
+        {
+          "dir": "exceptions"
+        },
+        {
           "dir": "internal",
           "public": "none",
           "subdirs": [
@@ -66,6 +72,9 @@
               "public": "none"
             }
           ]
+        },
+        {
+          "dir": "schedulers"
         }
       ]
     },
