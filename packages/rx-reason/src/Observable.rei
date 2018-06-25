@@ -388,7 +388,7 @@ let create3:
  * are followed by another item within a debounce duration
  * determined by the scheduler.
  */
-let debounce: (Scheduler.t, t('a)) => t('a);
+let debounce: (~scheduler: Scheduler.t, ~dueTime: float, t('a)) => t('a);
 
 /**
  * Returns an Observable which emits a default value if the
@@ -401,6 +401,16 @@ let defaultIfEmpty: ('a, t('a)) => t('a);
  * create a new Observable for each subscription.
  */
 let defer: (unit => t('a)) => t('a);
+
+let delay:
+  (
+    ~bufferStrategy: BufferStrategy.t=?,
+    ~bufferSize: int=?,
+    ~scheduler: Scheduler.t,
+    ~delay: float,
+    t('a)
+  ) =>
+  t('a);
 
 /**
  * Returns an Observable which emits items that are distinct from
@@ -559,8 +569,7 @@ let observeOn:
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
-  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
-  t('a);
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) => t('a);
 
 /**
  * Returns an Observable that emits the given items and then completes.
@@ -579,8 +588,7 @@ let ofNotifications:
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
-  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
-  t('a);
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) => t('a);
 
 /**
   * Returns an Observable that emits the given item and then completes.
@@ -657,7 +665,7 @@ let startWithValue: (~scheduler: Scheduler.t=?, 'a, t('a)) => t('a);
  * Returns an Observable which subscribes to the provided source Observable
  * on the specified scheduler.
  */
-let subscribeOn: (Scheduler.t, t('a)) => t('a);
+let subscribeOn: (~delay: float=?, Scheduler.t, t('a)) => t('a);
 
 /**
  * Returns an Observable that flattens Observable items,
@@ -679,7 +687,7 @@ let synchronize: t('a) => t('a);
  * no notifications are observed before a duration determined
  * by the scheduler.
  */
-let timeout: (Scheduler.t, t('a)) => t('a);
+let timeout: (~due: float, ~scheduler: Scheduler.t, t('a)) => t('a);
 
 /**
  * Returns an Observable which collects all observed items in a list

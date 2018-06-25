@@ -52,10 +52,8 @@ let test =
               scheduler =>
                 Observable.combineLatest2(
                   ~selector=(a, b) => a + b,
-                  Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(2.0),
-                    Division_by_zero,
-                  ),
+                  Observable.raise(Division_by_zero)
+                  |> Observable.delay(~scheduler, ~delay=2.0),
                   Observable.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
@@ -104,10 +102,8 @@ let test =
               scheduler =>
                 Observable.combineLatest3(
                   ~selector=(a, b, c) => a + b + c,
-                  Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(5.0),
-                    Division_by_zero,
-                  ),
+                  Observable.raise(Division_by_zero)
+                  |> Observable.delay(~scheduler, ~delay=2.0),
                   Observable.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
@@ -646,12 +642,12 @@ let test =
               scheduler =>
                 Observable.concat([
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduler.scheduleWithDelay,
+                    ~scheduler,
                     [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
                   ),
                   Observable.ofList([1, 2, 3]),
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduler.scheduleWithDelay,
+                    ~scheduler,
                     [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
                   ),
                   Observable.ofList([4, 5, 6]),
@@ -678,15 +674,13 @@ let test =
               scheduler =>
                 Observable.concat([
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduler.scheduleWithDelay,
+                    ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
-                  Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(2.0),
-                    Division_by_zero,
-                  ),
+                  Observable.raise(Division_by_zero)
+                  |> Observable.delay(~scheduler, ~delay=2.0),
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduler.scheduleWithDelay,
+                    ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
                 ]),
@@ -742,9 +736,9 @@ let test =
             "debounces",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay}) =>
+              scheduler =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=scheduleWithDelay,
+                  ~scheduler,
                   [
                     (0.0, Next(1)),
                     (4.0, Next(2)),
@@ -755,7 +749,7 @@ let test =
                     (18.0, Complete),
                   ],
                 )
-                |> Observable.debounce(scheduleWithDelay(5.0)),
+                |> Observable.debounce(~scheduler, ~dueTime=5.0),
             ~expected=[Next(3), Next(6), Complete],
             (),
           ),
@@ -872,10 +866,10 @@ let test =
             "exhausts",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay} as scheduler) => {
+              scheduler => {
                 let childObservableA =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduleWithDelay,
+                    ~scheduler,
                     [
                       (0.0, Next(1)),
                       (10.0, Next(2)),
@@ -887,7 +881,7 @@ let test =
 
                 let childObservableB =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduleWithDelay,
+                    ~scheduler,
                     [
                       (0.0, Next(5)),
                       (10.0, Next(6)),
@@ -1281,10 +1275,8 @@ let test =
                     ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
-                  Observable.raise(
-                    ~scheduler=scheduler.scheduleWithDelay(2.0),
-                    Division_by_zero,
-                  ),
+                  Observable.raise(Division_by_zero)
+                  |> Observable.delay(~scheduler, ~delay=2.0),
                 ]),
             ~expected=[Next(1), CompleteWithException(Division_by_zero)],
             (),
@@ -1394,10 +1386,13 @@ let test =
                 let subscription =
                   observable
                   |> Observable.subscribeWith1(
-                       ~onNext=(subscriber, next) => subscriber |> Subscriber.next(next),
+                       ~onNext=
+                         (subscriber, next) =>
+                           subscriber |> Subscriber.next(next),
                        ~onComplete=
-                         (subscriber, exn) => subscriber |> Subscriber.complete(~exn?),
-                        subscriber,
+                         (subscriber, exn) =>
+                           subscriber |> Subscriber.complete(~exn?),
+                       subscriber,
                      );
 
                 subscriber
@@ -1427,7 +1422,7 @@ let test =
           }),
           it("doesn't retry if unsubscribed in shouldRetry callback", () => {
             let vts = VirtualTimeScheduler.create();
-            let scheduler = vts |> VirtualTimeScheduler.toClockScheduler;
+            let scheduler = vts |> VirtualTimeScheduler.asScheduler;
 
             let subscription = ref(CompositeDisposable.disposed);
             subscription :=
@@ -1515,11 +1510,11 @@ let test =
             "prepends the values",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay}) =>
+              scheduler =>
                 Observable.startWithList(
                   [1, 2, 3],
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduleWithDelay,
+                    ~scheduler,
                     [(1.0, Next(4)), (2.0, Next(5)), (3.0, Complete)],
                   ),
                 ),
@@ -1556,10 +1551,10 @@ let test =
             "switches",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay} as scheduler) => {
+              scheduler => {
                 let childObservableA =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduleWithDelay,
+                    ~scheduler,
                     [
                       (0.0, Next(1)),
                       (10.0, Next(2)),
@@ -1571,7 +1566,7 @@ let test =
 
                 let childObservableB =
                   Observable.ofRelativeTimeNotifications(
-                    ~scheduler=scheduleWithDelay,
+                    ~scheduler,
                     [
                       (0.0, Next(5)),
                       (10.0, Next(6)),
@@ -1618,9 +1613,9 @@ let test =
             "when timeout does not expire",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay}) =>
+              scheduler =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=scheduleWithDelay,
+                  ~scheduler,
                   [
                     (0.0, Next(1)),
                     (4.0, Next(2)),
@@ -1629,7 +1624,7 @@ let test =
                     (14.0, Complete),
                   ],
                 )
-                |> Observable.timeout(scheduleWithDelay(5.0)),
+                |> Observable.timeout(~due=5.0, ~scheduler),
             ~expected=[Next(1), Next(2), Next(3), Next(4), Complete],
             (),
           ),
@@ -1637,9 +1632,9 @@ let test =
             "when timeout expires",
             ~nextToString=string_of_int,
             ~source=
-              ({scheduleWithDelay}) =>
+              scheduler =>
                 Observable.ofRelativeTimeNotifications(
-                  ~scheduler=scheduleWithDelay,
+                  ~scheduler,
                   [
                     (0.0, Next(1)),
                     (4.0, Next(2)),
@@ -1648,7 +1643,7 @@ let test =
                     (20.0, Complete),
                   ],
                 )
-                |> Observable.timeout(scheduleWithDelay(5.0)),
+                |> Observable.timeout(~due=5.0, ~scheduler),
             ~expected=[
               Next(1),
               Next(2),
