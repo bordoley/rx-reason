@@ -1,7 +1,5 @@
 type t('a) = Subscriber.t('a);
 
-
-
 let onSuccess = (result, subscriber) => {
   subscriber |> Subscriber.next(result);
   subscriber |> Subscriber.complete;

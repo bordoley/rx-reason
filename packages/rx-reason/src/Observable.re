@@ -87,21 +87,21 @@ let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
 
-let repeat = (~predicate=Functions.alwaysTrue1, observable) =>
-  RepeatOperator.lift(
+let repeat = (~predicate=Functions.alwaysTrue1) => {
+  let predicate =
     fun
     | None => predicate()
-    | Some(_) => false,
-    observable,
-  );
+    | Some(_) => false;
+  observable => RepeatOperator.lift(predicate, observable);
+};
 
-let retry = (~predicate=Functions.alwaysTrue1, observable) =>
-  RepeatOperator.lift(
+let retry = (~predicate=Functions.alwaysTrue1) => {
+  let predicate =
     fun
     | None => false
-    | Some(exn) => predicate(exn),
-    observable,
-  );
+    | Some(exn) => predicate(exn);
+  observable => RepeatOperator.lift(predicate, observable);
+};
 
 let startWithList = (~scheduler=?, values, observable) =>
   concat([ofList(~scheduler?, values), observable]);
