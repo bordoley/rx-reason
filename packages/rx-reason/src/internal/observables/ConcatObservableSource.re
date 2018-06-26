@@ -25,7 +25,7 @@ let concat = {
             }
           )
           |> ObservableSource.subscribeWith5(
-               ~onNext=Subscriber.delegateOnNext4,
+               ~onNext=Subscriber.forwardOnNext4,
                ~onComplete,
                scheduler,
                tail,

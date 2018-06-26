@@ -20,7 +20,7 @@ let operator = {
 
   subscriber => {
     let self = ref(Subscriber.disposed);
-    self := subscriber |> Subscriber.delegate1(~onNext, ~onComplete, self);
+    self := subscriber |> Subscriber.decorate1(~onNext, ~onComplete, self);
     self^;
   };
 };

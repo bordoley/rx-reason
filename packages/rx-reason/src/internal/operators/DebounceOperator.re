@@ -47,7 +47,7 @@ let operator = {
     let lastValue = MutableOption.create();
 
     subscriber
-    |> Subscriber.delegate4(
+    |> Subscriber.decorate4(
          ~onNext,
          ~onComplete,
          debounceSubscription,

@@ -17,9 +17,9 @@ let create: unit => t('a);
  * */
 let createWithReplayBuffer: int => t('a);
 
-let delegateOnComplete: (t('a), option(exn)) => unit;
+let forwardOnComplete: (t('a), option(exn)) => unit;
 
-let delegateOnNext: (t('a), 'a) => unit;
+let forwardOnNext: (t('a), 'a) => unit;
 
 /**
  * A disposed Subject instance.

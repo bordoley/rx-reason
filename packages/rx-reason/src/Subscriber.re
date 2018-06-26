@@ -87,20 +87,20 @@ type t('a) =
                     ref(bool),
                     CompositeDisposable.t,
                   ): t('a)
-  | Delegating(
+  | Decorating(
                 (t('b), 'a) => unit,
                 (t('b), option(exn)) => unit,
                 ref(bool),
                 t('b),
               ): t('a)
-  | Delegating1(
+  | Decorating1(
                  'ctx0,
                  ('ctx0, t('b), 'a) => unit,
                  ('ctx0, t('b), option(exn)) => unit,
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating2(
+  | Decorating2(
                  'ctx0,
                  'ctx1,
                  ('ctx0, 'ctx1, t('b), 'a) => unit,
@@ -108,7 +108,7 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating3(
+  | Decorating3(
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -117,7 +117,7 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating4(
+  | Decorating4(
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -127,7 +127,7 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating5(
+  | Decorating5(
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -139,7 +139,7 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating6(
+  | Decorating6(
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -161,7 +161,7 @@ type t('a) =
                  ref(bool),
                  t('b),
                ): t('a)
-  | Delegating7(
+  | Decorating7(
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -208,18 +208,18 @@ let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   | AutoDisposing5(_, _, _, _, _, _, _, _, disposable) => disposable
   | AutoDisposing6(_, _, _, _, _, _, _, _, _, disposable) => disposable
   | AutoDisposing7(_, _, _, _, _, _, _, _, _, _, disposable) => disposable
-  | Delegating(_, _, _, delegate) => delegate |> asCompositeDisposable
-  | Delegating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
-  | Delegating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
-  | Delegating3(_, _, _, _, _, _, delegate) =>
+  | Decorating(_, _, _, delegate) => delegate |> asCompositeDisposable
+  | Decorating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
+  | Decorating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
+  | Decorating3(_, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
-  | Delegating4(_, _, _, _, _, _, _, delegate) =>
+  | Decorating4(_, _, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
-  | Delegating5(_, _, _, _, _, _, _, _, delegate) =>
+  | Decorating5(_, _, _, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
-  | Delegating6(_, _, _, _, _, _, _, _, _, delegate) =>
+  | Decorating6(_, _, _, _, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
-  | Delegating7(_, _, _, _, _, _, _, _, _, _, delegate) =>
+  | Decorating7(_, _, _, _, _, _, _, _, _, _, delegate) =>
     delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
@@ -407,34 +407,34 @@ let createAutoDisposing7 =
   );
 };
 
-let delegate = (~onNext, ~onComplete, subscriber) => {
+let decorate = (~onNext, ~onComplete, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating(onNext, onComplete, stopped, subscriber);
+  Decorating(onNext, onComplete, stopped, subscriber);
 };
 
-let delegate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
+let decorate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating1(ctx0, onNext, onComplete, stopped, subscriber);
+  Decorating1(ctx0, onNext, onComplete, stopped, subscriber);
 };
 
-let delegate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
+let decorate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating2(ctx0, ctx1, onNext, onComplete, stopped, subscriber);
+  Decorating2(ctx0, ctx1, onNext, onComplete, stopped, subscriber);
 };
 
-let delegate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
+let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
+  Decorating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
 };
 
-let delegate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
+let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating4(
+  Decorating4(
     ctx0,
     ctx1,
     ctx2,
@@ -446,11 +446,11 @@ let delegate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
   );
 };
 
-let delegate5 =
+let decorate5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating5(
+  Decorating5(
     ctx0,
     ctx1,
     ctx2,
@@ -463,11 +463,11 @@ let delegate5 =
   );
 };
 
-let delegate6 =
+let decorate6 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating6(
+  Decorating6(
     ctx0,
     ctx1,
     ctx2,
@@ -481,7 +481,7 @@ let delegate6 =
   );
 };
 
-let delegate7 =
+let decorate7 =
     (
       ~onNext,
       ~onComplete,
@@ -496,7 +496,7 @@ let delegate7 =
     ) => {
   let stopped = ref(false);
   subscriber |> addTeardown1(Volatile.writeTrue, stopped) |> ignore;
-  Delegating7(
+  Decorating7(
     ctx0,
     ctx1,
     ctx2,
@@ -529,14 +529,14 @@ let isStopped =
   | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
   | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
   | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
-  | Delegating(_, _, stopped, _)
-  | Delegating1(_, _, _, stopped, _)
-  | Delegating2(_, _, _, _, stopped, _)
-  | Delegating3(_, _, _, _, _, stopped, _)
-  | Delegating4(_, _, _, _, _, _, stopped, _)
-  | Delegating5(_, _, _, _, _, _, _, stopped, _)
-  | Delegating6(_, _, _, _, _, _, _, _, stopped, _)
-  | Delegating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
+  | Decorating(_, _, stopped, _)
+  | Decorating1(_, _, _, stopped, _)
+  | Decorating2(_, _, _, _, stopped, _)
+  | Decorating3(_, _, _, _, _, stopped, _)
+  | Decorating4(_, _, _, _, _, _, stopped, _)
+  | Decorating5(_, _, _, _, _, _, _, stopped, _)
+  | Decorating6(_, _, _, _, _, _, _, _, stopped, _)
+  | Decorating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
     Volatile.read(stopped)
   | Disposed => true;
 
@@ -550,14 +550,14 @@ let shouldComplete =
   | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
   | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
   | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
-  | Delegating(_, _, stopped, _)
-  | Delegating1(_, _, _, stopped, _)
-  | Delegating2(_, _, _, _, stopped, _)
-  | Delegating3(_, _, _, _, _, stopped, _)
-  | Delegating4(_, _, _, _, _, _, stopped, _)
-  | Delegating5(_, _, _, _, _, _, _, stopped, _)
-  | Delegating6(_, _, _, _, _, _, _, _, stopped, _)
-  | Delegating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
+  | Decorating(_, _, stopped, _)
+  | Decorating1(_, _, _, stopped, _)
+  | Decorating2(_, _, _, _, stopped, _)
+  | Decorating3(_, _, _, _, _, stopped, _)
+  | Decorating4(_, _, _, _, _, _, stopped, _)
+  | Decorating5(_, _, _, _, _, _, _, stopped, _)
+  | Decorating6(_, _, _, _, _, _, _, _, stopped, _)
+  | Decorating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
     ! Interlocked.exchange(true, stopped)
   | Disposed => false;
 
@@ -653,18 +653,18 @@ let completeWithResult = {
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | Delegating(_, onComplete, _, delegate) => onComplete(delegate, exn)
-    | Delegating1(ctx0, _, onComplete, _, delegate) =>
+    | Decorating(_, onComplete, _, delegate) => onComplete(delegate, exn)
+    | Decorating1(ctx0, _, onComplete, _, delegate) =>
       onComplete(ctx0, delegate, exn)
-    | Delegating2(ctx0, ctx1, _, onComplete, _, delegate) =>
+    | Decorating2(ctx0, ctx1, _, onComplete, _, delegate) =>
       onComplete(ctx0, ctx1, delegate, exn)
-    | Delegating3(ctx0, ctx1, ctx2, _, onComplete, _, delegate) =>
+    | Decorating3(ctx0, ctx1, ctx2, _, onComplete, _, delegate) =>
       onComplete(ctx0, ctx1, ctx2, delegate, exn)
-    | Delegating4(ctx0, ctx1, ctx2, ctx3, _, onComplete, _, delegate) =>
+    | Decorating4(ctx0, ctx1, ctx2, ctx3, _, onComplete, _, delegate) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, delegate, exn)
-    | Delegating5(ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete, _, delegate) =>
+    | Decorating5(ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete, _, delegate) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, exn)
-    | Delegating6(
+    | Decorating6(
         ctx0,
         ctx1,
         ctx2,
@@ -677,7 +677,7 @@ let completeWithResult = {
         delegate,
       ) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, exn)
-    | Delegating7(
+    | Decorating7(
         ctx0,
         ctx1,
         ctx2,
@@ -780,20 +780,20 @@ let next = {
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | Delegating(onNext, _, _, delegate) => onNext(delegate, next)
-    | Delegating1(ctx0, onNext, _, _, delegate) =>
+    | Decorating(onNext, _, _, delegate) => onNext(delegate, next)
+    | Decorating1(ctx0, onNext, _, _, delegate) =>
       onNext(ctx0, delegate, next)
-    | Delegating2(ctx0, ctx1, onNext, _, _, delegate) =>
+    | Decorating2(ctx0, ctx1, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, delegate, next)
-    | Delegating3(ctx0, ctx1, ctx2, onNext, _, _, delegate) =>
+    | Decorating3(ctx0, ctx1, ctx2, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, ctx2, delegate, next)
-    | Delegating4(ctx0, ctx1, ctx2, ctx3, onNext, _, _, delegate) =>
+    | Decorating4(ctx0, ctx1, ctx2, ctx3, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, ctx2, ctx3, delegate, next)
-    | Delegating5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, delegate) =>
+    | Decorating5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, next)
-    | Delegating6(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _, _, delegate) =>
+    | Decorating6(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _, _, delegate) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, next)
-    | Delegating7(
+    | Decorating7(
         ctx0,
         ctx1,
         ctx2,
@@ -818,46 +818,46 @@ let next = {
   };
 };
 
-let delegateOnComplete = (subscriber, exn) => subscriber |> complete(~exn?);
+let forwardOnComplete = (subscriber, exn) => subscriber |> complete(~exn?);
 
-let delegateOnComplete1 = (_, subscriber, exn) =>
+let forwardOnComplete1 = (_, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete2 = (_, _, subscriber, exn) =>
+let forwardOnComplete2 = (_, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete3 = (_, _, _, subscriber, exn) =>
+let forwardOnComplete3 = (_, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete4 = (_, _, _, _, subscriber, exn) =>
+let forwardOnComplete4 = (_, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete5 = (_, _, _, _, _, subscriber, exn) =>
+let forwardOnComplete5 = (_, _, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete6 = (_, _, _, _, _, _, subscriber, exn) =>
+let forwardOnComplete6 = (_, _, _, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnComplete7 = (_, _, _, _, _, _, _, subscriber, exn) =>
+let forwardOnComplete7 = (_, _, _, _, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let delegateOnNext = (subscriber, v) => subscriber |> next(v);
+let forwardOnNext = (subscriber, v) => subscriber |> next(v);
 
-let delegateOnNext1 = (_, subscriber, v) => subscriber |> next(v);
+let forwardOnNext1 = (_, subscriber, v) => subscriber |> next(v);
 
-let delegateOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
+let forwardOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
 
-let delegateOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
+let forwardOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
 
-let delegateOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
+let forwardOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
 
-let delegateOnNext5 = (_, _, _, _, _, subscriber, v) =>
+let forwardOnNext5 = (_, _, _, _, _, subscriber, v) =>
   subscriber |> next(v);
 
-let delegateOnNext6 = (_, _, _, _, _, _, subscriber, v) =>
+let forwardOnNext6 = (_, _, _, _, _, _, subscriber, v) =>
   subscriber |> next(v);
 
-let delegateOnNext7 = (_, _, _, _, _, _, _, subscriber, v) =>
+let forwardOnNext7 = (_, _, _, _, _, _, _, subscriber, v) =>
   subscriber |> next(v);
 
 let notify = (notif, subscriber) =>

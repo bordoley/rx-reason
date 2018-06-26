@@ -69,7 +69,7 @@ let operator = {
 
     context.self =
       subscriber
-      |> Subscriber.delegate1(~onNext, ~onComplete, context)
+      |> Subscriber.decorate1(~onNext, ~onComplete, context)
       |> Subscriber.addTeardown1(
            SerialDisposable.dispose,
            context.innerSubscription,

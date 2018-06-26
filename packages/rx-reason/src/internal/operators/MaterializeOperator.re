@@ -12,7 +12,7 @@ let operator = {
     delegate |> Subscriber.complete;
   };
 
-  subscriber => subscriber |> Subscriber.delegate(~onNext, ~onComplete);
+  subscriber => subscriber |> Subscriber.decorate(~onNext, ~onComplete);
 };
 
 let lift = observable => observable |> ObservableSource.lift(operator);

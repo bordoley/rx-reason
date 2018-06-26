@@ -26,10 +26,10 @@ let isDisposed = self => self |> asDisposable |> Disposable.isDisposed;
 
 let next = (next, {subscriber}) => subscriber |> Subscriber.next(next);
 
-let delegateOnComplete = (subject, exn) =>
+let forwardOnComplete = (subject, exn) =>
   subject |> complete(~exn?);
 
-let delegateOnNext = (subject, v) =>
+let forwardOnNext = (subject, v) =>
   subject |> next(v);
 
 let notify = (notif, {subscriber}) =>

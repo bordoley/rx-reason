@@ -28,7 +28,7 @@ let operator = {
       if (! hasActiveSubscription) {
         let subscription =
           ObservableSource.subscribeWith2(
-            ~onNext=Subscriber.delegateOnNext1,
+            ~onNext=Subscriber.forwardOnNext1,
             ~onComplete,
             ctx,
             delegate,
@@ -57,7 +57,7 @@ let operator = {
 
     context.self =
       subscriber
-      |> Subscriber.delegate1(~onNext, ~onComplete, context)
+      |> Subscriber.decorate1(~onNext, ~onComplete, context)
       |> Subscriber.addTeardown1(
            SerialDisposable.dispose,
            context.innerSubscription,

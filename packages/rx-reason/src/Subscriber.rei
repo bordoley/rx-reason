@@ -104,8 +104,8 @@ let createAutoDisposing7:
   ) =>
   t('a);
 
-/** Construct a new Subscriber with the provided callbacks that delegates its disposal to another Subscriber. */
-let delegate:
+/** Construct a new Subscriber with the provided callbacks that decorates its disposal to another Subscriber. */
+let decorate:
   (
     ~onNext: (t('b), 'a) => unit,
     ~onComplete: (t('b), option(exn)) => unit,
@@ -113,7 +113,7 @@ let delegate:
   ) =>
   t('a);
 
-let delegate1:
+let decorate1:
   (
     ~onNext: ('ctx0, t('b), 'a) => unit,
     ~onComplete: ('ctx0, t('b), option(exn)) => unit,
@@ -122,7 +122,7 @@ let delegate1:
   ) =>
   t('a);
 
-let delegate2:
+let decorate2:
   (
     ~onNext: ('ctx0, 'ctx1, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, t('b), option(exn)) => unit,
@@ -132,7 +132,7 @@ let delegate2:
   ) =>
   t('a);
 
-let delegate3:
+let decorate3:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, t('b), option(exn)) => unit,
@@ -143,7 +143,7 @@ let delegate3:
   ) =>
   t('a);
 
-let delegate4:
+let decorate4:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), option(exn)) => unit,
@@ -155,7 +155,7 @@ let delegate4:
   ) =>
   t('a);
 
-let delegate5:
+let decorate5:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
@@ -169,7 +169,7 @@ let delegate5:
   ) =>
   t('a);
 
-let delegate6:
+let decorate6:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('b), 'a) => unit,
     ~onComplete: (
@@ -193,7 +193,7 @@ let delegate6:
   ) =>
   t('a);
 
-let delegate7:
+let decorate7:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('b), 'a) =>
              unit,
@@ -220,29 +220,29 @@ let delegate7:
   ) =>
   t('a);
 
-let delegateOnComplete: (t('a), option(exn)) => unit;
-let delegateOnComplete1: ('ctx0, t('a), option(exn)) => unit;
-let delegateOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
-let delegateOnComplete3: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit;
-let delegateOnComplete4:
+let forwardOnComplete: (t('a), option(exn)) => unit;
+let forwardOnComplete1: ('ctx0, t('a), option(exn)) => unit;
+let forwardOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
+let forwardOnComplete3: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit;
+let forwardOnComplete4:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), option(exn)) => unit;
-let delegateOnComplete5:
+let forwardOnComplete5:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), option(exn)) => unit;
-let delegateOnComplete6:
+let forwardOnComplete6:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('a), option(exn)) => unit;
-let delegateOnComplete7:
+let forwardOnComplete7:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('a), option(exn)) =>
   unit;
 
-let delegateOnNext: (t('a), 'a) => unit;
-let delegateOnNext1: ('ctx0, t('a), 'a) => unit;
-let delegateOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
-let delegateOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
-let delegateOnNext4: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), 'a) => unit;
-let delegateOnNext5: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), 'a) => unit;
-let delegateOnNext6:
+let forwardOnNext: (t('a), 'a) => unit;
+let forwardOnNext1: ('ctx0, t('a), 'a) => unit;
+let forwardOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
+let forwardOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
+let forwardOnNext4: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), 'a) => unit;
+let forwardOnNext5: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), 'a) => unit;
+let forwardOnNext6:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('a), 'a) => unit;
-let delegateOnNext7:
+let forwardOnNext7:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('a), 'a) => unit;
 
 /**

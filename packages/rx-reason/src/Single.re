@@ -4,7 +4,7 @@ let asObservable = (single: t('a)) : Observable.t('a) => single;
 
 let create = {
   let source = (subscribe, subscriber) => {
-    let singleSubscriber = SingleSubscriber.delegate(subscriber);
+    let singleSubscriber = SingleSubscriber.decorateSubscriber(subscriber);
     subscribe(singleSubscriber);
   };
 
@@ -13,7 +13,7 @@ let create = {
 
 let create1 = {
   let source = (subscribe, ctx0, subscriber) => {
-    let singleSubscriber = SingleSubscriber.delegate(subscriber);
+    let singleSubscriber = SingleSubscriber.decorateSubscriber(subscriber);
     subscribe(ctx0, singleSubscriber);
   };
 

@@ -10,8 +10,8 @@ let operator = {
 
   subscriber =>
     subscriber
-    |> Subscriber.delegate(
-         ~onNext=Subscriber.delegateOnNext,
+    |> Subscriber.decorate(
+         ~onNext=Subscriber.forwardOnNext,
          ~onComplete,
        );
 };

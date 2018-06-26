@@ -13,7 +13,7 @@ let operator =  {
 
   subscriber => {
     let gate = Lock.create();
-    subscriber |> Subscriber.delegate1(~onNext, ~onComplete, gate);
+    subscriber |> Subscriber.decorate1(~onNext, ~onComplete, gate);
   };
 };
 

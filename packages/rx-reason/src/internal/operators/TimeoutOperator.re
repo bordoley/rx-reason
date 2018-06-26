@@ -34,7 +34,7 @@ let operator = {
 
       let self =
         subscriber
-        |> Subscriber.delegate1(~onNext, ~onComplete, context)
+        |> Subscriber.decorate1(~onNext, ~onComplete, context)
         |> Subscriber.addTeardown1(
              SerialDisposable.dispose,
              context.timeoutSubscription,
@@ -43,7 +43,7 @@ let operator = {
       context.connect =
         ObservableSource.publishTo1(
           ~onNext=Functions.alwaysUnit2,
-          ~onComplete=Subscriber.delegateOnComplete,
+          ~onComplete=Subscriber.forwardOnComplete,
           self,
           timeoutObservable,
         );

@@ -124,7 +124,7 @@ let operator = {
       );
 
     subscriber
-    |> Subscriber.delegate7(
+    |> Subscriber.decorate7(
          ~onNext,
          ~onComplete,
          scheduler,

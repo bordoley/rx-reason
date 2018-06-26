@@ -52,8 +52,8 @@ let shareInternal = {
       let subscription =
         currentSubject
         |> Subject.subscribeWith1(
-             ~onNext=Subscriber.delegateOnNext,
-             ~onComplete=Subscriber.delegateOnComplete,
+             ~onNext=Subscriber.forwardOnNext,
+             ~onComplete=Subscriber.forwardOnComplete,
              subscriber,
            );
 
@@ -61,8 +61,8 @@ let shareInternal = {
         sourceSubscription
         |> SerialDisposable.setInnerDisposable(
              Observable.subscribeWith1(
-               ~onNext=Subject.delegateOnNext,
-               ~onComplete=Subject.delegateOnComplete,
+               ~onNext=Subject.forwardOnNext,
+               ~onComplete=Subject.forwardOnComplete,
                currentSubject,
                source,
              ),

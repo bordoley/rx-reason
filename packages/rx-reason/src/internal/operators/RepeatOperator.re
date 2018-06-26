@@ -31,7 +31,7 @@ let operator = {
       let newInnerSubscription =
         observable
         |> ObservableSource.subscribeWith4(
-             ~onNext=Subscriber.delegateOnNext3,
+             ~onNext=Subscriber.forwardOnNext3,
              ~onComplete,
              observable,
              shouldRepeat,
@@ -47,8 +47,8 @@ let operator = {
     let subscription = SerialDisposable.create();
 
     subscriber
-    |> Subscriber.delegate3(
-         ~onNext=Subscriber.delegateOnNext3,
+    |> Subscriber.decorate3(
+         ~onNext=Subscriber.forwardOnNext3,
          ~onComplete,
          observable,
          shouldRepeat,

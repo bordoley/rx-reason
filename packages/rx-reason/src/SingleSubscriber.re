@@ -9,7 +9,7 @@ let onError = (exn, subscriber) =>
   subscriber |> Subscriber.complete(~exn);
 
 let asSubscriber = Functions.identity;
-let delegate = Functions.identity;
+let decorateSubscriber = Functions.identity;
 
 let asCompositeDisposable = Subscriber.asCompositeDisposable;
 let asDisposable = Subscriber.asDisposable;
