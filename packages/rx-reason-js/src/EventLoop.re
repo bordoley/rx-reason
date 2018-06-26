@@ -2,36 +2,13 @@
 external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId = "";
 
 let resolveUnit = Js.Promise.resolve();
-/*
-let scheduler: RxReason.Scheduler.t = {
-  let run = ((continuation, state, f, disposable)) => {
-    let shouldRun = ! RxReason.Disposable.isDisposed(disposable);
-    disposable |> RxReason.Disposable.dispose;
-
-    if (shouldRun) {
-      f(state, continuation);
-    };
-    resolveUnit;
-  };
-
-  let executor = ((), continuation, state, f) => {
-    let disposable = RxReason.Disposable.empty();
-    continuation |> RxReason.SchedulerContinuation.setInnerDisposable(disposable);
-
-    Js.Promise.resolve((continuation, state, f, disposable))
-    |> Js.Promise.then_(run)
-    |> ignore;
-  };
-  {executor: executor};
-};*/
 
 type executorState('state) = {
   mutable interval: RxReason.Disposable.t,
   mutable pending: bool,
   mutable delay: float,
   mutable continuation: RxReason.SchedulerContinuation.t('state),
-  mutable f:
-    ('state, RxReason.SchedulerContinuation.t('state)) => unit,
+  mutable f: ('state, RxReason.SchedulerContinuation.t('state)) => unit,
   mutable state: option('state),
 };
 
@@ -56,7 +33,7 @@ let scheduler: RxReason.Scheduler.t = {
   };
 
   let shouldRecycleInterval = (delay, self) =>
-    ! self.pending && self.delay === delay;
+    ! self.pending && delay !== 0.0 && self.delay === delay;
 
   let scheduleInterval = (delay, self) => {
     let intervalId = setInterval1(run, delay, self);
@@ -73,16 +50,29 @@ let scheduler: RxReason.Scheduler.t = {
       state: None,
     };
 
+    let promiseContinuation = () => {
+      run(self);
+      resolveUnit;
+    };
+
     (~delay, continuation, state, f) => {
       if (! shouldRecycleInterval(delay, self)) {
         self.interval |> RxReason.Disposable.dispose;
 
-        /** FIXME: Use a Promise if the delay is 0. */
+        self.interval = (
+          if (delay !== 0.0) {
+            scheduleInterval(delay, self);
+          } else {
+            resolveUnit
+            |> Js.Promise.then_(promiseContinuation)
+            |> ignore;
 
-        let interval = scheduleInterval(delay, self);
-        self.interval = interval;
+            RxReason.Disposable.empty();
+          }
+        );
 
-        continuation |> RxReason.SchedulerContinuation.setInnerDisposable(interval);
+        continuation
+        |> RxReason.SchedulerContinuation.setInnerDisposable(self.interval);
       };
 
       self.pending = true;

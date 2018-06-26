@@ -75,7 +75,7 @@ module Make =
            ~onComplete=exn => send(Completed(exn)),
          )
       |> RxReason.Observable.subscribe;
-    onUnmount(() => subscription |> RxReason.CompositeDisposable.dispose);
+    onUnmount(() => subscription |> RxReason.Disposable.dispose);
   };
 
   let reducer = (action, state) => ReasonReact.Update({...state, action});
