@@ -1,7 +1,6 @@
-type t = {
-  disposableRef: ref(Disposable.t),
-  disposable: Disposable.t,
-};
+type t = 
+  | Disposed
+  | SerialDisposable(ref(Disposable.t), Disposable.t);
 
 type serialDisposable = t;
 
@@ -23,7 +22,9 @@ module type S1 = {
   let asSerialDisposable: t('a) => serialDisposable;
 };
 
-let asDisposable = ({disposable}) => disposable;
+let asDisposable = fun 
+| Disposed => Disposable.disposed
+| SerialDisposable(_, disposable) => disposable;
 
 let create = {
   let teardown = disposableRef =>
@@ -31,30 +32,36 @@ let create = {
     |> Disposable.dispose;
 
   () => {
-    let disposableRef = ref(Disposable.disposed);
-    let disposable = Disposable.create1(teardown, disposableRef);
-    {disposableRef, disposable};
+    let innerDisposable = ref(Disposable.disposed);
+    let disposable = Disposable.create1(teardown, innerDisposable);
+    SerialDisposable(innerDisposable, disposable);
   };
 };
 
-let dispose = ({disposable}) => disposable |> Disposable.dispose;
+let dispose = disposable => 
+  disposable |> asDisposable |> Disposable.dispose;
 
-let disposed = {
-  disposableRef: ref(Disposable.disposed),
-  disposable: Disposable.disposed,
-};
+let disposed = Disposed;
 
-let isDisposed = ({disposable}) => disposable |> Disposable.isDisposed;
+let isDisposed = disposable => 
+  disposable |> asDisposable |> Disposable.isDisposed;
 
-let raiseIfDisposed = ({disposable}) =>
-  disposable |> Disposable.raiseIfDisposed;
+let raiseIfDisposed = disposable => 
+  disposable |> asDisposable |> Disposable.raiseIfDisposed;
 
-let getInnerDisposable = ({disposableRef}) => disposableRef^;
+let getInnerDisposable = fun
+| Disposed => Disposable.disposed
+| SerialDisposable(innerDisposable, _) => innerDisposable^;
 
-let setInnerDisposable =
-    (newDisposable, {disposableRef} as assignableDisposable) =>
-  if (assignableDisposable |> isDisposed) {
+let setInnerDisposable = (newDisposable, self) => {
+  let shouldDispose = switch(self) {
+  | Disposed => true;
+  | SerialDisposable(innerDisposable, _) =>
+    Interlocked.exchange(newDisposable, innerDisposable) |> Disposable.dispose;
+    isDisposed(self);
+  };
+
+  if (shouldDispose) {
     newDisposable |> Disposable.dispose;
-  } else {
-    Interlocked.exchange(newDisposable, disposableRef) |> Disposable.dispose;
   };
+};
