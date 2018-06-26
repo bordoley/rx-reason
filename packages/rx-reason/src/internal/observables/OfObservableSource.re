@@ -26,7 +26,9 @@ let ofList = {
       };
 
     let schedulerSubscription = scheduler |> Scheduler.schedule(loop, list);
-    subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+    subscriber
+    |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
+    |> ignore;
   };
 
   (~scheduler=?, list) =>
@@ -64,7 +66,9 @@ let ofNotifications = {
     (scheduler, notifications, subscriber) => {
       let schedulerSubscription =
         scheduler |> Scheduler.schedule1(loop, notifications, subscriber);
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+      subscriber
+      |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
+      |> ignore;
     };
   };
 
@@ -108,7 +112,10 @@ let ofRelativeTimeNotifications = {
         let computedDelay = max(0.0, requestedDelay -. previousDelay);
 
         continuation
-        |> SchedulerContinuation.continueAfter(~delay = computedDelay, (notif, requestedDelay, tail));
+        |> SchedulerContinuation.continueAfter(
+             ~delay=computedDelay,
+             (notif, requestedDelay, tail),
+           );
       | [] => continuation |> SchedulerContinuation.dispose
       };
     };
@@ -125,7 +132,7 @@ let ofRelativeTimeNotifications = {
                subscriber,
              );
         subscriber
-        |> Subscriber.addDisposable(schedulerSubscription)
+        |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
         |> ignore;
       | [] => ()
       };

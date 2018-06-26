@@ -11,7 +11,9 @@ let raise = {
     (scheduler, exn, subscriber) => {
       let schedulerSubscription =
         scheduler |> Scheduler.schedule2(doWork, (), subscriber, exn);
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+      subscriber
+      |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
+      |> ignore;
     };
   };
 

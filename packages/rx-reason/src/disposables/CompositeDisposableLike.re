@@ -3,8 +3,6 @@ module type S = {
 
   include DisposableLike.S with type t := t;
 
-  let addDisposable: (Disposable.t, t) => t;
-
   let addTeardown: (TeardownLogic.t, t) => t;
 
   let addTeardown1: (TeardownLogic.t1('b), 'b, t) => t;
@@ -41,8 +39,6 @@ module type S1 = {
   type t('a);
 
   include DisposableLike.S1 with type t('a) := t('a);
-
-  let addDisposable: (Disposable.t, t('a)) => t('a);
 
   let addTeardown: (TeardownLogic.t, t('a)) => t('a);
 

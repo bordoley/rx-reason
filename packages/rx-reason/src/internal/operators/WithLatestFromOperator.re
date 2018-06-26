@@ -59,7 +59,11 @@ let operator = {
       );
 
     context.self =
-      self |> Subscriber.addDisposable(context.otherSubscription);
+      self
+      |> Subscriber.addTeardown1(
+           Disposable.dispose,
+           context.otherSubscription,
+         );
     self;
   };
 };

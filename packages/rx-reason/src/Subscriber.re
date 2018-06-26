@@ -223,14 +223,6 @@ let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
     delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
-let addDisposable = (disposable, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> CompositeDisposable.addDisposable(disposable)
-  |> ignore;
-  subscriber;
-};
-
 let addTeardown = (teardown, subscriber) => {
   subscriber
   |> asCompositeDisposable

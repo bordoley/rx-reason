@@ -43,7 +43,7 @@ let operator = {
     if (Interlocked.increment(wip) === 1) {
       scheduler
       |> Scheduler.scheduleAfter7(
-          ~delay,
+           ~delay,
            doWorkStep,
            (),
            innerSubscription,
@@ -108,13 +108,7 @@ let operator = {
     );
   };
 
-  (
-    bufferStrategy,
-    bufferSize,
-    scheduler,
-    delay,
-    subscriber,
-  ) => {
+  (bufferStrategy, bufferSize, scheduler, delay, subscriber) => {
     let queue =
       QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
     let shouldComplete = ref(false);
@@ -141,12 +135,18 @@ let operator = {
          shouldComplete,
          completedState,
        )
-    |> Subscriber.addDisposable(innerSubscription);
+    |> Subscriber.addTeardown1(Disposable.dispose, innerSubscription);
   };
 };
 
 let lift =
-    (~bufferStrategy=BufferStrategy.Raise, ~bufferSize=(-1), ~scheduler, ~delay, observable) =>
+    (
+      ~bufferStrategy=BufferStrategy.Raise,
+      ~bufferSize=(-1),
+      ~scheduler,
+      ~delay,
+      observable,
+    ) =>
   observable
   |> ObservableSource.lift(
        operator(bufferStrategy, bufferSize, scheduler, delay),

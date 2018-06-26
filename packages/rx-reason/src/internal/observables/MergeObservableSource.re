@@ -36,7 +36,9 @@ let merge = {
               subscriber,
               hd,
             );
-          subscriber |> Subscriber.addDisposable(subscription) |> ignore;
+          subscriber
+          |> Subscriber.addTeardown1(Disposable.dispose, subscription)
+          |> ignore;
           loop(tail);
         }
       | [] => ();

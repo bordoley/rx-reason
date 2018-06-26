@@ -5,8 +5,16 @@ let subscribeOn = {
   let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
     let schedulerSubscription =
       scheduler
-      |> Scheduler.scheduleAfter2(~delay, doSubscribe, (), observable, subscriber);
-    subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+      |> Scheduler.scheduleAfter2(
+           ~delay,
+           doSubscribe,
+           (),
+           observable,
+           subscriber,
+         );
+    subscriber
+    |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
+    |> ignore;
   };
 
   (~delay=0.0, scheduler, observable) =>

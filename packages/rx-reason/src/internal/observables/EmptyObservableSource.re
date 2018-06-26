@@ -10,7 +10,9 @@ let empty = {
     (scheduler, subscriber) => {
       let schedulerSubscription =
         scheduler |> Scheduler.schedule1(doWork, (), subscriber);
-      subscriber |> Subscriber.addDisposable(schedulerSubscription) |> ignore;
+      subscriber
+      |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
+      |> ignore;
     };
   };
 

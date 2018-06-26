@@ -1,10 +1,10 @@
-type teardownLogicOrDisposable =
-  | TeardownLogic(TeardownLogic.t): teardownLogicOrDisposable
-  | TeardownLogic1(TeardownLogic.t1('a), 'a): teardownLogicOrDisposable
-  | TeardownLogic2(TeardownLogic.t2('a, 'b), 'a, 'b): teardownLogicOrDisposable
-  | TeardownLogic3(TeardownLogic.t3('a, 'b, 'c), 'a, 'b, 'c): teardownLogicOrDisposable
-  | TeardownLogic4(TeardownLogic.t4('a, 'b, 'c, 'd), 'a, 'b, 'c, 'd): teardownLogicOrDisposable
-  | TeardownLogic5(TeardownLogic.t5('a, 'b, 'c, 'd, 'e), 'a, 'b, 'c, 'd, 'e): teardownLogicOrDisposable
+type teardownLogic =
+  | TeardownLogic(TeardownLogic.t): teardownLogic
+  | TeardownLogic1(TeardownLogic.t1('a), 'a): teardownLogic
+  | TeardownLogic2(TeardownLogic.t2('a, 'b), 'a, 'b): teardownLogic
+  | TeardownLogic3(TeardownLogic.t3('a, 'b, 'c), 'a, 'b, 'c): teardownLogic
+  | TeardownLogic4(TeardownLogic.t4('a, 'b, 'c, 'd), 'a, 'b, 'c, 'd): teardownLogic
+  | TeardownLogic5(TeardownLogic.t5('a, 'b, 'c, 'd, 'e), 'a, 'b, 'c, 'd, 'e): teardownLogic
   | TeardownLogic6(
                     TeardownLogic.t6('a, 'b, 'c, 'd, 'e, 'f),
                     'a,
@@ -13,7 +13,7 @@ type teardownLogicOrDisposable =
                     'd,
                     'e,
                     'f,
-                  ): teardownLogicOrDisposable
+                  ): teardownLogic
   | TeardownLogic7(
                     TeardownLogic.t7('a, 'b, 'c, 'd, 'e, 'f, 'g),
                     'a,
@@ -23,13 +23,12 @@ type teardownLogicOrDisposable =
                     'e,
                     'f,
                     'g,
-                  ): teardownLogicOrDisposable
-  | Disposable(Disposable.t);
+                  ): teardownLogic;
 
 type t = {
   lock: Lock.t,
   /* FIXME: Change to mutable vector and profit */
-  mutable teardown: list(teardownLogicOrDisposable),
+  mutable teardown: list(teardownLogic),
   disposable: Disposable.t,
 };
 
@@ -74,8 +73,7 @@ let create = {
       | TeardownLogic6(tdl, d0, d1, d2, d3, d4, d5) =>
         tdl(d0, d1, d2, d3, d4, d5)
       | TeardownLogic7(tdl, d0, d1, d2, d3, d4, d5, d6) =>
-        tdl(d0, d1, d2, d3, d4, d5, d6)
-      | Disposable(disposable) => disposable |> Disposable.dispose;
+        tdl(d0, d1, d2, d3, d4, d5, d6);
 
     (lock, self) => {
       lock |> Lock.acquire;
@@ -107,12 +105,12 @@ let isDisposed = disposable =>
 let raiseIfDisposed = disposable =>
   disposable |> asDisposable |> Disposable.raiseIfDisposed;
 
-let addInternal = (teardownLogicOrDisposable, {lock, teardown} as disposable) => {
+let addInternal = (teardownLogic, {lock, teardown} as disposable) => {
   lock |> Lock.acquire;
   let isDisposed = disposable |> isDisposed;
 
   if (! isDisposed) {
-    disposable.teardown = [teardownLogicOrDisposable, ...teardown];
+    disposable.teardown = [teardownLogic, ...teardown];
   };
   lock |> Lock.release;
   isDisposed;
@@ -188,17 +186,6 @@ let addTeardown7 = (cb, d0, d1, d2, d3, d4, d5, d6, self) => {
     self |> addInternal(TeardownLogic7(cb, d0, d1, d2, d3, d4, d5, d6));
   if (isDisposed) {
     cb(d0, d1, d2, d3, d4, d5, d6);
-  };
-
-  self;
-};
-
-let addDisposable = (disposable, self) => {
-  if (! Disposable.isDisposed(disposable)) {
-    let isDisposed = self |> addInternal(Disposable(disposable));
-    if (isDisposed) {
-      disposable |> Disposable.dispose;
-    };
   };
 
   self;

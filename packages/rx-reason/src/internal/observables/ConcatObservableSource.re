@@ -47,7 +47,7 @@ let concat = {
              subscriber,
            );
       subscriber
-      |> Subscriber.addDisposable(subscription)
+      |> Subscriber.addTeardown1(Disposable.dispose, subscription)
       |> Subscriber.addTeardown1(SerialDisposable.dispose, innerSubscription)
       |> ignore;
     };
