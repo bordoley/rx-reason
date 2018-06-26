@@ -56,28 +56,19 @@ type t =
                  'ctx6,
                  ref(bool),
                ): t;
-
 type disposable = t;
 
 module type S = {
-  type t;
+  include DisposableLike.S;
 
   let asDisposable: t => disposable;
-  let dispose: t => unit;
-  let isDisposed: t => bool;
-  let raiseIfDisposed: t => unit;
 };
 
 module type S1 = {
-  type t('a);
+  include DisposableLike.S1;
 
   let asDisposable: t('a) => disposable;
-  let dispose: t('a) => unit;
-  let isDisposed: t('a) => bool;
-  let raiseIfDisposed: t('a) => unit;
 };
-
-let asDisposable = Functions.identity;
 
 let create = teardown : t => Disposable(teardown, ref(false));
 

@@ -8,39 +8,22 @@ type serialDisposable = t;
 module type S = {
   type t;
 
+  include SerialDisposableLike.S with type t := t;
   include Disposable.S with type t := t;
 
   let asSerialDisposable: t => serialDisposable;
-
-  /** Returns the currently contained Disposable */
-  let getInnerDisposable: t => Disposable.t;
-
-  /** Atomically set the next disposable on this container and dispose the previous
-   *  one (if any) or dispose next if the container has been disposed
-   */
-  let setInnerDisposable: (Disposable.t, t) => unit;
 };
-
 
 module type S1 = {
   type t('a);
 
+  include SerialDisposableLike.S1 with type t('a) := t('a);
   include Disposable.S1 with type t('a) := t('a);
 
   let asSerialDisposable: t('a) => serialDisposable;
-  
-  /** Returns the currently contained Disposable */
-  let getInnerDisposable: t('a) => Disposable.t;
-
-  /** Atomically set the next disposable on this container and dispose the previous
-   *  one (if any) or dispose next if the container has been disposed
-   */
-  let setInnerDisposable: (Disposable.t, t('a)) => unit;
 };
 
 let asDisposable = ({disposable}) => disposable;
-
-let asSerialDisposable = Functions.identity;
 
 let create = {
   let teardown = disposableRef =>
@@ -68,7 +51,8 @@ let raiseIfDisposed = ({disposable}) =>
 
 let getInnerDisposable = ({disposableRef}) => disposableRef^;
 
-let setInnerDisposable = (newDisposable, {disposableRef} as assignableDisposable) =>
+let setInnerDisposable =
+    (newDisposable, {disposableRef} as assignableDisposable) =>
   if (assignableDisposable |> isDisposed) {
     newDisposable |> Disposable.dispose;
   } else {

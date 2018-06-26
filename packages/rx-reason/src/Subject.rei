@@ -5,7 +5,7 @@ type t('a);
 
 include Disposable.S1 with type t('a) := t('a);
 include Observable.S1 with type t('a) := t('a);
-include Observer.S1 with type t('a) := t('a);
+include ObserverLike.S1 with type t('a) := t('a);
 
 /** Constructs a new Subject instance. */
 let create: unit => t('a);

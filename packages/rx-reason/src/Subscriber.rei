@@ -7,7 +7,7 @@
 type t('a);
 
 include CompositeDisposable.S1 with type t('a) := t('a);
-include Observer.S1 with type t('a) := t('a);
+include ObserverLike.S1 with type t('a) := t('a);
 
 /**
  * Construct a new Subscriber with the provided callbacks which automatically disposes
