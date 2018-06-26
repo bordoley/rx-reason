@@ -55,7 +55,10 @@ type t =
                  'ctx5,
                  'ctx6,
                  ref(bool),
-               ): t;
+               ): t
+  | Disposed
+  | Empty(ref(bool));
+
 type disposable = t;
 
 module type S = {
@@ -102,8 +105,9 @@ let dispose = {
     | Disposable4(_, _, _, _, _, isDisposed)
     | Disposable5(_, _, _, _, _, _, isDisposed)
     | Disposable6(_, _, _, _, _, _, _, isDisposed)
-    | Disposable7(_, _, _, _, _, _, _, _, isDisposed) =>
-      ! Interlocked.exchange(true, isDisposed);
+    | Disposable7(_, _, _, _, _, _, _, _, isDisposed)
+    | Empty(isDisposed) => ! Interlocked.exchange(true, isDisposed)
+    | Disposed => false;
 
   let doTeardown =
     fun
@@ -117,7 +121,9 @@ let dispose = {
     | Disposable6(teardown, a0, a1, a2, a3, a4, a5, _) =>
       teardown(a0, a1, a2, a3, a4, a5)
     | Disposable7(teardown, a0, a1, a2, a3, a4, a5, a6, _) =>
-      teardown(a0, a1, a2, a3, a4, a5, a6);
+      teardown(a0, a1, a2, a3, a4, a5, a6)
+    | Empty(_)
+    | Disposed => ();
 
   disposable => {
     let shouldDispose = shouldDispose(disposable);
@@ -132,13 +138,9 @@ let compose = {
   disposables => create1(dispose, disposables);
 };
 
-let empty = () => create(Functions.alwaysUnit1);
+let empty = () => Empty(ref(false));
 
-let disposed: t = {
-  let retval = empty();
-  retval |> dispose |> ignore;
-  retval;
-};
+let disposed: t = Disposed;
 
 let isDisposed =
   fun
@@ -149,8 +151,9 @@ let isDisposed =
   | Disposable4(_, _, _, _, _, isDisposed)
   | Disposable5(_, _, _, _, _, _, isDisposed)
   | Disposable6(_, _, _, _, _, _, _, isDisposed)
-  | Disposable7(_, _, _, _, _, _, _, _, isDisposed) =>
-    Volatile.read(isDisposed);
+  | Disposable7(_, _, _, _, _, _, _, _, isDisposed)
+  | Empty(isDisposed) => Volatile.read(isDisposed)
+  | Disposed => true;
 
 let raiseIfDisposed = (disposable: t) =>
   if (isDisposed(disposable)) {
