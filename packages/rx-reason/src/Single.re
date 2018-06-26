@@ -3,16 +3,10 @@ type t('a) = Observable.t('a);
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
 let create = {
-  let source = (subscribe, subscriber) =>
-    subscribe(
-      ~onSuccess=
-        result => {
-          subscriber |> Subscriber.next(result);
-          subscriber |> Subscriber.complete;
-        },
-      ~onError=exn => subscriber |> Subscriber.complete(~exn),
-      ~cancellationToken=subscriber |> Subscriber.asCompositeDisposable,
-    );
+  let source = (subscribe, subscriber) => {
+    let singleSubscriber = SingleSubscriber.delegate(subscriber);
+    subscribe(singleSubscriber);
+  };
 
   subscribe => Observable.create1(source, subscribe);
 };

@@ -5,15 +5,16 @@ external promiseThen :
   "then";
 
 let toSingle = promise =>
-  RxReason.Single.create((~onSuccess, ~onError, ~cancellationToken) => {
-    let onSuccessIfNotDisposed = next =>
-      if (! RxReason.CompositeDisposable.isDisposed(cancellationToken)) {
-        onSuccess(next);
+  RxReason.Single.create(singleSubscriber => {
+    let onSuccessIfNotDisposed = result =>
+      if (! RxReason.SingleSubscriber.isDisposed(singleSubscriber)) {
+        singleSubscriber |> RxReason.SingleSubscriber.onSuccess(result);
       };
 
     let onErrorIfNotDisposed = err =>
-      if (! RxReason.CompositeDisposable.isDisposed(cancellationToken)) {
-        onError(PromiseException.Exn(err));
+      if (! RxReason.SingleSubscriber.isDisposed(singleSubscriber)) {
+        singleSubscriber
+        |> RxReason.SingleSubscriber.onError(PromiseException.Exn(err));
       };
 
     promise

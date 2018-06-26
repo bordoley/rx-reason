@@ -20,17 +20,17 @@ let complete = (~exn=?, {subscriber}) =>
 let completeWithResult = (~exn=?, {subscriber}) =>
   subscriber |> Subscriber.completeWithResult(~exn?);
 
-let delegateOnComplete = ({subscriber}, exn) =>
-  subscriber |> Subscriber.complete(~exn?);
-
-let delegateOnNext = ({subscriber}, next) =>
-  subscriber |> Subscriber.next(next);
-
 let dispose = self => self |> asDisposable |> Disposable.dispose;
 
 let isDisposed = self => self |> asDisposable |> Disposable.isDisposed;
 
 let next = (next, {subscriber}) => subscriber |> Subscriber.next(next);
+
+let delegateOnComplete = (subject, exn) =>
+  subject |> complete(~exn?);
+
+let delegateOnNext = (subject, v) =>
+  subject |> next(v);
 
 let notify = (notif, {subscriber}) =>
   subscriber |> Subscriber.notify(notif);

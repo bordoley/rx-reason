@@ -10,16 +10,7 @@ let asObservable: t('a) => Observable.t('a);
 /**
  * Returns a Single from the specified subscribe function.
  */
-let create:
-  (
-    (
-      ~onSuccess: 'a => unit,
-      ~onError: exn => unit,
-      ~cancellationToken: CompositeDisposable.t
-    ) =>
-    unit
-  ) =>
-  t('a);
+let create: (SingleSubscriber.t('a) => unit) => t('a);
 
 /**
  * Returns a Single that calls a Single factory to
