@@ -1,6 +1,7 @@
 let operator = {
   let clearDebounce = debounceSubscription =>
-    debounceSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
+    debounceSubscription
+    |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
   let debounceNext = (debounceSubscription, lastValue, delegate) => {
     clearDebounce(debounceSubscription);
@@ -11,9 +12,8 @@ let operator = {
     };
   };
 
-  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _, _) => {
-    debounceNext (debounceSubscription, lastValue, delegate);
-  };
+  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _, _) =>
+    debounceNext(debounceSubscription, lastValue, delegate);
 
   let onNext =
       (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
@@ -30,14 +30,14 @@ let operator = {
            delegate,
          );
 
-    debounceSubscription |> SerialDisposable.setInnerDisposable(schedulerDisposable);
+    debounceSubscription
+    |> SerialDisposable.setInnerDisposable(schedulerDisposable);
   };
 
   let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {
     switch (exn) {
     | Some(_) => clearDebounce(debounceSubscription)
-    | None =>
-      debounceNext(debounceSubscription, lastValue, delegate);
+    | None => debounceNext(debounceSubscription, lastValue, delegate)
     };
     delegate |> Subscriber.complete(~exn?);
   };
@@ -55,7 +55,7 @@ let operator = {
          scheduler,
          dueTime,
        )
-    |> Subscriber.addSerialDisposable(debounceSubscription);
+    |> Subscriber.addTeardown1(SerialDisposable.dispose, debounceSubscription);
   };
 };
 

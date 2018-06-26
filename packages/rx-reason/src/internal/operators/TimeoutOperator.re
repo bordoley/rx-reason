@@ -5,7 +5,9 @@ type context('a) = {
 
 let operator = {
   let subscribeToTimeout = ({connect, timeoutSubscription}) => {
-    timeoutSubscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
+    timeoutSubscription
+    |> SerialDisposable.getInnerDisposable
+    |> Disposable.dispose;
     timeoutSubscription |> SerialDisposable.setInnerDisposable(connect());
   };
 
@@ -33,7 +35,10 @@ let operator = {
       let self =
         subscriber
         |> Subscriber.delegate1(~onNext, ~onComplete, context)
-        |> Subscriber.addSerialDisposable(context.timeoutSubscription);
+        |> Subscriber.addTeardown1(
+             SerialDisposable.dispose,
+             context.timeoutSubscription,
+           );
 
       context.connect =
         ObservableSource.publishTo1(

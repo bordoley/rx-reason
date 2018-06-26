@@ -129,8 +129,7 @@ let some: ('a => bool, Observable.t('a)) => t(bool);
  * Subscribes to the Single with the optional success and error handlers.
  */
 let subscribe:
-  (~onSuccess: 'a => unit=?, ~onError: exn => unit=?, t('a)) =>
-  CompositeDisposable.t;
+  (~onSuccess: 'a => unit=?, ~onError: exn => unit=?, t('a)) => Disposable.t;
 
 let subscribe1:
   (
@@ -139,7 +138,7 @@ let subscribe1:
     'ctx0,
     t('a)
   ) =>
-  CompositeDisposable.t;
+  Disposable.t;
 
 let subscribe2:
   (
@@ -149,7 +148,7 @@ let subscribe2:
     'ctx1,
     t('a)
   ) =>
-  CompositeDisposable.t;
+  Disposable.t;
 
 /**
  * Subscribes to the Single with the provided success and error handlers.
@@ -158,8 +157,7 @@ let subscribe2:
  * handlers or to avoid optional argument boxing.
  */
 let subscribeWith:
-  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) =>
-  CompositeDisposable.t;
+  (~onSuccess: 'a => unit, ~onError: exn => unit, t('a)) => Disposable.t;
 
 let subscribeWith1:
   (
@@ -168,7 +166,7 @@ let subscribeWith1:
     'ctx0,
     t('a)
   ) =>
-  CompositeDisposable.t;
+  Disposable.t;
 
 let subscribeWith2:
   (
@@ -178,4 +176,4 @@ let subscribeWith2:
     'ctx1,
     t('a)
   ) =>
-  CompositeDisposable.t;
+  Disposable.t;

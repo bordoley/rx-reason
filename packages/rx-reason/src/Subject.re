@@ -160,6 +160,9 @@ let subscribeWith7 =
        ctx6,
      );
 
+let subscribeSubscriber = (subscriber, subject) =>
+  subject |> asObservable |> Observable.subscribeSubscriber(subscriber);
+
 let subscribe = (~onNext=?, ~onComplete=?, subject) =>
   subject |> asObservable |> Observable.subscribe(~onNext?, ~onComplete?);
 

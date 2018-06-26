@@ -36,9 +36,7 @@ let merge = {
               subscriber,
               hd,
             );
-          subscriber
-          |> Subscriber.addCompositeDisposable(subscription)
-          |> ignore;
+          subscriber |> Subscriber.addDisposable(subscription) |> ignore;
           loop(tail);
         }
       | [] => ();

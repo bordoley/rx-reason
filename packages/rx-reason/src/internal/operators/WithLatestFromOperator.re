@@ -56,8 +56,7 @@ let operator = {
         self,
         otherLatest,
         other,
-      )
-      |> CompositeDisposable.asDisposable;
+      );
 
     context.self =
       self |> Subscriber.addDisposable(context.otherSubscription);

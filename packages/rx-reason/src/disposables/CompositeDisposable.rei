@@ -11,8 +11,6 @@ module type S = {
   include CompositeDisposableLike.S with type t := t;
   include Disposable.S with type t := t;
 
-  let addCompositeDisposable: (compositeDisposable, t) => t;
-
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t => compositeDisposable;
 };
@@ -23,16 +21,12 @@ module type S1 = {
   include CompositeDisposableLike.S1 with type t('a) := t('a);
   include Disposable.S1 with type t('a) := t('a);
 
-  let addCompositeDisposable: (compositeDisposable, t('a)) => t('a);
-
   /** Cast to Disposable.t. */
   let asCompositeDisposable: t('a) => compositeDisposable;
 };
 
 include Disposable.S with type t := t;
 include CompositeDisposableLike.S with type t := t;
-
-let addCompositeDisposable: (compositeDisposable, t) => t;
 
 /** Constructs a new CompositeDisposable instance. */
 let create: unit => t;

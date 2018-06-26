@@ -36,7 +36,7 @@ module type S1 = {
 
   let subscribe:
     (~onNext: 'a => unit=?, ~onComplete: option(exn) => unit=?, t('a)) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe1:
     (
@@ -45,7 +45,7 @@ module type S1 = {
       'ctx0,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe2:
     (
@@ -55,7 +55,7 @@ module type S1 = {
       'ctx1,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe3:
     (
@@ -66,7 +66,7 @@ module type S1 = {
       'ctx2,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe4:
     (
@@ -78,7 +78,7 @@ module type S1 = {
       'ctx3,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe5:
     (
@@ -91,7 +91,7 @@ module type S1 = {
       'ctx4,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe6:
     (
@@ -107,7 +107,7 @@ module type S1 = {
       'ctx5,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribe7:
     (
@@ -133,11 +133,13 @@ module type S1 = {
       'ctx6,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
+
+  let subscribeSubscriber: (Subscriber.t('a), t('a)) => unit;
 
   let subscribeWith:
     (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith1:
     (
@@ -146,7 +148,7 @@ module type S1 = {
       'ctx0,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith2:
     (
@@ -156,7 +158,7 @@ module type S1 = {
       'ctx1,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith3:
     (
@@ -167,7 +169,7 @@ module type S1 = {
       'ctx2,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith4:
     (
@@ -179,7 +181,7 @@ module type S1 = {
       'ctx3,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith5:
     (
@@ -192,7 +194,7 @@ module type S1 = {
       'ctx4,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith6:
     (
@@ -207,7 +209,7 @@ module type S1 = {
       'ctx5,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 
   let subscribeWith7:
     (
@@ -232,5 +234,5 @@ module type S1 = {
       'ctx6,
       t('a)
     ) =>
-    CompositeDisposable.t;
+    Disposable.t;
 };

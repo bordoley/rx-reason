@@ -9,6 +9,7 @@ let subscribeWith4 = Observable.subscribeWith4;
 let subscribeWith5 = Observable.subscribeWith5;
 let subscribeWith6 = Observable.subscribeWith6;
 let subscribeWith7 = Observable.subscribeWith7;
+let subscribeSubscriber = Observable.subscribeSubscriber;
 let subscribe = Observable.subscribe;
 let subscribe1 = Observable.subscribe1;
 let subscribe2 = Observable.subscribe2;
@@ -28,11 +29,12 @@ let shareInternal = {
       (refCount, sourceSubscription, currentSubject, subject, subscription) => {
     decr(refCount);
     if (refCount^ === 0) {
-      sourceSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
+      sourceSubscription
+      |> SerialDisposable.setInnerDisposable(Disposable.disposed);
       currentSubject |> Subject.dispose;
       subject := Subject.disposed;
     };
-    subscription |> CompositeDisposable.dispose;
+    subscription |> Disposable.dispose;
   };
 
   (~createSubject, source) => {
@@ -63,12 +65,11 @@ let shareInternal = {
                ~onComplete=Subject.delegateOnComplete,
                currentSubject,
                source,
-             )
-             |> CompositeDisposable.asDisposable,
+             ),
            );
       };
 
-      if (! CompositeDisposable.isDisposed(subscription)) {
+      if (! Disposable.isDisposed(subscription)) {
         incr(refCount);
         subscriber
         |> Subscriber.addTeardown5(

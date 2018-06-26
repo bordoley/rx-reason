@@ -5,7 +5,10 @@ type context('a) = {
 
 let operator = {
   let hasActiveSubscription = ({innerSubscription}) =>
-    innerSubscription |> SerialDisposable.getInnerDisposable |> Disposable.isDisposed |> (!);
+    innerSubscription
+    |> SerialDisposable.getInnerDisposable
+    |> Disposable.isDisposed
+    |> (!);
 
   let completeSubscriber = ({innerSubscription}, delegate, exn) => {
     innerSubscription |> SerialDisposable.dispose;
@@ -31,10 +34,7 @@ let operator = {
             delegate,
             next,
           );
-        innerSubscription
-        |> SerialDisposable.setInnerDisposable(
-             subscription |> CompositeDisposable.asDisposable,
-           );
+        innerSubscription |> SerialDisposable.setInnerDisposable(subscription);
       };
     };
   };
@@ -58,7 +58,10 @@ let operator = {
     context.self =
       subscriber
       |> Subscriber.delegate1(~onNext, ~onComplete, context)
-      |> Subscriber.addSerialDisposable(context.innerSubscription);
+      |> Subscriber.addTeardown1(
+           SerialDisposable.dispose,
+           context.innerSubscription,
+         );
     context.self;
   };
 };

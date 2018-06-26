@@ -7,7 +7,8 @@ let concat = {
         subscriber |> Subscriber.complete(~exn?);
         continuation |> SchedulerContinuation.dispose;
       | None =>
-        innerSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
+        innerSubscription
+        |> SerialDisposable.setInnerDisposable(Disposable.disposed);
         continuation |> SchedulerContinuation.continue(observables);
       };
 
@@ -16,7 +17,7 @@ let concat = {
         switch (observables) {
         | [] =>
           subscriber |> Subscriber.complete;
-          CompositeDisposable.disposed;
+          Disposable.disposed;
         | [hd, ...tail] =>
           hd
           |> ObservableSource.subscribeWith4(
@@ -29,11 +30,9 @@ let concat = {
              )
         };
 
-      if (! CompositeDisposable.isDisposed(newSubscription)) {
+      if (! Disposable.isDisposed(newSubscription)) {
         innerSubscription
-        |> SerialDisposable.setInnerDisposable(
-             CompositeDisposable.asDisposable(newSubscription),
-           );
+        |> SerialDisposable.setInnerDisposable(newSubscription);
       };
     };
 
@@ -49,7 +48,7 @@ let concat = {
            );
       subscriber
       |> Subscriber.addDisposable(subscription)
-      |> Subscriber.addSerialDisposable(innerSubscription)
+      |> Subscriber.addTeardown1(SerialDisposable.dispose, innerSubscription)
       |> ignore;
     };
   };
@@ -62,7 +61,7 @@ let concat = {
         switch (observables) {
         | [] =>
           subscriber |> Subscriber.complete;
-          CompositeDisposable.disposed;
+          Disposable.disposed;
         | [hd, ...tail] =>
           hd
           |> ObservableSource.subscribeWith1(
@@ -74,24 +73,24 @@ let concat = {
                      subscriber |> Subscriber.complete(~exn?)
                    | None =>
                      innerSubscription
-                     |> SerialDisposable.setInnerDisposable(Disposable.disposed);
+                     |> SerialDisposable.setInnerDisposable(
+                          Disposable.disposed,
+                        );
                      loop(tail);
                    },
                subscriber,
              )
         };
 
-      if (! CompositeDisposable.isDisposed(newSubscription)) {
+      if (! Disposable.isDisposed(newSubscription)) {
         innerSubscription
-        |> SerialDisposable.setInnerDisposable(
-             CompositeDisposable.asDisposable(newSubscription),
-           );
+        |> SerialDisposable.setInnerDisposable(newSubscription);
       };
     };
 
     subscriber
-      |> Subscriber.addSerialDisposable(innerSubscription)
-      |> ignore;
+    |> Subscriber.addTeardown1(SerialDisposable.dispose, innerSubscription)
+    |> ignore;
 
     loop(observables);
   };

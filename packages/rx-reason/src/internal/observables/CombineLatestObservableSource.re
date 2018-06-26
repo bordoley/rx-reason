@@ -27,7 +27,7 @@ let combineLatest2 = {
     switch (exn) {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
-      let shouldComplete = CompositeDisposable.isDisposed(other^);
+      let shouldComplete = Disposable.isDisposed(other^);
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
       };
@@ -48,12 +48,12 @@ let combineLatest2 = {
       subscriber,
       observable,
     );
-  
+
   let source = (selector, observable0, observable1, subscriber) => {
     let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
-    let (s0, s1) = CompositeDisposable.(ref(disposed), ref(disposed));
+    let (s0, s1) = Disposable.(ref(disposed), ref(disposed));
     s0 :=
       observable0 |> doSubscribe(selector, v0, v1, lock, v0, s1, subscriber);
     s1 :=
@@ -61,8 +61,8 @@ let combineLatest2 = {
     let (s0, s1) = (s0^, s1^);
 
     subscriber
-    |> Subscriber.addCompositeDisposable(s0)
-    |> Subscriber.addCompositeDisposable(s1)
+    |> Subscriber.addDisposable(s0)
+    |> Subscriber.addDisposable(s1)
     |> Subscriber.addTeardown1(MutableOption.unset, v0)
     |> Subscriber.addTeardown1(MutableOption.unset, v1)
     |> ignore;
@@ -110,8 +110,7 @@ let combineLatest3 = {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
       let shouldComplete =
-        CompositeDisposable.isDisposed(d0^)
-        && CompositeDisposable.isDisposed(d1^);
+        Disposable.isDisposed(d0^) && Disposable.isDisposed(d1^);
 
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
@@ -144,16 +143,16 @@ let combineLatest3 = {
       let ctx = (selector, v0, v1, v2, lock);
 
       let (s0, s1, s2) =
-        CompositeDisposable.(ref(disposed), ref(disposed), ref(disposed));
+        Disposable.(ref(disposed), ref(disposed), ref(disposed));
       s0 := observable0 |> doSubscribe(ctx, v0, s1, s2, subscriber);
       s1 := observable1 |> doSubscribe(ctx, v1, s0, s2, subscriber);
       s2 := observable2 |> doSubscribe(ctx, v2, s0, s1, subscriber);
       let (s0, s1, s2) = (s0^, s1^, s2^);
 
       subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addCompositeDisposable(s2)
+      |> Subscriber.addDisposable(s0)
+      |> Subscriber.addDisposable(s1)
+      |> Subscriber.addDisposable(s2)
       |> Subscriber.addTeardown1(MutableOption.unset, v0)
       |> Subscriber.addTeardown1(MutableOption.unset, v1)
       |> Subscriber.addTeardown1(MutableOption.unset, v2)
@@ -201,9 +200,9 @@ let combineLatest4 = {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
       let shouldComplete =
-        CompositeDisposable.isDisposed(d0^)
-        && CompositeDisposable.isDisposed(d1^)
-        && CompositeDisposable.isDisposed(d2^);
+        Disposable.isDisposed(d0^)
+        && Disposable.isDisposed(d1^)
+        && Disposable.isDisposed(d2^);
 
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
@@ -238,7 +237,7 @@ let combineLatest4 = {
       let ctx = (selector, v0, v1, v2, v3, lock);
 
       let (s0, s1, s2, s3) =
-        CompositeDisposable.(
+        Disposable.(
           ref(disposed),
           ref(disposed),
           ref(disposed),
@@ -251,10 +250,10 @@ let combineLatest4 = {
       let (s0, s1, s2, s3) = (s0^, s1^, s2^, s3^);
 
       subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addCompositeDisposable(s2)
-      |> Subscriber.addCompositeDisposable(s3)
+      |> Subscriber.addDisposable(s0)
+      |> Subscriber.addDisposable(s1)
+      |> Subscriber.addDisposable(s2)
+      |> Subscriber.addDisposable(s3)
       |> Subscriber.addTeardown1(MutableOption.unset, v0)
       |> Subscriber.addTeardown1(MutableOption.unset, v1)
       |> Subscriber.addTeardown1(MutableOption.unset, v2)
@@ -306,10 +305,10 @@ let combineLatest5 = {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
       let shouldComplete =
-        CompositeDisposable.isDisposed(d0^)
-        && CompositeDisposable.isDisposed(d1^)
-        && CompositeDisposable.isDisposed(d2^)
-        && CompositeDisposable.isDisposed(d3^);
+        Disposable.isDisposed(d0^)
+        && Disposable.isDisposed(d1^)
+        && Disposable.isDisposed(d2^)
+        && Disposable.isDisposed(d3^);
 
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
@@ -346,7 +345,7 @@ let combineLatest5 = {
       let ctx = (selector, v0, v1, v2, v3, v4, lock);
 
       let (s0, s1, s2, s3, s4) =
-        CompositeDisposable.(
+        Disposable.(
           ref(disposed),
           ref(disposed),
           ref(disposed),
@@ -361,11 +360,11 @@ let combineLatest5 = {
       let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
       subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addCompositeDisposable(s2)
-      |> Subscriber.addCompositeDisposable(s3)
-      |> Subscriber.addCompositeDisposable(s4)
+      |> Subscriber.addDisposable(s0)
+      |> Subscriber.addDisposable(s1)
+      |> Subscriber.addDisposable(s2)
+      |> Subscriber.addDisposable(s3)
+      |> Subscriber.addDisposable(s4)
       |> Subscriber.addTeardown1(MutableOption.unset, v0)
       |> Subscriber.addTeardown1(MutableOption.unset, v1)
       |> Subscriber.addTeardown1(MutableOption.unset, v2)
@@ -426,11 +425,11 @@ let combineLatest6 = {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
       let shouldComplete =
-        CompositeDisposable.isDisposed(d0^)
-        && CompositeDisposable.isDisposed(d1^)
-        && CompositeDisposable.isDisposed(d2^)
-        && CompositeDisposable.isDisposed(d3^)
-        && CompositeDisposable.isDisposed(d4^);
+        Disposable.isDisposed(d0^)
+        && Disposable.isDisposed(d1^)
+        && Disposable.isDisposed(d2^)
+        && Disposable.isDisposed(d3^)
+        && Disposable.isDisposed(d4^);
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
       };
@@ -472,7 +471,7 @@ let combineLatest6 = {
       let ctx = (selector, v0, v1, v2, v3, v4, v5, lock);
 
       let (s0, s1, s2, s3, s4, s5) =
-        CompositeDisposable.(
+        Disposable.(
           ref(disposed),
           ref(disposed),
           ref(disposed),
@@ -495,12 +494,12 @@ let combineLatest6 = {
       let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
 
       subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addCompositeDisposable(s2)
-      |> Subscriber.addCompositeDisposable(s3)
-      |> Subscriber.addCompositeDisposable(s4)
-      |> Subscriber.addCompositeDisposable(s5)
+      |> Subscriber.addDisposable(s0)
+      |> Subscriber.addDisposable(s1)
+      |> Subscriber.addDisposable(s2)
+      |> Subscriber.addDisposable(s3)
+      |> Subscriber.addDisposable(s4)
+      |> Subscriber.addDisposable(s5)
       |> Subscriber.addTeardown1(MutableOption.unset, v0)
       |> Subscriber.addTeardown1(MutableOption.unset, v1)
       |> Subscriber.addTeardown1(MutableOption.unset, v2)
@@ -564,12 +563,12 @@ let combineLatest7 = {
     | Some(_) => subscriber |> Subscriber.complete(~exn?)
     | None =>
       let shouldComplete =
-        CompositeDisposable.isDisposed(d0^)
-        && CompositeDisposable.isDisposed(d1^)
-        && CompositeDisposable.isDisposed(d2^)
-        && CompositeDisposable.isDisposed(d3^)
-        && CompositeDisposable.isDisposed(d4^)
-        && CompositeDisposable.isDisposed(d5^);
+        Disposable.isDisposed(d0^)
+        && Disposable.isDisposed(d1^)
+        && Disposable.isDisposed(d2^)
+        && Disposable.isDisposed(d3^)
+        && Disposable.isDisposed(d4^)
+        && Disposable.isDisposed(d5^);
       if (shouldComplete) {
         subscriber |> Subscriber.complete(~exn?);
       };
@@ -613,7 +612,7 @@ let combineLatest7 = {
       let ctx = (selector, v0, v1, v2, v3, v4, v5, v6, lock);
 
       let (s0, s1, s2, s3, s4, s5, s6) =
-        CompositeDisposable.(
+        Disposable.(
           ref(disposed),
           ref(disposed),
           ref(disposed),
@@ -647,13 +646,13 @@ let combineLatest7 = {
       let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
 
       subscriber
-      |> Subscriber.addCompositeDisposable(s0)
-      |> Subscriber.addCompositeDisposable(s1)
-      |> Subscriber.addCompositeDisposable(s2)
-      |> Subscriber.addCompositeDisposable(s3)
-      |> Subscriber.addCompositeDisposable(s4)
-      |> Subscriber.addCompositeDisposable(s5)
-      |> Subscriber.addCompositeDisposable(s6)
+      |> Subscriber.addDisposable(s0)
+      |> Subscriber.addDisposable(s1)
+      |> Subscriber.addDisposable(s2)
+      |> Subscriber.addDisposable(s3)
+      |> Subscriber.addDisposable(s4)
+      |> Subscriber.addDisposable(s5)
+      |> Subscriber.addDisposable(s6)
       |> Subscriber.addTeardown1(MutableOption.unset, v0)
       |> Subscriber.addTeardown1(MutableOption.unset, v1)
       |> Subscriber.addTeardown1(MutableOption.unset, v2)

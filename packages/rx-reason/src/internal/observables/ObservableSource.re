@@ -240,7 +240,8 @@ type t('a) =
 let create = onSubscribe => Source(onSubscribe);
 let create1 = (onSubscribe, ctx0) => Source1(onSubscribe, ctx0);
 let create2 = (onSubscribe, ctx0, ctx1) => Source2(onSubscribe, ctx0, ctx1);
-let create3 = (onSubscribe, ctx0, ctx1, ctx2) => Source3(onSubscribe, ctx0, ctx1, ctx2);
+let create3 = (onSubscribe, ctx0, ctx1, ctx2) =>
+  Source3(onSubscribe, ctx0, ctx1, ctx2);
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   switch (observable) {
@@ -443,7 +444,7 @@ let subscribeWith = (~onNext, ~onComplete, observable) => {
   let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith1 = (~onNext, ~onComplete, ctx0, observable) => {
@@ -451,7 +452,7 @@ let subscribeWith1 = (~onNext, ~onComplete, ctx0, observable) => {
     Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith2 = (~onNext, ~onComplete, ctx0, ctx1, observable) => {
@@ -459,7 +460,7 @@ let subscribeWith2 = (~onNext, ~onComplete, ctx0, ctx1, observable) => {
     Subscriber.createAutoDisposing2(~onNext, ~onComplete, ctx0, ctx1);
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
@@ -467,7 +468,7 @@ let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
     Subscriber.createAutoDisposing3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith4 =
@@ -483,7 +484,7 @@ let subscribeWith4 =
     );
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith5 =
@@ -500,7 +501,7 @@ let subscribeWith5 =
     );
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith6 =
@@ -518,7 +519,7 @@ let subscribeWith6 =
     );
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribeWith7 =
@@ -548,7 +549,7 @@ let subscribeWith7 =
     );
 
   subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asCompositeDisposable;
+  subscriber |> Subscriber.asDisposable;
 };
 
 let subscribe =
@@ -658,7 +659,7 @@ let subscribe7 =
 
 let publishTo = {
   let teardown = (subscription, active) => {
-    subscription |> CompositeDisposable.dispose;
+    subscription |> Disposable.dispose;
     Volatile.write(false, active);
   };
 
@@ -681,7 +682,7 @@ let publishTo = {
 
 let publishTo1 = {
   let teardown = (subscription, active) => {
-    subscription |> CompositeDisposable.dispose;
+    subscription |> Disposable.dispose;
     Volatile.write(false, active);
   };
 

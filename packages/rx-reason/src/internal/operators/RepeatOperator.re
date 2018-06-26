@@ -39,9 +39,7 @@ let operator = {
              delegate,
            );
       subscription
-      |> SerialDisposable.setInnerDisposable(
-           newInnerSubscription |> CompositeDisposable.asDisposable,
-         );
+      |> SerialDisposable.setInnerDisposable(newInnerSubscription);
     };
   };
 
@@ -56,7 +54,7 @@ let operator = {
          shouldRepeat,
          subscription,
        )
-    |> Subscriber.addSerialDisposable(subscription);
+    |> Subscriber.addTeardown1(SerialDisposable.dispose, subscription);
   };
 };
 

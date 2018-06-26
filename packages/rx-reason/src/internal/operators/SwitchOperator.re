@@ -25,7 +25,8 @@ let operator = {
       };
 
     (id, {innerSubscription} as ctx, delegate, next) => {
-      innerSubscription |> SerialDisposable.setInnerDisposable(Disposable.disposed);
+      innerSubscription
+      |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
         ObservableSource.subscribeWith3(
@@ -38,9 +39,7 @@ let operator = {
         );
 
       innerSubscription
-      |> SerialDisposable.setInnerDisposable(
-           newInnerSubscription |> CompositeDisposable.asDisposable,
-         );
+      |> SerialDisposable.setInnerDisposable(newInnerSubscription);
     };
   };
 
@@ -71,7 +70,10 @@ let operator = {
     context.self =
       subscriber
       |> Subscriber.delegate1(~onNext, ~onComplete, context)
-      |> Subscriber.addSerialDisposable(context.innerSubscription);
+      |> Subscriber.addTeardown1(
+           SerialDisposable.dispose,
+           context.innerSubscription,
+         );
     context.self;
   };
 };

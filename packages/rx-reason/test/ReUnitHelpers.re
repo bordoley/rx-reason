@@ -41,6 +41,6 @@ let observableIt =
         |> expectObservableToProduce(~nextEquals, ~nextToString, expected);
 
       vts |> VirtualTimeScheduler.run;
-      subscription |> CompositeDisposable.dispose;
+      subscription |> Disposable.dispose;
     },
   );

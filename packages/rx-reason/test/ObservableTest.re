@@ -178,27 +178,19 @@ let test =
 
             subject0 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject1 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject2 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject3 |> Subject.complete;
             result^ |> Expect.toBeEqualToTrue;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it(
             "completes when the first observable completes with an exception",
@@ -220,15 +212,11 @@ let test =
               )
               |> Observable.subscribe(~onComplete=_ => result := true);
 
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
 
             subject2 |> Subject.complete(~exn=Division_by_zero);
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -289,33 +277,23 @@ let test =
 
             subject0 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject1 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject2 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject3 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject4 |> Subject.complete;
             result^ |> Expect.toBeEqualToTrue;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it(
             "completes when the first observable completes with an exception",
@@ -339,15 +317,11 @@ let test =
               )
               |> Observable.subscribe(~onComplete=_ => result := true);
 
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
 
             subject3 |> Subject.complete(~exn=Division_by_zero);
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -414,39 +388,27 @@ let test =
 
             subject0 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject1 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject2 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject3 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject4 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject5 |> Subject.complete;
             result^ |> Expect.toBeEqualToTrue;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it(
             "completes when the first observable completes with an exception",
@@ -472,15 +434,11 @@ let test =
               )
               |> Observable.subscribe(~onComplete=_ => result := true);
 
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
 
             subject4 |> Subject.complete(~exn=Division_by_zero);
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -553,45 +511,31 @@ let test =
 
             subject0 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject1 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject2 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject3 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject4 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject5 |> Subject.complete;
             result^ |> Expect.toBeEqualToFalse;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             subject6 |> Subject.complete;
             result^ |> Expect.toBeEqualToTrue;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
           }),
           it(
             "completes when the first observable completes with an exception",
@@ -619,15 +563,11 @@ let test =
               )
               |> Observable.subscribe(~onComplete=_ => result := true);
 
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
             result^ |> Expect.toBeEqualToFalse;
 
             subject5 |> Subject.complete(~exn=Division_by_zero);
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
             result^ |> Expect.toBeEqualToTrue;
           }),
         ],
@@ -1397,9 +1337,7 @@ let test =
                        subscriber,
                      );
 
-                subscriber
-                |> Subscriber.addCompositeDisposable(subscription)
-                |> ignore;
+                subscriber |> Subscriber.addDisposable(subscription) |> ignore;
               })
               |> Observable.retry
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
@@ -1408,17 +1346,13 @@ let test =
             subscriber |> Subject.next(1);
             subscriber |> Subject.next(2);
             subscriber |> Subject.complete(~exn=Division_by_zero);
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToFalse;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToFalse;
 
             let subscriber = subject^;
             subscriber |> Subject.next(3);
             subscriber |> Subject.next(4);
             subscriber |> Subject.complete;
-            subscription
-            |> CompositeDisposable.isDisposed
-            |> Expect.toBeEqualToTrue;
+            subscription |> Disposable.isDisposed |> Expect.toBeEqualToTrue;
 
             result^ |> Expect.toBeEqualToListOfInt([4, 3, 2, 1]);
           }),
@@ -1426,7 +1360,7 @@ let test =
             let vts = VirtualTimeScheduler.create();
             let scheduler = vts |> VirtualTimeScheduler.asScheduler;
 
-            let subscription = ref(CompositeDisposable.disposed);
+            let subscription = ref(Disposable.disposed);
             subscription :=
               Observable.ofAbsoluteTimeNotifications(
                 ~scheduler,
@@ -1436,7 +1370,7 @@ let test =
                 ],
               )
               |> Observable.retry(~predicate=_ => {
-                   subscription^ |> CompositeDisposable.dispose;
+                   subscription^ |> Disposable.dispose;
                    true;
                  })
               |> expectObservableToProduce(
