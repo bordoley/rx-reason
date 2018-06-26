@@ -1,30 +1,35 @@
 let concat = {
-  let concatScheduledSource = {
+  let concatSource = {
     let onComplete =
-        (continuation, observables, innerSubscription, subscriber, exn) =>
+        (scheduler, tail, loop, innerSubscription, subscriber, exn) =>
       switch (exn) {
-      | Some(_) as exn =>
-        subscriber |> Subscriber.complete(~exn?);
-        continuation |> SchedulerContinuation.dispose;
+      | Some(_) as exn => subscriber |> Subscriber.complete(~exn?)
       | None =>
         innerSubscription
         |> SerialDisposable.setInnerDisposable(Disposable.disposed);
-        continuation |> SchedulerContinuation.continue(observables);
+        loop(scheduler, tail, innerSubscription, subscriber);
       };
 
-    let doWork = (innerSubscription, subscriber, continuation, observables) => {
+    let rec loop = (scheduler, observables, innerSubscription, subscriber) => {
       let newSubscription =
         switch (observables) {
         | [] =>
           subscriber |> Subscriber.complete;
           Disposable.disposed;
         | [hd, ...tail] =>
-          hd
-          |> ObservableSource.subscribeWith4(
-               ~onNext=Subscriber.delegateOnNext3,
+          (
+            switch (scheduler) {
+            | Some(scheduler) =>
+              hd |> SubscribeOnObservableSource.subscribeOn(scheduler)
+            | None => hd
+            }
+          )
+          |> ObservableSource.subscribeWith5(
+               ~onNext=Subscriber.delegateOnNext4,
                ~onComplete,
-               continuation,
+               scheduler,
                tail,
+               loop,
                innerSubscription,
                subscriber,
              )
@@ -38,67 +43,15 @@ let concat = {
 
     (scheduler, observables, subscriber) => {
       let innerSubscription = SerialDisposable.create();
-      let subscription =
-        scheduler
-        |> Scheduler.schedule2(
-             doWork,
-             observables,
-             innerSubscription,
-             subscriber,
-           );
+
       subscriber
-      |> Subscriber.addTeardown1(Disposable.dispose, subscription)
       |> Subscriber.addTeardown1(SerialDisposable.dispose, innerSubscription)
       |> ignore;
+
+      loop(scheduler, observables, innerSubscription, subscriber);
     };
-  };
-
-  let concatSynchronousSource = (observables, subscriber) => {
-    let innerSubscription = SerialDisposable.create();
-
-    let rec loop = observables => {
-      let newSubscription =
-        switch (observables) {
-        | [] =>
-          subscriber |> Subscriber.complete;
-          Disposable.disposed;
-        | [hd, ...tail] =>
-          hd
-          |> ObservableSource.subscribeWith1(
-               ~onNext=Subscriber.delegateOnNext,
-               ~onComplete=
-                 (subscriber, exn) =>
-                   switch (exn) {
-                   | Some(_) as exn =>
-                     subscriber |> Subscriber.complete(~exn?)
-                   | None =>
-                     innerSubscription
-                     |> SerialDisposable.setInnerDisposable(
-                          Disposable.disposed,
-                        );
-                     loop(tail);
-                   },
-               subscriber,
-             )
-        };
-
-      if (! Disposable.isDisposed(newSubscription)) {
-        innerSubscription
-        |> SerialDisposable.setInnerDisposable(newSubscription);
-      };
-    };
-
-    subscriber
-    |> Subscriber.addTeardown1(SerialDisposable.dispose, innerSubscription)
-    |> ignore;
-
-    loop(observables);
   };
 
   (~scheduler=?, observables) =>
-    switch (scheduler) {
-    | Some(scheduler) =>
-      ObservableSource.create2(concatScheduledSource, scheduler, observables)
-    | None => ObservableSource.create1(concatSynchronousSource, observables)
-    };
+    ObservableSource.create2(concatSource, scheduler, observables);
 };
