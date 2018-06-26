@@ -88,8 +88,7 @@ let shareInternal = {
 
 let share = obs => shareInternal(~createSubject=Subject.create, obs);
 
-let shareWithReplayBuffer = (count, obs) =>
-  shareInternal(
-    ~createSubject=() => Subject.createWithReplayBuffer(count),
-    obs,
-  );
+let shareWithReplayBuffer = count => {
+  let createSubject = () => Subject.createWithReplayBuffer(count);
+  obs => shareInternal(~createSubject, obs);
+};
