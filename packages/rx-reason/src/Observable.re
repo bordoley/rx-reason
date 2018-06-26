@@ -109,8 +109,12 @@ let startWithList = (~scheduler=?, values, observable) =>
 let startWithValue = (~scheduler=?, value, observable) =>
   concat([ofValue(~scheduler?, value), observable]);
 
-let toList = observable =>
-  observable
-  |> scan((acc, next) => [next, ...acc], [])
-  |> last
-  |> map(List.rev);
+let toList = {
+  let toListAccumulator = (acc, next) => [next, ...acc];
+  
+  observable =>
+    observable
+    |> scan(toListAccumulator, [])
+    |> last
+    |> map(List.rev);
+};
