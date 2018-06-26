@@ -12,6 +12,8 @@ let asObservable: t('a) => Observable.t('a);
  */
 let create: (SingleSubscriber.t('a) => unit) => t('a);
 
+let create1: (('ctx0, SingleSubscriber.t('a)) => unit, 'ctx0) => t('a);
+
 /**
  * Returns a Single that calls a Single factory to
  * create a new Single for each subscription.

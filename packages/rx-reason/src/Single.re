@@ -11,6 +11,15 @@ let create = {
   subscribe => Observable.create1(source, subscribe);
 };
 
+let create1 = {
+  let source = (subscribe, ctx0, subscriber) => {
+    let singleSubscriber = SingleSubscriber.delegate(subscriber);
+    subscribe(ctx0, singleSubscriber);
+  };
+
+  (subscribe, ctx) => Observable.create2(source, subscribe, ctx);
+};
+
 let defer = Observable.defer;
 
 let every = Observable.every;

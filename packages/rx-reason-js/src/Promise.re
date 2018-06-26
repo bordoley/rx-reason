@@ -4,8 +4,8 @@ external promiseThen :
   Js.Promise.t('a) =
   "then";
 
-let toSingle = promise =>
-  RxReason.Single.create(singleSubscriber => {
+let toSingle = {
+  let toSingleSubscribe = (promise, singleSubscriber) => {
     let onSuccessIfNotDisposed = result =>
       if (! RxReason.SingleSubscriber.isDisposed(singleSubscriber)) {
         singleSubscriber |> RxReason.SingleSubscriber.onSuccess(result);
@@ -20,7 +20,10 @@ let toSingle = promise =>
     promise
     |. promiseThen(onSuccessIfNotDisposed, onErrorIfNotDisposed)
     |> ignore;
-  });
+  };
+
+  promise => RxReason.Single.create1(toSingleSubscribe, promise);
+};
 
 let fromSingle = {
   let onSuccess = (resolve, _, a) => resolve(. a);
