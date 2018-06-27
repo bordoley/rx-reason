@@ -3,6 +3,10 @@ type source1('ctx0, 'a) = ('ctx0, Subscriber.t('a)) => unit;
 type source2('ctx0, 'ctx1, 'a) = ('ctx0, 'ctx1, Subscriber.t('a)) => unit;
 type source3('ctx0, 'ctx1, 'ctx2, 'a) =
   ('ctx0, 'ctx1, 'ctx2, Subscriber.t('a)) => unit;
+type source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) =
+  ('ctx0, 'ctx1, 'ctx2, 'ctx3, Subscriber.t('a)) => unit;
+type source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) =
+  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, Subscriber.t('a)) => unit;
 
 type t('a) =
   | Source(source('a)): t('a)
@@ -235,6 +239,182 @@ type t('a) =
                   Operator.t('d, 'c),
                   Operator.t('c, 'b),
                   Operator.t('b, 'a),
+                ): t('a)
+  | Source4(
+             source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a),
+             'ctx0,
+             'ctx1,
+             'ctx2,
+             'ctx3,
+           ): t('a)
+  | Source4Lift1(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'b),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift2(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'c),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift3(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'd),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift4(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'e),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift5(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'f),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift6(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'g),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('g, 'f),
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source4Lift7(
+                  source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'h),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  Operator.t('h, 'g),
+                  Operator.t('g, 'f),
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5(
+             source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a),
+             'ctx0,
+             'ctx1,
+             'ctx2,
+             'ctx3,
+             'ctx4,
+           ): t('a)
+  | Source5Lift1(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'b),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift2(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'c),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift3(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'd),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift4(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'e),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift5(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'f),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift6(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'g),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('g, 'f),
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
+                ): t('a)
+  | Source5Lift7(
+                  source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'h),
+                  'ctx0,
+                  'ctx1,
+                  'ctx2,
+                  'ctx3,
+                  'ctx4,
+                  Operator.t('h, 'g),
+                  Operator.t('g, 'f),
+                  Operator.t('f, 'e),
+                  Operator.t('e, 'd),
+                  Operator.t('d, 'c),
+                  Operator.t('c, 'b),
+                  Operator.t('b, 'a),
                 ): t('a);
 
 let create = onSubscribe => Source(onSubscribe);
@@ -242,6 +422,10 @@ let create1 = (onSubscribe, ctx0) => Source1(onSubscribe, ctx0);
 let create2 = (onSubscribe, ctx0, ctx1) => Source2(onSubscribe, ctx0, ctx1);
 let create3 = (onSubscribe, ctx0, ctx1, ctx2) =>
   Source3(onSubscribe, ctx0, ctx1, ctx2);
+let create4 = (onSubscribe, ctx0, ctx1, ctx2, ctx3) =>
+  Source4(onSubscribe, ctx0, ctx1, ctx2, ctx3);
+let create5 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4) =>
+  Source5(onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4);
 
 let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
   switch (observable) {
@@ -323,6 +507,170 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
     let op0 = subscriber =>
       op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ operator @@ subscriber;
     Source3Lift1(source, ctx0, ctx1, ctx2, op0);
+  | Source4(source, ctx0, ctx1, ctx2, ctx3) =>
+    Source4Lift1(source, ctx0, ctx1, ctx2, ctx3, operator)
+  | Source4Lift1(source, ctx0, ctx1, ctx2, ctx3, op0) =>
+    Source4Lift2(source, ctx0, ctx1, ctx2, ctx3, op0, operator)
+  | Source4Lift2(source, ctx0, ctx1, ctx2, ctx3, op0, op1) =>
+    Source4Lift3(source, ctx0, ctx1, ctx2, ctx3, op0, op1, operator)
+  | Source4Lift3(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2) =>
+    Source4Lift4(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, operator)
+  | Source4Lift4(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3) =>
+    Source4Lift5(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3, operator)
+  | Source4Lift5(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3, op4) =>
+    Source4Lift6(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      operator,
+    )
+  | Source4Lift6(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3, op4, op5) =>
+    Source4Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      operator,
+    )
+  | Source4Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      op6,
+    ) =>
+    let op0 = subscriber =>
+      op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ operator @@ subscriber;
+    Source4Lift1(source, ctx0, ctx1, ctx2, ctx3, op0);
+
+  | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4) =>
+    Source5Lift1(source, ctx0, ctx1, ctx2, ctx3, ctx4, operator)
+  | Source5Lift1(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0) =>
+    Source5Lift2(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, operator)
+  | Source5Lift2(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1) =>
+    Source5Lift3(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1, operator)
+  | Source5Lift3(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1, op2) =>
+    Source5Lift4(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      operator,
+    )
+  | Source5Lift4(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1, op2, op3) =>
+    Source5Lift5(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      operator,
+    )
+  | Source5Lift5(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+    ) =>
+    Source5Lift6(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      operator,
+    )
+  | Source5Lift6(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+    ) =>
+    Source5Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      operator,
+    )
+  | Source5Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      op6,
+    ) =>
+    let op0 = subscriber =>
+      op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ operator @@ subscriber;
+    Source5Lift1(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0);
   };
 
 let never = Source(Functions.alwaysUnit1);
@@ -438,6 +786,107 @@ let subscribeSubscriber = (subscriber, observable) =>
     let subscriber =
       op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ subscriber;
     source(ctx0, ctx1, ctx2) |> subscribeSafe(subscriber);
+  | Source4(source, ctx0, ctx1, ctx2, ctx3) =>
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber)
+  | Source4Lift1(source, ctx0, ctx1, ctx2, ctx3, op0) =>
+    let subscriber = op0(subscriber);
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift2(source, ctx0, ctx1, ctx2, ctx3, op0, op1) =>
+    let subscriber = op0 @@ op1 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift3(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift4(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift5(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3, op4) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift6(source, ctx0, ctx1, ctx2, ctx3, op0, op1, op2, op3, op4, op5) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+  | Source4Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      op6,
+    ) =>
+    let subscriber =
+      op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3) |> subscribeSafe(subscriber);
+
+  | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4) =>
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber)
+  | Source5Lift1(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0) =>
+    let subscriber = op0(subscriber);
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift2(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1) =>
+    let subscriber = op0 @@ op1 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift3(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1, op2) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift4(source, ctx0, ctx1, ctx2, ctx3, ctx4, op0, op1, op2, op3) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift5(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+    ) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift6(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+    ) =>
+    let subscriber = op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
+  | Source5Lift7(
+      source,
+      ctx0,
+      ctx1,
+      ctx2,
+      ctx3,
+      ctx4,
+      op0,
+      op1,
+      op2,
+      op3,
+      op4,
+      op5,
+      op6,
+    ) =>
+    let subscriber =
+      op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ subscriber;
+    source(ctx0, ctx1, ctx2, ctx3, ctx4) |> subscribeSafe(subscriber);
   };
 
 let subscribeWith = (~onNext, ~onComplete, observable) => {

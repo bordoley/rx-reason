@@ -22,6 +22,8 @@ let create = ObservableSource.create;
 let create1 = ObservableSource.create1;
 let create2 = ObservableSource.create2;
 let create3 = ObservableSource.create3;
+let create4 = ObservableSource.create4;
+let create5 = ObservableSource.create5;
 let debounce = DebounceOperator.lift;
 let defaultIfEmpty = DefaultIfEmptyOperator.lift;
 let defer = DeferObservableSource.defer;
@@ -111,10 +113,7 @@ let startWithValue = (~scheduler=?, value, observable) =>
 
 let toList = {
   let toListAccumulator = (acc, next) => [next, ...acc];
-  
+
   observable =>
-    observable
-    |> scan(toListAccumulator, [])
-    |> last
-    |> map(List.rev);
+    observable |> scan(toListAccumulator, []) |> last |> map(List.rev);
 };
