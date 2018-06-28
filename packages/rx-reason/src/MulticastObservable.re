@@ -37,13 +37,8 @@ let shareInternal = {
     subscription |> Disposable.dispose;
   };
 
-  let source = (refCount,
-  
-  
-  
-  
-  
-  sourceSubscription, subject, createSubject, source, subscriber) => {
+  let source = 
+      (refCount, sourceSubscription, subject, createSubject, source, subscriber) => {
     /* FIXME: Should probably add some locking here */
     if (refCount^ === 0) {
       subject := createSubject();
