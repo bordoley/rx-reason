@@ -37,52 +37,60 @@ let shareInternal = {
     subscription |> Disposable.dispose;
   };
 
-  (~createSubject, source) => {
+  let source = (refCount,
+  
+  
+  
+  
+  
+  sourceSubscription, subject, createSubject, source, subscriber) => {
+    /* FIXME: Should probably add some locking here */
+    if (refCount^ === 0) {
+      subject := createSubject();
+    };
+    let currentSubject = subject^;
+
+    let subscription =
+      currentSubject
+      |> Subject.subscribeWith1(
+           ~onNext=Subscriber.forwardOnNext,
+           ~onComplete=Subscriber.forwardOnComplete,
+           subscriber,
+         );
+
+    if (refCount^ === 0) {
+      sourceSubscription
+      |> SerialDisposable.setInnerDisposable(
+           Observable.subscribeWith1(
+             ~onNext=Subject.forwardOnNext,
+             ~onComplete=Subject.forwardOnComplete,
+             currentSubject,
+             source,
+           ),
+         );
+    };
+
+    if (! Disposable.isDisposed(subscription)) {
+      incr(refCount);
+      subscriber
+      |> Subscriber.addTeardown5(
+           teardown,
+           refCount,
+           sourceSubscription,
+           currentSubject,
+           subject,
+           subscription,
+         )
+      |> ignore;
+    };
+  };
+
+  (~createSubject, observable) => {
     let subject = ref(Subject.disposed);
     let sourceSubscription = SerialDisposable.create();
     let refCount = ref(0);
 
-    Observable.create(subscriber => {
-      /* FIXME: Should probably add some locking here */
-      if (refCount^ === 0) {
-        subject := createSubject();
-      };
-      let currentSubject = subject^;
-
-      let subscription =
-        currentSubject
-        |> Subject.subscribeWith1(
-             ~onNext=Subscriber.forwardOnNext,
-             ~onComplete=Subscriber.forwardOnComplete,
-             subscriber,
-           );
-
-      if (refCount^ === 0) {
-        sourceSubscription
-        |> SerialDisposable.setInnerDisposable(
-             Observable.subscribeWith1(
-               ~onNext=Subject.forwardOnNext,
-               ~onComplete=Subject.forwardOnComplete,
-               currentSubject,
-               source,
-             ),
-           );
-      };
-
-      if (! Disposable.isDisposed(subscription)) {
-        incr(refCount);
-        subscriber
-        |> Subscriber.addTeardown5(
-             teardown,
-             refCount,
-             sourceSubscription,
-             currentSubject,
-             subject,
-             subscription,
-           )
-        |> ignore;
-      };
-    });
+    Observable.create5(source, refCount, sourceSubscription, subject, createSubject, observable);
   };
 };
 
