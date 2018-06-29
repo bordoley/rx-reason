@@ -5,7 +5,7 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "webpack": "webpack -w",
+    "webpack": "webpack",
     "webpack:production": "NODE_ENV=production webpack"
   },
   "keywords": [
