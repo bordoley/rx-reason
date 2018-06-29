@@ -1,8 +1,13 @@
 {
   "name": "reactive-re",
-  "package-specs": {
-    "module": "commonjs"
-  },
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
   "suffix": ".bs.js",
   "bs-dependencies": [
     "reunit",

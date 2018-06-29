@@ -1,8 +1,13 @@
 {
   "name": "reunit",
-  "package-specs": {
-    "module": "commonjs"
-  },
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
   "suffix": ".bs.js",
   "bs-dependencies": [],
   "bs-dev-dependencies": [],
