@@ -205,8 +205,7 @@ let create = {
     let currentSubscribers = subscribers^;
     subscribers :=
       currentSubscribers
-      |> CopyOnWriteArray.findAndRemove(
-           Functions.referenceEquality,
+      |> CopyOnWriteArray.findAndRemoveReference(
            subscriber,
          );
   };
@@ -266,22 +265,15 @@ let createWithReplayBuffer = {
     let currentSubscribers = subscribers^;
     subscribers :=
       currentSubscribers
-      |> CopyOnWriteArray.findAndRemove(
-           Functions.referenceEquality,
+      |> CopyOnWriteArray.findAndRemoveReference(
            subscriber,
          );
   };
 
   let subscriberOnNext = (maxBufferCount, buffer, _, _, subscribers, next) => {
     let currentBuffer = buffer^;
-    let nextBuffer =
-      if (CopyOnWriteArray.count(currentBuffer) === maxBufferCount) {
-        currentBuffer |> CopyOnWriteArray.removeAt(0);
-      } else {
-        currentBuffer;
-      };
-    buffer := nextBuffer |> CopyOnWriteArray.addLast(next);
-
+    buffer := currentBuffer |> CopyOnWriteArray.addLastWithMaxCount(maxBufferCount, next);
+    
     let currentSubscribers = subscribers^;
     currentSubscribers
     |> CopyOnWriteArray.forEach(subscriber =>
