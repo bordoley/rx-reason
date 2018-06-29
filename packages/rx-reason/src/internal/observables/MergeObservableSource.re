@@ -47,7 +47,7 @@ let merge = {
   };
 
   observables => {
-    let count = observables |> List.length;
+    let count = observables |> Lists.length;
 
     ObservableSource.create2(mergeSource, count, observables);
   };

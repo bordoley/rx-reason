@@ -75,7 +75,7 @@ let create = {
 
     (lock, teardown) => {
       lock |> Lock.acquire;
-      teardown^ |> List.iter(doTeardown);
+      teardown^ |> Lists.iter(doTeardown);
       lock |> Lock.release;
     };
   };

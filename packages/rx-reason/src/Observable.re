@@ -115,5 +115,5 @@ let toList = {
   let toListAccumulator = (acc, next) => [next, ...acc];
 
   observable =>
-    observable |> scan(toListAccumulator, []) |> last |> map(List.rev);
+    observable |> scan(toListAccumulator, []) |> last |> map(Lists.rev);
 };
