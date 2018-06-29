@@ -1294,7 +1294,7 @@ let test =
                 let predicate = _ => {
                   let retry = retryCount^ < 2;
                   if (retry) {
-                    Interlocked.increment(retryCount) |> ignore;
+                    incr(retryCount);
                   };
                   retry;
                 };

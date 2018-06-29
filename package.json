@@ -13,14 +13,12 @@
     "cleanall": "rimraf packages/**/lib"
   },
   "devDependencies": {
+    "bs-platform": "^3.1.5",
     "lerna": "^2.11.0",
-    "rimraf": "^2.6.2",
-    "bs-platform": "^3.1.5"
+    "rimraf": "^2.6.2"
   },
   "workspaces": [
     "packages/*"
   ],
-  "dependencies": {
-    "rxjs": "^6.2.1"
-  }
+  "dependencies": {}
 }
