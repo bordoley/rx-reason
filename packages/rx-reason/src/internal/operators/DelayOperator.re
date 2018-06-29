@@ -1,8 +1,8 @@
 let operator = {
   let innerSubscriptionTeardown = (wip, queue, completedState) => {
-    Volatile.write(0, wip);
+    Atomic.set(wip, 0);
     queue |> QueueWithBufferStrategy.clear;
-    completedState := None;
+    Atomic.set(completedState, None);
   };
 
   let doWorkStep =
@@ -21,10 +21,10 @@ let operator = {
     | _ when innerSubscription |> Disposable.isDisposed => ()
     | Some(next) =>
       subscriber |> Subscriber.next(next);
-      Interlocked.decrement(wip) !== 0 ?
+      Atomic.decr(wip) !== 0 ?
         continuation |> SchedulerContinuation.continueAfter(~delay, ()) : ();
-    | _ when Interlocked.exchange(false, shouldComplete) =>
-      subscriber |> Subscriber.complete(~exn=?completedState^);
+    | _ when Atomic.exchange(shouldComplete, false) =>
+      subscriber |> Subscriber.complete(~exn=?Atomic.get(completedState));
       innerSubscription |> Disposable.dispose;
     | _ => ()
     };
@@ -40,7 +40,7 @@ let operator = {
         completedState,
         subscriber,
       ) =>
-    if (Interlocked.increment(wip) === 1) {
+    if (Atomic.incr(wip) === 1) {
       scheduler
       |> Scheduler.scheduleAfter7(
            ~delay,
@@ -94,8 +94,8 @@ let operator = {
         subscriber,
         exn,
       ) => {
-    shouldComplete := true;
-    completedState := exn;
+    Atomic.set(shouldComplete, true);
+    Atomic.set(completedState, exn);
     schedule(
       scheduler,
       delay,
@@ -111,9 +111,9 @@ let operator = {
   (bufferStrategy, bufferSize, scheduler, delay, subscriber) => {
     let queue =
       QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
-    let shouldComplete = ref(false);
-    let completedState = ref(None);
-    let wip = ref(0);
+    let shouldComplete = Atomic.make(false);
+    let completedState = Atomic.make(None);
+    let wip = Atomic.make(0);
 
     let innerSubscription =
       Disposable.create3(

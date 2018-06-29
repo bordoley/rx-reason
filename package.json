@@ -4,10 +4,8 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    
     "webpack": "webpack -w",
     "webpack:production": "NODE_ENV=production webpack",
-
     "bootstrap": "lerna bootstrap",
     "test": "lerna run test",
     "test-coverage": "lerna run test-coverage",
@@ -21,5 +19,8 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "rxjs": "^6.2.1"
+  }
 }

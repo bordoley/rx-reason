@@ -1109,22 +1109,22 @@ let subscribe7 =
 let publishTo = {
   let teardown = (subscription, active) => {
     subscription |> Disposable.dispose;
-    Volatile.write(false, active);
+    Atomic.set(active, false);
   };
 
   (~onNext, ~onComplete, observable) => {
-    let connection = ref(Disposable.disposed);
-    let active = ref(false);
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
 
     () => {
-      if (! Interlocked.exchange(true, active)) {
+      if (! Atomic.exchange(active, true)) {
         let subscription = observable |> subscribeWith(~onNext, ~onComplete);
         let newConnection =
           Disposable.create2(teardown, subscription, active);
 
-        Volatile.write(newConnection, connection);
+        Atomic.set(connection, newConnection);
       };
-      Volatile.read(connection);
+      Atomic.get(connection);
     };
   };
 };
@@ -1132,23 +1132,23 @@ let publishTo = {
 let publishTo1 = {
   let teardown = (subscription, active) => {
     subscription |> Disposable.dispose;
-    Volatile.write(false, active);
+    Atomic.set(active, false);
   };
 
   (~onNext, ~onComplete, ctx0, observable) => {
-    let connection = ref(Disposable.disposed);
-    let active = ref(false);
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
 
     () => {
-      if (! Interlocked.exchange(true, active)) {
+      if (! Atomic.exchange(active, true)) {
         let subscription =
           observable |> subscribeWith1(~onNext, ~onComplete, ctx0);
         let newConnection =
           Disposable.create2(teardown, subscription, active);
 
-        Volatile.write(newConnection, connection);
+        Atomic.set(connection, newConnection);
       };
-      Volatile.read(connection);
+      Atomic.get(connection);
     };
   };
 };

@@ -1,6 +1,6 @@
 type t = 
   | Disposed
-  | SerialDisposable(ref(Disposable.t), Disposable.t);
+  | SerialDisposable(Atomic.t(Disposable.t), Disposable.t);
 
 type serialDisposable = t;
 
@@ -27,12 +27,12 @@ let asDisposable = fun
 | SerialDisposable(_, disposable) => disposable;
 
 let create = {
-  let teardown = disposableRef =>
-    Interlocked.exchange(Disposable.disposed, disposableRef)
+  let teardown = innerDisposable =>
+    Atomic.exchange(innerDisposable, Disposable.disposed)
     |> Disposable.dispose;
 
   () => {
-    let innerDisposable = ref(Disposable.disposed);
+    let innerDisposable = Atomic.make(Disposable.disposed);
     let disposable = Disposable.create1(teardown, innerDisposable);
     SerialDisposable(innerDisposable, disposable);
   };
@@ -51,13 +51,13 @@ let raiseIfDisposed = disposable =>
 
 let getInnerDisposable = fun
 | Disposed => Disposable.disposed
-| SerialDisposable(innerDisposable, _) => innerDisposable^;
+| SerialDisposable(innerDisposable, _) => Atomic.get(innerDisposable);
 
 let setInnerDisposable = (newDisposable, self) => {
   let shouldDispose = switch(self) {
   | Disposed => true;
   | SerialDisposable(innerDisposable, _) =>
-    Interlocked.exchange(newDisposable, innerDisposable) |> Disposable.dispose;
+    Atomic.exchange(innerDisposable, newDisposable) |> Disposable.dispose;
     isDisposed(self);
   };
 

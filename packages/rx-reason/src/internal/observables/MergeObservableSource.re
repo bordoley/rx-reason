@@ -11,7 +11,7 @@ let merge = {
       switch (exn) {
       | Some(_) => true
       | None =>
-        let oldActiveCount = Interlocked.decrement(activeCount);
+        let oldActiveCount = Atomic.decr(activeCount);
         oldActiveCount <= 0;
       };
     if (shouldComplete) {
@@ -21,7 +21,7 @@ let merge = {
   };
 
   let mergeSource = (count, observables, subscriber) => {
-    let activeCount = ref(count);
+    let activeCount = Atomic.make(count);
     let lock = Lock.create();
 
     let rec loop =
