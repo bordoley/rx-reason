@@ -89,20 +89,42 @@ let synchronize = SynchronizeOperator.lift;
 let timeout = TimeoutOperator.lift;
 let withLatestFrom = WithLatestFromOperator.lift;
 
-let repeat = (~predicate=Functions.alwaysTrue1) => {
-  let predicate =
+let repeat = {
+  let defaultPredicate =
     fun
-    | None => predicate()
+    | None => true
     | Some(_) => false;
-  observable => RepeatOperator.lift(predicate, observable);
+  (~predicate=Functions.alwaysTrue1) => {
+    let predicate =
+      predicate === Functions.alwaysTrue1 ?
+        defaultPredicate :
+        (
+          fun
+          | None => predicate()
+          | Some(_) => false
+        );
+    observable => RepeatOperator.lift(predicate, observable);
+  };
 };
 
-let retry = (~predicate=Functions.alwaysTrue1) => {
-  let predicate =
+let retry = {
+  let defaultPredicate =
     fun
     | None => false
-    | Some(exn) => predicate(exn);
-  observable => RepeatOperator.lift(predicate, observable);
+    | Some(_) => true;
+
+  (~predicate=Functions.alwaysTrue1) => {
+    let predicate =
+      predicate === Functions.alwaysTrue1 ?
+        defaultPredicate :
+        (
+          fun
+          | None => false
+          | Some(exn) => predicate(exn)
+        );
+
+    observable => RepeatOperator.lift(predicate, observable);
+  };
 };
 
 let startWithList = (~scheduler=?, values, observable) =>

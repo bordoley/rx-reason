@@ -65,5 +65,3 @@ let earlyReturnsUnit7 = (call, a, b, c, d, e, f, g) =>
   try (call(a, b, c, d, e, f, g)) {
   | ReturnUnitException => ()
   };
-
-let (>>) = (f1, f2, a) => f2(f1(a));
