@@ -48,11 +48,11 @@ let operator = {
     };
   };
 
-  let onComplete = ({innerSubscription, lock}, delegate, exn) => {
-    lock |> Lock.acquire;
-    innerSubscription |> SerialDisposable.dispose;
+  let onComplete = (ctx, delegate, exn) => {
+    ctx.lock |> Lock.acquire;
+    ctx.innerSubscription |> SerialDisposable.dispose;
     delegate |> Subscriber.complete(~exn?);
-    lock |> Lock.release;
+    ctx.lock |> Lock.release;
   };
 
   subscriber => {

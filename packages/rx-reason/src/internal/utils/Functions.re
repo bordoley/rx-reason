@@ -22,6 +22,8 @@ let identity = a => a;
 
 let referenceEquality = (===);
 
+let some = a => Some(a);
+
 exception ReturnUnitException;
 
 let returnUnit = () => raise(ReturnUnitException);

@@ -1,6 +1,6 @@
 let operator = (predicate, subscriber) =>
   MapOperator.operator(predicate) @@
-  KeepOperator.operator(x => x) @@
+  KeepOperator.operator(Functions.identity) @@
   IsEmptyOperator.operator @@
   subscriber;
 

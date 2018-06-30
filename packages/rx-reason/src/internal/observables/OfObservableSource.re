@@ -151,7 +151,9 @@ let ofAbsoluteTimeNotifications = (~scheduler, notifications) => {
 
   let relativeTimeNotifications =
     notifications
-    |> Lists.mapTailRecursive(((time, notif)) => (time -. currentTime, notif));
+    |> Lists.mapTailRecursive(((time, notif)) =>
+         (time -. currentTime, notif)
+       );
 
   ofRelativeTimeNotifications(~scheduler, relativeTimeNotifications);
 };

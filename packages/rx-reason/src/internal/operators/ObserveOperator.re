@@ -33,8 +33,13 @@ let operator = {
   };
 
   (~onNext as observeOnNext, ~onComplete as observeOnComplete, subscriber) => {
-    let context = {onNext: observeOnNext, onComplete: observeOnComplete, self: Subscriber.disposed};
-    context.self = subscriber |> Subscriber.decorate1(~onNext, ~onComplete, context);
+    let context = {
+      onNext: observeOnNext,
+      onComplete: observeOnComplete,
+      self: Subscriber.disposed,
+    };
+    context.self =
+      subscriber |> Subscriber.decorate1(~onNext, ~onComplete, context);
     context.self;
   };
 };
