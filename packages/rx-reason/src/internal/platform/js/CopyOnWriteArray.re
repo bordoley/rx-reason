@@ -5,7 +5,7 @@ type t('a) = array('a);
 [@bs.val] external getUnsafe : int => array('a) => 'a = "";
 %bs.raw
 {|
-function get(index, array) {
+function getUnsafe(index, array) {
   return array[index];
 }|};
 
@@ -13,7 +13,7 @@ function get(index, array) {
 [@bs.val] external setUnsafe : int => 'a => array('a) => unit = "";
 %bs.raw
 {|
-function set(index, value, array) {
+function setUnsafe(index, value, array) {
   array[index] = value;
 }|};
 
