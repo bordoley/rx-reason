@@ -1,55 +1,51 @@
 type context('a) = {
   innerSubscription: SerialDisposable.t,
-  latest: ref(int),
+  mutable latest: int,
   lock: Lock.t,
   mutable self: Subscriber.t('a),
 };
 
 let operator = {
-  let doSubscribeInner = {
-    let onNext = (id, ctx, delegate, next) => {
+  let onNext = {
+    let onNextInner = (id, ctx, delegate, next) => {
       ctx.lock |> Lock.acquire;
-      if (ctx.latest^ === id) {
+      if (ctx.latest === id) {
         delegate |> Subscriber.next(next);
       };
       ctx.lock |> Lock.release;
     };
 
-    let onComplete = (id, ctx, _, exn) =>
+    let onCompleteInner = (id, ctx, _, exn) =>
       switch (exn) {
       | Some(_) =>
-        if (ctx.latest^ === id) {
+        if (ctx.latest === id) {
           ctx.self |> Subscriber.complete(~exn?);
         }
       | None => ()
       };
 
-    (id, {innerSubscription} as ctx, delegate, next) => {
-      innerSubscription
+    (ctx, delegate, next) => {
+      ctx.lock |> Lock.acquire;
+      let id = ctx.latest + 1;
+      ctx.latest = id;
+      ctx.lock |> Lock.release;
+
+      ctx.innerSubscription
       |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
         ObservableSource.subscribeWith3(
-          ~onNext,
-          ~onComplete,
+          ~onNext=onNextInner,
+          ~onComplete=onCompleteInner,
           id,
           ctx,
           delegate,
           next,
         );
 
-      innerSubscription
+      ctx.innerSubscription
       |> SerialDisposable.setInnerDisposable(newInnerSubscription);
     };
-  };
-
-  let onNext = ({latest, lock} as ctx, delegate, next) => {
-    lock |> Lock.acquire;
-    incr(latest);
-    let id = latest^;
-    lock |> Lock.release;
-
-    doSubscribeInner(id, ctx, delegate, next);
   };
 
   let onComplete = ({innerSubscription, lock}, delegate, exn) => {
@@ -62,7 +58,7 @@ let operator = {
   subscriber => {
     let context = {
       innerSubscription: SerialDisposable.create(),
-      latest: ref(0),
+      latest: 0,
       lock: Lock.create(),
       self: Subscriber.disposed,
     };
