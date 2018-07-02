@@ -28,6 +28,7 @@ let debounce = DebounceOperator.lift;
 let defaultIfEmpty = DefaultIfEmptyOperator.lift;
 let defer = DeferObservableSource.defer;
 let delay = DelayOperator.lift;
+let dematerialize = DematerializeOperator.lift;
 let distinctUntilChanged = DistinctUntilChangedOperator.lift;
 let empty = EmptyObservableSource.empty;
 let every = EveryOperator.lift;

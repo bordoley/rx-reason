@@ -181,6 +181,8 @@ let delay:
   ) =>
   t('a);
 
+let dematerialize: (t(Notification.t('a))) => t('a);
+
 /**
  * Returns an Observable which emits items that are distinct from
  * their immediate predecessors based upon the provided

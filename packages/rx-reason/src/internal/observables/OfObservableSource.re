@@ -39,54 +39,8 @@ let ofList = {
     };
 };
 
-let ofNotifications = {
-  let ofNotificationsSynchronousSource = (notifications, subscriber) => {
-    let rec loop = list =>
-      switch (list) {
-      | [hd, ...tail] =>
-        subscriber |> Subscriber.notify(hd);
-        loop(tail);
-      | [] => ()
-      };
-    loop(notifications);
-  };
-
-  let ofNotificationsScheduledSource = {
-    let loop = (subscriber, continuation, notifications) =>
-      switch (notifications) {
-      | [hd] =>
-        subscriber |> Subscriber.notify(hd);
-        continuation |> SchedulerContinuation.dispose;
-      | [hd, ...tail] =>
-        subscriber |> Subscriber.notify(hd);
-        continuation |> SchedulerContinuation.continue(tail);
-      | [] => continuation |> SchedulerContinuation.dispose
-      };
-
-    (scheduler, notifications, subscriber) => {
-      let schedulerSubscription =
-        scheduler |> Scheduler.schedule1(loop, notifications, subscriber);
-      subscriber
-      |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
-      |> ignore;
-    };
-  };
-
-  (~scheduler=?, notifications) =>
-    switch (scheduler) {
-    | Some(scheduler) =>
-      ObservableSource.create2(
-        ofNotificationsScheduledSource,
-        scheduler,
-        notifications,
-      )
-    | None =>
-      ObservableSource.create1(
-        ofNotificationsSynchronousSource,
-        notifications,
-      )
-    };
-};
+let ofNotifications = (~scheduler=?, notifications) =>
+  ofList(~scheduler?, notifications) |> DematerializeOperator.lift;
 
 let ofValue = {
   let ofValueSynchronousSource = (value, subscriber) => {
