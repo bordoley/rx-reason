@@ -2,7 +2,7 @@ let raise = {
   let raiseSynchronousSource = (exn, subscriber) =>
     subscriber |> Subscriber.complete(~exn?);
 
-  (~scheduler=?, exn: exn) => {
+  (~scheduler=?, exn) => {
     let exn = Some(exn);
     let source = ObservableSource.create1(raiseSynchronousSource, exn);
 

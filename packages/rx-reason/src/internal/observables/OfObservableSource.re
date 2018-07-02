@@ -48,11 +48,15 @@ let ofValue = {
     subscriber |> Subscriber.complete;
   };
 
-  (~scheduler=?, value) =>
+  (~scheduler=?, value) => {
+    let source = ObservableSource.create1(ofValueSynchronousSource, value);
+
     switch (scheduler) {
-    | Some(scheduler) => ofList(~scheduler, [value])
-    | None => ObservableSource.create1(ofValueSynchronousSource, value)
+    | Some(scheduler) =>
+      source |> SubscribeOnObservableSource.subscribeOn(scheduler)
+    | None => source
     };
+  };
 };
 
 let ofRelativeTimeNotifications = {
