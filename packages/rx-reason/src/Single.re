@@ -61,6 +61,11 @@ let reduce =
 
 let some = Observable.some;
 
+let subscribeSubscriber = (subscriber, single) => {
+  let subscriber = subscriber |> SingleSubscriber.asSubscriber;
+  single |> Observable.subscribeSubscriber(subscriber);
+};
+
 let subscribeWith = {
   let onNext = (subscriber, onSuccess, _, next) => {
     onSuccess(next);
@@ -179,3 +184,4 @@ let subscribe2 =
       single,
     ) =>
   subscribeWith2(~onSuccess, ~onError, ctx0, ctx1, single);
+

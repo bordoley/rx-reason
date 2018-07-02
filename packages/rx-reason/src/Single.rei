@@ -143,6 +143,8 @@ let subscribe2:
   ) =>
   Disposable.t;
 
+let subscribeSubscriber: (SingleSubscriber.t('a), t('a)) => unit;
+
 /**
  * Subscribes to the Single with the provided success and error handlers.
  *
