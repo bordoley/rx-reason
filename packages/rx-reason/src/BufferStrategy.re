@@ -4,5 +4,4 @@
  */;
 type t =
   | Raise
-  | DropLatest
-  | DropOldest;
+  | DropLatest;

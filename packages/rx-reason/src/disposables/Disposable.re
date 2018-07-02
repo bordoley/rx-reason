@@ -1,8 +1,12 @@
-/** FIXME: In ocaml >4.06 you can embed records in GADTs and use mutable fields instead of refs  */
 type t =
   | Disposable(TeardownLogic.t, Atomic.t(bool))
   | Disposable1(TeardownLogic.t1('ctx0), 'ctx0, Atomic.t(bool)): t
-  | Disposable2(TeardownLogic.t2('ctx0, 'ctx1), 'ctx0, 'ctx1, Atomic.t(bool)): t
+  | Disposable2(
+                 TeardownLogic.t2('ctx0, 'ctx1),
+                 'ctx0,
+                 'ctx1,
+                 Atomic.t(bool),
+               ): t
   | Disposable3(
                  TeardownLogic.t3('ctx0, 'ctx1, 'ctx2),
                  'ctx0,
@@ -75,7 +79,8 @@ module type S1 = {
 
 let create = teardown : t => Disposable(teardown, Atomic.make(false));
 
-let create1 = (teardown, d0) : t => Disposable1(teardown, d0, Atomic.make(false));
+let create1 = (teardown, d0) : t =>
+  Disposable1(teardown, d0, Atomic.make(false));
 
 let create2 = (teardown, d0, d1) : t =>
   Disposable2(teardown, d0, d1, Atomic.make(false));

@@ -25,10 +25,9 @@ type teardownLogic =
                     'g,
                   ): teardownLogic;
 
-type t = 
+type t =
   | Disposed
-    /* FIXME: Change to mutable vector and profit */
-  | CompositeDisposable(Lock.t, ref(list(teardownLogic)), Disposable.t);
+  | CompositeDisposable(Lock.t, MutableQueue.t(teardownLogic), Disposable.t);
 
 type compositeDisposable = t;
 
@@ -38,7 +37,6 @@ module type S = {
   include CompositeDisposableLike.S with type t := t;
   include Disposable.S with type t := t;
 
-  /** Cast to Disposable.t. */
   let asCompositeDisposable: t => compositeDisposable;
 };
 
@@ -48,13 +46,13 @@ module type S1 = {
   include CompositeDisposableLike.S1 with type t('a) := t('a);
   include Disposable.S1 with type t('a) := t('a);
 
-  /** Cast to Disposable.t. */
   let asCompositeDisposable: t('a) => compositeDisposable;
 };
 
-let asDisposable = fun
-| Disposed => Disposable.disposed
-| CompositeDisposable(_, _, disposable) => disposable;
+let asDisposable =
+  fun
+  | Disposed => Disposable.disposed
+  | CompositeDisposable(_, _, disposable) => disposable;
 
 let disposed = Disposed;
 
@@ -75,13 +73,14 @@ let create = {
 
     (lock, teardown) => {
       lock |> Lock.acquire;
-      teardown^ |> Lists.iter(doTeardown);
+      teardown |> MutableQueue.forEach(doTeardown);
+      teardown |> MutableQueue.clear;
       lock |> Lock.release;
     };
   };
 
   () => {
-    let children = ref([]);
+    let children = MutableQueue.create();
     let lock = Lock.create();
     let disposable = Disposable.create2(teardown, lock, children);
     CompositeDisposable(lock, children, disposable);
@@ -96,20 +95,20 @@ let isDisposed = disposable =>
 let raiseIfDisposed = disposable =>
   disposable |> asDisposable |> Disposable.raiseIfDisposed;
 
-let addInternal = (teardownLogic, self) => switch(self) {
-| Disposed => true
-| CompositeDisposable(lock, children, _) => {
-  lock |> Lock.acquire;
+let addInternal = (teardownLogic, self) =>
+  switch (self) {
+  | Disposed => true
+  | CompositeDisposable(lock, children, _) =>
+    lock |> Lock.acquire;
 
-  let isDisposed = isDisposed(self);
-    if (!isDisposed) {
-      children := [teardownLogic, ...children^];
+    let isDisposed = isDisposed(self);
+    if (! isDisposed) {
+      children |> MutableQueue.enqueue(teardownLogic);
     };
 
     lock |> Lock.release;
     isDisposed;
   };
-};
 
 let addTeardown = (cb, self) => {
   let isDisposed = self |> addInternal(TeardownLogic(cb));

@@ -1,7 +1,7 @@
 let operator = {
   let innerSubscriptionTeardown = (wip, queue, completedState) => {
     Atomic.set(wip, 0);
-    queue |> QueueWithBufferStrategy.clear;
+    queue |> QueueWithBufferStrategy.dispose;
     Atomic.set(completedState, None);
   };
 

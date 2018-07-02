@@ -14,6 +14,7 @@ module type S = {
   include SerialDisposableLike.S with type t := t;
   include Disposable.S with type t := t;
 
+  /** Cast to SerialDisposable.t. */
   let asSerialDisposable: t => serialDisposable;
 };
 
@@ -23,6 +24,7 @@ module type S1 = {
   include SerialDisposableLike.S1 with type t('a) := t('a);
   include Disposable.S1 with type t('a) := t('a);
 
+  /** Cast to SerialDisposable.t. */
   let asSerialDisposable: t('a) => serialDisposable;
 };
 
@@ -32,4 +34,7 @@ include SerialDisposableLike.S with type t := t;
 /** Constructs a new SerialDisposable instance containing a disposed disposable. */
 let create: unit => t;
 
+/**
+ * A disposed SerialDisposable instance.
+ */
 let disposed: t;

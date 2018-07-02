@@ -2,21 +2,19 @@ type t('a) = array('a);
 
 [@bs.new] external newArrayUnsafe : int => array('a) = "Array";
 
-[@bs.val] external getUnsafe : int => array('a) => 'a = "";
+[@bs.val] external getUnsafe : (int, array('a)) => 'a = "";
 %bs.raw
 {|
 function getUnsafe(index, array) {
   return array[index];
 }|};
 
-
-[@bs.val] external setUnsafe : int => 'a => array('a) => unit = "";
+[@bs.val] external setUnsafe : (int, 'a, array('a)) => unit = "";
 %bs.raw
 {|
 function setUnsafe(index, value, array) {
   array[index] = value;
 }|};
-
 
 let count = Js.Array.length;
 
@@ -39,7 +37,15 @@ let addLast = (value, arr) => {
 };
 
 let addLastWithMaxCount = (maxCount, value, arr) => {
+  Preconditions.checkArgument(
+    maxCount >= 0,
+    "max count must be greater than or equal to 0",
+  );
   let count = count(arr);
+  Preconditions.checkArgument(
+    maxCount >= count,
+    "max count must be less than or equal to 0",
+  );
 
   if (count < maxCount) {
     addLast(value, arr);
@@ -48,7 +54,7 @@ let addLastWithMaxCount = (maxCount, value, arr) => {
 
     for (index in 1 to maxCount - 1) {
       let v = getUnsafe(index, arr);
-      setUnsafe(index -1, v, retval);
+      setUnsafe(index - 1, v, retval);
     };
 
     setUnsafe(maxCount - 1, value, retval);

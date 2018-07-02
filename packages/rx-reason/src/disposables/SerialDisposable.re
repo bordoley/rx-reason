@@ -1,4 +1,4 @@
-type t = 
+type t =
   | Disposed
   | SerialDisposable(Atomic.t(Disposable.t), Disposable.t);
 
@@ -22,9 +22,10 @@ module type S1 = {
   let asSerialDisposable: t('a) => serialDisposable;
 };
 
-let asDisposable = fun 
-| Disposed => Disposable.disposed
-| SerialDisposable(_, disposable) => disposable;
+let asDisposable =
+  fun
+  | Disposed => Disposable.disposed
+  | SerialDisposable(_, disposable) => disposable;
 
 let create = {
   let teardown = innerDisposable =>
@@ -38,28 +39,29 @@ let create = {
   };
 };
 
-let dispose = disposable => 
-  disposable |> asDisposable |> Disposable.dispose;
+let dispose = disposable => disposable |> asDisposable |> Disposable.dispose;
 
 let disposed = Disposed;
 
-let isDisposed = disposable => 
+let isDisposed = disposable =>
   disposable |> asDisposable |> Disposable.isDisposed;
 
-let raiseIfDisposed = disposable => 
+let raiseIfDisposed = disposable =>
   disposable |> asDisposable |> Disposable.raiseIfDisposed;
 
-let getInnerDisposable = fun
-| Disposed => Disposable.disposed
-| SerialDisposable(innerDisposable, _) => Atomic.get(innerDisposable);
+let getInnerDisposable =
+  fun
+  | Disposed => Disposable.disposed
+  | SerialDisposable(innerDisposable, _) => Atomic.get(innerDisposable);
 
 let setInnerDisposable = (newDisposable, self) => {
-  let shouldDispose = switch(self) {
-  | Disposed => true;
-  | SerialDisposable(innerDisposable, _) =>
-    Atomic.exchange(innerDisposable, newDisposable) |> Disposable.dispose;
-    isDisposed(self);
-  };
+  let shouldDispose =
+    switch (self) {
+    | Disposed => true
+    | SerialDisposable(innerDisposable, _) =>
+      Atomic.exchange(innerDisposable, newDisposable) |> Disposable.dispose;
+      isDisposed(self);
+    };
 
   if (shouldDispose) {
     newDisposable |> Disposable.dispose;

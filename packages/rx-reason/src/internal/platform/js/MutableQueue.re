@@ -7,24 +7,20 @@ function shiftUnsafe(array) {
   return array.shift();
 }|};
 
+let clear = queue =>
+  queue
+  |> Js.Array.removeCountInPlace(~pos=0, ~count=Js.Array.length(queue))
+  |> ignore;
+
 let create = () : t('a) => [||];
 
 let dequeue = queue => shiftUnsafe(queue);
 
-let tryDeque = Js.Array.shift;
-
 let enqueue = (scheduledItem, queue) =>
   queue |> Js.Array.push(scheduledItem) |> ignore;
+
+let forEach = (f, queue) => queue |> Js.Array.forEach(f);
 
 let isEmpty = queue => Js.Array.length(queue) === 0;
 
 let peek = queue => queue[0];
-
-let size = queue => Js.Array.length(queue);
-
-let reset = queue =>
-  queue
-  |> Js.Array.spliceInPlace(~pos=0, ~remove=size(queue), ~add=[||])
-  |> ignore;
-
-let forEach = (cb: 'a => unit, queue) => Js.Array.forEach(cb, queue);
