@@ -641,7 +641,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.create(subscriber => {
+                Observable.create((_, subscriber) => {
                   subscriber |> Subscriber.next(10);
                   subscriber |> Subscriber.next(20);
                   subscriber |> Subscriber.complete;
@@ -652,7 +652,7 @@ let test =
           observableIt(
             "onSubscribe throws synchronously before completing",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.create(_ => raise(Division_by_zero)),
+            ~source=_ => Observable.raise(Division_by_zero),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -660,7 +660,7 @@ let test =
             "throws when onSubscribe complete synchronously and then throws an exception",
             () => {
             let observable =
-              Observable.create(subscriber => {
+              Observable.create((_, subscriber) => {
                 subscriber |> Subscriber.complete;
                 raise(Division_by_zero);
               });
@@ -1299,7 +1299,7 @@ let test =
                   retry;
                 };
 
-                Observable.create(subscriber => {
+                Observable.create((_, subscriber) => {
                   subscriber |> Subscriber.next(1);
                   subscriber |> Subscriber.next(2);
                   subscriber |> Subscriber.complete(~exn=Division_by_zero);
@@ -1322,7 +1322,7 @@ let test =
             let subject = ref(Subject.create());
 
             let subscription =
-              Observable.create(subscriber => {
+              Observable.create((_, subscriber) => {
                 subject := Subject.create();
                 let observable = subject^ |> Subject.asObservable;
                 let subscription =

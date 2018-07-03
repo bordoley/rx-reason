@@ -26,11 +26,9 @@ let isDisposed = self => self |> asDisposable |> Disposable.isDisposed;
 
 let next = (next, {subscriber}) => subscriber |> Subscriber.next(next);
 
-let forwardOnComplete = (subject, exn) =>
-  subject |> complete(~exn?);
+let forwardOnComplete = (subject, exn) => subject |> complete(~exn?);
 
-let forwardOnNext = (subject, v) =>
-  subject |> next(v);
+let forwardOnNext = (subject, v) => subject |> next(v);
 
 let notify = (notif, {subscriber}) =>
   subscriber |> Subscriber.notify(notif);
@@ -205,9 +203,7 @@ let create = {
     let currentSubscribers = subscribers^;
     subscribers :=
       currentSubscribers
-      |> CopyOnWriteArray.findAndRemoveReference(
-           subscriber,
-         );
+      |> CopyOnWriteArray.findAndRemoveReference(subscriber);
   };
 
   let subscriberOnNext = (subscribers, next) => {
@@ -231,7 +227,7 @@ let create = {
     subscribers := CopyOnWriteArray.empty();
   };
 
-  let observableSource = (subscribers, disposable, subscriber) => {
+  let observableSource = ((subscribers, disposable), subscriber) => {
     disposable |> Disposable.raiseIfDisposed;
     subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
 
@@ -254,7 +250,7 @@ let create = {
       Disposable.create2(disposableTeardown, subscriber, subscribers);
 
     let observable =
-      Observable.create2(observableSource, subscribers, disposable);
+      Observable.create1(observableSource, (subscribers, disposable));
 
     {subscriber, observable, disposable};
   };
@@ -265,15 +261,15 @@ let createWithReplayBuffer = {
     let currentSubscribers = subscribers^;
     subscribers :=
       currentSubscribers
-      |> CopyOnWriteArray.findAndRemoveReference(
-           subscriber,
-         );
+      |> CopyOnWriteArray.findAndRemoveReference(subscriber);
   };
 
   let subscriberOnNext = (maxBufferCount, buffer, _, _, subscribers, next) => {
     let currentBuffer = buffer^;
-    buffer := currentBuffer |> CopyOnWriteArray.addLastWithMaxCount(maxBufferCount, next);
-    
+    buffer :=
+      currentBuffer
+      |> CopyOnWriteArray.addLastWithMaxCount(maxBufferCount, next);
+
     let currentSubscribers = subscribers^;
     currentSubscribers
     |> CopyOnWriteArray.forEach(subscriber =>
@@ -297,6 +293,29 @@ let createWithReplayBuffer = {
     buffer := CopyOnWriteArray.empty();
     subscriber |> Subscriber.dispose;
     subscribers := CopyOnWriteArray.empty();
+  };
+
+  let observableSource =
+      (
+        (subscribers, disposable, buffer, completed, completedValue),
+        subscriber,
+      ) => {
+    disposable |> Disposable.raiseIfDisposed;
+    subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
+
+    let currentBuffer = buffer^;
+    CopyOnWriteArray.forEach(
+      next => subscriber |> Subscriber.next(next),
+      currentBuffer,
+    );
+    if (completed^) {
+      let exn = completedValue^;
+      subscriber |> Subscriber.complete(~exn?);
+    };
+
+    subscriber
+    |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
+    |> ignore;
   };
 
   (maxBufferCount: int) => {
@@ -328,24 +347,10 @@ let createWithReplayBuffer = {
       Disposable.create3(disposableTeardown, buffer, subscriber, subscribers);
 
     let observable =
-      Observable.create(subscriber => {
-        disposable |> Disposable.raiseIfDisposed;
-        subscribers := subscribers^ |> CopyOnWriteArray.addLast(subscriber);
-
-        let currentBuffer = buffer^;
-        CopyOnWriteArray.forEach(
-          next => subscriber |> Subscriber.next(next),
-          currentBuffer,
-        );
-        if (completed^) {
-          let exn = completedValue^;
-          subscriber |> Subscriber.complete(~exn?);
-        };
-
-        subscriber
-        |> Subscriber.addTeardown2(teardown, subscriber, subscribers)
-        |> ignore;
-      });
+      Observable.create1(
+        observableSource,
+        (subscribers, disposable, buffer, completed, completedValue),
+      );
 
     {subscriber, observable, disposable};
   };

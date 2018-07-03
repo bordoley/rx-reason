@@ -1,5 +1,5 @@
 let empty = {
-  let emptySynchronousSource = (subscriber) =>
+  let emptySynchronousSource = (_, subscriber) =>
     subscriber |> Subscriber.complete;
 
   (~scheduler=?, ()) => {
@@ -7,8 +7,8 @@ let empty = {
 
     switch (scheduler) {
     | Some(scheduler) =>
-      source |> SubscribeOnObservableSource.subscribeOn(scheduler);
-    | None => source;
+      source |> SubscribeOnObservableSource.subscribeOn(scheduler)
+    | None => source
     };
   };
 };

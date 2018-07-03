@@ -105,52 +105,12 @@ let concat: (~scheduler: Scheduler.t=?, list(t('a))) => t('a);
 /**
  * Returns an Observable from the specified subscribe function.
  */
-let create: (Subscriber.t('a) => unit) => t('a);
+let create: ((unit, Subscriber.t('a)) => unit) => t('a);
 
 /**
  * Returns an Observable from the specified subscribe function.
  */
 let create1: (('ctx0, Subscriber.t('a)) => unit, 'ctx0) => t('a);
-
-/**
- * Returns an Observable from the specified subscribe function.
- */
-let create2:
-  (('ctx0, 'ctx1, Subscriber.t('a)) => unit, 'ctx0, 'ctx1) => t('a);
-
-/**
- * Returns an Observable from the specified subscribe function.
- */
-let create3:
-  (('ctx0, 'ctx1, 'ctx2, Subscriber.t('a)) => unit, 'ctx0, 'ctx1, 'ctx2) =>
-  t('a);
-
-/**
- * Returns an Observable from the specified subscribe function.
- */
-let create4:
-  (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, Subscriber.t('a)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3
-  ) =>
-  t('a);
-
-/**
- * Returns an Observable from the specified subscribe function.
- */
-let create5:
-  (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, Subscriber.t('a)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4
-  ) =>
-  t('a);
 
 /**
  * Returns an Observable which drops items from the source that

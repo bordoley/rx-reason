@@ -2,23 +2,16 @@ type t('a) = Observable.t('a);
 
 let asObservable = (single: t('a)) : Observable.t('a) => single;
 
-let create = {
-  let source = (subscribe, subscriber) => {
-    let singleSubscriber = SingleSubscriber.decorateSubscriber(subscriber);
-    subscribe(singleSubscriber);
-  };
-
-  subscribe => Observable.create1(source, subscribe);
-};
-
 let create1 = {
-  let source = (subscribe, ctx0, subscriber) => {
+  let source = ((subscribe, ctx0), subscriber) => {
     let singleSubscriber = SingleSubscriber.decorateSubscriber(subscriber);
     subscribe(ctx0, singleSubscriber);
   };
 
-  (subscribe, ctx) => Observable.create2(source, subscribe, ctx);
+  (subscribe, ctx) => Observable.create1(source, (subscribe, ctx));
 };
+
+let create = subscribe => create1(subscribe, ());
 
 let defer = Observable.defer;
 
@@ -184,4 +177,3 @@ let subscribe2 =
       single,
     ) =>
   subscribeWith2(~onSuccess, ~onError, ctx0, ctx1, single);
-

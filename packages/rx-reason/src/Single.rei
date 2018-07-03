@@ -10,7 +10,7 @@ let asObservable: t('a) => Observable.t('a);
 /**
  * Returns a Single from the specified subscribe function.
  */
-let create: (SingleSubscriber.t('a) => unit) => t('a);
+let create: ((unit, SingleSubscriber.t('a)) => unit) => t('a);
 
 let create1: (('ctx0, SingleSubscriber.t('a)) => unit, 'ctx0) => t('a);
 
