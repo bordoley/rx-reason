@@ -356,47 +356,66 @@ let combineLatest5 = {
       observable,
     );
 
-  (~selector, observable0, observable1, observable2, observable3, observable4) =>
-    ObservableSource.create(subscriber => {
-      let (v0, v1, v2, v3, v4) = (
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
+  let source =
+      (
+        selector,
+        observable0,
+        observable1,
+        observable2,
+        observable3,
+        observable4,
+        subscriber,
+      ) => {
+    let (v0, v1, v2, v3, v4) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
+    let lock = Lock.create();
+
+    let ctx = (selector, v0, v1, v2, v3, v4, lock);
+
+    let (s0, s1, s2, s3, s4) =
+      Disposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
       );
-      let lock = Lock.create();
+    s0 := observable0 |> doSubscribe(ctx, v0, s1, s2, s3, s4, subscriber);
+    s1 := observable1 |> doSubscribe(ctx, v1, s0, s2, s3, s4, subscriber);
+    s2 := observable2 |> doSubscribe(ctx, v2, s0, s1, s3, s4, subscriber);
+    s3 := observable3 |> doSubscribe(ctx, v3, s0, s1, s2, s4, subscriber);
+    s4 := observable4 |> doSubscribe(ctx, v4, s0, s1, s2, s3, subscriber);
+    let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
 
-      let ctx = (selector, v0, v1, v2, v3, v4, lock);
+    subscriber
+    |> Subscriber.addTeardown1(Disposable.dispose, s0)
+    |> Subscriber.addTeardown1(Disposable.dispose, s1)
+    |> Subscriber.addTeardown1(Disposable.dispose, s2)
+    |> Subscriber.addTeardown1(Disposable.dispose, s3)
+    |> Subscriber.addTeardown1(Disposable.dispose, s4)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
+    |> ignore;
+  };
 
-      let (s0, s1, s2, s3, s4) =
-        Disposable.(
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-        );
-      s0 := observable0 |> doSubscribe(ctx, v0, s1, s2, s3, s4, subscriber);
-      s1 := observable1 |> doSubscribe(ctx, v1, s0, s2, s3, s4, subscriber);
-      s2 := observable2 |> doSubscribe(ctx, v2, s0, s1, s3, s4, subscriber);
-      s3 := observable3 |> doSubscribe(ctx, v3, s0, s1, s2, s4, subscriber);
-      s4 := observable4 |> doSubscribe(ctx, v4, s0, s1, s2, s3, subscriber);
-      let (s0, s1, s2, s3, s4) = (s0^, s1^, s2^, s3^, s4^);
-
-      subscriber
-      |> Subscriber.addTeardown1(Disposable.dispose, s0)
-      |> Subscriber.addTeardown1(Disposable.dispose, s1)
-      |> Subscriber.addTeardown1(Disposable.dispose, s2)
-      |> Subscriber.addTeardown1(Disposable.dispose, s3)
-      |> Subscriber.addTeardown1(Disposable.dispose, s4)
-      |> Subscriber.addTeardown1(MutableOption.unset, v0)
-      |> Subscriber.addTeardown1(MutableOption.unset, v1)
-      |> Subscriber.addTeardown1(MutableOption.unset, v2)
-      |> Subscriber.addTeardown1(MutableOption.unset, v3)
-      |> Subscriber.addTeardown1(MutableOption.unset, v4)
-      |> ignore;
-    });
+  (~selector, observable0, observable1, observable2, observable3, observable4) =>
+    ObservableSource.create6(
+      source,
+      selector,
+      observable0,
+      observable1,
+      observable2,
+      observable3,
+      observable4,
+    );
 };
 
 let combineLatest6 = {
@@ -473,6 +492,62 @@ let combineLatest6 = {
       observable,
     );
 
+  let source =
+      (
+        selector,
+        observable0,
+        observable1,
+        observable2,
+        observable3,
+        observable4,
+        observable5,
+        subscriber,
+      ) => {
+    let (v0, v1, v2, v3, v4, v5) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
+    let lock = Lock.create();
+
+    let ctx = (selector, v0, v1, v2, v3, v4, v5, lock);
+
+    let (s0, s1, s2, s3, s4, s5) =
+      Disposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
+    s0 := observable0 |> doSubscribe(ctx, v0, s1, s2, s3, s4, s5, subscriber);
+    s1 := observable1 |> doSubscribe(ctx, v1, s0, s2, s3, s4, s5, subscriber);
+    s2 := observable2 |> doSubscribe(ctx, v2, s0, s1, s3, s4, s5, subscriber);
+    s3 := observable3 |> doSubscribe(ctx, v3, s0, s1, s2, s4, s5, subscriber);
+    s4 := observable4 |> doSubscribe(ctx, v4, s0, s1, s2, s3, s5, subscriber);
+    s5 := observable5 |> doSubscribe(ctx, v5, s0, s1, s2, s3, s4, subscriber);
+    let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
+
+    subscriber
+    |> Subscriber.addTeardown1(Disposable.dispose, s0)
+    |> Subscriber.addTeardown1(Disposable.dispose, s1)
+    |> Subscriber.addTeardown1(Disposable.dispose, s2)
+    |> Subscriber.addTeardown1(Disposable.dispose, s3)
+    |> Subscriber.addTeardown1(Disposable.dispose, s4)
+    |> Subscriber.addTeardown1(Disposable.dispose, s5)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
+    |> Subscriber.addTeardown1(MutableOption.unset, v5)
+    |> ignore;
+  };
+
   (
     ~selector,
     observable0,
@@ -482,57 +557,16 @@ let combineLatest6 = {
     observable4,
     observable5,
   ) =>
-    ObservableSource.create(subscriber => {
-      let (v0, v1, v2, v3, v4, v5) = (
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-      );
-      let lock = Lock.create();
-
-      let ctx = (selector, v0, v1, v2, v3, v4, v5, lock);
-
-      let (s0, s1, s2, s3, s4, s5) =
-        Disposable.(
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-        );
-      s0 :=
-        observable0 |> doSubscribe(ctx, v0, s1, s2, s3, s4, s5, subscriber);
-      s1 :=
-        observable1 |> doSubscribe(ctx, v1, s0, s2, s3, s4, s5, subscriber);
-      s2 :=
-        observable2 |> doSubscribe(ctx, v2, s0, s1, s3, s4, s5, subscriber);
-      s3 :=
-        observable3 |> doSubscribe(ctx, v3, s0, s1, s2, s4, s5, subscriber);
-      s4 :=
-        observable4 |> doSubscribe(ctx, v4, s0, s1, s2, s3, s5, subscriber);
-      s5 :=
-        observable5 |> doSubscribe(ctx, v5, s0, s1, s2, s3, s4, subscriber);
-      let (s0, s1, s2, s3, s4, s5) = (s0^, s1^, s2^, s3^, s4^, s5^);
-
-      subscriber
-      |> Subscriber.addTeardown1(Disposable.dispose, s0)
-      |> Subscriber.addTeardown1(Disposable.dispose, s1)
-      |> Subscriber.addTeardown1(Disposable.dispose, s2)
-      |> Subscriber.addTeardown1(Disposable.dispose, s3)
-      |> Subscriber.addTeardown1(Disposable.dispose, s4)
-      |> Subscriber.addTeardown1(Disposable.dispose, s5)
-      |> Subscriber.addTeardown1(MutableOption.unset, v0)
-      |> Subscriber.addTeardown1(MutableOption.unset, v1)
-      |> Subscriber.addTeardown1(MutableOption.unset, v2)
-      |> Subscriber.addTeardown1(MutableOption.unset, v3)
-      |> Subscriber.addTeardown1(MutableOption.unset, v4)
-      |> Subscriber.addTeardown1(MutableOption.unset, v5)
-      |> ignore;
-    });
+    ObservableSource.create7(
+      source,
+      selector,
+      observable0,
+      observable1,
+      observable2,
+      observable3,
+      observable4,
+      observable5,
+    );
 };
 
 let combineLatest7 = {
@@ -612,6 +646,78 @@ let combineLatest7 = {
       observable,
     );
 
+  let source =
+      (
+        (
+          selector,
+          observable0,
+          observable1,
+          observable2,
+          observable3,
+          observable4,
+          observable5,
+          observable6,
+        ),
+        subscriber,
+      ) => {
+    let (v0, v1, v2, v3, v4, v5, v6) = (
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+      MutableOption.create(),
+    );
+    let lock = Lock.create();
+
+    let ctx = (selector, v0, v1, v2, v3, v4, v5, v6, lock);
+
+    let (s0, s1, s2, s3, s4, s5, s6) =
+      Disposable.(
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+        ref(disposed),
+      );
+    s0 :=
+      observable0 |> doSubscribe(ctx, v0, s1, s2, s3, s4, s5, s6, subscriber);
+    s1 :=
+      observable1 |> doSubscribe(ctx, v1, s0, s2, s3, s4, s5, s6, subscriber);
+    s2 :=
+      observable2 |> doSubscribe(ctx, v2, s0, s1, s3, s4, s5, s6, subscriber);
+    s3 :=
+      observable3 |> doSubscribe(ctx, v3, s0, s1, s2, s4, s5, s6, subscriber);
+    s4 :=
+      observable4 |> doSubscribe(ctx, v4, s0, s1, s2, s3, s5, s6, subscriber);
+    s5 :=
+      observable5 |> doSubscribe(ctx, v5, s0, s1, s2, s3, s4, s6, subscriber);
+    s6 :=
+      observable6 |> doSubscribe(ctx, v6, s0, s1, s2, s3, s4, s5, subscriber);
+
+    let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
+
+    subscriber
+    |> Subscriber.addTeardown1(Disposable.dispose, s0)
+    |> Subscriber.addTeardown1(Disposable.dispose, s1)
+    |> Subscriber.addTeardown1(Disposable.dispose, s2)
+    |> Subscriber.addTeardown1(Disposable.dispose, s3)
+    |> Subscriber.addTeardown1(Disposable.dispose, s4)
+    |> Subscriber.addTeardown1(Disposable.dispose, s5)
+    |> Subscriber.addTeardown1(Disposable.dispose, s6)
+    |> Subscriber.addTeardown1(MutableOption.unset, v0)
+    |> Subscriber.addTeardown1(MutableOption.unset, v1)
+    |> Subscriber.addTeardown1(MutableOption.unset, v2)
+    |> Subscriber.addTeardown1(MutableOption.unset, v3)
+    |> Subscriber.addTeardown1(MutableOption.unset, v4)
+    |> Subscriber.addTeardown1(MutableOption.unset, v5)
+    |> Subscriber.addTeardown1(MutableOption.unset, v6)
+    |> ignore;
+  };
+
   (
     ~selector,
     observable0,
@@ -622,69 +728,17 @@ let combineLatest7 = {
     observable5,
     observable6,
   ) =>
-    ObservableSource.create(subscriber => {
-      let (v0, v1, v2, v3, v4, v5, v6) = (
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-        MutableOption.create(),
-      );
-      let lock = Lock.create();
-
-      let ctx = (selector, v0, v1, v2, v3, v4, v5, v6, lock);
-
-      let (s0, s1, s2, s3, s4, s5, s6) =
-        Disposable.(
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-          ref(disposed),
-        );
-      s0 :=
-        observable0
-        |> doSubscribe(ctx, v0, s1, s2, s3, s4, s5, s6, subscriber);
-      s1 :=
-        observable1
-        |> doSubscribe(ctx, v1, s0, s2, s3, s4, s5, s6, subscriber);
-      s2 :=
-        observable2
-        |> doSubscribe(ctx, v2, s0, s1, s3, s4, s5, s6, subscriber);
-      s3 :=
-        observable3
-        |> doSubscribe(ctx, v3, s0, s1, s2, s4, s5, s6, subscriber);
-      s4 :=
-        observable4
-        |> doSubscribe(ctx, v4, s0, s1, s2, s3, s5, s6, subscriber);
-      s5 :=
-        observable5
-        |> doSubscribe(ctx, v5, s0, s1, s2, s3, s4, s6, subscriber);
-      s6 :=
-        observable6
-        |> doSubscribe(ctx, v6, s0, s1, s2, s3, s4, s5, subscriber);
-
-      let (s0, s1, s2, s3, s4, s5, s6) = (s0^, s1^, s2^, s3^, s4^, s5^, s6^);
-
-      subscriber
-      |> Subscriber.addTeardown1(Disposable.dispose, s0)
-      |> Subscriber.addTeardown1(Disposable.dispose, s1)
-      |> Subscriber.addTeardown1(Disposable.dispose, s2)
-      |> Subscriber.addTeardown1(Disposable.dispose, s3)
-      |> Subscriber.addTeardown1(Disposable.dispose, s4)
-      |> Subscriber.addTeardown1(Disposable.dispose, s5)
-      |> Subscriber.addTeardown1(Disposable.dispose, s6)
-      |> Subscriber.addTeardown1(MutableOption.unset, v0)
-      |> Subscriber.addTeardown1(MutableOption.unset, v1)
-      |> Subscriber.addTeardown1(MutableOption.unset, v2)
-      |> Subscriber.addTeardown1(MutableOption.unset, v3)
-      |> Subscriber.addTeardown1(MutableOption.unset, v4)
-      |> Subscriber.addTeardown1(MutableOption.unset, v5)
-      |> Subscriber.addTeardown1(MutableOption.unset, v6)
-      |> ignore;
-    });
+    ObservableSource.create1(
+      source,
+      (
+        selector,
+        observable0,
+        observable1,
+        observable2,
+        observable3,
+        observable4,
+        observable5,
+        observable6,
+      ),
+    );
 };

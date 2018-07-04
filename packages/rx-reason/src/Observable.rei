@@ -153,6 +153,37 @@ let create5:
   t('a);
 
 /**
+ * Returns an Observable from the specified subscribe function.
+ */
+let create6:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, Subscriber.t('a)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable from the specified subscribe function.
+ */
+let create7:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, Subscriber.t('a)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6
+  ) =>
+  t('a);
+
+/**
  * Returns an Observable which drops items from the source that
  * are followed by another item within a debounce duration
  * determined by the scheduler.
