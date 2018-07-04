@@ -49,7 +49,7 @@ let combineLatest2 = {
       observable,
     );
 
-  let source = ((selector, observable0, observable1), subscriber) => {
+  let source = (selector, observable0, observable1, subscriber) => {
     let (v0, v1) = (MutableOption.create(), MutableOption.create());
     let lock = Lock.create();
 
@@ -69,7 +69,7 @@ let combineLatest2 = {
   };
 
   (~selector, observable0, observable1) =>
-    ObservableSource.create1(source, (selector, observable0, observable1));
+    ObservableSource.create3(source, selector, observable0, observable1);
 };
 
 let combineLatest3 = {
@@ -131,8 +131,7 @@ let combineLatest3 = {
       observable,
     );
 
-  let source =
-      ((selector, observable0, observable1, observable2), subscriber) => {
+  let source = (selector, observable0, observable1, observable2, subscriber) => {
     let (v0, v1, v2) = (
       MutableOption.create(),
       MutableOption.create(),
@@ -160,9 +159,12 @@ let combineLatest3 = {
   };
 
   (~selector, observable0, observable1, observable2) =>
-    ObservableSource.create1(
+    ObservableSource.create4(
       source,
-      (selector, observable0, observable1, observable2),
+      selector,
+      observable0,
+      observable1,
+      observable2,
     );
 };
 
@@ -232,7 +234,11 @@ let combineLatest4 = {
 
   let source =
       (
-        (selector, observable0, observable1, observable2, observable3),
+        selector,
+        observable0,
+        observable1,
+        observable2,
+        observable3,
         subscriber,
       ) => {
     let (v0, v1, v2, v3) = (
@@ -271,9 +277,13 @@ let combineLatest4 = {
   };
 
   (~selector, observable0, observable1, observable2, observable3) =>
-    ObservableSource.create1(
+    ObservableSource.create5(
       source,
-      (selector, observable0, observable1, observable2, observable3),
+      selector,
+      observable0,
+      observable1,
+      observable2,
+      observable3,
     );
 };
 
@@ -347,7 +357,7 @@ let combineLatest5 = {
     );
 
   (~selector, observable0, observable1, observable2, observable3, observable4) =>
-    ObservableSource.create((_, subscriber) => {
+    ObservableSource.create(subscriber => {
       let (v0, v1, v2, v3, v4) = (
         MutableOption.create(),
         MutableOption.create(),
@@ -472,7 +482,7 @@ let combineLatest6 = {
     observable4,
     observable5,
   ) =>
-    ObservableSource.create((_, subscriber) => {
+    ObservableSource.create(subscriber => {
       let (v0, v1, v2, v3, v4, v5) = (
         MutableOption.create(),
         MutableOption.create(),
@@ -612,7 +622,7 @@ let combineLatest7 = {
     observable5,
     observable6,
   ) =>
-    ObservableSource.create((_, subscriber) => {
+    ObservableSource.create(subscriber => {
       let (v0, v1, v2, v3, v4, v5, v6) = (
         MutableOption.create(),
         MutableOption.create(),

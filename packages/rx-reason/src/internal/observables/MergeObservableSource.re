@@ -20,7 +20,7 @@ let merge = {
     Lock.release(lock);
   };
 
-  let mergeSource = ((count, observables), subscriber) => {
+  let mergeSource = (count, observables, subscriber) => {
     let activeCount = Atomic.make(count);
     let lock = Lock.create();
 
@@ -48,6 +48,7 @@ let merge = {
 
   observables => {
     let count = observables |> Lists.length;
-    ObservableSource.create1(mergeSource, (count, observables));
+
+    ObservableSource.create2(mergeSource, count, observables);
   };
 };

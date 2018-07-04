@@ -39,7 +39,11 @@ let shareInternal = {
 
   let source =
       (
-        (refCount, sourceSubscription, subject, createSubject, source),
+        refCount,
+        sourceSubscription,
+        subject,
+        createSubject,
+        source,
         subscriber,
       ) => {
     /* FIXME: Should probably add some locking here */
@@ -88,9 +92,13 @@ let shareInternal = {
     let sourceSubscription = SerialDisposable.create();
     let refCount = ref(0);
 
-    Observable.create1(
+    Observable.create5(
       source,
-      (refCount, sourceSubscription, subject, createSubject, observable),
+      refCount,
+      sourceSubscription,
+      subject,
+      createSubject,
+      observable,
     );
   };
 };

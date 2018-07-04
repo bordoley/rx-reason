@@ -41,7 +41,7 @@ let concat = {
       };
     };
 
-    ((scheduler, observables), subscriber) => {
+    (scheduler, observables, subscriber) => {
       let innerSubscription = SerialDisposable.create();
 
       subscriber
@@ -53,5 +53,5 @@ let concat = {
   };
 
   (~scheduler=?, observables) =>
-    ObservableSource.create1(concatSource, (scheduler, observables));
+    ObservableSource.create2(concatSource, scheduler, observables);
 };

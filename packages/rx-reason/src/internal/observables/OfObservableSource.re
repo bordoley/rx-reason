@@ -10,7 +10,7 @@ let ofList = {
     loop(list);
   };
 
-  let ofListScheduledSource = ((scheduler, list), subscriber) => {
+  let ofListScheduledSource = (scheduler, list, subscriber) => {
     let loop = (continuation, list) =>
       switch (list) {
       | [hd] =>
@@ -34,7 +34,7 @@ let ofList = {
   (~scheduler=?, list) =>
     switch (scheduler) {
     | Some(scheduler) =>
-      ObservableSource.create1(ofListScheduledSource, (scheduler, list))
+      ObservableSource.create2(ofListScheduledSource, scheduler, list)
     | None => ObservableSource.create1(ofListSynchronousSource, list)
     };
 };
@@ -78,7 +78,7 @@ let ofRelativeTimeNotifications = {
       };
     };
 
-    ((scheduler, notifications), subscriber) =>
+    (scheduler, notifications, subscriber) =>
       switch (notifications) {
       | [(delay, notif), ...tail] =>
         let schedulerSubscription =
@@ -97,9 +97,10 @@ let ofRelativeTimeNotifications = {
   };
 
   (~scheduler, notifications) =>
-    ObservableSource.create1(
+    ObservableSource.create2(
       ofRelativeTimeNotificationsScheduledSource,
-      (scheduler, notifications),
+      scheduler,
+      notifications,
     );
 };
 
