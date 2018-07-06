@@ -1,6 +1,8 @@
 let subscribeOn = {
-  let doSubscribe = (observable, subscriber, _, _) =>
+  let doSubscribe = (observable, subscriber, _) => {
     observable |> ObservableSource.subscribeSubscriber(subscriber);
+    ScheduledWork.Result.Done
+  };
 
   let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
     let schedulerSubscription =

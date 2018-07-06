@@ -1,51 +1,46 @@
-type work('state) = (t('state), 'state) => unit
-and work1('state, 'ctx0) = ('ctx0, t('state), 'state) => unit
-and work2('state, 'ctx0, 'ctx1) = ('ctx0, 'ctx1, t('state), 'state) => unit
-and work3('state, 'ctx0, 'ctx1, 'ctx2) =
-  ('ctx0, 'ctx1, 'ctx2, t('state), 'state) => unit
-and work4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('state), 'state) => unit
-and work5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('state), 'state) => unit
-and work6('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('state), 'state) => unit
-and work7('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('state), 'state) => unit
-and executor('state) =
-  (~delay: float, t('state), 'state, ('state, t('state)) => unit) => unit
-and t('state) =
-  | C0(executor('state), SerialDisposable.t, work('state))
-  | C1(executor('state), SerialDisposable.t, work1('state, 'ctx0), 'ctx0): t(
-                                                                    'state,
-                                                                    )
-  | C2(
-        executor('state),
+type executor('state, 'a) =
+  (~delay: float, 'a, 'state, ('state, 'a) => unit) => Disposable.t;
+
+type t('state) =
+  | C0(
+      executor('state, t('state)),
+      SerialDisposable.t,
+      ScheduledWork.t('state),
+    )
+  | C1(
+        executor('state, t('state)),
         SerialDisposable.t,
-        work2('state, 'ctx0, 'ctx1),
+        ScheduledWork.t1('ctx0, 'state),
+        'ctx0,
+      ): t('state)
+  | C2(
+        executor('state, t('state)),
+        SerialDisposable.t,
+        ScheduledWork.t2('ctx0, 'ctx1, 'state),
         'ctx0,
         'ctx1,
       ): t('state)
   | C3(
-        executor('state),
+        executor('state, t('state)),
         SerialDisposable.t,
-        work3('state, 'ctx0, 'ctx1, 'ctx2),
+        ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
         'ctx0,
         'ctx1,
         'ctx2,
       ): t('state)
   | C4(
-        executor('state),
+        executor('state, t('state)),
         SerialDisposable.t,
-        work4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3),
+        ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
         'ctx0,
         'ctx1,
         'ctx2,
         'ctx3,
       ): t('state)
   | C5(
-        executor('state),
+        executor('state, t('state)),
         SerialDisposable.t,
-        work5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4),
+        ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
         'ctx0,
         'ctx1,
         'ctx2,
@@ -53,9 +48,9 @@ and t('state) =
         'ctx4,
       ): t('state)
   | C6(
-        executor('state),
+        executor('state, t('state)),
         SerialDisposable.t,
-        work6('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5),
+        ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
         'ctx0,
         'ctx1,
         'ctx2,
@@ -64,9 +59,18 @@ and t('state) =
         'ctx5,
       ): t('state)
   | C7(
-        executor('state),
+        executor('state, t('state)),
         SerialDisposable.t,
-        work7('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6),
+        ScheduledWork.t7(
+          'ctx0,
+          'ctx1,
+          'ctx2,
+          'ctx3,
+          'ctx4,
+          'ctx5,
+          'ctx6,
+          'state,
+        ),
         'ctx0,
         'ctx1,
         'ctx2,
@@ -79,23 +83,8 @@ and t('state) =
 
 type schedulerContinuation('state) = t('state);
 
-module Work = {
-  type t('state) = work('state);
-  type t1('state, 'ctx0) = work1('state, 'ctx0);
-  type t2('state, 'ctx0, 'ctx1) = work2('state, 'ctx0, 'ctx1);
-  type t3('state, 'ctx0, 'ctx1, 'ctx2) = work3('state, 'ctx0, 'ctx1, 'ctx2);
-  type t4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3) =
-    work4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3);
-  type t5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) =
-    work5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4);
-  type t6('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) =
-    work6('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5);
-  type t7('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) =
-    work7('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6);
-};
-
 module Executor = {
-  type t('state) = executor('state);
+  type t('state, 'a) = executor('state, 'a);
 };
 
 let asSerialDisposable =
@@ -117,7 +106,9 @@ let getInnerDisposable = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.getInnerDisposable;
 
 let setInnerDisposable = (disposable, continuation) =>
-  continuation |> asSerialDisposable |> SerialDisposable.setInnerDisposable(disposable);
+  continuation
+  |> asSerialDisposable
+  |> SerialDisposable.setInnerDisposable(disposable);
 
 let disposed = Disposed;
 
@@ -175,7 +166,9 @@ let isDisposed = continuation =>
 let raiseIfDisposed = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.raiseIfDisposed;
 
-let continueAfter = {
+let rec continue = (state, continuation) =>
+  continueAfter(~delay=0.0, state, continuation)
+and continueAfter = {
   let getExecutor =
     fun
     | C0(executor, _, _)
@@ -190,25 +183,30 @@ let continueAfter = {
 
   let doWork = (state, continuation) =>
     switch (continuation) {
-    | C0(_, _, work) => work(continuation, state)
-    | C1(_, _, work, ctx0) => work(ctx0, continuation, state)
-    | C2(_, _, work, ctx0, ctx1) => work(ctx0, ctx1, continuation, state)
-    | C3(_, _, work, ctx0, ctx1, ctx2) =>
-      work(ctx0, ctx1, ctx2, continuation, state)
+    | C0(_, _, work) => work(state)
+    | C1(_, _, work, ctx0) => work(ctx0, state)
+    | C2(_, _, work, ctx0, ctx1) => work(ctx0, ctx1, state)
+    | C3(_, _, work, ctx0, ctx1, ctx2) => work(ctx0, ctx1, ctx2, state)
     | C4(_, _, work, ctx0, ctx1, ctx2, ctx3) =>
-      work(ctx0, ctx1, ctx2, ctx3, continuation, state)
+      work(ctx0, ctx1, ctx2, ctx3, state)
     | C5(_, _, work, ctx0, ctx1, ctx2, ctx3, ctx4) =>
-      work(ctx0, ctx1, ctx2, ctx3, ctx4, continuation, state)
+      work(ctx0, ctx1, ctx2, ctx3, ctx4, state)
     | C6(_, _, work, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5) =>
-      work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, continuation, state)
+      work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state)
     | C7(_, _, work, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) =>
-      work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, continuation, state)
-    | Disposed => ()
+      work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state)
+    | Disposed => Done
     };
 
   let execute = (state, continuation) =>
     if (! isDisposed(continuation)) {
-      doWork(state, continuation);
+      let result = doWork(state, continuation);
+      switch (result) {
+      | Done => continuation |> dispose
+      | Continue(state) => continuation |> continue(state)
+      | ContinueAfter(delay, state) =>
+        continuation |> continueAfter(~delay, state)
+      };
     };
 
   (~delay, state, continuation) => {
@@ -221,9 +219,8 @@ let continueAfter = {
     };
 
     let executor = continuation |> getExecutor;
-    executor(~delay, continuation, state, execute);
+    let innerDisposable = executor(~delay, continuation, state, execute);
+
+    continuation |> setInnerDisposable(innerDisposable);
   };
 };
-
-let continue = (state, continuation) =>
-  continueAfter(~delay=0.0, state, continuation);

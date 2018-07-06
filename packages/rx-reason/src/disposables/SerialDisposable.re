@@ -59,7 +59,10 @@ let setInnerDisposable = (newDisposable, self) => {
     switch (self) {
     | Disposed => true
     | SerialDisposable(innerDisposable, _) =>
-      Atomic.exchange(innerDisposable, newDisposable) |> Disposable.dispose;
+      let oldDisposable = Atomic.exchange(innerDisposable, newDisposable);
+      if (oldDisposable !== newDisposable) {
+        oldDisposable |> Disposable.dispose;
+      };
       isDisposed(self);
     };
 

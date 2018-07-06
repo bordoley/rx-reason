@@ -1,5 +1,5 @@
 type t = {
-  executor: 'state .unit => SchedulerContinuation.Executor.t('state),
+  executor: 'state .unit => SchedulerContinuation.Executor.t('state, SchedulerContinuation.t('state)),
   now: unit => float,
 };
 
@@ -164,7 +164,10 @@ let scheduleBy = (~time, work, state, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (_, state) => work(state);
+    let work = state => {
+      work(state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter(~delay, work, state, scheduler);
   } else {
     Disposable.disposed;
@@ -175,7 +178,10 @@ let scheduleBy1 = (~time, work, state, ctx0, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0 , _, state) => work(ctx0, state);
+    let work = (ctx0, state) => {
+      work(ctx0, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter1(~delay=0.0, work, state, ctx0, scheduler);
   } else {
     Disposable.disposed;
@@ -186,7 +192,10 @@ let scheduleBy2 = (~time, work, state, ctx0, ctx1, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, _, state) => work(ctx0, ctx1, state);
+    let work = (ctx0, ctx1, state) => {
+      work(ctx0, ctx1, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter2(~delay=0.0, work, state, ctx0, ctx1, scheduler);
   } else {
     Disposable.disposed;
@@ -197,7 +206,10 @@ let scheduleBy3 = (~time, work, state, ctx0, ctx1, ctx2, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, ctx2, _, state) => work(ctx0, ctx1, ctx2, state);
+    let work = (ctx0, ctx1, ctx2, state) => {
+      work(ctx0, ctx1, ctx2, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter3(~delay=0.0, work, state, ctx0, ctx1, ctx2, scheduler);
   } else {
     Disposable.disposed;
@@ -208,8 +220,10 @@ let scheduleBy4 = (~time, work, state, ctx0, ctx1, ctx2, ctx3, scheduler) => {
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, ctx2, ctx3, _, state) =>
+    let work = (ctx0, ctx1, ctx2, ctx3, state) => {
       work(ctx0, ctx1, ctx2, ctx3, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter4(
       ~delay=0.0,
       work,
@@ -230,8 +244,10 @@ let scheduleBy5 =
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, _, state) =>
+    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, state) => {
       work(ctx0, ctx1, ctx2, ctx3, ctx4, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter5(
       ~delay=0.0,
       work,
@@ -253,8 +269,10 @@ let scheduleBy6 =
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, _, state) =>
+    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state) => {
       work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter6(
       ~delay=0.0,
       work,
@@ -277,8 +295,10 @@ let scheduleBy7 =
   let now = scheduler |> now;
   let delay = time -. now;
   if (! (delay < 0.0)) {
-    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, _, state) =>
+    let work = (ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state) => {
       work(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state);
+      ScheduledWork.Result.Done;
+    };
     scheduleAfter7(
       ~delay=0.0,
       work,

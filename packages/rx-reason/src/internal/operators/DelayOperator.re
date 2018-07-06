@@ -14,19 +14,19 @@ let operator = {
         shouldComplete,
         completedState,
         subscriber,
-        continuation,
         (),
       ) =>
     switch (QueueWithBufferStrategy.tryDeque(queue)) {
-    | _ when innerSubscription |> Disposable.isDisposed => ()
+    | _ when innerSubscription |> Disposable.isDisposed => ScheduledWork.Result.Done
     | Some(next) =>
       subscriber |> Subscriber.next(next);
       Atomic.decr(wip) !== 0 ?
-        continuation |> SchedulerContinuation.continueAfter(~delay, ()) : ();
+        ScheduledWork.Result.ContinueAfter(delay, ()) : ScheduledWork.Result.Done;
     | _ when Atomic.exchange(shouldComplete, false) =>
       subscriber |> Subscriber.complete(~exn=?Atomic.get(completedState));
       innerSubscription |> Disposable.dispose;
-    | _ => ()
+      ScheduledWork.Result.Done;
+    | _ => ScheduledWork.Result.Done
     };
 
   let schedule =

@@ -12,8 +12,10 @@ let operator = {
     };
   };
 
-  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _, _) =>
+  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _) => {
     debounceNext(debounceSubscription, lastValue, delegate);
+    ScheduledWork.Result.Done;
+  };
 
   let onNext =
       (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {

@@ -11,18 +11,18 @@ let ofList = {
   };
 
   let ofListScheduledSource = (scheduler, list, subscriber) => {
-    let loop = (continuation, list) =>
+    let loop = list =>
       switch (list) {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
         subscriber |> Subscriber.complete;
-        continuation |> SchedulerContinuation.dispose;
+        ScheduledWork.Result.Done;
       | [hd, ...tail] =>
         subscriber |> Subscriber.next(hd);
-        continuation |> SchedulerContinuation.continue(tail);
+        ScheduledWork.Result.Continue(tail);
       | [] =>
         subscriber |> Subscriber.complete;
-        continuation |> SchedulerContinuation.dispose;
+        ScheduledWork.Result.Done;
       };
 
     let schedulerSubscription = scheduler |> Scheduler.schedule(loop, list);
@@ -62,19 +62,18 @@ let ofValue = {
 let ofRelativeTimeNotifications = {
   let ofRelativeTimeNotificationsScheduledSource = {
     let loop =
-        (subscriber, continuation, (notif, previousDelay, notifications)) => {
+        (subscriber, (notif, previousDelay, notifications)) => {
       subscriber |> Subscriber.notify(notif);
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
         let computedDelay = max(0.0, requestedDelay -. previousDelay);
 
-        continuation
-        |> SchedulerContinuation.continueAfter(
-             ~delay=computedDelay,
-             (notif, requestedDelay, tail),
-           );
-      | [] => continuation |> SchedulerContinuation.dispose
+        ScheduledWork.Result.ContinueAfter(
+          computedDelay,
+          (notif, requestedDelay, tail),
+        );
+      | [] => ScheduledWork.Result.Done
       };
     };
 

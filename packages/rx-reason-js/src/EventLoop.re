@@ -63,16 +63,11 @@ let scheduler: RxReason.Scheduler.t = {
           if (delay !== 0.0) {
             scheduleInterval(delay, self);
           } else {
-            resolveUnit
-            |> Js.Promise.then_(promiseContinuation)
-            |> ignore;
+            resolveUnit |> Js.Promise.then_(promiseContinuation) |> ignore;
 
             RxReason.Disposable.empty();
           }
         );
-
-        continuation
-        |> RxReason.SchedulerContinuation.setInnerDisposable(self.interval);
       };
 
       self.pending = true;
@@ -80,6 +75,8 @@ let scheduler: RxReason.Scheduler.t = {
       self.continuation = continuation;
       self.f = f;
       self.state = Some(state);
+
+      self.interval;
     };
   };
 

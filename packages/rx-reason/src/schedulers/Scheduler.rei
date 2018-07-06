@@ -1,30 +1,22 @@
 type t = {
-  executor: 'state .unit => SchedulerContinuation.Executor.t('state),
+  executor: 'state .unit => SchedulerContinuation.Executor.t('state, SchedulerContinuation.t('state)),
   now: unit => float,
 };
 
 let now: t => float;
 
-let schedule:
-  (SchedulerContinuation.Work.t('state), 'state, t) => Disposable.t;
+let schedule: (ScheduledWork.t('state), 'state, t) => Disposable.t;
 
 let schedule1:
-  (SchedulerContinuation.Work.t1('state, 'ctx0), 'state, 'ctx0, t) =>
-  Disposable.t;
+  (ScheduledWork.t1('ctx0, 'state), 'state, 'ctx0, t) => Disposable.t;
 
 let schedule2:
-  (
-    SchedulerContinuation.Work.t2('state, 'ctx0, 'ctx1),
-    'state,
-    'ctx0,
-    'ctx1,
-    t
-  ) =>
+  (ScheduledWork.t2('ctx0, 'ctx1, 'state), 'state, 'ctx0, 'ctx1, t) =>
   Disposable.t;
 
 let schedule3:
   (
-    SchedulerContinuation.Work.t3('state, 'ctx0, 'ctx1, 'ctx2),
+    ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -35,7 +27,7 @@ let schedule3:
 
 let schedule4:
   (
-    SchedulerContinuation.Work.t4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3),
+    ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -47,7 +39,7 @@ let schedule4:
 
 let schedule5:
   (
-    SchedulerContinuation.Work.t5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4),
+    ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -60,15 +52,7 @@ let schedule5:
 
 let schedule6:
   (
-    SchedulerContinuation.Work.t6(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-      'ctx4,
-      'ctx5,
-    ),
+    ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -82,16 +66,7 @@ let schedule6:
 
 let schedule7:
   (
-    SchedulerContinuation.Work.t7(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-      'ctx4,
-      'ctx5,
-      'ctx6,
-    ),
+    ScheduledWork.t7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -105,23 +80,16 @@ let schedule7:
   Disposable.t;
 
 let scheduleAfter:
-  (~delay: float, SchedulerContinuation.Work.t('state), 'state, t) =>
-  Disposable.t;
+  (~delay: float, ScheduledWork.t('state), 'state, t) => Disposable.t;
 
 let scheduleAfter1:
-  (
-    ~delay: float,
-    SchedulerContinuation.Work.t1('state, 'ctx0),
-    'state,
-    'ctx0,
-    t
-  ) =>
+  (~delay: float, ScheduledWork.t1('ctx0, 'state), 'state, 'ctx0, t) =>
   Disposable.t;
 
 let scheduleAfter2:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t2('state, 'ctx0, 'ctx1),
+    ScheduledWork.t2('ctx0, 'ctx1, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -132,7 +100,7 @@ let scheduleAfter2:
 let scheduleAfter3:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t3('state, 'ctx0, 'ctx1, 'ctx2),
+    ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -144,7 +112,7 @@ let scheduleAfter3:
 let scheduleAfter4:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t4('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3),
+    ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -157,7 +125,7 @@ let scheduleAfter4:
 let scheduleAfter5:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t5('state, 'ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4),
+    ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -171,15 +139,7 @@ let scheduleAfter5:
 let scheduleAfter6:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t6(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-      'ctx4,
-      'ctx5,
-    ),
+    ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
     'state,
     'ctx0,
     'ctx1,
@@ -194,16 +154,7 @@ let scheduleAfter6:
 let scheduleAfter7:
   (
     ~delay: float,
-    SchedulerContinuation.Work.t7(
-      'state,
-      'ctx0,
-      'ctx1,
-      'ctx2,
-      'ctx3,
-      'ctx4,
-      'ctx5,
-      'ctx6,
-    ),
+    ScheduledWork.t7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state),
     'state,
     'ctx0,
     'ctx1,
