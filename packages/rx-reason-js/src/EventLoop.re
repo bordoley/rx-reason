@@ -23,8 +23,8 @@ let scheduler: RxReason.Scheduler.t = {
     RxReason.Disposable.create1(Js.Global.clearInterval, intervalId);
   };
 
-  let promiseContinuation = self => {
-    run(self);
+  let promiseContinuation = ((continuation, state, f)) => {
+    f(state, continuation);
     resolveUnit;
   };
 
@@ -40,14 +40,14 @@ let scheduler: RxReason.Scheduler.t = {
       if (! shouldRecycleInterval(delay, self)) {
         self.interval |> RxReason.Disposable.dispose;
 
-        let ctx = (self, continuation, state, f);
 
         self.interval = (
           if (delay !== 0.0) {
+            let ctx = (self, continuation, state, f);
             scheduleInterval(delay, ctx);
           } else {
             
-            Js.Promise.resolve(ctx)
+            Js.Promise.resolve((continuation, state, f))
             |> Js.Promise.then_(promiseContinuation)
             |> ignore;
 
