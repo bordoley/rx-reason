@@ -1,5 +1,5 @@
 type t = {
-  executor: 'state .unit => SchedulerExecutor.t('state, SchedulerContinuation.t('state)),
+  executor: 'a 'state .unit => SchedulerExecutor.t('state, 'a),
   now: unit => float,
 };
 
