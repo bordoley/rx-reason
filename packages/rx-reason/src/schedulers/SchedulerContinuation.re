@@ -1,27 +1,24 @@
-type executor('state, 'a) =
-  (~delay: float, 'a, 'state, ('state, 'a) => unit) => Disposable.t;
-
 type t('state) =
   | C0(
-      executor('state, t('state)),
+      SchedulerExecutor.t('state, t('state)),
       SerialDisposable.t,
       ScheduledWork.t('state),
     )
   | C1(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t1('ctx0, 'state),
         'ctx0,
       ): t('state)
   | C2(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t2('ctx0, 'ctx1, 'state),
         'ctx0,
         'ctx1,
       ): t('state)
   | C3(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
         'ctx0,
@@ -29,7 +26,7 @@ type t('state) =
         'ctx2,
       ): t('state)
   | C4(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
         'ctx0,
@@ -38,7 +35,7 @@ type t('state) =
         'ctx3,
       ): t('state)
   | C5(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
         'ctx0,
@@ -48,7 +45,7 @@ type t('state) =
         'ctx4,
       ): t('state)
   | C6(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
         'ctx0,
@@ -59,7 +56,7 @@ type t('state) =
         'ctx5,
       ): t('state)
   | C7(
-        executor('state, t('state)),
+        SchedulerExecutor.t('state, t('state)),
         SerialDisposable.t,
         ScheduledWork.t7(
           'ctx0,
@@ -81,12 +78,6 @@ type t('state) =
       ): t('state)
   | Disposed;
 
-type schedulerContinuation('state) = t('state);
-
-module Executor = {
-  type t('state, 'a) = executor('state, 'a);
-};
-
 let asSerialDisposable =
   fun
   | C0(_, disposable, _)
@@ -101,14 +92,6 @@ let asSerialDisposable =
 
 let asDisposable = continuation =>
   continuation |> asSerialDisposable |> SerialDisposable.asDisposable;
-
-let getInnerDisposable = continuation =>
-  continuation |> asSerialDisposable |> SerialDisposable.getInnerDisposable;
-
-let setInnerDisposable = (disposable, continuation) =>
-  continuation
-  |> asSerialDisposable
-  |> SerialDisposable.setInnerDisposable(disposable);
 
 let disposed = Disposed;
 
@@ -158,17 +141,15 @@ let create7 = (executor, work, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) =>
   );
 
 let dispose = continuation =>
-  continuation |> asSerialDisposable |> SerialDisposable.dispose;
+  continuation |> asDisposable |> Disposable.dispose;
 
 let isDisposed = continuation =>
-  continuation |> asSerialDisposable |> SerialDisposable.isDisposed;
+  continuation |> asDisposable |> Disposable.isDisposed;
 
 let raiseIfDisposed = continuation =>
-  continuation |> asSerialDisposable |> SerialDisposable.raiseIfDisposed;
+  continuation |> asDisposable |> Disposable.raiseIfDisposed;
 
-let rec continue = (state, continuation) =>
-  continueAfter(~delay=0.0, state, continuation)
-and continueAfter = {
+let rec continueAfter = {
   let getExecutor =
     fun
     | C0(executor, _, _)
@@ -203,7 +184,7 @@ and continueAfter = {
       let result = doWork(state, continuation);
       switch (result) {
       | Done => continuation |> dispose
-      | Continue(state) => continuation |> continue(state)
+      | Continue(state) => continuation |> continueAfter(~delay=0.0, state)
       | ContinueAfter(delay, state) =>
         continuation |> continueAfter(~delay, state)
       };
@@ -211,7 +192,11 @@ and continueAfter = {
 
   (~delay, state, continuation) => {
     let innerDisposableActive =
-      continuation |> getInnerDisposable |> Disposable.isDisposed |> (!);
+      continuation
+      |> asSerialDisposable
+      |> SerialDisposable.getInnerDisposable
+      |> Disposable.isDisposed
+      |> (!);
 
     if (innerDisposableActive) {
       /** FIXME: define a real exception type here */
@@ -221,6 +206,8 @@ and continueAfter = {
     let executor = continuation |> getExecutor;
     let innerDisposable = executor(~delay, continuation, state, execute);
 
-    continuation |> setInnerDisposable(innerDisposable);
+    continuation
+    |> asSerialDisposable
+    |> SerialDisposable.setInnerDisposable(innerDisposable);
   };
 };
