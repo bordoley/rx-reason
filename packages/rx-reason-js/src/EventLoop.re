@@ -1,66 +1,29 @@
 [@bs.val]
-external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId = "";
+external setInterval1 : ('a => unit, float, 'a) => Js.Global.intervalId =
+  "setInterval";
 
-let resolveUnit = Js.Promise.resolve();
+[@bs.val]
+external setTimeout1 : ('a => unit, float, 'a) => Js.Global.timeoutId =
+  "setTimeout";
 
-type executorState('state, 'a) = {
-  mutable interval: RxReason.Disposable.t,
-  mutable pending: bool,
-  mutable delay: float,
-};
+[@bs.send.pipe: Js.Promise.t('a)]
+external then_ : ([@bs.uncurry] ('a => unit)) => Js.Promise.t(unit) = "then";
+
+let clearInterval = intervalId => Js.Global.clearInterval(intervalId);
+let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 
 let scheduler: RxReason.Scheduler.t = {
-  let run = ((self, continuation, state, f)) => {
-    self.pending = false;
-    f(state, continuation);
-  };
-
-  let shouldRecycleInterval = (delay, self) =>
-    ! self.pending && delay !== 0.0 && self.delay === delay;
-
-  let scheduleInterval = (delay, self) => {
-    let intervalId = setInterval1(run, delay, self);
-    RxReason.Disposable.create1(Js.Global.clearInterval, intervalId);
-  };
-
-  let promiseContinuation = ((continuation, state, f)) => {
-    f(state, continuation);
-    resolveUnit;
-  };
-
-  let factory = () => {
-    let self = {
-      interval: RxReason.Disposable.disposed,
-      pending: false,
-      delay: (-1.0),
-    };
-
-    (~delay, continuation, state, f) => {
- 
-      if (! shouldRecycleInterval(delay, self)) {
-        self.interval |> RxReason.Disposable.dispose;
-
-
-        self.interval = (
-          if (delay !== 0.0) {
-            let ctx = (self, continuation, state, f);
-            scheduleInterval(delay, ctx);
-          } else {
-            
-            Js.Promise.resolve((continuation, state, f))
-            |> Js.Promise.then_(promiseContinuation)
-            |> ignore;
-
-            RxReason.Disposable.empty();
-          }
-        );
-      };
-
-      self.pending = true;
-      self.delay = delay;
-      self.interval;
-    };
-  };
-
-  {executor: factory, now: Js.Date.now};
+  now: Js.Date.now,
+  scheduleAfter: (~delay, f, state) =>
+    if (delay > 0.0) {
+      let timeoutId = setTimeout1(f, delay, state);
+      RxReason.Disposable.create1(clearTimeout, timeoutId);
+    } else {
+      Js.Promise.resolve(state) |> then_(f) |> ignore;
+      RxReason.Disposable.disposed;
+    },
+  schedulePeriodic: (~delay, f, state) => {
+    let intervalId = setInterval1(f, delay, state);
+    RxReason.Disposable.create1(clearInterval, intervalId);
+  },
 };

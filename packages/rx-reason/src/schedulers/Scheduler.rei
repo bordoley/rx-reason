@@ -1,33 +1,33 @@
 type t = {
-  executor: 'a 'state .unit => SchedulerExecutor.t('state, 'a),
   now: unit => float,
+  scheduleAfter: 'ctx .(~delay: float, 'ctx => unit, 'ctx) => Disposable.t,
+  schedulePeriodic: 'ctx .(~delay: float, 'ctx => unit, 'ctx) => Disposable.t,
+};
+
+module RecursiveResult: {
+  type t('state);
+
+  let continue: 'state => t('state);
+  let continueAfter: (~delay: float, 'state) => t('state);
+  let done_: t('state);
 };
 
 let now: t => float;
 
-let schedule: (ScheduledWork.t('state), 'state, t) => Disposable.t;
+let schedule: ('state => unit, 'state, t) => Disposable.t;
 
-let schedule1:
-  (ScheduledWork.t1('ctx0, 'state), 'state, 'ctx0, t) => Disposable.t;
+let schedule1: (('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
 
 let schedule2:
-  (ScheduledWork.t2('ctx0, 'ctx1, 'state), 'state, 'ctx0, 'ctx1, t) =>
-  Disposable.t;
+  (('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) => Disposable.t;
 
 let schedule3:
-  (
-    ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
-    'state,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    t
-  ) =>
+  (('ctx0, 'ctx1, 'ctx2, 'state) => unit, 'state, 'ctx0, 'ctx1, 'ctx2, t) =>
   Disposable.t;
 
 let schedule4:
   (
-    ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -39,7 +39,7 @@ let schedule4:
 
 let schedule5:
   (
-    ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -52,7 +52,7 @@ let schedule5:
 
 let schedule6:
   (
-    ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -66,7 +66,7 @@ let schedule6:
 
 let schedule7:
   (
-    ScheduledWork.t7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -79,28 +79,19 @@ let schedule7:
   ) =>
   Disposable.t;
 
-let scheduleAfter:
-  (~delay: float, ScheduledWork.t('state), 'state, t) => Disposable.t;
+let scheduleAfter: (~delay: float, 'state => unit, 'state, t) => Disposable.t;
 
 let scheduleAfter1:
-  (~delay: float, ScheduledWork.t1('ctx0, 'state), 'state, 'ctx0, t) =>
-  Disposable.t;
+  (~delay: float, ('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
 
 let scheduleAfter2:
-  (
-    ~delay: float,
-    ScheduledWork.t2('ctx0, 'ctx1, 'state),
-    'state,
-    'ctx0,
-    'ctx1,
-    t
-  ) =>
+  (~delay: float, ('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) =>
   Disposable.t;
 
 let scheduleAfter3:
   (
     ~delay: float,
-    ScheduledWork.t3('ctx0, 'ctx1, 'ctx2, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -112,7 +103,7 @@ let scheduleAfter3:
 let scheduleAfter4:
   (
     ~delay: float,
-    ScheduledWork.t4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -125,7 +116,7 @@ let scheduleAfter4:
 let scheduleAfter5:
   (
     ~delay: float,
-    ScheduledWork.t5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -139,7 +130,7 @@ let scheduleAfter5:
 let scheduleAfter6:
   (
     ~delay: float,
-    ScheduledWork.t6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
     'state,
     'ctx0,
     'ctx1,
@@ -154,7 +145,104 @@ let scheduleAfter6:
 let scheduleAfter7:
   (
     ~delay: float,
-    ScheduledWork.t7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state),
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive:
+  (~delay: float, 'state => RecursiveResult.t('state), 'state, t) =>
+  Disposable.t;
+
+let scheduleRecursive1:
+  (
+    ~delay: float,
+    ('ctx0, 'state) => RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive2:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'state) => RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    'ctx1,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive3:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'ctx2, 'state) => RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive4:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive5:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive6:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) =>
+    RecursiveResult.t('state),
+    'state,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    t
+  ) =>
+  Disposable.t;
+
+let scheduleRecursive7:
+  (
+    ~delay: float,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) =>
+    RecursiveResult.t('state),
     'state,
     'ctx0,
     'ctx1,

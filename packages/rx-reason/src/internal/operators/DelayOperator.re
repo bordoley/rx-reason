@@ -17,16 +17,16 @@ let operator = {
         (),
       ) =>
     switch (QueueWithBufferStrategy.tryDeque(queue)) {
-    | _ when innerSubscription |> Disposable.isDisposed => ScheduledWork.Result.Done
+    | _ when innerSubscription |> Disposable.isDisposed => Scheduler.RecursiveResult.done_;
     | Some(next) =>
       subscriber |> Subscriber.next(next);
       Atomic.decr(wip) !== 0 ?
-        ScheduledWork.Result.ContinueAfter(delay, ()) : ScheduledWork.Result.Done;
+      Scheduler.RecursiveResult.continueAfter(~delay, ()) : Scheduler.RecursiveResult.done_;
     | _ when Atomic.exchange(shouldComplete, false) =>
       subscriber |> Subscriber.complete(~exn=?Atomic.get(completedState));
       innerSubscription |> Disposable.dispose;
-      ScheduledWork.Result.Done;
-    | _ => ScheduledWork.Result.Done
+      Scheduler.RecursiveResult.done_;
+    | _ =>  Scheduler.RecursiveResult.done_;
     };
 
   let schedule =
@@ -42,7 +42,7 @@ let operator = {
       ) =>
     if (Atomic.incr(wip) === 1) {
       scheduler
-      |> Scheduler.scheduleAfter7(
+      |> Scheduler.scheduleRecursive7(
            ~delay,
            doWorkStep,
            (),

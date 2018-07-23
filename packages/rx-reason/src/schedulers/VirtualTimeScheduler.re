@@ -46,21 +46,25 @@ let create = () => {
   };
 
   let scheduler: Scheduler.t = {
-    executor: ((), ~delay, continuation, state, f) => {
+    now: () => currentTime^ |> float_of_int,
+    scheduleAfter: (~delay, f, state) => {
+      let work = () => f(state);
+      schedule(delay, work);
+      Disposable.disposed;
+    },
+    schedulePeriodic: (~delay, f, state) => {
       let disposable = Disposable.empty();
 
-      let work = () => {
-        let shouldRun = ! Disposable.isDisposed(disposable);
-        disposable |> Disposable.dispose;
-
-        if (shouldRun) {
-          f(state, continuation);
+      let rec work = () => {
+        f(state);
+        if (! Disposable.isDisposed(disposable)) {
+          schedule(delay, work);
         };
       };
+
       schedule(delay, work);
       disposable;
     },
-    now: () => currentTime^ |> float_of_int,
   };
 
   {currentTime, disposable, timeQueue, scheduler};

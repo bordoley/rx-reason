@@ -16,16 +16,16 @@ let ofList = {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
         subscriber |> Subscriber.complete;
-        ScheduledWork.Result.Done;
+        Scheduler.RecursiveResult.done_;
       | [hd, ...tail] =>
         subscriber |> Subscriber.next(hd);
-        ScheduledWork.Result.Continue(tail);
+        Scheduler.RecursiveResult.continue(tail);
       | [] =>
         subscriber |> Subscriber.complete;
-        ScheduledWork.Result.Done;
+        Scheduler.RecursiveResult.done_;
       };
 
-    let schedulerSubscription = scheduler |> Scheduler.schedule(loop, list);
+    let schedulerSubscription = scheduler |> Scheduler.scheduleRecursive(~delay=0.0, loop, list);
     subscriber
     |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
     |> ignore;
@@ -61,19 +61,18 @@ let ofValue = {
 
 let ofRelativeTimeNotifications = {
   let ofRelativeTimeNotificationsScheduledSource = {
-    let loop =
-        (subscriber, (notif, previousDelay, notifications)) => {
+    let loop = (subscriber, (notif, previousDelay, notifications)) => {
       subscriber |> Subscriber.notify(notif);
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
         let computedDelay = max(0.0, requestedDelay -. previousDelay);
 
-        ScheduledWork.Result.ContinueAfter(
-          computedDelay,
+        Scheduler.RecursiveResult.continueAfter(
+          ~delay=computedDelay,
           (notif, requestedDelay, tail),
         );
-      | [] => ScheduledWork.Result.Done
+      | [] => Scheduler.RecursiveResult.done_
       };
     };
 
@@ -82,7 +81,7 @@ let ofRelativeTimeNotifications = {
       | [(delay, notif), ...tail] =>
         let schedulerSubscription =
           scheduler
-          |> Scheduler.scheduleAfter1(
+          |> Scheduler.scheduleRecursive1(
                ~delay,
                loop,
                (notif, delay, tail),
