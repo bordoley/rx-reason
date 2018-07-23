@@ -376,100 +376,45 @@ let scheduleRecursive7 =
   disposable |> SerialDisposable.asDisposable;
 };
 
-let scheduleAfter = (~delay, f, state, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
+let scheduleAfter = (~delay, f, state, {scheduleAfter}) =>
+  scheduleAfter(~delay, f, state);
 
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(state);
-    };
+let work1 = ((f, ctx0, state)) => f(ctx0, state);
+let scheduleAfter1 = (~delay, f, state, ctx0, {scheduleAfter}) =>
+  scheduleAfter(~delay, work1, (f, ctx0, state));
 
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
+let work2 = ((f, ctx0, ctx1, state)) => f(ctx0, ctx1, state);
+let scheduleAfter2 = (~delay, f, state, ctx0, ctx1, {scheduleAfter}) =>
+  scheduleAfter(~delay, work2, (f, ctx0, ctx1, state));
 
-let scheduleAfter1 = (~delay, f, state, ctx0, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
+let work3 = ((f, ctx0, ctx1, ctx2, state)) => f(ctx0, ctx1, ctx2, state);
+let scheduleAfter3 = (~delay, f, state, ctx0, ctx1, ctx2, {scheduleAfter}) =>
+  scheduleAfter(~delay, work3, (f, ctx0, ctx1, ctx2, state));
 
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
-let scheduleAfter2 = (~delay, f, state, ctx0, ctx1, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
-
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
-let scheduleAfter3 = (~delay, f, state, ctx0, ctx1, ctx2, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
-
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, ctx2, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
+let work4 = ((f, ctx0, ctx1, ctx2, ctx3, state)) =>
+  f(ctx0, ctx1, ctx2, ctx3, state);
 let scheduleAfter4 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
+    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, {scheduleAfter}) =>
+  scheduleAfter(~delay, work4, (f, ctx0, ctx1, ctx2, ctx3, state));
 
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, ctx2, ctx3, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
+let work5 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, state)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4, state);
 let scheduleAfter5 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
+    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, {scheduleAfter}) =>
+  scheduleAfter(~delay, work5, (f, ctx0, ctx1, ctx2, ctx3, ctx4, state));
 
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, ctx2, ctx3, ctx4, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
+let work6 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state);
 let scheduleAfter6 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, {scheduleAfter}) => {
-  let disposable = SerialDisposable.create();
+    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, {scheduleAfter}) =>
+  scheduleAfter(
+    ~delay,
+    work6,
+    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state),
+  );
 
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
-
+let work7 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state);
 let scheduleAfter7 =
     (
       ~delay,
@@ -483,18 +428,12 @@ let scheduleAfter7 =
       ctx5,
       ctx6,
       {scheduleAfter},
-    ) => {
-  let disposable = SerialDisposable.create();
-
-  let work = () =>
-    if (! SerialDisposable.isDisposed(disposable)) {
-      f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state);
-    };
-
-  disposable
-  |> SerialDisposable.setInnerDisposable(scheduleAfter(~delay, work, ()));
-  disposable |> SerialDisposable.asDisposable;
-};
+    ) =>
+  scheduleAfter(
+    ~delay,
+    work7,
+    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state),
+  );
 
 let schedule = (f, state, scheduler) =>
   scheduleAfter(~delay=0.0, f, state, scheduler);

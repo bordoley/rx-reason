@@ -12,18 +12,30 @@ external then_ : ([@bs.uncurry] ('a => unit)) => Js.Promise.t(unit) = "then";
 let clearInterval = intervalId => Js.Global.clearInterval(intervalId);
 let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 
+let promiseContinuation = ((disposable, f, state)) =>
+  if (! RxReason.Disposable.isDisposed(disposable)) {
+    f(state);
+  };
+
+let scheduleAfter = (~delay, f, state) =>
+  if (delay > 0.0) {
+    let timeoutId = setTimeout1(f, delay, state);
+    RxReason.Disposable.create1(clearTimeout, timeoutId);
+  } else {
+    let disposable = RxReason.Disposable.empty();
+    Js.Promise.resolve((disposable, f, state))
+    |> then_(promiseContinuation)
+    |> ignore;
+    disposable;
+  };
+
+let schedulePeriodic = (~delay, f, state) => {
+  let intervalId = setInterval1(f, delay, state);
+  RxReason.Disposable.create1(clearInterval, intervalId);
+};
+
 let scheduler: RxReason.Scheduler.t = {
   now: Js.Date.now,
-  scheduleAfter: (~delay, f, state) =>
-    if (delay > 0.0) {
-      let timeoutId = setTimeout1(f, delay, state);
-      RxReason.Disposable.create1(clearTimeout, timeoutId);
-    } else {
-      Js.Promise.resolve(state) |> then_(f) |> ignore;
-      RxReason.Disposable.disposed;
-    },
-  schedulePeriodic: (~delay, f, state) => {
-    let intervalId = setInterval1(f, delay, state);
-    RxReason.Disposable.create1(clearInterval, intervalId);
-  },
+  scheduleAfter,
+  schedulePeriodic,
 };
