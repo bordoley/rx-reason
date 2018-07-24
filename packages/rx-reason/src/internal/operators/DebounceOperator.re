@@ -42,7 +42,7 @@ let operator = {
     delegate |> Subscriber.complete(~exn?);
   };
 
-  (scheduler, dueTime, subscriber) => {
+  (~scheduler, ~dueTime, subscriber) => {
     let debounceSubscription = SerialDisposable.create();
     let lastValue = MutableOption.create();
 
@@ -60,6 +60,6 @@ let operator = {
 };
 
 let lift = (~scheduler, ~dueTime) => {
-  let operator = operator(scheduler, dueTime);
+  let operator = operator(~scheduler, ~dueTime);
   observable => observable |> ObservableSource.lift(operator);
 };

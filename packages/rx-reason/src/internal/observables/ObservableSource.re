@@ -101,7 +101,7 @@ let create7 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) =>
 
 let liftOperator = (op0, op1, subscriber) => op0 @@ op1 @@ subscriber;
 
-let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
+let lift = (operator, observable) =>
   switch (observable) {
   | Source(source, op) => Source(source, liftOperator(op, operator))
   | Source1(source, ctx0, op) =>
@@ -138,6 +138,36 @@ let lift = (operator: Operator.t('a, 'b), observable: t('a)) : t('b) =>
       liftOperator(op, operator),
     )
   };
+
+let pipe2 = (op0, op1, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ subscriber;
+  observable |> lift(op);
+};
+
+let pipe3 = (op0, op1, op2, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ op2 @@ subscriber;
+  observable |> lift(op);
+};
+
+let pipe4 = (op0, op1, op2, op3, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ subscriber;
+  observable |> lift(op);
+};
+
+let pipe5 = (op0, op1, op2, op3, op4, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ subscriber;
+  observable |> lift(op);
+};
+
+let pipe6 = (op0, op1, op2, op3, op4, op5, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ subscriber;
+  observable |> lift(op);
+};
+
+let pipe7 = (op0, op1, op2, op3, op4, op5, op6, observable)=> {
+  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ subscriber;
+  observable |> lift(op);
+};
 
 let never = Source(Functions.alwaysUnit1, Functions.identity);
 

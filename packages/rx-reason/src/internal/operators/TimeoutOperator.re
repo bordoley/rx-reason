@@ -21,7 +21,7 @@ let operator = {
     delegate |> Subscriber.complete(~exn?);
   };
 
-  (due, scheduler) => {
+  (~due, ~scheduler) => {
     let timeoutObservable =
       RaiseObservableSource.raise(TimeoutException.Exn)
       |> DelayOperator.lift(~scheduler, ~delay=due);
@@ -55,4 +55,4 @@ let operator = {
 };
 
 let lift = (~due, ~scheduler, observable) =>
-  observable |> ObservableSource.lift(operator(due, scheduler));
+  observable |> ObservableSource.lift(operator(~due, ~scheduler));

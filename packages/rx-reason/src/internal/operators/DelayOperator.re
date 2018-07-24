@@ -108,7 +108,7 @@ let operator = {
     );
   };
 
-  (bufferStrategy, bufferSize, scheduler, delay, subscriber) => {
+  (~bufferStrategy=BufferStrategy.Raise, ~bufferSize=(-1), ~scheduler, ~delay, subscriber) => {
     let queue =
       QueueWithBufferStrategy.create(~bufferStrategy, ~maxSize=bufferSize);
     let shouldComplete = Atomic.make(false);
@@ -141,13 +141,13 @@ let operator = {
 
 let lift =
     (
-      ~bufferStrategy=BufferStrategy.Raise,
-      ~bufferSize=(-1),
+      ~bufferStrategy=?,
+      ~bufferSize=?,
       ~scheduler,
       ~delay,
       observable,
     ) =>
   observable
   |> ObservableSource.lift(
-       operator(bufferStrategy, bufferSize, scheduler, delay),
+       operator(~bufferStrategy?, ~bufferSize?, ~scheduler, ~delay),
      );
