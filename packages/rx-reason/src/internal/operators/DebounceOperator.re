@@ -12,9 +12,8 @@ let operator = {
     };
   };
 
-  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _) => {
+  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _) =>
     debounceNext(debounceSubscription, lastValue, delegate);
-  };
 
   let onNext =
       (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
@@ -60,5 +59,7 @@ let operator = {
   };
 };
 
-let lift = (~scheduler, ~dueTime, observable) =>
-  observable |> ObservableSource.lift(operator(scheduler, dueTime));
+let lift = (~scheduler, ~dueTime) => {
+  let operator = operator(scheduler, dueTime);
+  observable => observable |> ObservableSource.lift(operator);
+};

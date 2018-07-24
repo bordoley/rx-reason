@@ -1,45 +1,47 @@
 type t('a) =
   | AutoDisposing(
+      CompositeDisposable.t,
+      Atomic.t(bool),
       'a => unit,
       option(exn) => unit,
-      Atomic.t(bool),
-      CompositeDisposable.t,
     )
   | AutoDisposing1(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     ('ctx0, 'a) => unit,
                     ('ctx0, option(exn)) => unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing2(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     ('ctx0, 'ctx1, 'a) => unit,
                     ('ctx0, 'ctx1, option(exn)) => unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing3(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     'ctx2,
                     ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
                     ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing4(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     'ctx2,
                     'ctx3,
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing5(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     'ctx2,
@@ -47,10 +49,10 @@ type t('a) =
                     'ctx4,
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing6(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     'ctx2,
@@ -60,10 +62,10 @@ type t('a) =
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
                     ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
                     unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | AutoDisposing7(
+                    CompositeDisposable.t,
+                    Atomic.t(bool),
                     'ctx0,
                     'ctx1,
                     'ctx2,
@@ -84,50 +86,50 @@ type t('a) =
                       option(exn)
                     ) =>
                     unit,
-                    Atomic.t(bool),
-                    CompositeDisposable.t,
                   ): t('a)
   | Decorating(
+                t('b),
+                Atomic.t(bool),
                 (t('b), 'a) => unit,
                 (t('b), option(exn)) => unit,
-                Atomic.t(bool),
-                t('b),
               ): t('a)
   | Decorating1(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  ('ctx0, t('b), 'a) => unit,
                  ('ctx0, t('b), option(exn)) => unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating2(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  ('ctx0, 'ctx1, t('b), 'a) => unit,
                  ('ctx0, 'ctx1, t('b), option(exn)) => unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating3(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  'ctx2,
                  ('ctx0, 'ctx1, 'ctx2, t('b), 'a) => unit,
                  ('ctx0, 'ctx1, 'ctx2, t('b), option(exn)) => unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating4(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  'ctx2,
                  'ctx3,
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), 'a) => unit,
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), option(exn)) => unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating5(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -136,10 +138,10 @@ type t('a) =
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
                  unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating6(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -158,10 +160,10 @@ type t('a) =
                    option(exn)
                  ) =>
                  unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Decorating7(
+                 t('b),
+                 Atomic.t(bool),
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -193,33 +195,31 @@ type t('a) =
                    option(exn)
                  ) =>
                  unit,
-                 Atomic.t(bool),
-                 t('b),
                ): t('a)
   | Disposed;
 
 let rec asCompositeDisposable: type a. t(a) => CompositeDisposable.t =
   fun
-  | AutoDisposing(_, _, _, disposable) => disposable
-  | AutoDisposing1(_, _, _, _, disposable) => disposable
-  | AutoDisposing2(_, _, _, _, _, disposable) => disposable
-  | AutoDisposing3(_, _, _, _, _, _, disposable) => disposable
-  | AutoDisposing4(_, _, _, _, _, _, _, disposable) => disposable
-  | AutoDisposing5(_, _, _, _, _, _, _, _, disposable) => disposable
-  | AutoDisposing6(_, _, _, _, _, _, _, _, _, disposable) => disposable
-  | AutoDisposing7(_, _, _, _, _, _, _, _, _, _, disposable) => disposable
-  | Decorating(_, _, _, delegate) => delegate |> asCompositeDisposable
-  | Decorating1(_, _, _, _, delegate) => delegate |> asCompositeDisposable
-  | Decorating2(_, _, _, _, _, delegate) => delegate |> asCompositeDisposable
-  | Decorating3(_, _, _, _, _, _, delegate) =>
+  | AutoDisposing(disposable, _, _, _) => disposable
+  | AutoDisposing1(disposable, _, _, _, _) => disposable
+  | AutoDisposing2(disposable, _, _, _, _, _) => disposable
+  | AutoDisposing3(disposable, _, _, _, _, _, _) => disposable
+  | AutoDisposing4(disposable, _, _, _, _, _, _, _) => disposable
+  | AutoDisposing5(disposable, _, _, _, _, _, _, _, _) => disposable
+  | AutoDisposing6(disposable, _, _, _, _, _, _, _, _, _) => disposable
+  | AutoDisposing7(disposable, _, _, _, _, _, _, _, _, _, _) => disposable
+  | Decorating(delegate, _, _, _) => delegate |> asCompositeDisposable
+  | Decorating1(delegate, _, _, _, _) => delegate |> asCompositeDisposable
+  | Decorating2(delegate, _, _, _, _, _) => delegate |> asCompositeDisposable
+  | Decorating3(delegate, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
-  | Decorating4(_, _, _, _, _, _, _, delegate) =>
+  | Decorating4(delegate, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
-  | Decorating5(_, _, _, _, _, _, _, _, delegate) =>
+  | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
-  | Decorating6(_, _, _, _, _, _, _, _, _, delegate) =>
+  | Decorating6(delegate, _, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
-  | Decorating7(_, _, _, _, _, _, _, _, _, _, delegate) =>
+  | Decorating7(delegate, _, _, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
   | Disposed => CompositeDisposable.disposed;
 
@@ -296,7 +296,7 @@ let createAutoDisposing = (~onNext, ~onComplete) => {
   disposable
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
-  AutoDisposing(onNext, onComplete, isStopped, disposable);
+  AutoDisposing(disposable, isStopped, onNext, onComplete);
 };
 
 let createAutoDisposing1 = (~onNext, ~onComplete, ctx0) => {
@@ -305,7 +305,7 @@ let createAutoDisposing1 = (~onNext, ~onComplete, ctx0) => {
   disposable
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
-  AutoDisposing1(ctx0, onNext, onComplete, isStopped, disposable);
+  AutoDisposing1(disposable, isStopped, ctx0, onNext, onComplete);
 };
 
 let createAutoDisposing2 = (~onNext, ~onComplete, ctx0, ctx1) => {
@@ -314,7 +314,7 @@ let createAutoDisposing2 = (~onNext, ~onComplete, ctx0, ctx1) => {
   disposable
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
-  AutoDisposing2(ctx0, ctx1, onNext, onComplete, isStopped, disposable);
+  AutoDisposing2(disposable, isStopped, ctx0, ctx1, onNext, onComplete);
 };
 
 let createAutoDisposing3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2) => {
@@ -323,7 +323,7 @@ let createAutoDisposing3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2) => {
   disposable
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
-  AutoDisposing3(ctx0, ctx1, ctx2, onNext, onComplete, isStopped, disposable);
+  AutoDisposing3(disposable, isStopped, ctx0, ctx1, ctx2, onNext, onComplete);
 };
 
 let createAutoDisposing4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3) => {
@@ -333,14 +333,14 @@ let createAutoDisposing4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3) => {
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
   AutoDisposing4(
+    disposable,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
     ctx3,
     onNext,
     onComplete,
-    isStopped,
-    disposable,
   );
 };
 
@@ -352,6 +352,8 @@ let createAutoDisposing5 =
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
   AutoDisposing5(
+    disposable,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -359,8 +361,6 @@ let createAutoDisposing5 =
     ctx4,
     onNext,
     onComplete,
-    isStopped,
-    disposable,
   );
 };
 
@@ -372,6 +372,8 @@ let createAutoDisposing6 =
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
   AutoDisposing6(
+    disposable,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -380,8 +382,6 @@ let createAutoDisposing6 =
     ctx5,
     onNext,
     onComplete,
-    isStopped,
-    disposable,
   );
 };
 
@@ -393,6 +393,8 @@ let createAutoDisposing7 =
   |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
   |> ignore;
   AutoDisposing7(
+    disposable,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -402,55 +404,55 @@ let createAutoDisposing7 =
     ctx6,
     onNext,
     onComplete,
-    isStopped,
-    disposable,
   );
 };
 
 let decorate = (~onNext, ~onComplete, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
-  Decorating(onNext, onComplete, stopped, subscriber);
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
+  Decorating(subscriber, isStopped, onNext, onComplete);
 };
 
 let decorate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
-  Decorating1(ctx0, onNext, onComplete, stopped, subscriber);
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
+  Decorating1(subscriber, isStopped, ctx0, onNext, onComplete);
 };
 
 let decorate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
-  Decorating2(ctx0, ctx1, onNext, onComplete, stopped, subscriber);
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
+  Decorating2(subscriber, isStopped, ctx0, ctx1, onNext, onComplete);
 };
 
 let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
-  Decorating3(ctx0, ctx1, ctx2, onNext, onComplete, stopped, subscriber);
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
+  Decorating3(subscriber, isStopped, ctx0, ctx1, ctx2, onNext, onComplete);
 };
 
 let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
   Decorating4(
+    subscriber,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
     ctx3,
     onNext,
     onComplete,
-    stopped,
-    subscriber,
   );
 };
 
 let decorate5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
   Decorating5(
+    subscriber,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -458,16 +460,16 @@ let decorate5 =
     ctx4,
     onNext,
     onComplete,
-    stopped,
-    subscriber,
   );
 };
 
 let decorate6 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
   Decorating6(
+    subscriber,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -476,8 +478,6 @@ let decorate6 =
     ctx5,
     onNext,
     onComplete,
-    stopped,
-    subscriber,
   );
 };
 
@@ -494,9 +494,11 @@ let decorate7 =
       ctx6,
       subscriber,
     ) => {
-  let stopped = Atomic.make(false);
-  subscriber |> addTeardown1(Atomic.setTrue, stopped) |> ignore;
+  let isStopped = Atomic.make(false);
+  subscriber |> addTeardown1(Atomic.setTrue, isStopped) |> ignore;
   Decorating7(
+    subscriber,
+    isStopped,
     ctx0,
     ctx1,
     ctx2,
@@ -506,8 +508,6 @@ let decorate7 =
     ctx6,
     onNext,
     onComplete,
-    stopped,
-    subscriber,
   );
 };
 
@@ -521,78 +521,78 @@ let isDisposed = subscriber =>
 
 let isStopped =
   fun
-  | AutoDisposing(_, _, stopped, _)
-  | AutoDisposing1(_, _, _, stopped, _)
-  | AutoDisposing2(_, _, _, _, stopped, _)
-  | AutoDisposing3(_, _, _, _, _, stopped, _)
-  | AutoDisposing4(_, _, _, _, _, _, stopped, _)
-  | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
-  | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
-  | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
-  | Decorating(_, _, stopped, _)
-  | Decorating1(_, _, _, stopped, _)
-  | Decorating2(_, _, _, _, stopped, _)
-  | Decorating3(_, _, _, _, _, stopped, _)
-  | Decorating4(_, _, _, _, _, _, stopped, _)
-  | Decorating5(_, _, _, _, _, _, _, stopped, _)
-  | Decorating6(_, _, _, _, _, _, _, _, stopped, _)
-  | Decorating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
-    Atomic.get(stopped)
+  | AutoDisposing(_, isStopped, _, _)
+  | AutoDisposing1(_, isStopped, _, _, _)
+  | AutoDisposing2(_, isStopped, _, _, _, _)
+  | AutoDisposing3(_, isStopped, _, _, _, _, _)
+  | AutoDisposing4(_, isStopped, _, _, _, _, _, _)
+  | AutoDisposing5(_, isStopped, _, _, _, _, _, _, _)
+  | AutoDisposing6(_, isStopped, _, _, _, _, _, _, _, _)
+  | AutoDisposing7(_, isStopped, _, _, _, _, _, _, _, _, _)
+  | Decorating(_, isStopped, _, _)
+  | Decorating1(_, isStopped, _, _, _)
+  | Decorating2(_, isStopped, _, _, _, _)
+  | Decorating3(_, isStopped, _, _, _, _, _)
+  | Decorating4(_, isStopped, _, _, _, _, _, _)
+  | Decorating5(_, isStopped, _, _, _, _, _, _, _)
+  | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
+  | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
+    Atomic.get(isStopped)
   | Disposed => true;
 
 let shouldComplete =
   fun
-  | AutoDisposing(_, _, stopped, _)
-  | AutoDisposing1(_, _, _, stopped, _)
-  | AutoDisposing2(_, _, _, _, stopped, _)
-  | AutoDisposing3(_, _, _, _, _, stopped, _)
-  | AutoDisposing4(_, _, _, _, _, _, stopped, _)
-  | AutoDisposing5(_, _, _, _, _, _, _, stopped, _)
-  | AutoDisposing6(_, _, _, _, _, _, _, _, stopped, _)
-  | AutoDisposing7(_, _, _, _, _, _, _, _, _, stopped, _)
-  | Decorating(_, _, stopped, _)
-  | Decorating1(_, _, _, stopped, _)
-  | Decorating2(_, _, _, _, stopped, _)
-  | Decorating3(_, _, _, _, _, stopped, _)
-  | Decorating4(_, _, _, _, _, _, stopped, _)
-  | Decorating5(_, _, _, _, _, _, _, stopped, _)
-  | Decorating6(_, _, _, _, _, _, _, _, stopped, _)
-  | Decorating7(_, _, _, _, _, _, _, _, _, stopped, _) =>
-    ! Atomic.exchange(stopped, true)
+  | AutoDisposing(_, isStopped, _, _)
+  | AutoDisposing1(_, isStopped, _, _, _)
+  | AutoDisposing2(_, isStopped, _, _, _, _)
+  | AutoDisposing3(_, isStopped, _, _, _, _, _)
+  | AutoDisposing4(_, isStopped, _, _, _, _, _, _)
+  | AutoDisposing5(_, isStopped, _, _, _, _, _, _, _)
+  | AutoDisposing6(_, isStopped, _, _, _, _, _, _, _, _)
+  | AutoDisposing7(_, isStopped, _, _, _, _, _, _, _, _, _)
+  | Decorating(_, isStopped, _, _)
+  | Decorating1(_, isStopped, _, _, _)
+  | Decorating2(_, isStopped, _, _, _, _)
+  | Decorating3(_, isStopped, _, _, _, _, _)
+  | Decorating4(_, isStopped, _, _, _, _, _, _)
+  | Decorating5(_, isStopped, _, _, _, _, _, _, _)
+  | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
+  | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
+    ! Atomic.exchange(isStopped, true)
   | Disposed => false;
 
 let completeWithResult = {
   let doComplete = (exn, subscriber) =>
     switch (subscriber) {
-    | AutoDisposing(_, onComplete, _, disposable) =>
+    | AutoDisposing(disposable, _, _, onComplete) =>
       try (onComplete(exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | AutoDisposing1(ctx0, _, onComplete, _, disposable) =>
+    | AutoDisposing1(disposable, _, ctx0, _, onComplete) =>
       try (onComplete(ctx0, exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | AutoDisposing2(ctx0, ctx1, _, onComplete, _, disposable) =>
+    | AutoDisposing2(disposable, _, ctx0, ctx1, _, onComplete) =>
       try (onComplete(ctx0, ctx1, exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | AutoDisposing3(ctx0, ctx1, ctx2, _, onComplete, _, disposable) =>
+    | AutoDisposing3(disposable, _, ctx0, ctx1, ctx2, _, onComplete) =>
       try (onComplete(ctx0, ctx1, ctx2, exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | AutoDisposing4(ctx0, ctx1, ctx2, ctx3, _, onComplete, _, disposable) =>
+    | AutoDisposing4(disposable, _, ctx0, ctx1, ctx2, ctx3, _, onComplete) =>
       try (onComplete(ctx0, ctx1, ctx2, ctx3, exn)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
@@ -600,6 +600,8 @@ let completeWithResult = {
       };
       disposable |> CompositeDisposable.dispose;
     | AutoDisposing5(
+        disposable,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -607,8 +609,6 @@ let completeWithResult = {
         ctx4,
         _,
         onComplete,
-        _,
-        disposable,
       ) =>
       try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, exn)) {
       | exn =>
@@ -617,6 +617,8 @@ let completeWithResult = {
       };
       disposable |> CompositeDisposable.dispose;
     | AutoDisposing6(
+        disposable,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -625,8 +627,6 @@ let completeWithResult = {
         ctx5,
         _,
         onComplete,
-        _,
-        disposable,
       ) =>
       try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, exn)) {
       | exn =>
@@ -635,6 +635,8 @@ let completeWithResult = {
       };
       disposable |> CompositeDisposable.dispose;
     | AutoDisposing7(
+        disposable,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -644,8 +646,6 @@ let completeWithResult = {
         ctx6,
         _,
         onComplete,
-        _,
-        disposable,
       ) =>
       try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, exn)) {
       | exn =>
@@ -653,18 +653,20 @@ let completeWithResult = {
         raise(exn);
       };
       disposable |> CompositeDisposable.dispose;
-    | Decorating(_, onComplete, _, delegate) => onComplete(delegate, exn)
-    | Decorating1(ctx0, _, onComplete, _, delegate) =>
+    | Decorating(delegate, _, _, onComplete) => onComplete(delegate, exn)
+    | Decorating1(delegate, _, ctx0, _, onComplete) =>
       onComplete(ctx0, delegate, exn)
-    | Decorating2(ctx0, ctx1, _, onComplete, _, delegate) =>
+    | Decorating2(delegate, _, ctx0, ctx1, _, onComplete) =>
       onComplete(ctx0, ctx1, delegate, exn)
-    | Decorating3(ctx0, ctx1, ctx2, _, onComplete, _, delegate) =>
+    | Decorating3(delegate, _, ctx0, ctx1, ctx2, _, onComplete) =>
       onComplete(ctx0, ctx1, ctx2, delegate, exn)
-    | Decorating4(ctx0, ctx1, ctx2, ctx3, _, onComplete, _, delegate) =>
+    | Decorating4(delegate, _, ctx0, ctx1, ctx2, ctx3, _, onComplete) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, delegate, exn)
-    | Decorating5(ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete, _, delegate) =>
+    | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, exn)
     | Decorating6(
+        delegate,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -673,11 +675,11 @@ let completeWithResult = {
         ctx5,
         _,
         onComplete,
-        _,
-        delegate,
       ) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, exn)
     | Decorating7(
+        delegate,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -687,8 +689,6 @@ let completeWithResult = {
         ctx6,
         _,
         onComplete,
-        _,
-        delegate,
       ) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, exn)
     | Disposed => ()
@@ -709,43 +709,45 @@ let complete = (~exn=?, subscriber) =>
 let next = {
   let doNext = (next, subscriber) =>
     switch (subscriber) {
-    | AutoDisposing(onNext, _, _, disposable) =>
+    | AutoDisposing(disposable, _, onNext, _) =>
       try (onNext(next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | AutoDisposing1(ctx0, onNext, _, _, disposable) =>
+    | AutoDisposing1(disposable, _, ctx0, onNext, _) =>
       try (onNext(ctx0, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | AutoDisposing2(ctx0, ctx1, onNext, _, _, disposable) =>
+    | AutoDisposing2(disposable, _, ctx0, ctx1, onNext, _) =>
       try (onNext(ctx0, ctx1, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | AutoDisposing3(ctx0, ctx1, ctx2, onNext, _, _, disposable) =>
+    | AutoDisposing3(disposable, _, ctx0, ctx1, ctx2, onNext, _) =>
       try (onNext(ctx0, ctx1, ctx2, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | AutoDisposing4(ctx0, ctx1, ctx2, ctx3, onNext, _, _, disposable) =>
+    | AutoDisposing4(disposable, _, ctx0, ctx1, ctx2, ctx3, onNext, _) =>
       try (onNext(ctx0, ctx1, ctx2, ctx3, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | AutoDisposing5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, disposable) =>
+    | AutoDisposing5(disposable, _, ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _) =>
       try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
     | AutoDisposing6(
+        disposable,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -754,8 +756,6 @@ let next = {
         ctx5,
         onNext,
         _,
-        _,
-        disposable,
       ) =>
       try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, next)) {
       | exn =>
@@ -763,6 +763,8 @@ let next = {
         raise(exn);
       }
     | AutoDisposing7(
+        disposable,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -772,28 +774,28 @@ let next = {
         ctx6,
         onNext,
         _,
-        _,
-        disposable,
       ) =>
       try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, next)) {
       | exn =>
         disposable |> CompositeDisposable.dispose;
         raise(exn);
       }
-    | Decorating(onNext, _, _, delegate) => onNext(delegate, next)
-    | Decorating1(ctx0, onNext, _, _, delegate) =>
+    | Decorating(delegate, _, onNext, _) => onNext(delegate, next)
+    | Decorating1(delegate, _, ctx0, onNext, _) =>
       onNext(ctx0, delegate, next)
-    | Decorating2(ctx0, ctx1, onNext, _, _, delegate) =>
+    | Decorating2(delegate, _, ctx0, ctx1, onNext, _) =>
       onNext(ctx0, ctx1, delegate, next)
-    | Decorating3(ctx0, ctx1, ctx2, onNext, _, _, delegate) =>
+    | Decorating3(delegate, _, ctx0, ctx1, ctx2, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, delegate, next)
-    | Decorating4(ctx0, ctx1, ctx2, ctx3, onNext, _, _, delegate) =>
+    | Decorating4(delegate, _, ctx0, ctx1, ctx2, ctx3, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, ctx3, delegate, next)
-    | Decorating5(ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _, _, delegate) =>
+    | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, next)
-    | Decorating6(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _, _, delegate) =>
+    | Decorating6(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, next)
     | Decorating7(
+        delegate,
+        _,
         ctx0,
         ctx1,
         ctx2,
@@ -803,8 +805,6 @@ let next = {
         ctx6,
         onNext,
         _,
-        _,
-        delegate,
       ) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, next)
     | Disposed => ()
@@ -851,8 +851,7 @@ let forwardOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
 
 let forwardOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
 
-let forwardOnNext5 = (_, _, _, _, _, subscriber, v) =>
-  subscriber |> next(v);
+let forwardOnNext5 = (_, _, _, _, _, subscriber, v) => subscriber |> next(v);
 
 let forwardOnNext6 = (_, _, _, _, _, _, subscriber, v) =>
   subscriber |> next(v);
