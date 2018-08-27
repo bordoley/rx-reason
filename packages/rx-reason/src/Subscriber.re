@@ -292,46 +292,41 @@ let asDisposable = subscriber =>
 
 let createAutoDisposing = (~onNext, ~onComplete) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing(disposable, isStopped, onNext, onComplete);
 };
 
 let createAutoDisposing1 = (~onNext, ~onComplete, ctx0) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing1(disposable, isStopped, ctx0, onNext, onComplete);
 };
 
 let createAutoDisposing2 = (~onNext, ~onComplete, ctx0, ctx1) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing2(disposable, isStopped, ctx0, ctx1, onNext, onComplete);
 };
 
 let createAutoDisposing3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing3(disposable, isStopped, ctx0, ctx1, ctx2, onNext, onComplete);
 };
 
 let createAutoDisposing4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing4(
     disposable,
     isStopped,
@@ -347,10 +342,9 @@ let createAutoDisposing4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3) => {
 let createAutoDisposing5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing5(
     disposable,
     isStopped,
@@ -367,10 +361,9 @@ let createAutoDisposing5 =
 let createAutoDisposing6 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing6(
     disposable,
     isStopped,
@@ -388,10 +381,9 @@ let createAutoDisposing6 =
 let createAutoDisposing7 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) => {
   let isStopped = Atomic.make(false);
-  let disposable = CompositeDisposable.create();
-  disposable
-  |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped)
-  |> ignore;
+  let disposable =
+    CompositeDisposable.create()
+    |> CompositeDisposable.addTeardown1(Atomic.setTrue, isStopped);
   AutoDisposing7(
     disposable,
     isStopped,
