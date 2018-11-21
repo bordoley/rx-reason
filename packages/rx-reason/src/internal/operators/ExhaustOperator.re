@@ -27,7 +27,7 @@ let operator = {
       let hasActiveSubscription = hasActiveSubscription(ctx);
       if (! hasActiveSubscription) {
         let subscription =
-          Subscriber.createAutoDisposing2(
+          Subscriber.create2(
             ~onNext=Subscriber.forwardOnNext1,
             ~onComplete,
             ctx,

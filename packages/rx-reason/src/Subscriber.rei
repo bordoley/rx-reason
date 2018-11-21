@@ -13,10 +13,10 @@ include ObserverLike.S1 with type t('a) := t('a);
  * Construct a new Subscriber with the provided callbacks which automatically disposes
  * itself when completed.
  * */
-let createAutoDisposing:
+let create:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
 
-let createAutoDisposing1:
+let create1:
   (
     ~onNext: ('ctx0, 'a) => unit,
     ~onComplete: ('ctx0, option(exn)) => unit,
@@ -24,7 +24,7 @@ let createAutoDisposing1:
   ) =>
   t('a);
 
-let createAutoDisposing2:
+let create2:
   (
     ~onNext: ('ctx0, 'ctx1, 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
@@ -33,7 +33,7 @@ let createAutoDisposing2:
   ) =>
   t('a);
 
-let createAutoDisposing3:
+let create3:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
@@ -43,7 +43,7 @@ let createAutoDisposing3:
   ) =>
   t('a);
 
-let createAutoDisposing4:
+let create4:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
@@ -54,7 +54,7 @@ let createAutoDisposing4:
   ) =>
   t('a);
 
-let createAutoDisposing5:
+let create5:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
@@ -66,7 +66,7 @@ let createAutoDisposing5:
   ) =>
   t('a);
 
-let createAutoDisposing6:
+let create6:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
@@ -80,7 +80,7 @@ let createAutoDisposing6:
   ) =>
   t('a);
 
-let createAutoDisposing7:
+let create7:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
     ~onComplete: (

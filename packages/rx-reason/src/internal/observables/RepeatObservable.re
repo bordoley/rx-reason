@@ -29,7 +29,7 @@ let operator = {
     if (! alreadyDisposed) {
       subscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
       let newInnerSubscription =
-        Subscriber.createAutoDisposing4(
+        Subscriber.create4(
           ~onNext=Subscriber.forwardOnNext3,
           ~onComplete,
           observable,

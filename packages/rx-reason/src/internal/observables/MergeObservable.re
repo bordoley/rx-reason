@@ -28,7 +28,7 @@ let merge = {
       fun
       | [hd, ...tail] => {
           let innerSubscriber =
-            Subscriber.createAutoDisposing3(
+            Subscriber.create3(
               ~onNext,
               ~onComplete,
               activeCount,

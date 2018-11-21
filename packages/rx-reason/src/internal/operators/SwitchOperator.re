@@ -34,7 +34,7 @@ let operator = {
       |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
-        Subscriber.createAutoDisposing3(
+        Subscriber.create3(
           ~onNext=onNextInner,
           ~onComplete=onCompleteInner,
           id,

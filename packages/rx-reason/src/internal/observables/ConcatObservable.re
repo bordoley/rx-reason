@@ -18,7 +18,7 @@ let concat = {
           Disposable.disposed;
         | [hd, ...tail] =>
           let innerSubscriber =
-            Subscriber.createAutoDisposing5(
+            Subscriber.create5(
               ~onNext=Subscriber.forwardOnNext4,
               ~onComplete,
               scheduler,

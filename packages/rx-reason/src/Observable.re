@@ -240,7 +240,7 @@ let subscribeWith = (subscriber, observable) =>
   };
 
 let subscribe = (observable) => {
-  let subscriber = Subscriber.createAutoDisposing(~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1);
+  let subscriber = Subscriber.create(~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1);
 
   subscribeWith(subscriber, observable);
   subscriber |> Subscriber.asDisposable;

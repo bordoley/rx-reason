@@ -29,7 +29,7 @@ let create = {
 
     if (state.refCount === 1) {
       let subscriber =
-        Subscriber.createAutoDisposing1(
+        Subscriber.create1(
           ~onNext=Subject.forwardOnNext,
           ~onComplete=Subject.forwardOnComplete,
           state.subject,

@@ -37,7 +37,7 @@ let fromObservable = {
   observable =>
     Js.Promise.make((~resolve, ~reject) => {
       let subscriber =
-        RxReason.Subscriber.createAutoDisposing2(
+        RxReason.Subscriber.create2(
           ~onNext,
           ~onComplete,
           resolve,

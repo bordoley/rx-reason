@@ -20,7 +20,7 @@ let publish = {
 
     () => {
       if (! Atomic.exchange(active, true)) {
-        let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+        let subscriber = Subscriber.create(~onNext, ~onComplete);
         observable |> Observable.subscribeWith(subscriber);
         let newConnection =
           Disposable.create2(
@@ -49,7 +49,7 @@ let publish1 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
+          Subscriber.create1(~onNext, ~onComplete, ctx0);
         observable |> Observable.subscribeWith(subscriber);
         let newConnection =
           Disposable.create2(
@@ -78,7 +78,7 @@ let publish2 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing2(~onNext, ~onComplete, ctx0, ctx1);
+          Subscriber.create2(~onNext, ~onComplete, ctx0, ctx1);
         observable |> Observable.subscribeWith(subscriber);
         let newConnection =
           Disposable.create2(
@@ -107,7 +107,7 @@ let publish3 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing3(
+          Subscriber.create3(
             ~onNext,
             ~onComplete,
             ctx0,
@@ -142,7 +142,7 @@ let publish4 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing4(
+          Subscriber.create4(
             ~onNext,
             ~onComplete,
             ctx0,
@@ -178,7 +178,7 @@ let publish5 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing5(
+          Subscriber.create5(
             ~onNext,
             ~onComplete,
             ctx0,
@@ -215,7 +215,7 @@ let publish6 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing6(
+          Subscriber.create6(
             ~onNext,
             ~onComplete,
             ctx0,
@@ -253,7 +253,7 @@ let publish7 = {
     () => {
       if (! Atomic.exchange(active, true)) {
         let subscriber =
-          Subscriber.createAutoDisposing7(
+          Subscriber.create7(
             ~onNext,
             ~onComplete,
             ctx0,

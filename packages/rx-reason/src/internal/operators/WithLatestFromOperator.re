@@ -50,7 +50,7 @@ let operator = (~selector, other, subscriber) => {
     subscriber |> Subscriber.decorate1(~onNext, ~onComplete, context);
 
   let innerSubscriber =
-    Subscriber.createAutoDisposing2(
+    Subscriber.create2(
       ~onNext=otherOnNext,
       ~onComplete=otherOnComplete,
       self,

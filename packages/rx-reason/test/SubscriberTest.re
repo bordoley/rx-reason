@@ -11,7 +11,7 @@ let test =
           it("will complete and stop the subscriber if not stopped", () => {
             let observedExn = ref(None);
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=exn => observedExn := exn,
               );
@@ -26,7 +26,7 @@ let test =
           it("ignores complete request if stopped", () => {
             let observedExn = ref(None);
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=exn => observedExn := exn,
               );
@@ -45,7 +45,7 @@ let test =
         [
           it("returns true if not stopped", () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -58,7 +58,7 @@ let test =
           }),
           it("returns false if stopped", () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -73,13 +73,13 @@ let test =
         ],
       ),
       describe(
-        "createAutoDisposing",
+        "create",
         [
           it(
             "disposes when an error occurs in onNext and rethrows the error",
             () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=_ => raise(Division_by_zero),
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -90,7 +90,7 @@ let test =
             "disposes when an error occurs in onComplete and rethrows the error",
             () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=_ => raise(Division_by_zero),
               );
@@ -99,7 +99,7 @@ let test =
           }),
           it("disposes when the subscriber completes", () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -114,7 +114,7 @@ let test =
           it("call onNext if not stopped", () => {
             let observedNext = ref(0);
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=next => observedNext := next,
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -126,7 +126,7 @@ let test =
           it("will not call onNext if stopped", () => {
             let observedNext = ref(0);
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=next => observedNext := next,
                 ~onComplete=Functions.alwaysUnit1,
               );
@@ -143,7 +143,7 @@ let test =
         [
           it("stops and disposes the subscriber", () => {
             let subscriber =
-              Subscriber.createAutoDisposing(
+              Subscriber.create(
                 ~onNext=Functions.alwaysUnit1,
                 ~onComplete=Functions.alwaysUnit1,
               );

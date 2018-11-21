@@ -88,7 +88,7 @@ let create = {
     let subscribers = ref(CopyOnWriteArray.empty());
 
     let subscriber =
-      Subscriber.createAutoDisposing1(
+      Subscriber.create1(
         ~onNext=subscriberOnNext,
         ~onComplete=subscriberOnComplete,
         subscribers,
@@ -158,7 +158,7 @@ let createWithReplayBuffer = {
     let subscribers = ref(CopyOnWriteArray.empty());
 
     let subscriber =
-      Subscriber.createAutoDisposing5(
+      Subscriber.create5(
         ~onNext=subscriberOnNext,
         ~onComplete=subscriberOnComplete,
         maxBufferCount,
