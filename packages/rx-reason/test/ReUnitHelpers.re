@@ -6,7 +6,7 @@ let expectObservableToProduce =
   observable
   |> Observable.lift(Operators.materialize)
   |> Observables.toList
-  |> Observable.pipe2(
+  |> Observable.pipe3(
        Operators.onNext(
          Expect.toBeEqualToListWith(
            ~equals=Notification.equals(~nextEquals),
@@ -15,13 +15,13 @@ let expectObservableToProduce =
          ),
        ),
        Operators.first,
-     )
-  |> Observable.subscribe(
-       ~onComplete=
+       Operators.onComplete(
          fun
          | Some(exn) => raise(exn)
          | _ => (),
-     );
+       ),
+     )
+  |> Observable.subscribe;
 
 let observableIt =
     (

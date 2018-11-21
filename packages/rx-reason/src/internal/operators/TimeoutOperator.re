@@ -41,7 +41,7 @@ let operator = {
            );
 
       context.connect =
-        Observable.publishTo1(
+        Observable.publish1(
           ~onNext=Functions.alwaysUnit2,
           ~onComplete=Subscriber.forwardOnComplete,
           self,

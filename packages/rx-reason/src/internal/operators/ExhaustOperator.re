@@ -27,14 +27,17 @@ let operator = {
       let hasActiveSubscription = hasActiveSubscription(ctx);
       if (! hasActiveSubscription) {
         let subscription =
-          Observable.subscribeWith2(
+          Subscriber.createAutoDisposing2(
             ~onNext=Subscriber.forwardOnNext1,
             ~onComplete,
             ctx,
             delegate,
-            next,
           );
-        innerSubscription |> SerialDisposable.setInnerDisposable(subscription);
+        next |> Observable.subscribeWith(subscription);
+        innerSubscription
+        |> SerialDisposable.setInnerDisposable(
+             subscription |> Subscriber.asDisposable,
+           );
       };
     };
   };

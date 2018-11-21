@@ -2,27 +2,10 @@ type t('a) = Observable.t('a);
 
 let asObservable = Functions.identity;
 let subscribeWith = Observable.subscribeWith;
-let subscribeWith1 = Observable.subscribeWith1;
-let subscribeWith2 = Observable.subscribeWith2;
-let subscribeWith3 = Observable.subscribeWith3;
-let subscribeWith4 = Observable.subscribeWith4;
-let subscribeWith5 = Observable.subscribeWith5;
-let subscribeWith6 = Observable.subscribeWith6;
-let subscribeWith7 = Observable.subscribeWith7;
-let subscribeSubscriber = Observable.subscribeSubscriber;
 let subscribe = Observable.subscribe;
-let subscribe1 = Observable.subscribe1;
-let subscribe2 = Observable.subscribe2;
-let subscribe3 = Observable.subscribe3;
-let subscribe4 = Observable.subscribe4;
-let subscribe5 = Observable.subscribe5;
-let subscribe6 = Observable.subscribe6;
-let subscribe7 = Observable.subscribe7;
 
 let publish = Observable.publish;
 let publish1 = Observable.publish1;
-let publishTo = Observable.publishTo;
-let publishTo1 = Observable.publishTo1;
 
 let shareInternal = {
   let teardown =
@@ -53,26 +36,29 @@ let shareInternal = {
     let currentSubject = subject^;
 
     let subscription =
-      currentSubject
-      |> Subject.subscribeWith1(
-           ~onNext=Subscriber.forwardOnNext,
-           ~onComplete=Subscriber.forwardOnComplete,
-           subscriber,
-         );
+      Subscriber.createAutoDisposing1(
+        ~onNext=Subscriber.forwardOnNext,
+        ~onComplete=Subscriber.forwardOnComplete,
+        subscriber,
+      );
+    currentSubject |> Subject.subscribeWith(subscription);
 
     if (refCount^ === 0) {
+      let newSubscription =
+        Subscriber.createAutoDisposing1(
+          ~onNext=Subject.forwardOnNext,
+          ~onComplete=Subject.forwardOnComplete,
+          currentSubject,
+        );
+
       sourceSubscription
       |> SerialDisposable.setInnerDisposable(
-           Observable.subscribeWith1(
-             ~onNext=Subject.forwardOnNext,
-             ~onComplete=Subject.forwardOnComplete,
-             currentSubject,
-             source,
-           ),
+           newSubscription |> Subscriber.asDisposable,
          );
+      source |> Observable.subscribeWith(newSubscription);
     };
 
-    if (! Disposable.isDisposed(subscription)) {
+    if (! Subscriber.isDisposed(subscription)) {
       incr(refCount);
       subscriber
       |> Subscriber.addTeardown5(
@@ -81,7 +67,7 @@ let shareInternal = {
            sourceSubscription,
            currentSubject,
            subject,
-           subscription,
+           subscription |> Subscriber.asDisposable,
          )
       |> ignore;
     };

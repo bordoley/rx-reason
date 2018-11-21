@@ -27,17 +27,22 @@ let merge = {
     let rec loop =
       fun
       | [hd, ...tail] => {
-          let subscription =
-            Observable.subscribeWith3(
+          let innerSubscriber =
+            Subscriber.createAutoDisposing3(
               ~onNext,
               ~onComplete,
               activeCount,
               lock,
               subscriber,
-              hd,
             );
+
+          hd |> Observable.subscribeWith(innerSubscriber);
+
           subscriber
-          |> Subscriber.addTeardown1(Disposable.dispose, subscription)
+          |> Subscriber.addTeardown1(
+               Disposable.dispose,
+               innerSubscriber |> Subscriber.asDisposable,
+             )
           |> ignore;
           loop(tail);
         }

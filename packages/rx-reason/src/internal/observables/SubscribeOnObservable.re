@@ -1,6 +1,6 @@
 let subscribeOn = {
   let doSubscribe = (observable, subscriber, _) => {
-    observable |> Observable.subscribeSubscriber(subscriber);
+    observable |> Observable.subscribeWith(subscriber);
   };
 
   let subscribeOnSource = (delay, scheduler, observable, subscriber) => {

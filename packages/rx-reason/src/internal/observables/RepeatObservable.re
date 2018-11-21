@@ -29,17 +29,19 @@ let operator = {
     if (! alreadyDisposed) {
       subscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
       let newInnerSubscription =
-        observable
-        |> Observable.subscribeWith4(
-             ~onNext=Subscriber.forwardOnNext3,
-             ~onComplete,
-             observable,
-             shouldRepeat,
-             subscription,
-             delegate,
-           );
+        Subscriber.createAutoDisposing4(
+          ~onNext=Subscriber.forwardOnNext3,
+          ~onComplete,
+          observable,
+          shouldRepeat,
+          subscription,
+          delegate,
+        );
+      observable |> Observable.subscribeWith(newInnerSubscription);
       subscription
-      |> SerialDisposable.setInnerDisposable(newInnerSubscription);
+      |> SerialDisposable.setInnerDisposable(
+           newInnerSubscription |> Subscriber.asDisposable,
+         );
     };
   };
 
@@ -59,5 +61,4 @@ let operator = {
 };
 
 let repeat = (predicate, observable) =>
-  observable
-  |> Observable.lift(operator(predicate, observable));
+  observable |> Observable.lift(operator(predicate, observable));

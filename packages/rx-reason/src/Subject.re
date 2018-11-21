@@ -38,167 +38,17 @@ let notify = (notif, {subscriber}) =>
 let raiseIfDisposed = self =>
   self |> asDisposable |> Disposable.raiseIfDisposed;
 
-let publishTo = (~onNext, ~onComplete, subject) =>
-  subject |> asObservable |> Observable.publishTo(~onNext, ~onComplete);
+let publish = (~onNext, ~onComplete, subject) =>
+  subject |> asObservable |> Observable.publish(~onNext, ~onComplete);
 
-let publishTo1 = (~onNext, ~onComplete, ctx0, subject) =>
-  subject |> asObservable |> Observable.publishTo1(~onNext, ~onComplete, ctx0);
+let publish1 = (~onNext, ~onComplete, ctx0, subject) =>
+  subject |> asObservable |> Observable.publish1(~onNext, ~onComplete, ctx0);
 
-let publish = (~onNext=?, ~onComplete=?, subject) =>
-  subject |> asObservable |> Observable.publish(~onNext?, ~onComplete?);
+let subscribeWith = (subscriber, subject) =>
+  subject |> asObservable |> Observable.subscribeWith(subscriber);
 
-let publish1 = (~onNext=?, ~onComplete=?, ctx0, subject) =>
-  subject |> asObservable |> Observable.publish1(~onNext?, ~onComplete?, ctx0);
-
-let subscribeWith = (~onNext, ~onComplete, subject) =>
-  subject |> asObservable |> Observable.subscribeWith(~onNext, ~onComplete);
-
-let subscribeWith1 = (~onNext, ~onComplete, ctx0, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith1(~onNext, ~onComplete, ctx0);
-
-let subscribeWith2 = (~onNext, ~onComplete, ctx0, ctx1, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith2(~onNext, ~onComplete, ctx0, ctx1);
-
-let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
-
-let subscribeWith4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3);
-
-let subscribeWith5 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith5(
-       ~onNext,
-       ~onComplete,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-     );
-
-let subscribeWith6 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith6(
-       ~onNext,
-       ~onComplete,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-       ctx5,
-     );
-
-let subscribeWith7 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribeWith7(
-       ~onNext,
-       ~onComplete,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-       ctx5,
-       ctx6,
-     );
-
-let subscribeSubscriber = (subscriber, subject) =>
-  subject |> asObservable |> Observable.subscribeSubscriber(subscriber);
-
-let subscribe = (~onNext=?, ~onComplete=?, subject) =>
-  subject |> asObservable |> Observable.subscribe(~onNext?, ~onComplete?);
-
-let subscribe1 = (~onNext=?, ~onComplete=?, ctx0, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe1(~onNext?, ~onComplete?, ctx0);
-
-let subscribe2 = (~onNext=?, ~onComplete=?, ctx0, ctx1, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe2(~onNext?, ~onComplete?, ctx0, ctx1);
-
-let subscribe3 = (~onNext=?, ~onComplete=?, ctx0, ctx1, ctx2, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe3(~onNext?, ~onComplete?, ctx0, ctx1, ctx2);
-
-let subscribe4 = (~onNext=?, ~onComplete=?, ctx0, ctx1, ctx2, ctx3, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe4(~onNext?, ~onComplete?, ctx0, ctx1, ctx2, ctx3);
-
-let subscribe5 =
-    (~onNext=?, ~onComplete=?, ctx0, ctx1, ctx2, ctx3, ctx4, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe5(
-       ~onNext?,
-       ~onComplete?,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-     );
-
-let subscribe6 =
-    (~onNext=?, ~onComplete=?, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subject) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe6(
-       ~onNext?,
-       ~onComplete?,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-       ctx5,
-     );
-
-let subscribe7 =
-    (
-      ~onNext=?,
-      ~onComplete=?,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      subject,
-    ) =>
-  subject
-  |> asObservable
-  |> Observable.subscribe7(
-       ~onNext?,
-       ~onComplete?,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-       ctx5,
-       ctx6,
-     );
+let subscribe = subject =>
+  subject |> asObservable |> Observable.subscribe;
 
 let create = {
   let teardown = (subscriber, subscribers) => {

@@ -331,7 +331,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observables.ofList([2, 3]) |> Observable.lift(Operators.first),
+                Observables.ofList([2, 3])
+                |> Observable.lift(Operators.first),
             ~expected=[Next(2), Complete],
             (),
           ),
@@ -817,22 +818,22 @@ let test =
                 let observable = subject^ |> Subject.asObservable;
                 let subscription =
                   observable
-                  |> Observable.subscribeWith1(
-                       ~onNext=
-                         (subscriber, next) =>
-                           subscriber |> Subscriber.next(next),
-                       ~onComplete=
-                         (subscriber, exn) =>
-                           subscriber |> Subscriber.complete(~exn?),
-                       subscriber,
-                     );
+                  |> Observable.lift(
+                       Operators.observe(
+                         ~onNext=next => subscriber |> Subscriber.next(next),
+                         ~onComplete=
+                           exn => subscriber |> Subscriber.complete(~exn?),
+                       ),
+                     )
+                  |> Observable.subscribe;
 
                 subscriber
                 |> Subscriber.addTeardown1(Disposable.dispose, subscription)
                 |> ignore;
               })
               |> Observables.retry
-              |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
+              |> Observable.lift(Operators.onNext(x => result := [x, ...result^]))
+              |> Observable.subscribe;
 
             let subscriber = subject^;
             subscriber |> Subject.next(1);

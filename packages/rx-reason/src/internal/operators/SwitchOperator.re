@@ -34,17 +34,20 @@ let operator = {
       |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
-        Observable.subscribeWith3(
+        Subscriber.createAutoDisposing3(
           ~onNext=onNextInner,
           ~onComplete=onCompleteInner,
           id,
           ctx,
           delegate,
-          next,
         );
 
+      next |> Observable.subscribeWith(newInnerSubscription);
+
       ctx.innerSubscription
-      |> SerialDisposable.setInnerDisposable(newInnerSubscription);
+      |> SerialDisposable.setInnerDisposable(
+           newInnerSubscription |> Subscriber.asDisposable,
+         );
     };
   };
 

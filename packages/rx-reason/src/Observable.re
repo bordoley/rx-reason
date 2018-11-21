@@ -195,7 +195,7 @@ let tryCompleteWithExceptionOrRaise = (exn, subscriber) => {
   };
 };
 
-let subscribeSubscriber = (subscriber, observable) =>
+let subscribeWith = (subscriber, observable) =>
   switch (observable) {
   | Source(source, op) =>
     let subscriber = op(subscriber);
@@ -239,224 +239,14 @@ let subscribeSubscriber = (subscriber, observable) =>
     };
   };
 
-let subscribeWith = (~onNext, ~onComplete, observable) => {
-  let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+let subscribe = (observable) => {
+  let subscriber = Subscriber.createAutoDisposing(~onNext=Functions.alwaysUnit1, ~onComplete=Functions.alwaysUnit1);
 
-  subscribeSubscriber(subscriber, observable);
+  subscribeWith(subscriber, observable);
   subscriber |> Subscriber.asDisposable;
 };
 
-let subscribeWith1 = (~onNext, ~onComplete, ctx0, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith2 = (~onNext, ~onComplete, ctx0, ctx1, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing2(~onNext, ~onComplete, ctx0, ctx1);
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith4 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing4(
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-    );
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith5 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing5(
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-    );
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith6 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, observable) => {
-  let subscriber =
-    Subscriber.createAutoDisposing6(
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-    );
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribeWith7 =
-    (
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      observable,
-    ) => {
-  let subscriber =
-    Subscriber.createAutoDisposing7(
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-    );
-
-  subscribeSubscriber(subscriber, observable);
-  subscriber |> Subscriber.asDisposable;
-};
-
-let subscribe =
-    (
-      ~onNext=Functions.alwaysUnit1,
-      ~onComplete=Functions.alwaysUnit1,
-      observable,
-    ) =>
-  observable |> subscribeWith(~onNext, ~onComplete);
-
-let subscribe1 =
-    (
-      ~onNext=Functions.alwaysUnit2,
-      ~onComplete=Functions.alwaysUnit2,
-      ctx0,
-      observable,
-    ) =>
-  observable |> subscribeWith1(~onNext, ~onComplete, ctx0);
-
-let subscribe2 =
-    (
-      ~onNext=Functions.alwaysUnit3,
-      ~onComplete=Functions.alwaysUnit3,
-      ctx0,
-      ctx1,
-      observable,
-    ) =>
-  observable |> subscribeWith2(~onNext, ~onComplete, ctx0, ctx1);
-
-let subscribe3 =
-    (
-      ~onNext=Functions.alwaysUnit4,
-      ~onComplete=Functions.alwaysUnit4,
-      ctx0,
-      ctx1,
-      ctx2,
-      observable,
-    ) =>
-  observable |> subscribeWith3(~onNext, ~onComplete, ctx0, ctx1, ctx2);
-
-let subscribe4 =
-    (
-      ~onNext=Functions.alwaysUnit5,
-      ~onComplete=Functions.alwaysUnit5,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      observable,
-    ) =>
-  observable |> subscribeWith4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3);
-
-let subscribe5 =
-    (
-      ~onNext=Functions.alwaysUnit6,
-      ~onComplete=Functions.alwaysUnit6,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      observable,
-    ) =>
-  observable
-  |> subscribeWith5(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4);
-
-let subscribe6 =
-    (
-      ~onNext=Functions.alwaysUnit7,
-      ~onComplete=Functions.alwaysUnit7,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      observable,
-    ) =>
-  observable
-  |> subscribeWith6(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5);
-
-let subscribe7 =
-    (
-      ~onNext=Functions.alwaysUnit8,
-      ~onComplete=Functions.alwaysUnit8,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      observable,
-    ) =>
-  observable
-  |> subscribeWith7(
-       ~onNext,
-       ~onComplete,
-       ctx0,
-       ctx1,
-       ctx2,
-       ctx3,
-       ctx4,
-       ctx5,
-       ctx6,
-     );
-
-let publishTo = {
+let publish = {
   let teardown = (subscription, active) => {
     subscription |> Disposable.dispose;
     Atomic.set(active, false);
@@ -468,9 +258,10 @@ let publishTo = {
 
     () => {
       if (! Atomic.exchange(active, true)) {
-        let subscription = observable |> subscribeWith(~onNext, ~onComplete);
+        let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+        observable |> subscribeWith(subscriber);
         let newConnection =
-          Disposable.create2(teardown, subscription, active);
+          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
 
         Atomic.set(connection, newConnection);
       };
@@ -479,7 +270,7 @@ let publishTo = {
   };
 };
 
-let publishTo1 = {
+let publish1 = {
   let teardown = (subscription, active) => {
     subscription |> Disposable.dispose;
     Atomic.set(active, false);
@@ -491,10 +282,10 @@ let publishTo1 = {
 
     () => {
       if (! Atomic.exchange(active, true)) {
-        let subscription =
-          observable |> subscribeWith1(~onNext, ~onComplete, ctx0);
+        let subscriber = Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
+        observable |> subscribeWith(subscriber);
         let newConnection =
-          Disposable.create2(teardown, subscription, active);
+          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
 
         Atomic.set(connection, newConnection);
       };
@@ -502,20 +293,3 @@ let publishTo1 = {
     };
   };
 };
-
-let publish =
-    (
-      ~onNext=Functions.alwaysUnit1,
-      ~onComplete=Functions.alwaysUnit1,
-      observable,
-    ) =>
-  publishTo(~onNext, ~onComplete, observable);
-
-let publish1 =
-    (
-      ~onNext=Functions.alwaysUnit2,
-      ~onComplete=Functions.alwaysUnit2,
-      ctx,
-      observable,
-    ) =>
-  publishTo1(~onNext, ~onComplete, ctx, observable);

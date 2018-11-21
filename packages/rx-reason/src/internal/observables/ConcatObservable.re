@@ -17,6 +17,17 @@ let concat = {
           subscriber |> Subscriber.complete;
           Disposable.disposed;
         | [hd, ...tail] =>
+          let innerSubscriber =
+            Subscriber.createAutoDisposing5(
+              ~onNext=Subscriber.forwardOnNext4,
+              ~onComplete,
+              scheduler,
+              tail,
+              loop,
+              innerSubscription,
+              subscriber,
+            );
+
           (
             switch (scheduler) {
             | Some(scheduler) =>
@@ -24,17 +35,10 @@ let concat = {
             | None => hd
             }
           )
-          |> Observable.subscribeWith5(
-               ~onNext=Subscriber.forwardOnNext4,
-               ~onComplete,
-               scheduler,
-               tail,
-               loop,
-               innerSubscription,
-               subscriber,
-             )
-        };
+          |> Observable.subscribeWith(innerSubscriber);
 
+          innerSubscriber |> Subscriber.asDisposable;
+        };
       if (! Disposable.isDisposed(newSubscription)) {
         innerSubscription
         |> SerialDisposable.setInnerDisposable(newSubscription);

@@ -49,14 +49,17 @@ let operator = {
     let self =
       subscriber |> Subscriber.decorate1(~onNext, ~onComplete, context);
 
-    context.otherSubscription =
-      Observable.subscribeWith2(
+    let innerSubscriber =
+      Subscriber.createAutoDisposing2(
         ~onNext=otherOnNext,
         ~onComplete=otherOnComplete,
         self,
         otherLatest,
-        other,
       );
+
+    other |> Observable.subscribeWith(innerSubscriber);
+
+    context.otherSubscription = innerSubscriber |> Subscriber.asDisposable;
 
     context.self =
       self
