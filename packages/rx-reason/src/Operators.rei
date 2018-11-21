@@ -1,15 +1,7 @@
-let debounce: (~scheduler: Scheduler.t, ~dueTime: float) => Operator.t('a, 'a);
+let debounce:
+  (~scheduler: Scheduler.t, ~dueTime: float) => Operator.t('a, 'a);
 
 let defaultIfEmpty: 'a => Operator.t('a, 'a);
-
-let delay:
-  (
-    ~bufferStrategy: BufferStrategy.t=?,
-    ~bufferSize: int=?,
-    ~scheduler: Scheduler.t,
-    ~delay: float
-  ) =>
-  Operator.t('a, 'a);
 
 let dematerialize: Operator.t(Notification.t('a), 'a);
 
@@ -51,9 +43,7 @@ let observe:
   (~onNext: 'a => unit, ~onComplete: option(exn) => unit) =>
   Operator.t('a, 'a);
 
-let observeOn:
-  (~bufferStrategy: BufferStrategy.t=?, ~bufferSize: int=?, Scheduler.t) =>
-  Operator.t('a, 'a);
+let observeOn: Scheduler.t => Operator.t('a, 'a);
 
 let onComplete: (option(exn) => unit) => Operator.t('a, 'a);
 
@@ -69,6 +59,5 @@ let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
 
-let timeout: (~due: float, ~scheduler: Scheduler.t) => Operator.t('a, 'a);
-
-let withLatestFrom: (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);
+let withLatestFrom:
+  (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

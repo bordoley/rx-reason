@@ -376,50 +376,50 @@ let scheduleRecursive7 =
   disposable |> SerialDisposable.asDisposable;
 };
 
-let scheduleAfter = (~delay, f, state, {scheduleAfter}) =>
-  scheduleAfter(~delay, f, state);
+let work = f => f();
+let scheduleAfter = (~delay, f, {scheduleAfter}) =>
+  scheduleAfter(~delay, work, f);
 
-let work1 = ((f, ctx0, state)) => f(ctx0, state);
-let scheduleAfter1 = (~delay, f, state, ctx0, {scheduleAfter}) =>
-  scheduleAfter(~delay, work1, (f, ctx0, state));
+let work1 = ((f, ctx0)) => f(ctx0);
+let scheduleAfter1 = (~delay, f, ctx0, {scheduleAfter}) =>
+  scheduleAfter(~delay, work1, (f, ctx0));
 
-let work2 = ((f, ctx0, ctx1, state)) => f(ctx0, ctx1, state);
-let scheduleAfter2 = (~delay, f, state, ctx0, ctx1, {scheduleAfter}) =>
-  scheduleAfter(~delay, work2, (f, ctx0, ctx1, state));
+let work2 = ((f, ctx0, ctx1)) => f(ctx0, ctx1);
+let scheduleAfter2 = (~delay, f,  ctx0, ctx1, {scheduleAfter}) =>
+  scheduleAfter(~delay, work2, (f, ctx0, ctx1));
 
-let work3 = ((f, ctx0, ctx1, ctx2, state)) => f(ctx0, ctx1, ctx2, state);
-let scheduleAfter3 = (~delay, f, state, ctx0, ctx1, ctx2, {scheduleAfter}) =>
-  scheduleAfter(~delay, work3, (f, ctx0, ctx1, ctx2, state));
+let work3 = ((f, ctx0, ctx1, ctx2)) => f(ctx0, ctx1, ctx2);
+let scheduleAfter3 = (~delay, f, ctx0, ctx1, ctx2, {scheduleAfter}) =>
+  scheduleAfter(~delay, work3, (f, ctx0, ctx1, ctx2));
 
-let work4 = ((f, ctx0, ctx1, ctx2, ctx3, state)) =>
-  f(ctx0, ctx1, ctx2, ctx3, state);
+let work4 = ((f, ctx0, ctx1, ctx2, ctx3)) =>
+  f(ctx0, ctx1, ctx2, ctx3);
 let scheduleAfter4 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, {scheduleAfter}) =>
-  scheduleAfter(~delay, work4, (f, ctx0, ctx1, ctx2, ctx3, state));
+    (~delay, f, ctx0, ctx1, ctx2, ctx3, {scheduleAfter}) =>
+  scheduleAfter(~delay, work4, (f, ctx0, ctx1, ctx2, ctx3));
 
-let work5 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, state)) =>
-  f(ctx0, ctx1, ctx2, ctx3, ctx4, state);
+let work5 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4);
 let scheduleAfter5 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, {scheduleAfter}) =>
-  scheduleAfter(~delay, work5, (f, ctx0, ctx1, ctx2, ctx3, ctx4, state));
+    (~delay, f, ctx0, ctx1, ctx2, ctx3, ctx4, {scheduleAfter}) =>
+  scheduleAfter(~delay, work5, (f, ctx0, ctx1, ctx2, ctx3, ctx4));
 
-let work6 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state)) =>
-  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state);
+let work6 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5);
 let scheduleAfter6 =
-    (~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, {scheduleAfter}) =>
+    (~delay, f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, {scheduleAfter}) =>
   scheduleAfter(
     ~delay,
     work6,
-    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, state),
+    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5),
   );
 
-let work7 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state)) =>
-  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state);
+let work7 = ((f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6)) =>
+  f(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6);
 let scheduleAfter7 =
     (
       ~delay,
       f,
-      state,
       ctx0,
       ctx1,
       ctx2,
@@ -432,29 +432,28 @@ let scheduleAfter7 =
   scheduleAfter(
     ~delay,
     work7,
-    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, state),
+    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6),
   );
 
-let schedule = (f, state, scheduler) =>
-  scheduleAfter(~delay=0.0, f, state, scheduler);
+let schedule = (f, scheduler) =>
+  scheduleAfter(~delay=0.0, f, scheduler);
 
-let schedule1 = (f, state, ctx0, scheduler) =>
-  scheduleAfter1(~delay=0.0, f, state, ctx0, scheduler);
+let schedule1 = (f, ctx0, scheduler) =>
+  scheduleAfter1(~delay=0.0, f, ctx0, scheduler);
 
-let schedule2 = (f, state, ctx0, ctx1, scheduler) =>
-  scheduleAfter2(~delay=0.0, f, state, ctx0, ctx1, scheduler);
+let schedule2 = (f, ctx0, ctx1, scheduler) =>
+  scheduleAfter2(~delay=0.0, f, ctx0, ctx1, scheduler);
 
-let schedule3 = (f, state, ctx0, ctx1, ctx2, scheduler) =>
-  scheduleAfter3(~delay=0.0, f, state, ctx0, ctx1, ctx2, scheduler);
+let schedule3 = (f, ctx0, ctx1, ctx2, scheduler) =>
+  scheduleAfter3(~delay=0.0, f, ctx0, ctx1, ctx2, scheduler);
 
-let schedule4 = (f, state, ctx0, ctx1, ctx2, ctx3, scheduler) =>
-  scheduleAfter4(~delay=0.0, f, state, ctx0, ctx1, ctx2, ctx3, scheduler);
+let schedule4 = (f, ctx0, ctx1, ctx2, ctx3, scheduler) =>
+  scheduleAfter4(~delay=0.0, f, ctx0, ctx1, ctx2, ctx3, scheduler);
 
-let schedule5 = (f, state, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler) =>
+let schedule5 = (f, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler) =>
   scheduleAfter5(
     ~delay=0.0,
     f,
-    state,
     ctx0,
     ctx1,
     ctx2,
@@ -463,11 +462,10 @@ let schedule5 = (f, state, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler) =>
     scheduler,
   );
 
-let schedule6 = (f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, scheduler) =>
+let schedule6 = (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, scheduler) =>
   scheduleAfter6(
     ~delay=0.0,
     f,
-    state,
     ctx0,
     ctx1,
     ctx2,
@@ -478,11 +476,10 @@ let schedule6 = (f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, scheduler) =>
   );
 
 let schedule7 =
-    (f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, scheduler) =>
+    (f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, scheduler) =>
   scheduleAfter7(
     ~delay=0.0,
     f,
-    state,
     ctx0,
     ctx1,
     ctx2,
@@ -498,68 +495,67 @@ let computeDelay = (time, scheduler) => {
   time -. now;
 };
 
-let scheduleBy = (~time, f, state, scheduler) => {
+let scheduleBy = (~time, f, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter(~delay, f, state, scheduler);
+    scheduleAfter(~delay, f, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
-let scheduleBy1 = (~time, f, state, ctx0, scheduler) => {
+let scheduleBy1 = (~time, f, ctx0, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter1(~delay, f, state, ctx0, scheduler);
+    scheduleAfter1(~delay, f, ctx0, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
-let scheduleBy2 = (~time, f, state, ctx0, ctx1, scheduler) => {
+let scheduleBy2 = (~time, f, ctx0, ctx1, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter2(~delay, f, state, ctx0, ctx1, scheduler);
+    scheduleAfter2(~delay, f, ctx0, ctx1, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
-let scheduleBy3 = (~time, f, state, ctx0, ctx1, ctx2, scheduler) => {
+let scheduleBy3 = (~time, f, ctx0, ctx1, ctx2, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter3(~delay, f, state, ctx0, ctx1, ctx2, scheduler);
+    scheduleAfter3(~delay, f, ctx0, ctx1, ctx2, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
-let scheduleBy4 = (~time, f, state, ctx0, ctx1, ctx2, ctx3, scheduler) => {
+let scheduleBy4 = (~time, f, ctx0, ctx1, ctx2, ctx3, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter4(~delay, f, state, ctx0, ctx1, ctx2, ctx3, scheduler);
+    scheduleAfter4(~delay, f, ctx0, ctx1, ctx2, ctx3, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
-let scheduleBy5 = (~time, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler) => {
+let scheduleBy5 = (~time, f, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
-    scheduleAfter5(~delay, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler);
+    scheduleAfter5(~delay, f, ctx0, ctx1, ctx2, ctx3, ctx4, scheduler);
   } else {
     Disposable.disposed;
   };
 };
 
 let scheduleBy6 =
-    (~time, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, scheduler) => {
+    (~time, f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
     scheduleAfter6(
       ~delay,
       f,
-      state,
       ctx0,
       ctx1,
       ctx2,
@@ -574,13 +570,12 @@ let scheduleBy6 =
 };
 
 let scheduleBy7 =
-    (~time, f, state, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, scheduler) => {
+    (~time, f, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, scheduler) => {
   let delay = scheduler |> computeDelay(time);
   if (! (delay < 0.0)) {
     scheduleAfter7(
       ~delay,
       f,
-      state,
       ctx0,
       ctx1,
       ctx2,

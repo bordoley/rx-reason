@@ -14,21 +14,20 @@ module RecursiveResult: {
 
 let now: t => float;
 
-let schedule: ('state => unit, 'state, t) => Disposable.t;
+let schedule: (unit => unit, t) => Disposable.t;
 
-let schedule1: (('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
+let schedule1: ('ctx0 => unit, 'ctx0, t) => Disposable.t;
 
 let schedule2:
-  (('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) => Disposable.t;
+  (('ctx0, 'ctx1) => unit, 'ctx0, 'ctx1, t) => Disposable.t;
 
 let schedule3:
-  (('ctx0, 'ctx1, 'ctx2, 'state) => unit, 'state, 'ctx0, 'ctx1, 'ctx2, t) =>
+  (('ctx0, 'ctx1, 'ctx2) => unit, 'ctx0, 'ctx1, 'ctx2, t) =>
   Disposable.t;
 
 let schedule4:
   (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -39,8 +38,7 @@ let schedule4:
 
 let schedule5:
   (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -52,8 +50,7 @@ let schedule5:
 
 let schedule6:
   (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -66,8 +63,7 @@ let schedule6:
 
 let schedule7:
   (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -79,20 +75,19 @@ let schedule7:
   ) =>
   Disposable.t;
 
-let scheduleAfter: (~delay: float, 'state => unit, 'state, t) => Disposable.t;
+let scheduleAfter: (~delay: float, unit => unit, t) => Disposable.t;
 
 let scheduleAfter1:
-  (~delay: float, ('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
+  (~delay: float, 'ctx0 => unit, 'ctx0, t) => Disposable.t;
 
 let scheduleAfter2:
-  (~delay: float, ('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) =>
+  (~delay: float, ('ctx0, 'ctx1) => unit, 'ctx0, 'ctx1, t) =>
   Disposable.t;
 
 let scheduleAfter3:
   (
     ~delay: float,
-    ('ctx0, 'ctx1, 'ctx2, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -103,8 +98,7 @@ let scheduleAfter3:
 let scheduleAfter4:
   (
     ~delay: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -116,8 +110,7 @@ let scheduleAfter4:
 let scheduleAfter5:
   (
     ~delay: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -130,8 +123,7 @@ let scheduleAfter5:
 let scheduleAfter6:
   (
     ~delay: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -145,8 +137,7 @@ let scheduleAfter6:
 let scheduleAfter7:
   (
     ~delay: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -255,20 +246,19 @@ let scheduleRecursive7:
   ) =>
   Disposable.t;
 
-let scheduleBy: (~time: float, 'state => unit, 'state, t) => Disposable.t;
+let scheduleBy: (~time: float, unit => unit, t) => Disposable.t;
 
 let scheduleBy1:
-  (~time: float, ('ctx0, 'state) => unit, 'state, 'ctx0, t) => Disposable.t;
+  (~time: float, 'ctx0 => unit, 'ctx0, t) => Disposable.t;
 
 let scheduleBy2:
-  (~time: float, ('ctx0, 'ctx1, 'state) => unit, 'state, 'ctx0, 'ctx1, t) =>
+  (~time: float, ('ctx0, 'ctx1) => unit, 'ctx0, 'ctx1, t) =>
   Disposable.t;
 
 let scheduleBy3:
   (
     ~time: float,
-    ('ctx0, 'ctx1, 'ctx2, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -279,8 +269,7 @@ let scheduleBy3:
 let scheduleBy4:
   (
     ~time: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -292,8 +281,7 @@ let scheduleBy4:
 let scheduleBy5:
   (
     ~time: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -306,8 +294,7 @@ let scheduleBy5:
 let scheduleBy6:
   (
     ~time: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -321,8 +308,7 @@ let scheduleBy6:
 let scheduleBy7:
   (
     ~time: float,
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'state) => unit,
-    'state,
+    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6) => unit,
     'ctx0,
     'ctx1,
     'ctx2,

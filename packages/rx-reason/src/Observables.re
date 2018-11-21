@@ -324,7 +324,7 @@ let share = observable => MulticastObservable.create(Subject.create, observable)
 
 let shareWithReplayBuffer = count => {
   let createSubject = () => Subject.createWithReplayBuffer(count);
-  MulticastObservable.create(createSubject);
+  obs => MulticastObservable.create(createSubject, obs);
 };
 
 let startWithList = (~scheduler=?, values, observable) =>

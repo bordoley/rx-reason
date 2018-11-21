@@ -41,30 +41,6 @@ let test =
             ],
             (),
           ),
-          observableIt(
-            "completes early if any observable completes with an exception",
-            ~nextToString=string_of_int,
-            ~source=
-              scheduler =>
-                Observables.concat([
-                  Observables.ofRelativeTimeNotifications(
-                    ~scheduler,
-                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
-                  ),
-                  Observables.raise(Division_by_zero)
-                  |> Observable.lift(Operators.delay(~scheduler, ~delay=2.0)),
-                  Observables.ofRelativeTimeNotifications(
-                    ~scheduler,
-                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
-                  ),
-                ]),
-            ~expected=[
-              Next(1),
-              Next(2),
-              CompleteWithException(Division_by_zero),
-            ],
-            (),
-          ),
         ],
       ),
       describe(
@@ -694,22 +670,6 @@ let test =
             ],
             (),
           ),
-          observableIt(
-            "completes early if any observable completes with an exception",
-            ~nextToString=string_of_int,
-            ~source=
-              scheduler =>
-                Observables.merge([
-                  Observables.ofAbsoluteTimeNotifications(
-                    ~scheduler,
-                    [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
-                  ),
-                  Observables.raise(Division_by_zero)
-                  |> Observable.lift(Operators.delay(~scheduler, ~delay=2.0)),
-                ]),
-            ~expected=[Next(1), CompleteWithException(Division_by_zero)],
-            (),
-          ),
         ],
       ),
       describe("never", []),
@@ -1043,54 +1003,6 @@ let test =
         ],
       ),
       describe("synchronize", []),
-      describe(
-        "timeout",
-        [
-          observableIt(
-            "when timeout does not expire",
-            ~nextToString=string_of_int,
-            ~source=
-              scheduler =>
-                Observables.ofRelativeTimeNotifications(
-                  ~scheduler,
-                  [
-                    (0.0, Next(1)),
-                    (4.0, Next(2)),
-                    (6.0, Next(3)),
-                    (10.0, Next(4)),
-                    (14.0, Complete),
-                  ],
-                )
-                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
-            ~expected=[Next(1), Next(2), Next(3), Next(4), Complete],
-            (),
-          ),
-          observableIt(
-            "when timeout expires",
-            ~nextToString=string_of_int,
-            ~source=
-              scheduler =>
-                Observables.ofRelativeTimeNotifications(
-                  ~scheduler,
-                  [
-                    (0.0, Next(1)),
-                    (4.0, Next(2)),
-                    (6.0, Next(3)),
-                    (15.0, Next(4)),
-                    (20.0, Complete),
-                  ],
-                )
-                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
-            ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              CompleteWithException(TimeoutException.Exn),
-            ],
-            (),
-          ),
-        ],
-      ),
       describe(
         "withLatestFrom",
         [

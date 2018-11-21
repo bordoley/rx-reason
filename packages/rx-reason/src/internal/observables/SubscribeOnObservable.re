@@ -1,5 +1,5 @@
 let subscribeOn = {
-  let doSubscribe = (observable, subscriber, _) => {
+  let doSubscribe = (observable, subscriber) => {
     observable |> Observable.subscribeWith(subscriber);
   };
 
@@ -9,7 +9,6 @@ let subscribeOn = {
       |> Scheduler.scheduleAfter2(
            ~delay,
            doSubscribe,
-           (),
            observable,
            subscriber,
          );

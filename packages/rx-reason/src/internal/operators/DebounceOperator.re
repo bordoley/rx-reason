@@ -12,7 +12,7 @@ let operator = {
     };
   };
 
-  let onDebounceScheduled = (debounceSubscription, lastValue, delegate, _) =>
+  let onDebounceScheduled = (debounceSubscription, lastValue, delegate) =>
     debounceNext(debounceSubscription, lastValue, delegate);
 
   let onNext =
@@ -24,7 +24,6 @@ let operator = {
       |> Scheduler.scheduleAfter3(
            ~delay=dueTime,
            onDebounceScheduled,
-           (),
            debounceSubscription,
            lastValue,
            delegate,
