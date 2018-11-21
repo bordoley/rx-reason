@@ -380,9 +380,8 @@ let work = f => f();
 let scheduleAfter = (~delay, f, {scheduleAfter}) =>
   scheduleAfter(~delay, work, f);
 
-let work1 = ((f, ctx0)) => f(ctx0);
 let scheduleAfter1 = (~delay, f, ctx0, {scheduleAfter}) =>
-  scheduleAfter(~delay, work1, (f, ctx0));
+  scheduleAfter(~delay, f, ctx0);
 
 let work2 = ((f, ctx0, ctx1)) => f(ctx0, ctx1);
 let scheduleAfter2 = (~delay, f,  ctx0, ctx1, {scheduleAfter}) =>
