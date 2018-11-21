@@ -25,8 +25,7 @@ let test =
                       (9.0, Complete),
                     ],
                   )
-                  |> MulticastObservable.shareWithReplayBuffer(2)
-                  |> MulticastObservable.asObservable;
+                  |> Observables.shareWithReplayBuffer(2)
 
                 Observables.merge([
                   source,

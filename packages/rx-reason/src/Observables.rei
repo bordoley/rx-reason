@@ -196,6 +196,17 @@ let repeat:
 let retry: (~predicate: exn => bool=?, Observable.t('a)) => Observable.t('a);
 
 /**
+ * Returns a new MulticastObservable that shares a single subscription to the provided source Observable. 
+ */
+let share: Observable.t('a) => Observable.t('a);
+
+/**
+ * Returns a new MulticastObservable that shares a single subscription to the provided source Observable. 
+ * In addition, it replays the last n events each time it is subscribed to.
+ */
+let shareWithReplayBuffer: (int, Observable.t('a)) => Observable.t('a);
+
+/**
  * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
  */

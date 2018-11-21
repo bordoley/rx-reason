@@ -319,6 +319,14 @@ let retry = {
   };
 };
 
+
+let share = observable => MulticastObservable.create(Subject.create, observable);
+
+let shareWithReplayBuffer = count => {
+  let createSubject = () => Subject.createWithReplayBuffer(count);
+  MulticastObservable.create(createSubject);
+};
+
 let startWithList = (~scheduler=?, values, observable) =>
   concat([ofList(~scheduler?, values), observable]);
 
