@@ -6,9 +6,9 @@ ReUnit.run(
     [
       DisposableTest.test,
       SubscriberTest.test,
-      MulticastObservableTest.test,
       ObservableTest.test,
-      SingleTest.test,
+      ObservablesTest.test,
+      OperatorsTest.test,
       SubjectTest.test,
     ],
   ),
