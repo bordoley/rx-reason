@@ -15,15 +15,16 @@ module StatefulComponent =
   });
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
-let single = promise |> RxReasonJs.Promise.toSingle;
-single
-|> RxReason.Single.subscribeWith(~onSuccess=Js.log, ~onError=Js.log)
+let observable = promise |> RxReasonJs.Promise.toObservable;
+observable
+|> RxReason.Observable.onNext(Js.log)
+|> RxReason.Observable.onComplete(Js.log)
 |> ignore;
 
 let promise =
-  single
-  |> RxReason.Single.mapTo("b")
-  |> RxReasonJs.Promise.fromSingle
+observable
+  |> RxReason.Observable.mapTo("b")
+  |> RxReasonJs.Promise.fromObservable
   |> Js.Promise.then_(a => {
        Js.log(a);
        Js.Promise.resolve();

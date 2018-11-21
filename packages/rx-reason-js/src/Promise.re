@@ -4,17 +4,18 @@ external promiseThen :
   Js.Promise.t('a) =
   "then";
 
-let toSingle = {
-  let toSingleSubscribe = (promise, singleSubscriber) => {
+let toObservable = {
+  let toObservableSubscribe = (promise, subscriber) => {
     let onSuccessIfNotDisposed = result =>
-      if (! RxReason.SingleSubscriber.isDisposed(singleSubscriber)) {
-        singleSubscriber |> RxReason.SingleSubscriber.onSuccess(result);
+      if (! RxReason.Subscriber.isDisposed(subscriber)) {
+        subscriber |> RxReason.Subscriber.next(result);
+        subscriber |> RxReason.Subscriber.complete;
       };
 
     let onErrorIfNotDisposed = err =>
-      if (! RxReason.SingleSubscriber.isDisposed(singleSubscriber)) {
-        singleSubscriber
-        |> RxReason.SingleSubscriber.onError(PromiseException.Exn(err));
+      if (! RxReason.Subscriber.isDisposed(subscriber)) {
+        subscriber
+        |> RxReason.Subscriber.complete(~exn=PromiseException.Exn(err));
       };
 
     promise
@@ -22,19 +23,23 @@ let toSingle = {
     |> ignore;
   };
 
-  promise => RxReason.Single.create1(toSingleSubscribe, promise);
+  promise => RxReason.Observable.create1(toObservableSubscribe, promise);
 };
 
-let fromSingle = {
-  let onSuccess = (resolve, _, a) => resolve(. a);
-  let onError = (_, reject, exn) => reject(. exn);
+let fromObservable = {
+  let onNext = (resolve, _, a) => resolve(. a);
+  let onComplete = (_, reject, exn) => switch(exn) {
+  | Some(exn) => reject(. exn);
+  | _ => ()
+  };
 
-  single =>
+  observable =>
     Js.Promise.make((~resolve, ~reject) =>
-      single
-      |> RxReason.Single.subscribeWith2(
-           ~onSuccess,
-           ~onError,
+      observable
+      |> RxReason.Observable.last
+      |> RxReason.Observable.subscribeWith2(
+           ~onNext,
+           ~onComplete,
            resolve,
            reject,
          )

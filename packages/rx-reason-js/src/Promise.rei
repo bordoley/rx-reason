@@ -1,19 +1,19 @@
 /** 
- * Interoperability functions for converting between Promises and Singles.
+ * Interoperability functions for converting between Promises and Observables.
  * 
  */;
 
 /** 
- * Converts a JS Promise to a Single. 
+ * Converts a JS Promise to a Observable. 
  * 
  * Note: Due the underlying eagerness of JS Promises the resulting 
- * Single is effectively a hot Observable, and does not support
+ * Observable is effectively a hot, and does not support
  * proper cancellation.
  */
-let toSingle: Js.Promise.t('a) => RxReason.Single.t('a);
+let toObservable: Js.Promise.t('a) => RxReason.Observable.t('a);
 
 
 /**
- * Converts a Single to a Promise.
+ * Converts an Observable to a Promise.
  */
-let fromSingle: RxReason.Single.t('a) => Js.Promise.t('a);
+let fromObservable: RxReason.Observable.t('a) => Js.Promise.t('a);
