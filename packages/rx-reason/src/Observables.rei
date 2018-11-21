@@ -66,9 +66,109 @@ let publish:
 
 let publish1:
   (
-    ~onNext: ('ctx, 'a) => unit,
-    ~onComplete: ('ctx, option(exn)) => unit,
-    'ctx,
+    ~onNext: ('ctx0, 'a) => unit,
+    ~onComplete: ('ctx0, option(exn)) => unit,
+    'ctx0,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish2:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish3:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish4:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish5:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish6:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   option(exn)
+                 ) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish7:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   option(exn)
+                 ) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
     Observable.t('a),
     unit
   ) =>

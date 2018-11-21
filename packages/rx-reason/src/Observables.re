@@ -23,7 +23,11 @@ let publish = {
         let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
         observable |> Observable.subscribeWith(subscriber);
         let newConnection =
-          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
 
         Atomic.set(connection, newConnection);
       };
@@ -44,10 +48,15 @@ let publish1 = {
 
     () => {
       if (! Atomic.exchange(active, true)) {
-        let subscriber = Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
+        let subscriber =
+          Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
         observable |> Observable.subscribeWith(subscriber);
         let newConnection =
-          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
 
         Atomic.set(connection, newConnection);
       };
@@ -56,6 +65,219 @@ let publish1 = {
   };
 };
 
+let publish2 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing2(~onNext, ~onComplete, ctx0, ctx1);
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish3 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing3(
+            ~onNext,
+            ~onComplete,
+            ctx0,
+            ctx1,
+            ctx2,
+          );
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish4 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing4(
+            ~onNext,
+            ~onComplete,
+            ctx0,
+            ctx1,
+            ctx2,
+            ctx3,
+          );
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish5 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing5(
+            ~onNext,
+            ~onComplete,
+            ctx0,
+            ctx1,
+            ctx2,
+            ctx3,
+            ctx4,
+          );
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish6 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing6(
+            ~onNext,
+            ~onComplete,
+            ctx0,
+            ctx1,
+            ctx2,
+            ctx3,
+            ctx4,
+            ctx5,
+          );
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish7 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber =
+          Subscriber.createAutoDisposing7(
+            ~onNext,
+            ~onComplete,
+            ctx0,
+            ctx1,
+            ctx2,
+            ctx3,
+            ctx4,
+            ctx5,
+            ctx6,
+          );
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(
+            teardown,
+            subscriber |> Subscriber.asDisposable,
+            active,
+          );
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
 
 let raise = RaiseObservable.raise;
 
