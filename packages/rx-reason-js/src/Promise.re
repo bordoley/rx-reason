@@ -35,15 +35,16 @@ let fromObservable = {
     };
 
   observable =>
-    Js.Promise.make((~resolve, ~reject) =>
+    Js.Promise.make((~resolve, ~reject) => {
+      let subscriber =
+        RxReason.Subscriber.createAutoDisposing2(
+          ~onNext,
+          ~onComplete,
+          resolve,
+          reject,
+        );
       observable
       |> RxReason.Observable.lift(RxReason.Operators.last)
-      |> RxReason.Observable.subscribeWith2(
-           ~onNext,
-           ~onComplete,
-           resolve,
-           reject,
-         )
-      |> ignore
-    );
+      |> RxReason.Observable.subscribeWith(subscriber);
+    });
 };

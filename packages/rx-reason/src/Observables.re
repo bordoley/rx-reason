@@ -7,6 +7,56 @@ let ofList = OfObservable.ofList;
 let ofNotifications = OfObservable.ofNotifications;
 let ofRelativeTimeNotifications = OfObservable.ofRelativeTimeNotifications;
 let ofValue = OfObservable.ofValue;
+
+let publish = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber = Subscriber.createAutoDisposing(~onNext, ~onComplete);
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+let publish1 = {
+  let teardown = (subscription, active) => {
+    subscription |> Disposable.dispose;
+    Atomic.set(active, false);
+  };
+
+  (~onNext, ~onComplete, ctx0, observable) => {
+    let connection = Atomic.make(Disposable.disposed);
+    let active = Atomic.make(false);
+
+    () => {
+      if (! Atomic.exchange(active, true)) {
+        let subscriber = Subscriber.createAutoDisposing1(~onNext, ~onComplete, ctx0);
+        observable |> Observable.subscribeWith(subscriber);
+        let newConnection =
+          Disposable.create2(teardown, subscriber |> Subscriber.asDisposable, active);
+
+        Atomic.set(connection, newConnection);
+      };
+      Atomic.get(connection);
+    };
+  };
+};
+
+
 let raise = RaiseObservable.raise;
 
 let repeat = {

@@ -4,9 +4,6 @@ let asObservable = Functions.identity;
 let subscribeWith = Observable.subscribeWith;
 let subscribe = Observable.subscribe;
 
-let publish = Observable.publish;
-let publish1 = Observable.publish1;
-
 let shareInternal = {
   let teardown =
       (refCount, sourceSubscription, currentSubject, subject, subscription) => {

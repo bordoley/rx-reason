@@ -38,12 +38,6 @@ let notify = (notif, {subscriber}) =>
 let raiseIfDisposed = self =>
   self |> asDisposable |> Disposable.raiseIfDisposed;
 
-let publish = (~onNext, ~onComplete, subject) =>
-  subject |> asObservable |> Observable.publish(~onNext, ~onComplete);
-
-let publish1 = (~onNext, ~onComplete, ctx0, subject) =>
-  subject |> asObservable |> Observable.publish1(~onNext, ~onComplete, ctx0);
-
 let subscribeWith = (subscriber, subject) =>
   subject |> asObservable |> Observable.subscribeWith(subscriber);
 

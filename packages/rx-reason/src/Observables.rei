@@ -2,7 +2,8 @@
  * Returns an Observable which concatenates elements of each provided Observable
  * into a single sequence of elements without interleaving them.
  */
-let concat: (~scheduler: Scheduler.t=?, list(Observable.t('a))) => Observable.t('a);
+let concat:
+  (~scheduler: Scheduler.t=?, list(Observable.t('a))) => Observable.t('a);
 
 /**
  * Returns an Observable that calls an Observable factory to
@@ -26,7 +27,8 @@ let merge: list(Observable.t('a)) => Observable.t('a);
  * specified absolutes times using the supplied scheduler.
  */
 let ofAbsoluteTimeNotifications:
-  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) => Observable.t('a);
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
+  Observable.t('a);
 
 /**
  * Returns an Observable that emits the given items and then completes.
@@ -45,12 +47,32 @@ let ofNotifications:
  * specified relative times using the supplied scheduler.
  */
 let ofRelativeTimeNotifications:
-  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) => Observable.t('a);
+  (~scheduler: Scheduler.t, list((float, Notification.t('a)))) =>
+  Observable.t('a);
 
 /**
   * Returns an Observable that emits the given item and then completes.
   */
 let ofValue: (~scheduler: Scheduler.t=?, 'a) => Observable.t('a);
+
+let publish:
+  (
+    ~onNext: 'a => unit,
+    ~onComplete: option(exn) => unit,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
+
+let publish1:
+  (
+    ~onNext: ('ctx, 'a) => unit,
+    ~onComplete: ('ctx, option(exn)) => unit,
+    'ctx,
+    Observable.t('a),
+    unit
+  ) =>
+  Disposable.t;
 
 /**
  * Returns an Observable that completes with the specified exception
@@ -63,7 +85,8 @@ let raise: (~scheduler: Scheduler.t=?, exn) => Observable.t('a);
  * resubscribing to it if it completes and
  * the predicate returns true for that specific.
  */
-let repeat: (~predicate: unit => bool=?, Observable.t('a)) => Observable.t('a);
+let repeat:
+  (~predicate: unit => bool=?, Observable.t('a)) => Observable.t('a);
 
 /**
  * Returns an Observable that mirrors the source Observable,
@@ -76,19 +99,23 @@ let retry: (~predicate: exn => bool=?, Observable.t('a)) => Observable.t('a);
  * Returns an Observable that emits the specified items before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithList: (~scheduler: Scheduler.t=?, list('a), Observable.t('a)) => Observable.t('a);
+let startWithList:
+  (~scheduler: Scheduler.t=?, list('a), Observable.t('a)) =>
+  Observable.t('a);
 
 /**
  * Returns an Observable that emits a specified item before it
  * begins to emit items emitted by the source Observable.
  */
-let startWithValue: (~scheduler: Scheduler.t=?, 'a, Observable.t('a)) => Observable.t('a);
+let startWithValue:
+  (~scheduler: Scheduler.t=?, 'a, Observable.t('a)) => Observable.t('a);
 
 /**
  * Returns an Observable which subscribes to the provided source Observable
  * on the specified scheduler.
  */
-let subscribeOn: (~delay: float=?, Scheduler.t, Observable.t('a)) => Observable.t('a);
+let subscribeOn:
+  (~delay: float=?, Scheduler.t, Observable.t('a)) => Observable.t('a);
 
 /**
  * Returns an Observable which collects all observed items in a list
