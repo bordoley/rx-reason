@@ -32,13 +32,13 @@
     "url": "https://github.com/bordoley/rx-reason.git"
   },
   "dependencies": {
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "reason-react": ">=0.4.0",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3",
+    "reason-react": "^0.5.3",
     "rx-reason": "^0.0.0",
     "rx-reason-js": "^0.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^3.1.5"
+    "bs-platform": "^4.0.7"
   }
 }

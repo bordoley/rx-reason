@@ -35,6 +35,6 @@
     "rx-reason": "^0.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^3.1.5"
+    "bs-platform": "^4.0.7"
   }
 }
