@@ -11,12 +11,6 @@ module type S1 = {
   let asObservable: t('a) => observable('a);
 };
 
-let combineLatest2 = CombineLatestObservableSource.combineLatest2;
-let combineLatest3 = CombineLatestObservableSource.combineLatest3;
-let combineLatest4 = CombineLatestObservableSource.combineLatest4;
-let combineLatest5 = CombineLatestObservableSource.combineLatest5;
-let combineLatest6 = CombineLatestObservableSource.combineLatest6;
-let combineLatest7 = CombineLatestObservableSource.combineLatest7;
 let concat = ConcatObservableSource.concat;
 let create = ObservableSource.create;
 let create1 = ObservableSource.create1;
