@@ -9,6 +9,3 @@ let operator = {
          value,
        );
 };
-
-let lift = (value, observable) =>
-  observable |> ObservableSource.lift(operator(value));

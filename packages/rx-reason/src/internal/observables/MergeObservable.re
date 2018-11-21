@@ -28,7 +28,7 @@ let merge = {
       fun
       | [hd, ...tail] => {
           let subscription =
-            ObservableSource.subscribeWith3(
+            Observable.subscribeWith3(
               ~onNext,
               ~onComplete,
               activeCount,
@@ -49,6 +49,6 @@ let merge = {
   observables => {
     let count = observables |> Lists.length;
 
-    ObservableSource.create2(mergeSource, count, observables);
+    Observable.create2(mergeSource, count, observables);
   };
 };

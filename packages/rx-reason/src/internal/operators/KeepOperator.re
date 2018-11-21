@@ -35,6 +35,3 @@ let operator = {
     context.self;
   };
 };
-
-let lift = (predicate, observable) =>
-  observable |> ObservableSource.lift(operator(predicate));

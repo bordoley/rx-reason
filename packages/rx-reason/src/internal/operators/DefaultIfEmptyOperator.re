@@ -28,6 +28,3 @@ let operator = {
     subscriber |> Subscriber.decorate1(~onNext, ~onComplete, ctx);
   };
 };
-
-let lift = (default, observable) =>
-  observable |> ObservableSource.lift(operator(default));

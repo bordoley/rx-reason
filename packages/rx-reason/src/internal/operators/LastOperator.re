@@ -24,5 +24,3 @@ let operator = {
     |> Subscriber.addTeardown1(MutableOption.unset, last);
   };
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

@@ -4,5 +4,3 @@ let operator = subscriber =>
        ~onNext=Functions.alwaysUnit2,
        ~onComplete=Subscriber.forwardOnComplete,
      );
-
-let lift = observable => observable |> ObservableSource.lift(operator);

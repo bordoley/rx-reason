@@ -34,7 +34,7 @@ let operator = {
       |> SerialDisposable.setInnerDisposable(Disposable.disposed);
 
       let newInnerSubscription =
-        ObservableSource.subscribeWith3(
+        Observable.subscribeWith3(
           ~onNext=onNextInner,
           ~onComplete=onCompleteInner,
           id,
@@ -73,5 +73,3 @@ let operator = {
     context.self;
   };
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

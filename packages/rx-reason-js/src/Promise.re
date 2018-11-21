@@ -28,15 +28,16 @@ let toObservable = {
 
 let fromObservable = {
   let onNext = (resolve, _, a) => resolve(. a);
-  let onComplete = (_, reject, exn) => switch(exn) {
-  | Some(exn) => reject(. exn);
-  | _ => ()
-  };
+  let onComplete = (_, reject, exn) =>
+    switch (exn) {
+    | Some(exn) => reject(. exn)
+    | _ => ()
+    };
 
   observable =>
     Js.Promise.make((~resolve, ~reject) =>
       observable
-      |> RxReason.Observable.last
+      |> RxReason.Observable.lift(RxReason.Operators.last)
       |> RxReason.Observable.subscribeWith2(
            ~onNext,
            ~onComplete,

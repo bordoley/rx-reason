@@ -3,6 +3,3 @@ let operator = (predicate, subscriber) =>
   KeepOperator.operator(Functions.identity) @@
   IsEmptyOperator.operator @@
   subscriber;
-
-let lift = (predicate, observable) =>
-  observable |> ObservableSource.lift(operator(predicate));

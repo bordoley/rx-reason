@@ -2,9 +2,9 @@ module State = {
   type t = {
     count: int,
     greeting: string,
-    incrementCount: ReactEventRe.Mouse.t => unit,
+    incrementCount: ReactEvent.Mouse.t => unit,
     show: bool,
-    toggle: ReactEventRe.Mouse.t => unit,
+    toggle: ReactEvent.Mouse.t => unit,
   };
 };
 
@@ -29,7 +29,10 @@ let create =
 
   let actions = subject |> RxReason.Subject.asObservable;
   let propsActions =
-    props |> RxReason.Observable.map(greeting => Actions.SetTitle(greeting));
+    props
+    |> RxReason.Observable.lift(
+         RxReason.Operators.map(greeting => Actions.SetTitle(greeting)),
+       );
 
   let dispatch = (action, _) => subject |> RxReason.Subject.next(action);
 
@@ -41,6 +44,6 @@ let create =
     toggle: dispatch(Actions.Toggle),
   };
 
-  RxReason.Observable.merge([actions, propsActions])
-  |> RxReason.Observable.scan(reducer, initialState);
+  RxReason.Observables.merge([actions, propsActions])
+  |> RxReason.Observable.lift(RxReason.Operators.scan(reducer, initialState));
 };

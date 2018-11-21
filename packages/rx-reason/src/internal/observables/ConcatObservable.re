@@ -20,11 +20,11 @@ let concat = {
           (
             switch (scheduler) {
             | Some(scheduler) =>
-              hd |> SubscribeOnObservableSource.subscribeOn(scheduler)
+              hd |> SubscribeOnObservable.subscribeOn(scheduler)
             | None => hd
             }
           )
-          |> ObservableSource.subscribeWith5(
+          |> Observable.subscribeWith5(
                ~onNext=Subscriber.forwardOnNext4,
                ~onComplete,
                scheduler,
@@ -53,5 +53,5 @@ let concat = {
   };
 
   (~scheduler=?, observables) =>
-    ObservableSource.create2(concatSource, scheduler, observables);
+    Observable.create2(concatSource, scheduler, observables);
 };

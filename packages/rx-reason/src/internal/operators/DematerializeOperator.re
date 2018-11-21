@@ -19,5 +19,3 @@ let operator = {
     self^;
   };
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

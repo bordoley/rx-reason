@@ -23,8 +23,8 @@ let operator = {
 
   (~due, ~scheduler) => {
     let timeoutObservable =
-      RaiseObservableSource.raise(TimeoutException.Exn)
-      |> DelayOperator.lift(~scheduler, ~delay=due);
+      Observables.raise(TimeoutException.Exn)
+      |> Observable.lift(DelayOperator.operator(~scheduler, ~delay=due));
 
     subscriber => {
       let context = {
@@ -41,7 +41,7 @@ let operator = {
            );
 
       context.connect =
-        ObservableSource.publishTo1(
+        Observable.publishTo1(
           ~onNext=Functions.alwaysUnit2,
           ~onComplete=Subscriber.forwardOnComplete,
           self,
@@ -53,6 +53,3 @@ let operator = {
     };
   };
 };
-
-let lift = (~due, ~scheduler, observable) =>
-  observable |> ObservableSource.lift(operator(~due, ~scheduler));

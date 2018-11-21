@@ -17,6 +17,8 @@ let distinctUntilChanged: (~equals: ('a, 'a) => bool=?) => Operator.t('a, 'a);
 
 let every: ('a => bool) => Operator.t('a, bool);
 
+let exhaust: Operator.t(Observable.t('a), 'a);
+
 let find: ('a => bool) => Operator.t('a, 'a);
 
 let first: Operator.t('a, 'a);
@@ -63,6 +65,10 @@ let scan: (('acc, 'a) => 'acc, 'acc) => Operator.t('a, 'acc);
 
 let some: ('a => bool) => Operator.t('a, bool);
 
+let switch_: Operator.t(Observable.t('a), 'a);
+
 let synchronize: Operator.t('a, 'a);
 
 let timeout: (~due: float, ~scheduler: Scheduler.t) => Operator.t('a, 'a);
+
+let withLatestFrom: (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

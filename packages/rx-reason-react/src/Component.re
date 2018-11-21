@@ -63,16 +63,20 @@ module Make =
     let subscription =
       propsSubject
       |> RxReason.Subject.asObservable
-      |> RxReason.Observable.distinctUntilChanged
-      /* FIXME: In the future React will expose it's scheduler via an api.
-       * We should schedule using that instead of our home rolled eventloop.
-       * https://github.com/facebook/react/tree/master/packages/react-scheduler
-       */
-      |> RxReason.Observable.observeOn(RxReasonJs.EventLoop.scheduler)
+      |> RxReason.Observable.pipe2(
+           RxReason.Operators.distinctUntilChanged,
+           /* FIXME: In the future React will expose it's scheduler via an api.
+            * We should schedule using that instead of our home rolled eventloop.
+            * https://github.com/facebook/react/tree/master/packages/react-scheduler
+            */
+           RxReason.Operators.observeOn(RxReasonJs.EventLoop.scheduler),
+         )
       |> ComponentSpec.createStore
-      |> RxReason.Observable.observe(
-           ~onNext=next => send(Next(next)),
-           ~onComplete=exn => send(Completed(exn)),
+      |> RxReason.Observable.lift(
+           RxReason.Operators.observe(
+             ~onNext=next => send(Next(next)),
+             ~onComplete=exn => send(Completed(exn)),
+           ),
          )
       |> RxReason.Observable.subscribe;
     onUnmount(() => subscription |> RxReason.Disposable.dispose);

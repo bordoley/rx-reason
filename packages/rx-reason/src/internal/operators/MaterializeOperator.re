@@ -14,5 +14,3 @@ let operator = {
 
   subscriber => subscriber |> Subscriber.decorate(~onNext, ~onComplete);
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

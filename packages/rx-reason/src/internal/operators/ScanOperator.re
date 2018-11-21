@@ -9,6 +9,3 @@ let operator = (scanner, initialValue, subscriber) => {
   subscriber |> Subscriber.next(initialValue);
   MapOperator.operator(mapper, subscriber);
 };
-
-let lift = (scanner, initialValue, observable) =>
-  observable |> ObservableSource.lift(operator(scanner, initialValue));

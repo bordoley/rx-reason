@@ -50,7 +50,7 @@ let operator = {
       subscriber |> Subscriber.decorate1(~onNext, ~onComplete, context);
 
     context.otherSubscription =
-      ObservableSource.subscribeWith2(
+      Observable.subscribeWith2(
         ~onNext=otherOnNext,
         ~onComplete=otherOnComplete,
         self,
@@ -67,6 +67,3 @@ let operator = {
     self;
   };
 };
-
-let lift = (~selector, other, source) =>
-  source |> ObservableSource.lift(operator(~selector, other));

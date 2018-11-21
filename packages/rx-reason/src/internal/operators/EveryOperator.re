@@ -28,6 +28,3 @@ let operator = {
     self^ |> MapOperator.operator(predicate);
   };
 };
-
-let lift = (predicate, observable) =>
-  observable |> ObservableSource.lift(operator(predicate));

@@ -58,8 +58,3 @@ let operator = {
     |> Subscriber.addTeardown1(SerialDisposable.dispose, debounceSubscription);
   };
 };
-
-let lift = (~scheduler, ~dueTime) => {
-  let operator = operator(~scheduler, ~dueTime);
-  observable => observable |> ObservableSource.lift(operator);
-};

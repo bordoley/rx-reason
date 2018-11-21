@@ -33,6 +33,3 @@ let operator = {
     context.self;
   };
 };
-
-let lift = (mapper, observable) =>
-  observable |> ObservableSource.lift(operator(mapper));

@@ -27,7 +27,7 @@ let operator = {
       let hasActiveSubscription = hasActiveSubscription(ctx);
       if (! hasActiveSubscription) {
         let subscription =
-          ObservableSource.subscribeWith2(
+          Observable.subscribeWith2(
             ~onNext=Subscriber.forwardOnNext1,
             ~onComplete,
             ctx,
@@ -65,5 +65,3 @@ let operator = {
     context.self;
   };
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

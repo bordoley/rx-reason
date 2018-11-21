@@ -17,13 +17,15 @@ module StatefulComponent =
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let observable = promise |> RxReasonJs.Promise.toObservable;
 observable
-|> RxReason.Observable.onNext(Js.log)
-|> RxReason.Observable.onComplete(Js.log)
+|> RxReason.Observable.pipe2(
+     RxReason.Operators.onNext(Js.log),
+     RxReason.Operators.onComplete(Js.log),
+   )
 |> ignore;
 
 let promise =
-observable
-  |> RxReason.Observable.mapTo("b")
+  observable
+  |> RxReason.Observable.lift(RxReason.Operators.mapTo("b"))
   |> RxReasonJs.Promise.fromObservable
   |> Js.Promise.then_(a => {
        Js.log(a);

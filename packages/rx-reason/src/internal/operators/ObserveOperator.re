@@ -43,6 +43,3 @@ let operator = {
     context.self;
   };
 };
-
-let lift = (~onNext, ~onComplete, observable) =>
-  observable |> ObservableSource.lift(operator(~onNext, ~onComplete));

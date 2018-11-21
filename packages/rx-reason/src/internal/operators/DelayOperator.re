@@ -138,16 +138,3 @@ let operator = {
     |> Subscriber.addTeardown1(Disposable.dispose, innerSubscription);
   };
 };
-
-let lift =
-    (
-      ~bufferStrategy=?,
-      ~bufferSize=?,
-      ~scheduler,
-      ~delay,
-      observable,
-    ) =>
-  observable
-  |> ObservableSource.lift(
-       operator(~bufferStrategy?, ~bufferSize?, ~scheduler, ~delay),
-     );

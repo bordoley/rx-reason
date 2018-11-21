@@ -14,17 +14,17 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.concat([
-                  Observable.ofRelativeTimeNotifications(
+                Observables.concat([
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
                   ),
-                  Observable.ofList([1, 2, 3]),
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofList([1, 2, 3]),
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
                   ),
-                  Observable.ofList([4, 5, 6]),
+                  Observables.ofList([4, 5, 6]),
                 ]),
             ~expected=[
               Next(7),
@@ -46,14 +46,14 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.concat([
-                  Observable.ofRelativeTimeNotifications(
+                Observables.concat([
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
-                  Observable.raise(Division_by_zero)
-                  |> Observable.delay(~scheduler, ~delay=2.0),
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.raise(Division_by_zero)
+                  |> Observable.lift(Operators.delay(~scheduler, ~delay=2.0)),
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
@@ -111,7 +111,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.ofRelativeTimeNotifications(
+                Observables.ofRelativeTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(1)),
@@ -123,7 +123,9 @@ let test =
                     (18.0, Complete),
                   ],
                 )
-                |> Observable.debounce(~scheduler, ~dueTime=5.0),
+                |> Observable.lift(
+                     Operators.debounce(~scheduler, ~dueTime=5.0),
+                   ),
             ~expected=[Next(3), Next(6), Complete],
             (),
           ),
@@ -135,7 +137,10 @@ let test =
           observableIt(
             "returns the default if empty",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.empty() |> Observable.defaultIfEmpty(1),
+            ~source=
+              _ =>
+                Observables.empty()
+                |> Observable.lift(Operators.defaultIfEmpty(1)),
             ~expected=[Next(1), Complete],
             (),
           ),
@@ -144,7 +149,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 2, 3]) |> Observable.defaultIfEmpty(1),
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.defaultIfEmpty(1)),
             ~expected=[Next(1), Next(2), Next(3), Complete],
             (),
           ),
@@ -157,9 +163,9 @@ let test =
             let count = ref(0);
 
             let observable =
-              Observable.defer(() => {
+              Observables.defer(() => {
                 incr(count);
-                Observable.empty();
+                Observables.empty();
               });
 
             observable |> Observable.subscribe |> ignore;
@@ -177,8 +183,10 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 1, 1, 3, 5, 3, 3, 1])
-                |> Observable.distinctUntilChanged(~equals=(===)),
+                Observables.ofList([1, 1, 1, 3, 5, 3, 3, 1])
+                |> Observable.lift(
+                     Operators.distinctUntilChanged(~equals=(===)),
+                   ),
             ~expected=[
               Next(1),
               Next(3),
@@ -198,7 +206,10 @@ let test =
           observableIt(
             "returns true for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
-            ~source=_ => Observable.empty() |> Observable.every(i => i > 10),
+            ~source=
+              _ =>
+                Observables.empty()
+                |> Observable.lift(Operators.every(i => i > 10)),
             ~expected=[Next(true), Complete],
             (),
           ),
@@ -207,7 +218,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.ofAbsoluteTimeNotifications(
+                Observables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (1.0, Next(12)),
@@ -217,9 +228,11 @@ let test =
                     (6.0, Complete),
                   ],
                 )
-                |> Observable.every(i => i > 10)
-                |> Observable.map(_ =>
-                     scheduler |> Scheduler.now |> int_of_float
+                |> Observable.pipe2(
+                     Operators.every(i => i > 10),
+                     Operators.map(_ =>
+                       scheduler |> Scheduler.now |> int_of_float
+                     ),
                    ),
             ~expected=[Next(2), Complete],
             (),
@@ -229,7 +242,8 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ =>
-                Observable.ofList([12, 13]) |> Observable.every(i => i > 10),
+                Observables.ofList([12, 13])
+                |> Observable.lift(Operators.every(i => i > 10)),
             ~expected=[Next(true), Complete],
             (),
           ),
@@ -244,7 +258,7 @@ let test =
             ~source=
               scheduler => {
                 let childObservableA =
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(1)),
@@ -256,7 +270,7 @@ let test =
                   );
 
                 let childObservableB =
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(5)),
@@ -267,7 +281,7 @@ let test =
                     ],
                   );
 
-                Observable.ofAbsoluteTimeNotifications(
+                Observables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(childObservableA)),
@@ -277,7 +291,7 @@ let test =
                     (75.0, Complete),
                   ],
                 )
-                |> Observable.exhaust;
+                |> Observable.lift(Operators.exhaust);
               },
             ~expected=[
               Next(1),
@@ -302,8 +316,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 3, 10, 6, 8])
-                |> Observable.find(x => x mod 2 === 0),
+                Observables.ofList([1, 3, 10, 6, 8])
+                |> Observable.lift(Operators.find(x => x mod 2 === 0)),
             ~expected=[Next(10), Complete],
             (),
           ),
@@ -315,7 +329,9 @@ let test =
           observableIt(
             "publishes the first observed value",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.ofList([2, 3]) |> Observable.first,
+            ~source=
+              _ =>
+                Observables.ofList([2, 3]) |> Observable.lift(Operators.first),
             ~expected=[Next(2), Complete],
             (),
           ),
@@ -323,14 +339,17 @@ let test =
             "passes through completed exceptions",
             ~nextToString=string_of_int,
             ~source=
-              _ => Observable.raise(Division_by_zero) |> Observable.first,
+              _ =>
+                Observables.raise(Division_by_zero)
+                |> Observable.lift(Operators.first),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           observableIt(
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.empty() |> Observable.first,
+            ~source=
+              _ => Observables.empty() |> Observable.lift(Operators.first),
             ~expected=[CompleteWithException(EmptyException.Exn)],
             (),
           ),
@@ -343,7 +362,10 @@ let test =
             "publishes Some of the first observed value",
             ~nextEquals=Option.equals,
             ~nextToString=Option.toString(~toString=string_of_int),
-            ~source=_ => Observable.ofList([2, 3]) |> Observable.firstOrNone,
+            ~source=
+              _ =>
+                Observables.ofList([2, 3])
+                |> Observable.lift(Operators.firstOrNone),
             ~expected=[Next(Some(2)), Complete],
             (),
           ),
@@ -353,7 +375,8 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-                Observable.raise(Division_by_zero) |> Observable.firstOrNone,
+                Observables.raise(Division_by_zero)
+                |> Observable.lift(Operators.firstOrNone),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -363,9 +386,8 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-                Observable.empty()
-                |> Observable.first
-                |> Observable.firstOrNone,
+                Observables.empty()
+                |> Observable.pipe2(Operators.first, Operators.firstOrNone),
             ~expected=[Next(None), Complete],
             (),
           ),
@@ -379,13 +401,13 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofNotifications([
+                Observables.ofNotifications([
                   Next(1),
                   Next(2),
                   Next(3),
                   CompleteWithException(Division_by_zero),
                 ])
-                |> Observable.ignoreElements,
+                |> Observable.lift(Operators.ignoreElements),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -397,14 +419,17 @@ let test =
           observableIt(
             "return false if not empty",
             ~nextToString=string_of_bool,
-            ~source=_ => Observable.ofValue(1) |> Observable.isEmpty,
+            ~source=
+              _ =>
+                Observables.ofValue(1) |> Observable.lift(Operators.isEmpty),
             ~expected=[Next(false), Complete],
             (),
           ),
           observableIt(
             "return true if empty",
             ~nextToString=string_of_bool,
-            ~source=_ => Observable.empty() |> Observable.isEmpty,
+            ~source=
+              _ => Observables.empty() |> Observable.lift(Operators.isEmpty),
             ~expected=[Next(true), Complete],
             (),
           ),
@@ -418,15 +443,20 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofValue(1)
-                |> Observable.keep(_ => raise(Division_by_zero)),
+                Observables.ofValue(1)
+                |> Observable.lift(
+                     Operators.keep(_ => raise(Division_by_zero)),
+                   ),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           observableIt(
             "completes the subscriber when the keep subscriber is completed",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.ofValue(1) |> Observable.keep(_ => true),
+            ~source=
+              _ =>
+                Observables.ofValue(1)
+                |> Observable.lift(Operators.keep(_ => true)),
             ~expected=[Next(1), Complete],
             (),
           ),
@@ -438,7 +468,10 @@ let test =
           observableIt(
             "publishes the last observed value and disposes",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.ofList([1, 2, 3]) |> Observable.last,
+            ~source=
+              _ =>
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.last),
             ~expected=[Next(3), Complete],
             (),
           ),
@@ -447,20 +480,21 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofNotifications([
+                Observables.ofNotifications([
                   Next(1),
                   Next(2),
                   Next(3),
                   CompleteWithException(Division_by_zero),
                 ])
-                |> Observable.last,
+                |> Observable.lift(Operators.last),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
           observableIt(
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.empty() |> Observable.last,
+            ~source=
+              _ => Observables.empty() |> Observable.lift(Operators.last),
             ~expected=[CompleteWithException(EmptyException.Exn)],
             (),
           ),
@@ -473,7 +507,10 @@ let test =
             "publishes the Some of the last observed value and completes",
             ~nextEquals=Option.equals,
             ~nextToString=Option.toString(~toString=string_of_int),
-            ~source=_ => Observable.ofList([2, 3]) |> Observable.lastOrNone,
+            ~source=
+              _ =>
+                Observables.ofList([2, 3])
+                |> Observable.lift(Operators.lastOrNone),
             ~expected=[Next(Some(3)), Complete],
             (),
           ),
@@ -483,12 +520,12 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-                Observable.ofNotifications([
+                Observables.ofNotifications([
                   Next(1),
                   Next(2),
                   CompleteWithException(Division_by_zero),
                 ])
-                |> Observable.lastOrNone,
+                |> Observable.lift(Operators.lastOrNone),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -498,7 +535,8 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-                Observable.empty() |> Observable.first |> Observable.lastOrNone,
+                Observables.empty()
+                |> Observable.pipe2(Operators.first, Operators.lastOrNone),
             ~expected=[Next(None), Complete],
             (),
           ),
@@ -512,8 +550,10 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 2, 3])
-                |> Observable.map(_ => raise(Division_by_zero)),
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(
+                     Operators.map(_ => raise(Division_by_zero)),
+                   ),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -521,7 +561,9 @@ let test =
             "completes the subscriber when the mapping subscriber is completed",
             ~nextToString=string_of_int,
             ~source=
-              _ => Observable.ofList([1, 2, 3]) |> Observable.map(i => i + 1),
+              _ =>
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.map(i => i + 1)),
             ~expected=[Next(2), Next(3), Next(4), Complete],
             (),
           ),
@@ -534,7 +576,9 @@ let test =
             "maps any input to value",
             ~nextToString=Functions.identity,
             ~source=
-              _ => Observable.ofList([1, 2, 3]) |> Observable.mapTo("a"),
+              _ =>
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.mapTo("a")),
             ~expected=[Next("a"), Next("a"), Next("a"), Complete],
             (),
           ),
@@ -547,7 +591,9 @@ let test =
             "publishes the first observed value",
             ~nextToString=string_of_int,
             ~source=
-              _ => Observable.ofList([1, 2, 3]) |> Observable.maybeFirst,
+              _ =>
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.maybeFirst),
             ~expected=[Next(1), Complete],
             (),
           ),
@@ -556,7 +602,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.raise(Division_by_zero) |> Observable.maybeFirst,
+                Observables.raise(Division_by_zero)
+                |> Observable.lift(Operators.maybeFirst),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -565,7 +612,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.empty() |> Observable.first |> Observable.maybeFirst,
+                Observables.empty()
+                |> Observable.pipe2(Operators.first, Operators.maybeFirst),
             ~expected=[Complete],
             (),
           ),
@@ -577,7 +625,10 @@ let test =
           observableIt(
             "publishes the last observed value",
             ~nextToString=string_of_int,
-            ~source=_ => Observable.ofList([1, 2, 3]) |> Observable.maybeLast,
+            ~source=
+              _ =>
+                Observables.ofList([1, 2, 3])
+                |> Observable.lift(Operators.maybeLast),
             ~expected=[Next(3), Complete],
             (),
           ),
@@ -586,12 +637,12 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofNotifications([
+                Observables.ofNotifications([
                   Next(1),
                   Next(2),
                   CompleteWithException(Division_by_zero),
                 ])
-                |> Observable.maybeLast,
+                |> Observable.lift(Operators.maybeLast),
             ~expected=[CompleteWithException(Division_by_zero)],
             (),
           ),
@@ -600,7 +651,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.empty() |> Observable.first |> Observable.maybeLast,
+                Observables.empty()
+                |> Observable.pipe2(Operators.first, Operators.maybeLast),
             ~expected=[Complete],
             (),
           ),
@@ -614,17 +666,17 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.merge([
-                  Observable.ofAbsoluteTimeNotifications(
+                Observables.merge([
+                  Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
                   ),
-                  Observable.ofList([1, 2, 3]),
-                  Observable.ofAbsoluteTimeNotifications(
+                  Observables.ofList([1, 2, 3]),
+                  Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
                   ),
-                  Observable.ofList([4, 5, 6]),
+                  Observables.ofList([4, 5, 6]),
                 ]),
             ~expected=[
               Next(1),
@@ -646,13 +698,13 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.merge([
-                  Observable.ofAbsoluteTimeNotifications(
+                Observables.merge([
+                  Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(1)), (3.0, Next(2)), (4.0, Complete)],
                   ),
-                  Observable.raise(Division_by_zero)
-                  |> Observable.delay(~scheduler, ~delay=2.0),
+                  Observables.raise(Division_by_zero)
+                  |> Observable.lift(Operators.delay(~scheduler, ~delay=2.0)),
                 ]),
             ~expected=[Next(1), CompleteWithException(Division_by_zero)],
             (),
@@ -670,16 +722,20 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 2])
-                |> Observable.onComplete(Functions.alwaysUnit1),
+                Observables.ofList([1, 2])
+                |> Observable.lift(
+                     Operators.onComplete(Functions.alwaysUnit1),
+                   ),
             ~expected=[Next(1), Next(2), Complete],
             (),
           ),
           it("calls the side effect function", () => {
             let sideEffectCount = ref(0);
 
-            Observable.ofList([1])
-            |> Observable.onComplete(_ => incr(sideEffectCount))
+            Observables.ofList([1])
+            |> Observable.lift(
+                 Operators.onComplete(_ => incr(sideEffectCount)),
+               )
             |> Observable.subscribe
             |> ignore;
 
@@ -695,16 +751,16 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([1, 2])
-                |> Observable.onNext(Functions.alwaysUnit1),
+                Observables.ofList([1, 2])
+                |> Observable.lift(Operators.onNext(Functions.alwaysUnit1)),
             ~expected=[Next(1), Next(2), Complete],
             (),
           ),
           it("calls the side effect function", () => {
             let sideEffectCount = ref(0);
 
-            Observable.ofList([1])
-            |> Observable.onNext(_ => incr(sideEffectCount))
+            Observables.ofList([1])
+            |> Observable.lift(Operators.onNext(_ => incr(sideEffectCount)))
             |> Observable.subscribe
             |> ignore;
 
@@ -738,7 +794,7 @@ let test =
                   subscriber |> Subscriber.next(2);
                   subscriber |> Subscriber.complete(~exn=Division_by_zero);
                 })
-                |> Observable.retry(~predicate);
+                |> Observables.retry(~predicate);
               },
             ~expected=[
               Next(1),
@@ -775,7 +831,7 @@ let test =
                 |> Subscriber.addTeardown1(Disposable.dispose, subscription)
                 |> ignore;
               })
-              |> Observable.retry
+              |> Observables.retry
               |> Observable.subscribe(~onNext=x => result := [x, ...result^]);
 
             let subscriber = subject^;
@@ -798,14 +854,14 @@ let test =
 
             let subscription = ref(Disposable.disposed);
             subscription :=
-              Observable.ofAbsoluteTimeNotifications(
+              Observables.ofAbsoluteTimeNotifications(
                 ~scheduler,
                 [
                   (1.0, Next(5)),
                   (2.0, CompleteWithException(Division_by_zero)),
                 ],
               )
-              |> Observable.retry(~predicate=_ => {
+              |> Observables.retry(~predicate=_ => {
                    subscription^ |> Disposable.dispose;
                    true;
                  })
@@ -826,8 +882,10 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                Observable.ofList([2, 3, 4])
-                |> Observable.scan((acc, next) => acc + next, 0),
+                Observables.ofList([2, 3, 4])
+                |> Observable.lift(
+                     Operators.scan((acc, next) => acc + next, 0),
+                   ),
             ~expected=[Next(0), Next(2), Next(5), Next(9), Complete],
             (),
           ),
@@ -839,7 +897,10 @@ let test =
           observableIt(
             "returns false for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
-            ~source=_ => Observable.empty() |> Observable.some(i => i > 10),
+            ~source=
+              _ =>
+                Observables.empty()
+                |> Observable.lift(Operators.some(i => i > 10)),
             ~expected=[Next(false), Complete],
             (),
           ),
@@ -848,7 +909,8 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ =>
-                Observable.ofList([5, 6, 7]) |> Observable.some(i => i > 10),
+                Observables.ofList([5, 6, 7])
+                |> Observable.lift(Operators.some(i => i > 10)),
             ~expected=[Next(false), Complete],
             (),
           ),
@@ -857,7 +919,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               ({now} as scheduler) =>
-                Observable.ofAbsoluteTimeNotifications(
+                Observables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (1.0, Next(8)),
@@ -868,8 +930,10 @@ let test =
                     (6.0, Complete),
                   ],
                 )
-                |> Observable.some(i => i > 10)
-                |> Observable.map(_ => now() |> int_of_float),
+                |> Observable.pipe2(
+                     Operators.some(i => i > 10),
+                     Operators.map(_ => now() |> int_of_float),
+                   ),
             ~expected=[Next(2), Complete],
             (),
           ),
@@ -883,9 +947,9 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.startWithList(
+                Observables.startWithList(
                   [1, 2, 3],
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [(1.0, Next(4)), (2.0, Next(5)), (3.0, Complete)],
                   ),
@@ -909,7 +973,7 @@ let test =
             "prepends the values",
             ~nextToString=string_of_int,
             ~source=
-              _ => Observable.startWithValue(1, Observable.ofList([2, 3])),
+              _ => Observables.startWithValue(1, Observables.ofList([2, 3])),
             ~expected=[Next(1), Next(2), Next(3), Complete],
             (),
           ),
@@ -925,7 +989,7 @@ let test =
             ~source=
               scheduler => {
                 let childObservableA =
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(1)),
@@ -937,7 +1001,7 @@ let test =
                   );
 
                 let childObservableB =
-                  Observable.ofRelativeTimeNotifications(
+                  Observables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(5)),
@@ -948,7 +1012,7 @@ let test =
                     ],
                   );
 
-                Observable.ofAbsoluteTimeNotifications(
+                Observables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(childObservableA)),
@@ -958,7 +1022,7 @@ let test =
                     (75.0, Complete),
                   ],
                 )
-                |> Observable.switch_;
+                |> Observable.lift(Operators.switch_);
               },
             ~expected=[
               Next(1),
@@ -986,7 +1050,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.ofRelativeTimeNotifications(
+                Observables.ofRelativeTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(1)),
@@ -996,7 +1060,7 @@ let test =
                     (14.0, Complete),
                   ],
                 )
-                |> Observable.timeout(~due=5.0, ~scheduler),
+                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
             ~expected=[Next(1), Next(2), Next(3), Next(4), Complete],
             (),
           ),
@@ -1005,7 +1069,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.ofRelativeTimeNotifications(
+                Observables.ofRelativeTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(1)),
@@ -1015,7 +1079,7 @@ let test =
                     (20.0, Complete),
                   ],
                 )
-                |> Observable.timeout(~due=5.0, ~scheduler),
+                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
             ~expected=[
               Next(1),
               Next(2),
@@ -1034,7 +1098,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                Observable.ofAbsoluteTimeNotifications(
+                Observables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(1)),
@@ -1044,17 +1108,19 @@ let test =
                     (700.0, Complete),
                   ],
                 )
-                |> Observable.withLatestFrom(
-                     ~selector=(a, b) => a + b,
-                     Observable.ofAbsoluteTimeNotifications(
-                       ~scheduler,
-                       [
-                         (100.0, Next(1)),
-                         (250.0, Next(2)),
-                         (300.0, Next(3)),
-                         (450.0, Next(4)),
-                         (500.0, Complete),
-                       ],
+                |> Observable.lift(
+                     Operators.withLatestFrom(
+                       ~selector=(a, b) => a + b,
+                       Observables.ofAbsoluteTimeNotifications(
+                         ~scheduler,
+                         [
+                           (100.0, Next(1)),
+                           (250.0, Next(2)),
+                           (300.0, Next(3)),
+                           (450.0, Next(4)),
+                           (500.0, Complete),
+                         ],
+                       ),
                      ),
                    ),
             ~expected=[Next(3), Next(6), Next(8), Complete],

@@ -4,16 +4,18 @@ open ReUnit.Test;
 let expectObservableToProduce =
     (~nextEquals=(===), ~nextToString, expected, observable) =>
   observable
-  |> Observable.materialize
-  |> Observable.toList
-  |> Observable.onNext(
-       Expect.toBeEqualToListWith(
-         ~equals=Notification.equals(~nextEquals),
-         ~toString=Notification.toString(~nextToString),
-         expected,
+  |> Observable.lift(Operators.materialize)
+  |> Observables.toList
+  |> Observable.pipe2(
+       Operators.onNext(
+         Expect.toBeEqualToListWith(
+           ~equals=Notification.equals(~nextEquals),
+           ~toString=Notification.toString(~nextToString),
+           expected,
+         ),
        ),
+       Operators.first,
      )
-  |> Observable.first
   |> Observable.subscribe(
        ~onComplete=
          fun

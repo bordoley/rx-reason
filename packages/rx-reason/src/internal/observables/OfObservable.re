@@ -34,13 +34,13 @@ let ofList = {
   (~scheduler=?, list) =>
     switch (scheduler) {
     | Some(scheduler) =>
-      ObservableSource.create2(ofListScheduledSource, scheduler, list)
-    | None => ObservableSource.create1(ofListSynchronousSource, list)
+      Observable.create2(ofListScheduledSource, scheduler, list)
+    | None => Observable.create1(ofListSynchronousSource, list)
     };
 };
 
 let ofNotifications = (~scheduler=?, notifications) =>
-  ofList(~scheduler?, notifications) |> DematerializeOperator.lift;
+  ofList(~scheduler?, notifications) |> Observable.lift(DematerializeOperator.operator);
 
 let ofValue = {
   let ofValueSynchronousSource = (value, subscriber) => {
@@ -49,11 +49,11 @@ let ofValue = {
   };
 
   (~scheduler=?, value) => {
-    let source = ObservableSource.create1(ofValueSynchronousSource, value);
+    let source = Observable.create1(ofValueSynchronousSource, value);
 
     switch (scheduler) {
     | Some(scheduler) =>
-      source |> SubscribeOnObservableSource.subscribeOn(scheduler)
+      source |> SubscribeOnObservable.subscribeOn(scheduler)
     | None => source
     };
   };
@@ -95,7 +95,7 @@ let ofRelativeTimeNotifications = {
   };
 
   (~scheduler, notifications) =>
-    ObservableSource.create2(
+    Observable.create2(
       ofRelativeTimeNotificationsScheduledSource,
       scheduler,
       notifications,

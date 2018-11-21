@@ -13,6 +13,3 @@ let operator = {
     };
   };
 };
-
-let lift = (~equals=?, observable) =>
-  observable |> ObservableSource.lift(operator(~equals?));

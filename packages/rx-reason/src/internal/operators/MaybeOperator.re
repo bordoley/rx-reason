@@ -12,5 +12,3 @@ let operator = {
     subscriber
     |> Subscriber.decorate(~onNext=Subscriber.forwardOnNext, ~onComplete);
 };
-
-let lift = observable => observable |> ObservableSource.lift(operator);

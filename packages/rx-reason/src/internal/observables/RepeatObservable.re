@@ -30,7 +30,7 @@ let operator = {
       subscription |> SerialDisposable.getInnerDisposable |> Disposable.dispose;
       let newInnerSubscription =
         observable
-        |> ObservableSource.subscribeWith4(
+        |> Observable.subscribeWith4(
              ~onNext=Subscriber.forwardOnNext3,
              ~onComplete,
              observable,
@@ -58,5 +58,6 @@ let operator = {
   };
 };
 
-let lift = (shouldRepeat, observable) =>
-  observable |> ObservableSource.lift(operator(shouldRepeat, observable));
+let repeat = (predicate, observable) =>
+  observable
+  |> Observable.lift(operator(predicate, observable));

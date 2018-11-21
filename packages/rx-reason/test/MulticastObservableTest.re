@@ -15,7 +15,7 @@ let test =
             ~source=
               scheduler => {
                 let source =
-                  Observable.ofAbsoluteTimeNotifications(
+                  Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(1)),
@@ -28,9 +28,9 @@ let test =
                   |> MulticastObservable.shareWithReplayBuffer(2)
                   |> MulticastObservable.asObservable;
 
-                Observable.merge([
+                Observables.merge([
                   source,
-                  source |> Observable.subscribeOn(~delay=5.0, scheduler),
+                  source |> Observables.subscribeOn(~delay=5.0, scheduler),
                 ]);
               },
             ~expected=[

@@ -3,11 +3,11 @@ let empty = {
     subscriber |> Subscriber.complete;
 
   (~scheduler=?, ()) => {
-    let source = ObservableSource.create(emptySynchronousSource);
+    let source = Observable.create(emptySynchronousSource);
 
     switch (scheduler) {
     | Some(scheduler) =>
-      source |> SubscribeOnObservableSource.subscribeOn(scheduler);
+      source |> SubscribeOnObservable.subscribeOn(scheduler);
     | None => source;
     };
   };

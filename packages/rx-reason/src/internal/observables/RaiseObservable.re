@@ -4,11 +4,11 @@ let raise = {
 
   (~scheduler=?, exn) => {
     let exn = Some(exn);
-    let source = ObservableSource.create1(raiseSynchronousSource, exn);
+    let source = Observable.create1(raiseSynchronousSource, exn);
 
     switch (scheduler) {
     | Some(scheduler) =>
-      source |> SubscribeOnObservableSource.subscribeOn(scheduler);
+      source |> SubscribeOnObservable.subscribeOn(scheduler);
     | None => source;
     };
   };
