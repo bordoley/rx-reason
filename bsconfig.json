@@ -12,11 +12,11 @@
   "bs-dependencies": [
     "reunit",
     "react-re",
+    "react-dom-re",
     "rx-reason",
     "rx-reason-js",
     "rx-react",
     "rx-reason-react-example",
-    "reason-react"
   ],
   "warnings": {
     "number": "-44",
@@ -44,6 +44,9 @@
     },
     {
       "dir": "packages/react-re/src"
+    },
+    {
+      "dir": "packages/react-dom-re/src"
     },
     {
       "dir": "packages/rx-reason/src",

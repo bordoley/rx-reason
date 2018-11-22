@@ -1,9 +1,9 @@
 type props = {
   count: int,
   greeting: string,
-  incrementCount: ReactEvent.Mouse.t => unit,
+  incrementCount: ReactDomEvent.Mouse.t => unit,
   show: bool,
-  toggle: ReactEvent.Mouse.t => unit,
+  toggle: ReactDomEvent.Mouse.t => unit,
 };
 
 module Actions = {

@@ -7,13 +7,46 @@ module Element = {
 };
 
 [@bs.val] [@bs.module "react"]
-external reactCreateElement :
-  (Component.t('props), ~props: Js.t({..})=?) => Element.t =
+external reactCreateElement : (Component.t('props), Js.t({..})) => Element.t =
   "createElement";
 let createElement =
     (component: Component.t('props), props: 'props)
     : Element.t =>
-  reactCreateElement(component, ~props={"reasonProps": props});
+  reactCreateElement(component, {"reasonProps": props});
+
+[@bs.val] [@bs.module "react"]
+external reactCreateElementWithChild :
+  (Component.t('props), Js.t({..}), Element.t) => Element.t =
+  "createElement";
+let createElementWithChild =
+    (component: Component.t('props), props: 'props, child: Element.t)
+    : Element.t =>
+  reactCreateElementWithChild(component, {"reasonProps": props}, child);
+
+[@bs.val] [@bs.module "react"]
+external reactCreateElementWithChildren :
+  (Component.t('props), Js.t({..}), array(Element.t)) => Element.t =
+  "createElement";
+let createElementWithChildren =
+    (
+      component: Component.t('props),
+      props: 'props,
+      children: array(Element.t),
+    )
+    : Element.t => {
+  let childrenLength = Js.Array.length(children);
+
+  switch (childrenLength) {
+  | 0 => createElement(component, props)
+  | 1 => createElementWithChild(component, props, children[0])
+  | _ =>
+    reactCreateElementWithChildren(
+      component,
+      {"reasonProps": props},
+      children,
+    )
+  };
+};
 
 let defaultShouldUpdate =
   (. a: Js.t({..}), b: Js.t({..})) => a##reasonProps === b##reasonProps;
@@ -37,10 +70,21 @@ let memo = (f: 'props => Element.t) : Component.t('props) =>
 type dispose = unit => unit;
 
 [@bs.val] [@bs.module "react"]
-external reactUseEffect : ((. unit) => dispose, array('key)) => unit =
+external reactUseEffect : ((. unit) => dispose) => unit = "useEffect";
+let useEffect = (generator: (. unit) => dispose) =>
+  reactUseEffect(generator);
+
+[@bs.val] [@bs.module "react"]
+external reactUseEffect1 : ((. unit) => dispose, array('key)) => unit =
   "useEffect";
-let useEffect = (generator: (. unit) => dispose, key) =>
-  reactUseEffect(generator, [|key|]);
+let useEffect1 = (generator: (. unit) => dispose, key) =>
+  reactUseEffect1(generator, [|key|]);
+
+[@bs.val] [@bs.module "react"]
+external reactUseEffect2 : ((. unit) => dispose, ('k0, 'k1)) => unit =
+  "useEffect";
+let useEffect2 = (generator: (. unit) => dispose, k0, k1) =>
+  reactUseEffect2(generator, (k0, k1));
 
 [@bs.val] [@bs.module "react"]
 external reactUseMemo : (unit => 't, array('key)) => 't = "useMemo";

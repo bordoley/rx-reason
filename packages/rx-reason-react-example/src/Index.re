@@ -1,4 +1,4 @@
-
+let greeting = Greeting.createElement;
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let observable = promise |> RxReasonJs.Promise.toObservable;
@@ -18,12 +18,16 @@ let promise =
        Js.Promise.resolve();
      });
 
+let statefulComponent = 
+  RxReact.createComponent(~createStateStream=Store.create, greeting);
+let createStatefulElement = React.createElement(statefulComponent);
+
 let state = ref(true);
 Js.Global.setInterval(
   () => {
     Js.log("settting props");
     ReactDom.renderToElementWithId(
-      React.createElement(GreetingComponent.component, state^ ? "true" : "false"),
+      createStatefulElement(state^ ? "true" : "false"),
       "index2"
     );
     state := state^ |> (!);

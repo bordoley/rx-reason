@@ -9,7 +9,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "bs-dependencies": ["react-re", "rx-react", "rx-reason", "rx-reason-js"],
+  "bs-dependencies": ["react-re", "react-dom-re", "rx-react", "rx-reason", "rx-reason-js"],
   "bs-dev-dependencies": [],
   "warnings": {
     "error": "+101"

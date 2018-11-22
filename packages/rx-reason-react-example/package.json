@@ -15,6 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "react-re": "^0.0.0",
+    "react-dom-re": "^0.0.0",
     "rx-react": "^0.0.0",
     "rx-reason": "^0.0.0",
     "rx-reason-js": "^0.0.0"
