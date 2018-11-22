@@ -14,12 +14,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
-    "reason-react": "^0.5.3",
+    "react-re": "^0.0.0",
+    "rx-react": "^0.0.0",
     "rx-reason": "^0.0.0",
-    "rx-reason-js": "^0.0.0",
-    "rx-reason-react": "^0.0.0"
+    "rx-reason-js": "^0.0.0"
   },
   "devDependencies": {
     "bs-platform": "^4.0.7",

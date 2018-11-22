@@ -1,0 +1,41 @@
+{
+  "name": "rx-react",
+  "version": "0.0.0",
+  "description": "rx-reason bindings for ReasonReact",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "ocaml",
+    "react",
+    "reactive",
+    "reason",
+    "reasonml",
+    "rx",
+    "BuckleScript"
+  ],
+  "author": {
+    "name": "David Bordoley",
+    "email": "bordoley@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "David Bordoley",
+      "email": "bordoley@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordoley/rx-reason.git"
+  },
+  "dependencies": {
+    "react-re": "^0.0.0",
+    "rx-reason": "^0.0.0"
+  },
+  "devDependencies": {
+    "bs-platform": "^4.0.7"
+  }
+}

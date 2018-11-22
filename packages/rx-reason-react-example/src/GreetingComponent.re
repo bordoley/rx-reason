@@ -1,18 +1,31 @@
-let component = ReasonReact.statelessComponent("GreetingComponent");
-let make = (~count, ~greeting, ~incrementCount, ~show, ~toggle, _) => {
-  ...component,
-  render: _ => {
-    let message =
-      "You've clicked this " ++ string_of_int(count) ++ " times(s)";
-    <div>
-      <button onClick=incrementCount>
-        (ReasonReact.string(message))
-      </button>
-      <button onClick=toggle>
-        (ReasonReact.string("Toggle greeting"))
-      </button>
-      (show ? ReasonReact.string(greeting) : ReasonReact.null)
-    </div>;
-  },
-};
 
+
+let render =
+  ({count, greeting, incrementCount, show, toggle}: Store.props) => {
+    let message =
+      React.string(
+        "You've clicked this " ++ string_of_int(count) ++ " times(s)",
+      );
+
+    ReactDom.div(
+      ~children=[|
+        ReactDom.button(
+          ~props=ReactDom.props(~onClick=incrementCount, ()),
+          ~children=[|message|],
+          (),
+        ),
+        ReactDom.button(
+          ~props=ReactDom.props(~onClick=toggle, ()),
+          ~children=[|React.string("Toggle greeting")|],
+          (),
+        ),
+        show ? React.string(greeting) : React.null,
+      |],
+      (),
+    );
+  };
+
+  let component = RxReact.createComponent(
+    ~createStateStream=Store.create,
+    render,
+  );

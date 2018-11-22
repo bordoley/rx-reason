@@ -1,11 +1,9 @@
-module State = {
-  type t = {
-    count: int,
-    greeting: string,
-    incrementCount: ReactEvent.Mouse.t => unit,
-    show: bool,
-    toggle: ReactEvent.Mouse.t => unit,
-  };
+type props = {
+  count: int,
+  greeting: string,
+  incrementCount: ReactEvent.Mouse.t => unit,
+  show: bool,
+  toggle: ReactEvent.Mouse.t => unit,
 };
 
 module Actions = {
@@ -15,7 +13,7 @@ module Actions = {
     | SetTitle(string);
 };
 
-let reducer = (state: State.t, action) =>
+let reducer = (state: props, action) =>
   switch (action) {
   | Actions.Click => {...state, count: state.count + 1}
   | Actions.Toggle => {...state, show: ! state.show}
@@ -24,7 +22,7 @@ let reducer = (state: State.t, action) =>
 
 let create =
     (props: RxReason.Observable.t(string))
-    : RxReason.Observable.t(State.t) => {
+    : RxReason.Observable.t(props) => {
   let subject = RxReason.Subject.create();
 
   let actions = subject |> RxReason.Subject.asObservable;
@@ -36,7 +34,7 @@ let create =
 
   let dispatch = (action, _) => subject |> RxReason.Subject.next(action);
 
-  let initialState: State.t = {
+  let initialState: props = {
     count: 0,
     greeting: "",
     incrementCount: dispatch(Actions.Click),

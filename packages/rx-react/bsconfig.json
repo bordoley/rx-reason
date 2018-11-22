@@ -1,5 +1,5 @@
 {
-  "name": "rx-reason-react",
+  "name": "rx-react",
   "package-specs": [
     {
       "module": "commonjs"
@@ -9,13 +9,13 @@
     }
   ],
   "suffix": ".bs.js",
-  "bs-dependencies": ["rx-reason", "rx-reason-js", "reason-react"],
+  "bs-dependencies": ["rx-reason", "react-re"],
   "bs-dev-dependencies": [],
   "warnings": {
     "error": "+101"
   },
   "refmt": 3,
-  "namespace": true,
+  "namespace": false,
   "sources": [
     {
       "dir": "src"

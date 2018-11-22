@@ -11,9 +11,10 @@
   "suffix": ".bs.js",
   "bs-dependencies": [
     "reunit",
+    "react-re",
     "rx-reason",
     "rx-reason-js",
-    "rx-reason-react",
+    "rx-react",
     "rx-reason-react-example",
     "reason-react"
   ],
@@ -40,6 +41,9 @@
           ]
         }
       ]
+    },
+    {
+      "dir": "packages/react-re/src"
     },
     {
       "dir": "packages/rx-reason/src",
@@ -87,7 +91,7 @@
       "dir": "packages/rx-reason-js/src"
     },
     {
-      "dir": "packages/rx-reason-react/src"
+      "dir": "packages/rx-react/src"
     },
     {
       "dir": "packages/rx-reason-react-example/src"

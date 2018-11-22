@@ -47,6 +47,8 @@ let observeOn: Scheduler.t => Operator.t('a, 'a);
 
 let onComplete: (option(exn) => unit) => Operator.t('a, 'a);
 
+let onExn: (exn => unit) => Operator.t('a, 'a);
+
 let onNext: ('a => unit) => Operator.t('a, 'a);
 
 let onSubscribe: (unit => Disposable.t) => Operator.t('a, 'a);
