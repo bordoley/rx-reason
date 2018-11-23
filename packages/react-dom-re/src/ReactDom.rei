@@ -1,5 +1,5 @@
 let createElement:
-  (string, ~key: string=?, ~props: ReactDomProps.t, array(React.Element.t)) =>
+  (string, ~key: string=?, ~props: ReactDomProps.t=?, array(React.Element.t)) =>
   React.Element.t;
 
 external string : string => React.Element.t = "%identity";

@@ -30,7 +30,7 @@ let makeReactProps = (key, props: ReactDomProps.t) => {
 external reactCreateElement : (string, Js.t({..}),) => React.Element.t =
   "createElement";
 let createElementWithNoChildren =
-    (tag: string, ~key: option(string)=?, props: ReactDomProps.t)
+    (tag: string, ~key: option(string)=?, ~props=ReactDomProps.default, ())
     : React.Element.t =>
   reactCreateElement(tag, makeReactProps(key, props));
 
@@ -42,7 +42,7 @@ let createElementWithChild =
     (
       tag: string,
       ~key: option(string)=?,
-      props: 'props,
+      ~props=ReactDomProps.default,
       child: React.Element.t,
     )
     : React.Element.t =>
@@ -56,15 +56,15 @@ let createElement =
     (
       tag: string,
       ~key: option(string)=?,
-      ~props: 'props,
+      ~props=ReactDomProps.default,
       children: array(React.Element.t),
     )
     : React.Element.t => {
   let childrenLength = Js.Array.length(children);
 
   switch (childrenLength) {
-  | 0 => createElementWithNoChildren(tag, ~key?, props)
-  | 1 => createElementWithChild(tag, ~key?, props, children[0])
+  | 0 => createElementWithNoChildren(tag, ~key?, ~props, ())
+  | 1 => createElementWithChild(tag, ~key?, ~props, children[0])
   | _ =>
     reactCreateElementWithChildren(
       tag,

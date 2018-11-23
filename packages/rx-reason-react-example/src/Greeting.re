@@ -1,6 +1,6 @@
-let div = ReactDomElements.div;
-let button = ReactDomElements.button;
-let span = ReactDomElements.span;
+let div = ReactDomElement.div;
+let button = ReactDomElement.button;
+let span = ReactDomElement.span;
 let string = ReactDom.string;
 
 let render = ({count, greeting, incrementCount, show, toggle}: Store.props) =>
