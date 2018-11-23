@@ -12,7 +12,7 @@ let useRxState =
     : state('state) => {
   let (state, setState) = React.useState(Null);
 
-  let propsStream = React.useMemo(RxReason.Subject.create, createStateStream);
+  let propsStream = React.useMemo(RxReason.Subject.create);
 
   React.useEffect1(
     (.) => {
@@ -41,7 +41,7 @@ let useRxState =
 
       () => subscription |> RxReason.Disposable.dispose;
     },
-    createStateStream,
+    (),
   );
 
   React.useEffect1(
@@ -64,8 +64,7 @@ let useRxSideEffects =
     : option(exn) => {
   let (state, setState) = React.useState(None);
 
-  let propsStream =
-    React.useMemo(RxReason.Subject.create, createSideEffectsStream);
+  let propsStream = React.useMemo(RxReason.Subject.create);
 
   React.useEffect1(
     (.) => {
@@ -91,7 +90,7 @@ let useRxSideEffects =
 
       () => subscription |> RxReason.Disposable.dispose;
     },
-    createSideEffectsStream,
+    (),
   );
 
   React.useEffect1(
@@ -105,22 +104,46 @@ let useRxSideEffects =
   state;
 };
 
-let createComponent = (
-  ~createSideEffectsStream=_=>RxReason.Observables.empty(),
-  ~createStateStream=_=>RxReason.Observables.empty(),
-  render,
-): React.Component.t('props) => React.memo(props => {
-  let state = useRxState(createStateStream, props);
-  let sideEffects = useRxSideEffects(createSideEffectsStream, props);
+let createComponent =
+    (
+      ~name=?,
+      ~createSideEffectsStream=_ => RxReason.Observables.empty(),
+      ~createStateStream=_ => RxReason.Observables.empty(),
+      render: (~key: string=?, ~props: 'state, unit) => React.Element.t,
+    )
+    : React.Component.t('props) =>
+  React.Component.create(
+    ~name?,
+    props => {
+      let state = useRxState(createStateStream, props);
+      let sideEffects = useRxSideEffects(createSideEffectsStream, props);
 
-  switch (sideEffects) {
-  | Some(exn) => raise(exn)
-  | _ =>();
-  };
+      switch (sideEffects) {
+      | Some(exn) => raise(exn)
+      | _ => ()
+      };
 
-  switch(state) {
-  | Null => React.null
-  | Error(exn) => raise(exn)
-  | Next(state) => render(state)
-  };
-});
+      switch (state) {
+      | Null => React.Element.null
+      | Error(exn) => raise(exn)
+      | Next(state) => render(~props=state, ())
+      };
+    },
+  );
+
+let createElement =
+    (
+      ~name=?,
+      ~createSideEffectsStream=_ => RxReason.Observables.empty(),
+      ~createStateStream=_ => RxReason.Observables.empty(),
+      render: (~key: string=?, ~props: 'state, unit) => React.Element.t,
+    ) => {
+  let statefulComponent =
+    createComponent(
+      ~name?,
+      ~createSideEffectsStream,
+      ~createStateStream,
+      render,
+    );
+  React.Element.create(statefulComponent);
+};

@@ -18,17 +18,20 @@ let promise =
        Js.Promise.resolve();
      });
 
-let statefulComponent = 
-  RxReact.createComponent(~createStateStream=Store.create, greeting);
-let createStatefulElement = React.createElement(statefulComponent);
+let createStatefulElement =
+  RxReact.createElement(
+    ~name="GreetingStateComponent",
+    ~createStateStream=Store.create,
+    greeting,
+  );
 
 let state = ref(true);
 Js.Global.setInterval(
   () => {
     Js.log("settting props");
     ReactDom.renderToElementWithId(
-      createStatefulElement(state^ ? "true" : "false"),
-      "index2"
+      createStatefulElement(~props=state^ ? "true" : "false", ()),
+      "index2",
     );
     state := state^ |> (!);
   },

@@ -18,6 +18,60 @@ let renderToElementWithId = (reactElement, id) =>
   | Some(element) => render(reactElement, element)
   };
 
-external component : string => React.Component.t(ReactDomProps.t) =
-  "%identity";
+let makeReactProps = (key, props: ReactDomProps.t) => {
+  let keyObj = {"key": key};
+  Js.Obj.assign(
+    Js.Obj.assign(Js.Obj.empty(), Obj.magic(props)), 
+    keyObj
+  );
+};  
 
+[@bs.val] [@bs.module "react"]
+external reactCreateElement : (string, Js.t({..}),) => React.Element.t =
+  "createElement";
+let createElementWithNoChildren =
+    (tag: string, ~key: option(string)=?, props: ReactDomProps.t)
+    : React.Element.t =>
+  reactCreateElement(tag, makeReactProps(key, props));
+
+[@bs.val] [@bs.module "react"]
+external reactCreateElementWithChild :
+  (string, Js.t({..}), React.Element.t) => React.Element.t =
+  "createElement";
+let createElementWithChild =
+    (
+      tag: string,
+      ~key: option(string)=?,
+      props: 'props,
+      child: React.Element.t,
+    )
+    : React.Element.t =>
+  reactCreateElementWithChild(tag, makeReactProps(key, props), child);
+
+[@bs.val] [@bs.module "react"]
+external reactCreateElementWithChildren :
+  (string, Js.t({..}), array(React.Element.t)) => React.Element.t =
+  "createElement";
+let createElement =
+    (
+      tag: string,
+      ~key: option(string)=?,
+      ~props: 'props,
+      children: array(React.Element.t),
+    )
+    : React.Element.t => {
+  let childrenLength = Js.Array.length(children);
+
+  switch (childrenLength) {
+  | 0 => createElementWithNoChildren(tag, ~key?, props)
+  | 1 => createElementWithChild(tag, ~key?, props, children[0])
+  | _ =>
+    reactCreateElementWithChildren(
+      tag,
+      makeReactProps(key, props),
+      children,
+    )
+  };
+};
+
+external string : string => React.Element.t = "%identity";

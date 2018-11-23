@@ -1,6 +1,7 @@
 let div = ReactDomElements.div;
 let button = ReactDomElements.button;
-let string = React.string;
+let span = ReactDomElements.span;
+let string = ReactDom.string;
 
 let render = ({count, greeting, incrementCount, show, toggle}: Store.props) =>
   div([|
@@ -16,9 +17,9 @@ let render = ({count, greeting, incrementCount, show, toggle}: Store.props) =>
       ~props=ReactDomProps.t(~onClick=toggle, ()),
       [|string("Toggle greeting")|],
     ),
-    show ? string(greeting) : React.null,
+    span([|show ? string(greeting) : React.Element.null|]),
   |]);
 
-let component = React.memo(render);
+let component = React.Component.create(~name="Greeting", render);
 
-let createElement = React.createElement(component);
+let createElement = React.Element.create(component);

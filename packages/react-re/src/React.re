@@ -1,71 +1,84 @@
+type component('props);
+type element;
+
 module Component = {
-  type t('props);
-};
+  type t('props) = component('props);
+  [@bs.val]
+  external defineProperty :
+    (Js.t({..}) => element, string, Js.t({..})) => unit =
+    "Object.defineProperty";
 
-module Element = {
-  type t;
-};
+  external reactCreateComponent : (Js.t({..}) => element) => t('props) =
+    "%identity";
 
-[@bs.val] [@bs.module "react"]
-external reactCreateElement : (Component.t('props), Js.t({..})) => Element.t =
-  "createElement";
-let createElement =
-    (component: Component.t('props), props: 'props)
-    : Element.t =>
-  reactCreateElement(component, {"reasonProps": props});
+  let createComponent =
+      (~name: option(string)=?, f: 'props => element)
+      : t('props) => {
+    let component = props => {
+      let props = props##reasonProps;
+      f(props);
+    };
 
-[@bs.val] [@bs.module "react"]
-external reactCreateElementWithChild :
-  (Component.t('props), Js.t({..}), Element.t) => Element.t =
-  "createElement";
-let createElementWithChild =
-    (component: Component.t('props), props: 'props, child: Element.t)
-    : Element.t =>
-  reactCreateElementWithChild(component, {"reasonProps": props}, child);
+    switch (name) {
+    | Some(name) =>
+      defineProperty(component, "name", {"value": name, "writable": false})
+    | _ => ()
+    };
 
-[@bs.val] [@bs.module "react"]
-external reactCreateElementWithChildren :
-  (Component.t('props), Js.t({..}), array(Element.t)) => Element.t =
-  "createElement";
-let createElementWithChildren =
-    (
-      component: Component.t('props),
-      props: 'props,
-      children: array(Element.t),
-    )
-    : Element.t => {
-  let childrenLength = Js.Array.length(children);
+    reactCreateComponent(component);
+  };
 
-  switch (childrenLength) {
-  | 0 => createElement(component, props)
-  | 1 => createElementWithChild(component, props, children[0])
-  | _ =>
-    reactCreateElementWithChildren(
-      component,
-      {"reasonProps": props},
-      children,
-    )
+  [@bs.val] [@bs.module "react"]
+  external reactMemo :
+    (t('props), (. Js.t({..}), Js.t({..})) => bool) => t('props) =
+    "memo";
+
+  let referenceEquality = (a, b) => a === b;
+  let reasonPropsAreReferenceEqual =
+    (. a: Js.t({..}), b: Js.t({..})) => a##reasonProps === b##reasonProps;
+
+  let create =
+      (
+        ~name: option(string)=?,
+        ~areEqual: ('props, 'props) => bool=referenceEquality,
+        f: 'props => element,
+      )
+      : t('props) => {
+    let areEqual =
+      areEqual === referenceEquality ?
+        reasonPropsAreReferenceEqual :
+        (
+          (. a: Js.t({..}), b: Js.t({..})) =>
+            areEqual(Obj.magic(a##reasonProps), Obj.magic(b##reasonProps))
+        );
+    let component = createComponent(~name?, f);
+    reactMemo(component, areEqual);
   };
 };
 
-let defaultShouldUpdate =
-  (. a: Js.t({..}), b: Js.t({..})) => a##reasonProps === b##reasonProps;
+module Element = {
+  type t = element;
 
-[@bs.val] [@bs.module "react"]
-external reactMemo :
-  (Js.t({..}) => Element.t, (. Js.t({..}), Js.t({..})) => bool) =>
-  Component.t('props) =
-  "memo";
-let memo = (f: 'props => Element.t) : Component.t('props) =>
-  reactMemo(
-    props => {
-      let props = props##reasonProps;
-      f(props);
-    },
-    defaultShouldUpdate,
-  );
+  let makeReactProps = (key: option(string), props: 'props) : Js.t({..}) => {
+    "key": key,
+    "reasonProps": props,
+  };
 
-[@bs.val] external null : Element.t = "null";
+  [@bs.val] [@bs.module "react"]
+  external reactCreateElement : (Component.t('props), Js.t({..})) => t =
+    "createElement";
+  let create =
+      (
+        component: Component.t('props),
+        ~key: option(string)=?,
+        ~props: 'props,
+        (),
+      )
+      : t =>
+    reactCreateElement(component, makeReactProps(key, props));
+
+  [@bs.val] external null : t = "null";
+};
 
 type dispose = unit => unit;
 
@@ -87,12 +100,9 @@ let useEffect2 = (generator: (. unit) => dispose, k0, k1) =>
   reactUseEffect2(generator, (k0, k1));
 
 [@bs.val] [@bs.module "react"]
-external reactUseMemo : (unit => 't, array('key)) => 't = "useMemo";
-let useMemo = (generator: unit => 't, key: 'key) =>
-  reactUseMemo(generator, [|key|]);
+external reactUseMemo : (unit => 't) => 't = "useMemo";
+let useMemo = (generator: unit => 't) => reactUseMemo(generator);
 
 [@bs.val] [@bs.module "react"]
 external reactUseState : 'state => ('state, 'state => unit) = "useState";
 let useState = reactUseState;
-
-external string : string => Element.t = "%identity";

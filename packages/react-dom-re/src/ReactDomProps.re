@@ -1,6 +1,5 @@
 [@bs.deriving abstract]
 type t = {
-  [@bs.optional] key: string,
   [@bs.optional] ref: Js.nullable(Dom.element) => unit,
   /* accessibility */
   /* https://www.w3.org/TR/wai-aria-1.1/ */
