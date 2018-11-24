@@ -11,16 +11,21 @@ let ofList = {
   };
 
   let ofListScheduledSource = (scheduler, list, subscriber) => {
-    let rec loop = (list, ~now as _, ~shouldYield as _) =>
+    let rec loop = (list, ~now, ~shouldYield) =>
       switch (list) {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
         subscriber |> Subscriber.complete;
         Scheduler.Result.complete;
       | [hd, ...tail] =>
-        /* FIXME: keep tail recursing until shouldYield is true */
         subscriber |> Subscriber.next(hd);
-        Scheduler.Result.yield(loop(tail));
+        
+        /* Keep pushing values until told to yield */
+        if (shouldYield()) {
+          Scheduler.Result.yield(loop(tail));
+        } else {
+          loop(tail, ~now, ~shouldYield)
+        };
       | [] =>
         subscriber |> Subscriber.complete;
         Scheduler.Result.complete;
