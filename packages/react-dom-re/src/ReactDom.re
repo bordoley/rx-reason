@@ -24,31 +24,13 @@ let makeReactProps = (key, props: ReactDomProps.t) => {
 };
 
 [@bs.val] [@bs.module "react"]
-external reactCreateElement : (string, ~props: Js.t({..})) => React.Element.t =
-  "createElement";
-let createElementWithNoChildren =
-    (tag: string, ~key: option(string)=?, ~props=ReactDomProps.default, ())
-    : React.Element.t =>
-  reactCreateElement(tag, ~props=makeReactProps(key, props));
-
-[@bs.val] [@bs.module "react"]
-external reactCreateElementWithChild :
-  (string, ~props: Js.t({..}), React.Element.t) => React.Element.t =
-  "createElement";
-let createElementWithChild =
-    (
-      tag: string,
-      ~key: option(string)=?,
-      ~props=ReactDomProps.default,
-      child: React.Element.t,
-    )
-    : React.Element.t =>
-  reactCreateElementWithChild(tag, ~props=makeReactProps(key, props), child);
-
-[@bs.val] [@bs.module "react"]
 external reactCreateElementWithChildren :
   (string, ~props: Js.t({..}), array(React.Element.t)) => React.Element.t =
   "createElement";
+
+[@bs.val] [@bs.module "react"]
+external reactCreateElementWithChildrenVariadic : 'a = "createElement";
+
 let createElement =
     (
       tag: string,
@@ -60,8 +42,14 @@ let createElement =
   let childrenLength = Js.Array.length(children);
 
   switch (childrenLength) {
-  | 0 => createElementWithNoChildren(tag, ~key?, ~props, ())
-  | 1 => createElementWithChild(tag, ~key?, ~props, children[0])
+  | _ when childrenLength <= 10 =>
+    /* Suppress missing key warnings in the common case. */
+    let vararg =
+      [|Obj.magic(tag), Obj.magic(props)|] |> Js.Array.concat(children);
+    Obj.magic(reactCreateElementWithChildrenVariadic)##apply(
+      Js.Nullable.null,
+      vararg,
+    );
   | _ =>
     reactCreateElementWithChildren(
       tag,
