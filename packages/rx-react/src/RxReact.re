@@ -109,12 +109,12 @@ let createComponent =
       ~name=?,
       ~createSideEffectsStream=_ => RxReason.Observables.empty(),
       ~createStateStream=_ => RxReason.Observables.empty(),
-      render: (~key: string=?, ~props: 'state, unit) => React.Element.t,
+      render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     )
-    : React.Component.t('props) =>
+    : React.Component.t('props, 'children) =>
   React.Component.create(
     ~name?,
-    props => {
+    (~props, ~children) => {
       let state = useRxState(createStateStream, props);
       let sideEffects = useRxSideEffects(createSideEffectsStream, props);
 
@@ -126,7 +126,7 @@ let createComponent =
       switch (state) {
       | Null => React.Element.null
       | Error(exn) => raise(exn)
-      | Next(state) => render(~props=state, ())
+      | Next(state) => render(~props=state, children)
       };
     },
   );
@@ -136,7 +136,7 @@ let createElement =
       ~name=?,
       ~createSideEffectsStream=_ => RxReason.Observables.empty(),
       ~createStateStream=_ => RxReason.Observables.empty(),
-      render: (~key: string=?, ~props: 'state, unit) => React.Element.t,
+      render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     ) => {
   let statefulComponent =
     createComponent(

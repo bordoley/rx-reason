@@ -1,20 +1,22 @@
 module rec Component: {
-  type t('props);
+  type t('props, 'children);
 
   let create:
     (
       ~name: string=?,
-      ~areEqual: ('props, 'props) => bool=?,
-      'props => Element.t
+      ~arePropsEqual: ('props, 'props) => bool=?,
+      ~areChildrenEqual: ('children, 'children) => bool=?,
+      (~props: 'props, ~children: 'children) => Element.t
     ) =>
-    Component.t('props);
+    Component.t('props, 'children);
 }
 and Element: {
   type t;
 
   let create:
-    (Component.t('props), ~key: string=?, ~props: 'props, unit) => Element.t;
+    (Component.t('props, 'children), ~key: string=?, ~props: 'props, 'children) => Element.t;
 
+  external array : array(t) => t = "%identity";
   [@bs.val] external null : Element.t = "null";
 };
 

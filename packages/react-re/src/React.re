@@ -1,22 +1,27 @@
-type component('props);
+type component('props, 'children);
 type element;
 
 module Component = {
-  type t('props) = component('props);
+  type t('props, 'children) = component('props, 'children);
   [@bs.val]
   external defineProperty :
     (Js.t({..}) => element, string, Js.t({..})) => unit =
     "Object.defineProperty";
 
-  external reactCreateComponent : (Js.t({..}) => element) => t('props) =
+  external reactCreateComponent :
+    (Js.t({..}) => element) => t('props, 'children) =
     "%identity";
 
   let createComponent =
-      (~name: option(string)=?, f: 'props => element)
-      : t('props) => {
-    let component = props => {
-      let props = props##reasonProps;
-      f(props);
+      (
+        ~name: option(string)=?,
+        f: (~props: 'props, ~children: 'children) => element,
+      )
+      : t('props, 'children) => {
+    let component = reactProps => {
+      let props = reactProps##reasonProps;
+      let children = reactProps##reasonChildren;
+      f(~props, ~children);
     };
 
     switch (name) {
@@ -30,26 +35,38 @@ module Component = {
 
   [@bs.val] [@bs.module "react"]
   external reactMemo :
-    (t('props), (. Js.t({..}), Js.t({..})) => bool) => t('props) =
+    (t('props, 'children), (. Js.t({..}), Js.t({..})) => bool) =>
+    t('props, 'children) =
     "memo";
 
   let referenceEquality = (a, b) => a === b;
-  let reasonPropsAreReferenceEqual =
-    (. a: Js.t({..}), b: Js.t({..})) => a##reasonProps === b##reasonProps;
+  let reasonPropsAndChildrenAreReferenceEqual =
+    (. a: Js.t({..}), b: Js.t({..})) =>
+      a##reasonProps === b##reasonProps
+      && a##reasonChildren === b##reasonChildren;
 
   let create =
       (
         ~name: option(string)=?,
-        ~areEqual: ('props, 'props) => bool=referenceEquality,
-        f: 'props => element,
+        ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
+        ~areChildrenEqual: ('children, 'children) => bool=referenceEquality,
+        f: (~props: 'props, ~children: 'children) => element,
       )
-      : t('props) => {
+      : t('props, 'children) => {
     let areEqual =
-      areEqual === referenceEquality ?
-        reasonPropsAreReferenceEqual :
+      arePropsEqual === referenceEquality
+      && areChildrenEqual === referenceEquality ?
+        reasonPropsAndChildrenAreReferenceEqual :
         (
           (. a: Js.t({..}), b: Js.t({..})) =>
-            areEqual(Obj.magic(a##reasonProps), Obj.magic(b##reasonProps))
+            arePropsEqual(
+              Obj.magic(a##reasonProps),
+              Obj.magic(b##reasonProps),
+            )
+            && areChildrenEqual(
+                 Obj.magic(a##reasonChildren),
+                 Obj.magic(b##reasonChildren),
+               )
         );
     let component = createComponent(~name?, f);
     reactMemo(component, areEqual);
@@ -59,24 +76,29 @@ module Component = {
 module Element = {
   type t = element;
 
-  let makeReactProps = (key: option(string), props: 'props) : Js.t({..}) => {
+  let makeReactProps =
+      (key: option(string), props: 'props, children: 'children)
+      : Js.t({..}) => {
     "key": key,
     "reasonProps": props,
+    "reasonChildren": children,
   };
 
   [@bs.val] [@bs.module "react"]
-  external reactCreateElement : (Component.t('props), Js.t({..})) => t =
+  external reactCreateElement :
+    (Component.t('props, 'children), Js.t({..})) => t =
     "createElement";
   let create =
       (
-        component: Component.t('props),
+        component: Component.t('props, 'children),
         ~key: option(string)=?,
         ~props: 'props,
-        (),
+        children,
       )
       : t =>
-    reactCreateElement(component, makeReactProps(key, props));
+    reactCreateElement(component, makeReactProps(key, props, children));
 
+  external array : array(t) => t = "%identity";
   [@bs.val] external null : t = "null";
 };
 
