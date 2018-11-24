@@ -5,7 +5,7 @@ let string = ReactDom.string;
 
 let optional =
   React.Component.createReasonComponent(
-    ~name="optional", (~props: bool, ~children: array(React.Element.t)) =>
+    ~name="Optional", (~props: bool, ~children: array(React.Element.t)) =>
     props ? React.Element.array(children) : React.Element.null
   );
 
