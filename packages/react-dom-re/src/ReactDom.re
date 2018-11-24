@@ -20,23 +20,20 @@ let renderToElementWithId = (reactElement, id) =>
 
 let makeReactProps = (key, props: ReactDomProps.t) => {
   let keyObj = {"key": key};
-  Js.Obj.assign(
-    Js.Obj.assign(Js.Obj.empty(), Obj.magic(props)), 
-    keyObj
-  );
-};  
+  Js.Obj.assign(Js.Obj.assign(Js.Obj.empty(), Obj.magic(props)), keyObj);
+};
 
 [@bs.val] [@bs.module "react"]
-external reactCreateElement : (string, Js.t({..}),) => React.Element.t =
+external reactCreateElement : (string, ~props: Js.t({..})) => React.Element.t =
   "createElement";
 let createElementWithNoChildren =
     (tag: string, ~key: option(string)=?, ~props=ReactDomProps.default, ())
     : React.Element.t =>
-  reactCreateElement(tag, makeReactProps(key, props));
+  reactCreateElement(tag, ~props=makeReactProps(key, props));
 
 [@bs.val] [@bs.module "react"]
 external reactCreateElementWithChild :
-  (string, Js.t({..}), React.Element.t) => React.Element.t =
+  (string, ~props: Js.t({..}), React.Element.t) => React.Element.t =
   "createElement";
 let createElementWithChild =
     (
@@ -46,11 +43,11 @@ let createElementWithChild =
       child: React.Element.t,
     )
     : React.Element.t =>
-  reactCreateElementWithChild(tag, makeReactProps(key, props), child);
+  reactCreateElementWithChild(tag, ~props=makeReactProps(key, props), child);
 
 [@bs.val] [@bs.module "react"]
 external reactCreateElementWithChildren :
-  (string, Js.t({..}), array(React.Element.t)) => React.Element.t =
+  (string, ~props: Js.t({..}), array(React.Element.t)) => React.Element.t =
   "createElement";
 let createElement =
     (
@@ -68,7 +65,7 @@ let createElement =
   | _ =>
     reactCreateElementWithChildren(
       tag,
-      makeReactProps(key, props),
+      ~props=makeReactProps(key, props),
       children,
     )
   };
