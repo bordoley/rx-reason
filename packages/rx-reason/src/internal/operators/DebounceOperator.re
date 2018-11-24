@@ -12,8 +12,11 @@ let operator = {
     };
   };
 
-  let onDebounceScheduled = (debounceSubscription, lastValue, delegate) =>
+  let onDebounceScheduled =
+      (debounceSubscription, lastValue, delegate, ~shouldYield as _) => {
     debounceNext(debounceSubscription, lastValue, delegate);
+    Scheduler.Result.complete;
+  };
 
   let onNext =
       (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
@@ -21,12 +24,9 @@ let operator = {
     MutableOption.set(next, lastValue);
     let schedulerDisposable =
       scheduler
-      |> Scheduler.scheduleAfter3(
+      |> Scheduler.schedule(
            ~delay=dueTime,
-           onDebounceScheduled,
-           debounceSubscription,
-           lastValue,
-           delegate,
+           onDebounceScheduled(debounceSubscription, lastValue, delegate),
          );
 
     debounceSubscription

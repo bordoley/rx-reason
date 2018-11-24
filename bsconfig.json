@@ -17,6 +17,7 @@
     "rx-reason-js",
     "rx-react",
     "rx-reason-react-example",
+    "rx-reason-scheduler-js"
   ],
   "warnings": {
     "number": "-44",
@@ -26,6 +27,7 @@
   "reason": {
     "react-jsx": 2
   },
+  "bsc-flags": ["-rectypes"],
   "sources": [
     {
       "dir": "packages/reunit/src",
@@ -98,6 +100,9 @@
     },
     {
       "dir": "packages/rx-reason-react-example/src"
+    },
+    {
+      "dir": "packages/rx-reason-scheduler-js/src"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "name": "rx-reason-js",
+  "name": "rx-reason-scheduler-js",
   "version": "0.0.0",
-  "description": "rx-reason bindings for ReasonReact",
+  "description": "rx scheduler wrapper for scheduler.js",
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",

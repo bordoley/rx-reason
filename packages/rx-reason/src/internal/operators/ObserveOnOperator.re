@@ -1,10 +1,20 @@
-let onNext = (scheduler, subscriber, next) => {
-  scheduler |> Scheduler.schedule2(Subscriber.forwardOnNext, subscriber, next) |> ignore;
+let forwardOnNext = (subscriber, next, ~shouldYield as _) => {
+  subscriber |> Subscriber.next(next);
+  Scheduler.Result.complete;
 };
 
-let onComplete = (scheduler, subscriber, exn) => {
-  scheduler |> Scheduler.schedule2(Subscriber.forwardOnComplete, subscriber, exn) |> ignore;
+let onNext = (scheduler, subscriber, next) =>
+  scheduler |> Scheduler.schedule(forwardOnNext(subscriber, next)) |> ignore;
+
+let forwardOnComplete = (subscriber, exn, ~shouldYield as _) => {
+  subscriber |> Subscriber.complete(~exn?);
+  Scheduler.Result.complete;
 };
 
-let operator = (scheduler, subscriber) => 
-   subscriber |> Subscriber.decorate1(~onNext, ~onComplete, scheduler);
+let onComplete = (scheduler, subscriber, exn) =>
+  scheduler
+  |> Scheduler.schedule(forwardOnComplete(subscriber, exn))
+  |> ignore;
+
+let operator = (scheduler, subscriber) =>
+  subscriber |> Subscriber.decorate1(~onNext, ~onComplete, scheduler);

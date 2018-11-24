@@ -1,3 +1,5 @@
+let alwaysFalse1 = _ => false;
+
 let alwaysTrue1 = _ => true;
 
 let alwaysUnit1 = _ => ();

@@ -11,21 +11,23 @@ let ofList = {
   };
 
   let ofListScheduledSource = (scheduler, list, subscriber) => {
-    let loop = list =>
+    let rec loop = (list, ~shouldYield as _) =>
       switch (list) {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
         subscriber |> Subscriber.complete;
-        Scheduler.RecursiveResult.done_;
+        Scheduler.Result.complete;
       | [hd, ...tail] =>
+        /* FIXME: keep tail recursing until shouldYield is true */
         subscriber |> Subscriber.next(hd);
-        Scheduler.RecursiveResult.continue(tail);
+        Scheduler.Result.yield(loop(tail));
       | [] =>
         subscriber |> Subscriber.complete;
-        Scheduler.RecursiveResult.done_;
+        Scheduler.Result.complete;
       };
 
-    let schedulerSubscription = scheduler |> Scheduler.scheduleRecursive(~delay=0.0, loop, list);
+    let schedulerSubscription =
+      scheduler |> Scheduler.schedule(~delay=0.0, loop(list));
     subscriber
     |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
     |> ignore;
@@ -40,7 +42,8 @@ let ofList = {
 };
 
 let ofNotifications = (~scheduler=?, notifications) =>
-  ofList(~scheduler?, notifications) |> Observable.lift(DematerializeOperator.operator);
+  ofList(~scheduler?, notifications)
+  |> Observable.lift(DematerializeOperator.operator);
 
 let ofValue = {
   let ofValueSynchronousSource = (value, subscriber) => {
@@ -61,18 +64,25 @@ let ofValue = {
 
 let ofRelativeTimeNotifications = {
   let ofRelativeTimeNotificationsScheduledSource = {
-    let loop = (subscriber, (notif, previousDelay, notifications)) => {
+    let rec loop =
+            (
+              subscriber,
+              notif,
+              previousDelay,
+              notifications,
+              ~shouldYield as _,
+            ) => {
       subscriber |> Subscriber.notify(notif);
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
         let computedDelay = max(0.0, requestedDelay -. previousDelay);
 
-        Scheduler.RecursiveResult.continueAfter(
+        Scheduler.Result.continueAfter(
           ~delay=computedDelay,
-          (notif, requestedDelay, tail),
+          loop(subscriber, notif, requestedDelay, tail),
         );
-      | [] => Scheduler.RecursiveResult.done_
+      | [] => Scheduler.Result.complete
       };
     };
 
@@ -81,12 +91,7 @@ let ofRelativeTimeNotifications = {
       | [(delay, notif), ...tail] =>
         let schedulerSubscription =
           scheduler
-          |> Scheduler.scheduleRecursive1(
-               ~delay,
-               loop,
-               (notif, delay, tail),
-               subscriber,
-             );
+          |> Scheduler.schedule(~delay, loop(subscriber, notif, delay, tail));
         subscriber
         |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
         |> ignore;

@@ -1,17 +1,13 @@
 let subscribeOn = {
-  let doSubscribe = (observable, subscriber) => {
+  let doSubscribe = (observable, subscriber, ~shouldYield as _) => {
     observable |> Observable.subscribeWith(subscriber);
+    Scheduler.Result.complete;
   };
 
   let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
     let schedulerSubscription =
       scheduler
-      |> Scheduler.scheduleAfter2(
-           ~delay,
-           doSubscribe,
-           observable,
-           subscriber,
-         );
+      |> Scheduler.schedule(~delay, doSubscribe(observable, subscriber));
     subscriber
     |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
     |> ignore;

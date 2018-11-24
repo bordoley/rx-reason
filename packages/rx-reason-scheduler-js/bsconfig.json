@@ -1,0 +1,25 @@
+{
+  "name": "rx-reason-scheduler-js",
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
+  "suffix": ".bs.js",
+  "bs-dependencies": ["rx-reason"],
+  "bs-dev-dependencies": [],
+  "bsc-flags": ["-rectypes"],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "namespace": true,
+  "sources": [
+    {
+      "dir": "src"
+    }
+  ]
+}
