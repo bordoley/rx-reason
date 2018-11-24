@@ -9,11 +9,13 @@ let clearInterval = intervalId => Js.Global.clearInterval(intervalId);
 
 let shouldYield = () => false;
 
+let now = () => Js.Date.now();
+
 let rec promiseContinuation = ctx => {
   let (disposable, continuation) = ctx;
 
   if (! RxReason.SerialDisposable.isDisposed(disposable)) {
-    continuation(~shouldYield)
+    continuation(~now, ~shouldYield)
     |> RxReason.Scheduler.Result.continueWith(scheduleInternal(disposable));
   };
 }
@@ -30,7 +32,7 @@ and intervalContinueWithAndSchedulerIfDelayChanged =
 }
 and intervalContinuation = (disposable, delayRef, continuationRef) =>
   if (! RxReason.SerialDisposable.isDisposed(disposable)) {
-    continuationRef^(~shouldYield)
+    continuationRef^(~now, ~shouldYield)
     |> RxReason.Scheduler.Result.continueWith(
          intervalContinueWithAndSchedulerIfDelayChanged(
            disposable,
@@ -56,7 +58,7 @@ and scheduleInternal = (disposable, ~delay, continuation) => {
 };
 
 let scheduler: RxReason.Scheduler.t = {
-  now: Js.Date.now,
+  now,
   schedule: (~delay, continuation) => {
     let disposable = RxReason.SerialDisposable.create();
     scheduleInternal(disposable, ~delay, continuation);

@@ -1,4 +1,4 @@
-let forwardOnNext = (subscriber, next, ~shouldYield as _) => {
+let forwardOnNext = (subscriber, next, ~now as _, ~shouldYield as _) => {
   subscriber |> Subscriber.next(next);
   Scheduler.Result.complete;
 };
@@ -6,7 +6,7 @@ let forwardOnNext = (subscriber, next, ~shouldYield as _) => {
 let onNext = (scheduler, subscriber, next) =>
   scheduler |> Scheduler.schedule(forwardOnNext(subscriber, next)) |> ignore;
 
-let forwardOnComplete = (subscriber, exn, ~shouldYield as _) => {
+let forwardOnComplete = (subscriber, exn, ~now as _, ~shouldYield as _) => {
   subscriber |> Subscriber.complete(~exn?);
   Scheduler.Result.complete;
 };

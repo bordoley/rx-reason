@@ -45,14 +45,16 @@ let create = () => {
     };
   };
 
+  let now = () => currentTime^ |> float_of_int;
+
   let scheduler: Scheduler.t = {
-    now: () => currentTime^ |> float_of_int,
+    now,
     schedule: (~delay, continuation) => {
       let disposable = Disposable.empty();
 
       let rec work = (continuation, ()) =>
         if (! Disposable.isDisposed(disposable)) {
-          continuation(~shouldYield=Functions.alwaysFalse1)
+          continuation(~now, ~shouldYield=Functions.alwaysFalse1)
           |> Scheduler.Result.continueWith(scheduleWork);
         }
       and scheduleWork = (~delay, continuation) =>

@@ -1,5 +1,5 @@
 let subscribeOn = {
-  let doSubscribe = (observable, subscriber, ~shouldYield as _) => {
+  let doSubscribe = (observable, subscriber, ~now as _, ~shouldYield as _) => {
     observable |> Observable.subscribeWith(subscriber);
     Scheduler.Result.complete;
   };

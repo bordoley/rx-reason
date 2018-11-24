@@ -1,4 +1,4 @@
-type continuation = (~shouldYield: unit => bool) => result
+type continuation = (~now: unit => float, ~shouldYield: unit => bool) => result
 and result =
   | Yield(float, continuation)
   | Complete;

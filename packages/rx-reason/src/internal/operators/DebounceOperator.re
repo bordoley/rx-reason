@@ -13,7 +13,7 @@ let operator = {
   };
 
   let onDebounceScheduled =
-      (debounceSubscription, lastValue, delegate, ~shouldYield as _) => {
+      (debounceSubscription, lastValue, delegate, ~now as _, ~shouldYield as _) => {
     debounceNext(debounceSubscription, lastValue, delegate);
     Scheduler.Result.complete;
   };

@@ -11,7 +11,7 @@ let ofList = {
   };
 
   let ofListScheduledSource = (scheduler, list, subscriber) => {
-    let rec loop = (list, ~shouldYield as _) =>
+    let rec loop = (list, ~now as _, ~shouldYield as _) =>
       switch (list) {
       | [hd] =>
         subscriber |> Subscriber.next(hd);
@@ -70,6 +70,7 @@ let ofRelativeTimeNotifications = {
               notif,
               previousDelay,
               notifications,
+              ~now as _,
               ~shouldYield as _,
             ) => {
       subscriber |> Subscriber.notify(notif);

@@ -1,4 +1,6 @@
-module rec Continuation: {type t = (~shouldYield: unit => bool) => Result.t;}
+module rec Continuation: {
+  type t = (~now: unit => float, ~shouldYield: unit => bool) => Result.t;
+}
 and Result: {
   type t;
 
@@ -8,7 +10,8 @@ and Result: {
 
   let continueWith: ((~delay: float, Continuation.t) => unit, t) => unit;
 
-  let flatMapToOption: ((~delay: float, Continuation.t) => option('a), t) => option('a);
+  let flatMapToOption:
+    ((~delay: float, Continuation.t) => option('a), t) => option('a);
 };
 
 type t = {

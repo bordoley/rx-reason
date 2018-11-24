@@ -31,6 +31,7 @@ external setTimeout : ('a, float, 'b, 'c, 'd) => Js.Global.timeoutId =
 
 let cancelCallback = handle => schedulerCancelCallback(handle);
 let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
+let now = () => schedulerNow();
 let scheduleCallback = cb => schedulerScheduleCallback(cb);
 let shouldYield = () => schedulerShouldYield();
 
@@ -41,7 +42,7 @@ let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
     let rec callback =
             (continuation: RxReason.Scheduler.Continuation.t, ())
             : option(callback) =>
-      continuation(~shouldYield)
+      continuation(~now, ~shouldYield)
       |> RxReason.Scheduler.Result.flatMapToOption(resultMapper)
     and resultMapper =
         (~delay: float, continuation: RxReason.Scheduler.Continuation.t)
@@ -105,8 +106,6 @@ let schedule = (priority, ~delay, continuation) => {
   scheduleInternal(disposable, priority, ~delay, continuation);
   disposable |> RxReason.SerialDisposable.asDisposable;
 };
-
-let now = () => schedulerNow();
 
 let immediatePriority: RxReason.Scheduler.t = {
   now,
