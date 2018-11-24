@@ -1,6 +1,36 @@
 type component('props, 'children);
 type element;
 
+module Element = {
+  type t = element;
+
+  let makeReactProps =
+      (key: option(string), props: 'props, children: 'children)
+      : Js.t({..}) => {
+    "key": key,
+    "reasonProps": props,
+    "reasonChildren": children,
+  };
+
+  [@bs.val] [@bs.module "react"]
+  external reactCreateElement :
+    (component('props, 'children), Js.t({..})) => t =
+    "createElement";
+
+  let create =
+      (
+        component: component('props, 'children),
+        ~key: option(string)=?,
+        ~props: 'props,
+        children,
+      )
+      : t =>
+    reactCreateElement(component, makeReactProps(key, props, children));
+
+  external array : array(t) => t = "%identity";
+  [@bs.val] external null : t = "null";
+};
+
 module Component = {
   type t('props, 'children) = component('props, 'children);
   [@bs.val]
@@ -39,13 +69,14 @@ module Component = {
     t('props, 'children) =
     "memo";
 
-  let referenceEquality = (a, b) => a === b;
   let reasonPropsAndChildrenAreReferenceEqual =
     (. a: Js.t({..}), b: Js.t({..})) =>
       a##reasonProps === b##reasonProps
       && a##reasonChildren === b##reasonChildren;
 
-  let create =
+  let referenceEquality = (a, b) => a === b;
+
+  let createReactComponent =
       (
         ~name: option(string)=?,
         ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
@@ -71,35 +102,18 @@ module Component = {
     let component = createComponent(~name?, f);
     reactMemo(component, areEqual);
   };
-};
 
-module Element = {
-  type t = element;
-
-  let makeReactProps =
-      (key: option(string), props: 'props, children: 'children)
-      : Js.t({..}) => {
-    "key": key,
-    "reasonProps": props,
-    "reasonChildren": children,
-  };
-
-  [@bs.val] [@bs.module "react"]
-  external reactCreateElement :
-    (Component.t('props, 'children), Js.t({..})) => t =
-    "createElement";
-  let create =
+  let createReasonComponent =
       (
-        component: Component.t('props, 'children),
-        ~key: option(string)=?,
-        ~props: 'props,
-        children,
-      )
-      : t =>
-    reactCreateElement(component, makeReactProps(key, props, children));
-
-  external array : array(t) => t = "%identity";
-  [@bs.val] external null : t = "null";
+        ~name: option(string)=?,
+        ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
+        ~areChildrenEqual: ('children, 'children) => bool=referenceEquality,
+        f: (~props: 'props, ~children: 'children) => element,
+      ) => {
+    let component =
+      createReactComponent(~name?, ~arePropsEqual, ~areChildrenEqual, f);
+    Element.create(component);
+  };
 };
 
 type dispose = unit => unit;
