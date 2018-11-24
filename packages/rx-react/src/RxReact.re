@@ -7,6 +7,8 @@ let useRxState =
     (
       createStateStream:
         RxReason.Observable.t('props) => RxReason.Observable.t('state),
+      createSideEffectsStream:
+        RxReason.Observable.t('props) => RxReason.Observable.t(unit),
       props: 'props,
     )
     : state('state) => {
@@ -19,75 +21,25 @@ let useRxState =
       let distinctPropsStream =
         propsStream
         |> RxReason.Subject.asObservable
-        |> RxReason.Observable.lift(RxReason.Operators.distinctUntilChanged);
+        |> RxReason.Observable.lift(RxReason.Operators.distinctUntilChanged)
+        |> RxReason.Observables.share;
 
-      let stateStream = createStateStream(distinctPropsStream);
+      let stateStream =
+        createStateStream(distinctPropsStream)
+        |> RxReason.Observable.pipe2(
+             RxReason.Operators.onNext(state => setState(Next(state))),
+             RxReason.Operators.mapTo(),
+           );
 
       let subscription =
-        stateStream
-        |> RxReason.Observable.pipe2(
-             RxReason.Operators.distinctUntilChanged,
-             RxReason.Operators.observe(
-               ~onNext=state => setState(Next(state)),
-               ~onComplete=
-                 exn =>
-                   switch (exn) {
-                   | None => ()
-                   | Some(exn) => setState(Error(exn))
-                   },
-             ),
+        RxReason.Observables.merge([
+          stateStream,
+          createSideEffectsStream(distinctPropsStream),
+        ])
+        |> RxReason.Observable.lift(
+             RxReason.Operators.onExn(exn => setState(Error(exn))),
            )
         |> RxReason.Observable.subscribe;
-
-      () => subscription |> RxReason.Disposable.dispose;
-    },
-    (),
-  );
-
-  React.useEffect1(
-    () => {
-      propsStream |> RxReason.Subject.next(props);
-      () => ();
-    },
-    props,
-  );
-
-  state;
-};
-
-let useRxSideEffects =
-    (
-      createSideEffectsStream:
-        RxReason.Observable.t('props) => RxReason.Observable.t(unit),
-      props: 'props,
-    )
-    : option(exn) => {
-  let (state, setState) = React.useState(None);
-
-  let propsStream = React.useMemo(RxReason.Subject.create);
-
-  React.useEffect1(
-    () => {
-      let distinctPropsStream =
-        propsStream
-        |> RxReason.Subject.asObservable
-        |> RxReason.Observable.lift(RxReason.Operators.distinctUntilChanged);
-
-      let stateStream = createSideEffectsStream(distinctPropsStream);
-
-      let subscription =
-        stateStream
-        |> RxReason.Observable.pipe2(
-             RxReason.Operators.distinctUntilChanged,
-             RxReason.Operators.onComplete(exn =>
-               switch (exn) {
-               | None => ()
-               | Some(_) => setState(exn)
-               }
-             ),
-           )
-        |> RxReason.Observable.subscribe;
-
       () => subscription |> RxReason.Disposable.dispose;
     },
     (),
@@ -115,13 +67,8 @@ let createReactComponent =
   React.Component.createReactComponent(
     ~name?,
     (~props, ~children) => {
-      let state = useRxState(createStateStream, props);
-      let sideEffects = useRxSideEffects(createSideEffectsStream, props);
-
-      switch (sideEffects) {
-      | Some(exn) => raise(exn)
-      | _ => ()
-      };
+      let state =
+        useRxState(createStateStream, createSideEffectsStream, props);
 
       switch (state) {
       | Null => React.Element.null
