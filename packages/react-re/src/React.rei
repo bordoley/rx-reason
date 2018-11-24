@@ -40,9 +40,9 @@ and Element: {
 
 type dispose = unit => unit;
 
-let useEffect: ((. unit) => dispose) => unit;
-let useEffect1: ((. unit) => dispose, 'key) => unit;
-let useEffect2: ((. unit) => dispose, 'key0, 'key1) => unit;
+let useEffect: (unit => dispose) => unit;
+let useEffect1: (unit => dispose, 'key) => unit;
+let useEffect2: (unit => dispose, 'key0, 'key1) => unit;
 
 let useMemo: (unit => 't) => 't;
 let useState: 'state => ('state, 'state => unit);

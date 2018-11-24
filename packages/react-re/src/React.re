@@ -34,8 +34,7 @@ module Element = {
 module Component = {
   type t('props, 'children) = component('props, 'children);
   [@bs.val]
-  external defineProperty :
-    (Js.t({..}) => element, string, Js.t({..})) => unit =
+  external defineProperty : ('a, string, Js.t({..})) => unit =
     "Object.defineProperty";
 
   external reactCreateComponent :
@@ -65,14 +64,14 @@ module Component = {
 
   [@bs.val] [@bs.module "react"]
   external reactMemo :
-    (t('props, 'children), (. Js.t({..}), Js.t({..})) => bool) =>
+    (t('props, 'children), (Js.t({..}), Js.t({..})) => bool) =>
     t('props, 'children) =
     "memo";
 
   let reasonPropsAndChildrenAreReferenceEqual =
-    (. a: Js.t({..}), b: Js.t({..})) =>
-      a##reasonProps === b##reasonProps
-      && a##reasonChildren === b##reasonChildren;
+      (a: Js.t({..}), b: Js.t({..})) =>
+    a##reasonProps === b##reasonProps
+    && a##reasonChildren === b##reasonChildren;
 
   let referenceEquality = (a, b) => a === b;
 
@@ -89,7 +88,7 @@ module Component = {
       && areChildrenEqual === referenceEquality ?
         reasonPropsAndChildrenAreReferenceEqual :
         (
-          (. a: Js.t({..}), b: Js.t({..})) =>
+          (a: Js.t({..}), b: Js.t({..})) =>
             arePropsEqual(
               Obj.magic(a##reasonProps),
               Obj.magic(b##reasonProps),
@@ -119,20 +118,19 @@ module Component = {
 type dispose = unit => unit;
 
 [@bs.val] [@bs.module "react"]
-external reactUseEffect : ((. unit) => dispose) => unit = "useEffect";
-let useEffect = (generator: (. unit) => dispose) =>
-  reactUseEffect(generator);
+external reactUseEffect : (unit => dispose) => unit = "useEffect";
+let useEffect = (generator: unit => dispose) => reactUseEffect(generator);
 
 [@bs.val] [@bs.module "react"]
-external reactUseEffect1 : ((. unit) => dispose, array('key)) => unit =
+external reactUseEffect1 : (unit => dispose, array('key)) => unit =
   "useEffect";
-let useEffect1 = (generator: (. unit) => dispose, key) =>
+let useEffect1 = (generator: unit => dispose, key) =>
   reactUseEffect1(generator, [|key|]);
 
 [@bs.val] [@bs.module "react"]
-external reactUseEffect2 : ((. unit) => dispose, ('k0, 'k1)) => unit =
+external reactUseEffect2 : (unit => dispose, ('k0, 'k1)) => unit =
   "useEffect";
-let useEffect2 = (generator: (. unit) => dispose, k0, k1) =>
+let useEffect2 = (generator: unit => dispose, k0, k1) =>
   reactUseEffect2(generator, (k0, k1));
 
 [@bs.val] [@bs.module "react"]

@@ -15,7 +15,7 @@ let useRxState =
   let propsStream = React.useMemo(RxReason.Subject.create);
 
   React.useEffect1(
-    (.) => {
+    () => {
       let distinctPropsStream =
         propsStream
         |> RxReason.Subject.asObservable
@@ -45,7 +45,7 @@ let useRxState =
   );
 
   React.useEffect1(
-    (.) => {
+    () => {
       propsStream |> RxReason.Subject.next(props);
       () => ();
     },
@@ -67,7 +67,7 @@ let useRxSideEffects =
   let propsStream = React.useMemo(RxReason.Subject.create);
 
   React.useEffect1(
-    (.) => {
+    () => {
       let distinctPropsStream =
         propsStream
         |> RxReason.Subject.asObservable
@@ -94,7 +94,7 @@ let useRxSideEffects =
   );
 
   React.useEffect1(
-    (.) => {
+    () => {
       propsStream |> RxReason.Subject.next(props);
       () => ();
     },
