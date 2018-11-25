@@ -32,9 +32,10 @@ let operator = (scheduler, subscriber) => {
     let yieldRequested = shouldYield();
     if (loopAgain && ! yieldRequested) {
       doWork(~now, ~shouldYield);
+    } else if (Atomic.decr(wip) !== 0) {
+      Scheduler.Result.yield(doWork);
     } else {
-      Atomic.decr(wip) !== 0 ?
-        Scheduler.Result.yield(doWork) : Scheduler.Result.complete;
+      Scheduler.Result.complete;
     };
   };
 
