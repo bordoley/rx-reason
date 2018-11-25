@@ -2,21 +2,21 @@ module rec Continuation: {
   type t = (~now: unit => float, ~shouldYield: unit => bool) => Result.t;
 }
 and Result: {
-  type t;
+  type t =
+    | Yield(Continuation.t)
+    | ContinueAfter(float, Continuation.t)
+    | Complete;
 
   let yield: Continuation.t => t;
   let continueAfter: (~delay: float, Continuation.t) => t;
   let complete: t;
 
-  let continueWith: ((~delay: float, Continuation.t) => unit, t) => unit;
-
-  let flatMapToOption:
-    ((~delay: float, Continuation.t) => option('a), t) => option('a);
+  let continueWith: ((~delay: float=?, Continuation.t) => unit, t) => unit;
 };
 
 type t = {
   now: unit => float,
-  schedule: (~delay: float, Continuation.t) => Disposable.t,
+  schedule: (~delay: float=?, Continuation.t) => Disposable.t,
 };
 
 let now: t => float;

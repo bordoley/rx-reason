@@ -1,6 +1,7 @@
 type continuation = (~now: unit => float, ~shouldYield: unit => bool) => result
 and result =
-  | Yield(float, continuation)
+  | Yield(continuation)
+  | ContinueAfter(float, continuation)
   | Complete;
 
 module Continuation = {
@@ -8,31 +9,31 @@ module Continuation = {
 };
 
 module Result = {
-  type t = result;
-
-  let yield = continuation => Yield(0.0, continuation);
-  let continueAfter = (~delay, continuation) => Yield(delay, continuation);
+  type t = result = 
+    | Yield(continuation)
+    | ContinueAfter(float, continuation)
+    | Complete;
+  
+  let yield = continuation => Yield(continuation);
+  let continueAfter = (~delay, continuation) => ContinueAfter(delay, continuation);
   let complete = Complete;
 
-  let continueWith = (cb, result) =>
-    switch (result) {
-    | Yield(delay, continuation) => cb(~delay, continuation)
-    | _ => ()
-    };
+  type continueWithCb = (~delay: float=?, continuation) => unit;
 
-  let flatMapToOption = (mapper, result) =>
+  let continueWith = (cb: continueWithCb, result) =>
     switch (result) {
-    | Yield(delay, continuation) => mapper(~delay, continuation)
-    | _ => None
+    | Yield(continuation) => cb(continuation)
+    | ContinueAfter(delay, continuation) => cb(~delay, continuation)
+    | _ => ()
     };
 };
 
 type t = {
   now: unit => float,
-  schedule: (~delay: float, Continuation.t) => Disposable.t,
+  schedule: (~delay: float=?, Continuation.t) => Disposable.t,
 };
 
 let now = scheduler => scheduler.now();
 
-let schedule = (~delay=0.0, continuation, scheduler) =>
-  scheduler.schedule(~delay, continuation);
+let schedule = (~delay=?, continuation, scheduler) =>
+  scheduler.schedule(~delay?, continuation);

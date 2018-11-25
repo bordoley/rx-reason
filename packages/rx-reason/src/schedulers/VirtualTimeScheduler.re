@@ -49,7 +49,7 @@ let create = () => {
 
   let scheduler: Scheduler.t = {
     now,
-    schedule: (~delay, continuation) => {
+    schedule: (~delay=?, continuation) => {
       let disposable = Disposable.empty();
 
       let rec work = (continuation, ()) =>
@@ -57,12 +57,12 @@ let create = () => {
           continuation(~now, ~shouldYield=Functions.alwaysFalse1)
           |> Scheduler.Result.continueWith(scheduleWork);
         }
-      and scheduleWork = (~delay, continuation) =>
+      and scheduleWork = (~delay=0.0, continuation) =>
         if (! Disposable.isDisposed(disposable)) {
           schedule(delay, work(continuation));
         };
 
-      scheduleWork(~delay, continuation);
+      scheduleWork(~delay?, continuation);
       disposable;
     },
   };

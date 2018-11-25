@@ -6,7 +6,9 @@ let idlePriority = 5;
 
 type callbackHandle;
 
-type callback = unit => option(callback);
+type fn;
+
+type callback = unit => fn;
 
 [@bs.val] [@bs.module "scheduler"]
 external runWithPriority : (int, unit => 't) => 't =
@@ -17,13 +19,14 @@ external schedulerScheduleCallback : callback => callbackHandle =
   "unstable_scheduleCallback";
 
 [@bs.val] [@bs.module "scheduler"]
-external schedulerCancelCallback : callbackHandle => unit = "unstable_cancelCallback";
+external schedulerCancelCallback : callbackHandle => unit =
+  "unstable_cancelCallback";
 
 [@bs.val] [@bs.module "scheduler"]
 external schedulerShouldYield : unit => bool = "unstable_shouldYield";
 
 [@bs.val] [@bs.module "scheduler"]
-external schedulerNow: unit => float = "unstable_now";
+external schedulerNow : unit => float = "unstable_now";
 
 [@bs.val]
 external setTimeout : ('a, float, 'b, 'c, 'd) => Js.Global.timeoutId =
@@ -32,7 +35,7 @@ external setTimeout : ('a, float, 'b, 'c, 'd) => Js.Global.timeoutId =
 let cancelCallback = handle => schedulerCancelCallback(handle);
 let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 let now = () => schedulerNow();
-let scheduleCallback = cb => schedulerScheduleCallback(cb);
+let scheduleCallback = (cb, ()) => schedulerScheduleCallback(cb);
 let shouldYield = () => schedulerShouldYield();
 
 let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
@@ -41,24 +44,23 @@ let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
   if (! isDisposed) {
     let rec callback =
             (continuation: RxReason.Scheduler.Continuation.t, ())
-            : option(callback) =>
-      continuation(~now, ~shouldYield)
-      |> RxReason.Scheduler.Result.flatMapToOption(resultMapper)
-    and resultMapper =
-        (~delay: float, continuation: RxReason.Scheduler.Continuation.t)
-        : option(callback) =>
-      if (delay > 0.0) {
+            : option(callback) => {
+      let result = continuation(~now, ~shouldYield);
+      
+      switch (result) {
+      | Yield(continuation) => Some(Obj.magic(callback(continuation)))
+      | ContinueAfter(delay, continuation) =>
         scheduleInternal(disposable, priority, ~delay, continuation);
         None;
-      } else {
-        Some(callback(continuation));
+      | Complete => None
       };
+    };
 
     let callbackHandle =
-      runWithPriority(priority, () =>
-        scheduleCallback(callback(continuation))
+      runWithPriority(
+        priority,
+        scheduleCallback(Obj.magic(callback(continuation))),
       );
-
     let innerDisposable =
       RxReason.Disposable.create1(cancelCallback, callbackHandle);
 
@@ -66,20 +68,21 @@ let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
     |> RxReason.SerialDisposable.setInnerDisposable(innerDisposable);
   };
 }
-and scheduleInternal = (disposable, priority, ~delay, continuation) => {
+and scheduleInternal = (disposable, priority, ~delay=?, continuation) => {
   disposable
   |> RxReason.SerialDisposable.getInnerDisposable
   |> RxReason.Disposable.dispose;
 
-  if (delay > 0.0) {
+  switch (delay) {
+  | Some(delay) when delay > 0.0 =>
     /**
      * FIXME: Ideally we'd use the same setInterval trick used in the eventloop scheduler.
-     * To do so would involve sending tracking the elapsed time per interval 
+     * To do so would involve sending tracking the elapsed time per interval
      * and comparing it to the desired delay from the previous executed scheduler action.
      * Using some slosh we could take advantage of an existing setInterval.
      * Might also have to play tricks with keeping track of both the interval's subscription
      * and the scheduler's subscription. Seemed tricky, so use setTimeout instead for now.
-     * 
+     *
      * see:
      * https://github.com/ReactiveX/rxjs/blob/master/src/internal/scheduler/AsyncAction.ts
      */
@@ -96,43 +99,43 @@ and scheduleInternal = (disposable, priority, ~delay, continuation) => {
       RxReason.Disposable.create1(clearTimeout, timeoutId);
     disposable
     |> RxReason.SerialDisposable.setInnerDisposable(innerDisposable);
-  } else {
-    scheduleNowWithPriority(disposable, priority, continuation);
+
+  | _ => scheduleNowWithPriority(disposable, priority, continuation)
   };
 };
 
-let schedule = (priority, ~delay, continuation) => {
+let schedule = (priority, ~delay=?, continuation) => {
   let disposable = RxReason.SerialDisposable.create();
-  scheduleInternal(disposable, priority, ~delay, continuation);
+  scheduleInternal(disposable, priority, ~delay?, continuation);
   disposable |> RxReason.SerialDisposable.asDisposable;
 };
 
 let immediatePriority: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) =>
-    schedule(immediatePriority, ~delay, continuation),
+  schedule: (~delay=?, continuation) =>
+    schedule(immediatePriority, ~delay?, continuation),
 };
 
 let userBlockingPriority: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) =>
-    schedule(userBlockingPriority, ~delay, continuation),
+  schedule: (~delay=?, continuation) =>
+    schedule(userBlockingPriority, ~delay?, continuation),
 };
 
 let normalPriority: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) =>
-    schedule(normalPriority, ~delay, continuation),
+  schedule: (~delay=?, continuation) =>
+    schedule(normalPriority, ~delay?, continuation),
 };
 
 let lowPriority: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) =>
-    schedule(lowPriority, ~delay, continuation),
+  schedule: (~delay=?, continuation) =>
+    schedule(lowPriority, ~delay?, continuation),
 };
 
 let idlePriority: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) =>
-    schedule(idlePriority, ~delay, continuation),
+  schedule: (~delay=?, continuation) =>
+    schedule(idlePriority, ~delay?, continuation),
 };

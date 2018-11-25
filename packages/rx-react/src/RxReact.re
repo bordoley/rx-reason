@@ -21,12 +21,20 @@ let useRxState =
       let distinctPropsStream =
         propsStream
         |> RxReason.Subject.asObservable
-        |> RxReason.Observable.lift(RxReason.Operators.distinctUntilChanged)
+        |> RxReason.Observable.pipe2(
+             RxReason.Operators.distinctUntilChanged,
+             RxReason.Operators.observeOn(
+               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+             ),
+           )
         |> RxReason.Observables.share;
 
       let stateStream =
         createStateStream(distinctPropsStream)
-        |> RxReason.Observable.pipe2(
+        |> RxReason.Observable.pipe3(
+             RxReason.Operators.observeOn(
+               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+             ),
              RxReason.Operators.onNext(state => setState(Next(state))),
              RxReason.Operators.mapTo(),
            );
@@ -36,7 +44,10 @@ let useRxState =
           stateStream,
           createSideEffectsStream(distinctPropsStream),
         ])
-        |> RxReason.Observable.lift(
+        |> RxReason.Observable.pipe2(
+             RxReason.Operators.observeOn(
+               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+             ),
              RxReason.Operators.onExn(exn => setState(Error(exn))),
            )
         |> RxReason.Observable.subscribe;

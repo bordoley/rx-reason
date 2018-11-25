@@ -24,10 +24,10 @@ and scheduleNow = (disposable, continuation) =>
   |> then_(promiseContinuation)
   |> ignore
 and intervalContinueWithAndSchedulerIfDelayChanged =
-    (disposable, delayRef, continuationRef, ~delay, continuation) => {
+    (disposable, delayRef, continuationRef, ~delay=?, continuation) => {
   continuationRef := continuation;
   if (delayRef != delay) {
-    scheduleInternal(disposable, ~delay, continuation);
+    scheduleInternal(disposable, ~delay?, continuation);
   };
 }
 and intervalContinuation = (disposable, delayRef, continuationRef) =>
@@ -41,27 +41,33 @@ and intervalContinuation = (disposable, delayRef, continuationRef) =>
          ),
        );
   }
-and scheduleInternal = (disposable, ~delay, continuation) => {
+and scheduleInternal = (disposable, ~delay=?, continuation) => {
   disposable
   |> RxReason.SerialDisposable.getInnerDisposable
   |> RxReason.Disposable.dispose;
 
-  if (delay > 0.0) {
-    let intervalId = setInterval(intervalContinuation, delay, ref(delay), ref(continuation));
+  switch (delay) {
+  | Some(delay) when delay > 0.0 =>
+    let intervalId =
+      setInterval(
+        intervalContinuation,
+        delay,
+        ref(delay),
+        ref(continuation),
+      );
     let innerDisposable =
       RxReason.Disposable.create1(clearInterval, intervalId);
     disposable
     |> RxReason.SerialDisposable.setInnerDisposable(innerDisposable);
-  } else {
-    scheduleNow(disposable, continuation);
+  | _ => scheduleNow(disposable, continuation)
   };
 };
 
 let scheduler: RxReason.Scheduler.t = {
   now,
-  schedule: (~delay, continuation) => {
+  schedule: (~delay=?, continuation) => {
     let disposable = RxReason.SerialDisposable.create();
-    scheduleInternal(disposable, ~delay, continuation);
+    scheduleInternal(disposable, ~delay?, continuation);
     disposable |> RxReason.SerialDisposable.asDisposable;
   },
 };

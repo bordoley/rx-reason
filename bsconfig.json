@@ -27,7 +27,6 @@
   "reason": {
     "react-jsx": 2
   },
-  "bsc-flags": ["-rectypes"],
   "sources": [
     {
       "dir": "packages/reunit/src",
