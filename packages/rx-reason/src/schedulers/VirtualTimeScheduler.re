@@ -14,10 +14,11 @@ let advance = ({disposable, timeQueue} as vts: t) => {
   switch (Belt.MutableMap.Int.get(timeQueue, currentTime)) {
   | None => ()
   | Some(queue) =>
-    while (! MutableQueue.isEmpty(queue)
-           && ! Disposable.isDisposed(disposable)) {
-      let work = MutableQueue.dequeue(queue);
-      work();
+    while (! Disposable.isDisposed(disposable)) {
+      switch (MutableQueue.dequeue(queue)) {
+      | Some(work) => work()
+      | None => ()
+      };
     }
   };
 
