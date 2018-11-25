@@ -110,31 +110,31 @@ let schedule = (priority, ~delay=?, continuation) => {
   disposable |> RxReason.SerialDisposable.asDisposable;
 };
 
-let immediatePriority: RxReason.Scheduler.t = {
+let immediate: RxReason.Scheduler.t = {
   now,
   schedule: (~delay=?, continuation) =>
     schedule(immediatePriority, ~delay?, continuation),
 };
 
-let userBlockingPriority: RxReason.Scheduler.t = {
+let userBlocking: RxReason.Scheduler.t = {
   now,
   schedule: (~delay=?, continuation) =>
     schedule(userBlockingPriority, ~delay?, continuation),
 };
 
-let normalPriority: RxReason.Scheduler.t = {
+let normal: RxReason.Scheduler.t = {
   now,
   schedule: (~delay=?, continuation) =>
     schedule(normalPriority, ~delay?, continuation),
 };
 
-let lowPriority: RxReason.Scheduler.t = {
+let low: RxReason.Scheduler.t = {
   now,
   schedule: (~delay=?, continuation) =>
     schedule(lowPriority, ~delay?, continuation),
 };
 
-let idlePriority: RxReason.Scheduler.t = {
+let idle: RxReason.Scheduler.t = {
   now,
   schedule: (~delay=?, continuation) =>
     schedule(idlePriority, ~delay?, continuation),

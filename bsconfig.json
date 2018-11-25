@@ -17,7 +17,6 @@
     "rx-reason-js",
     "rx-react",
     "rx-reason-react-example",
-    "rx-reason-scheduler-js"
   ],
   "warnings": {
     "number": "-44",
@@ -100,8 +99,5 @@
     {
       "dir": "packages/rx-reason-react-example/src"
     },
-    {
-      "dir": "packages/rx-reason-scheduler-js/src"
-    }
   ]
 }

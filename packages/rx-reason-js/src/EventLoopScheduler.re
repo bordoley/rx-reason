@@ -7,7 +7,7 @@ external then_ : ([@bs.uncurry] ('a => unit)) => Js.Promise.t(unit) = "then";
 
 let clearInterval = intervalId => Js.Global.clearInterval(intervalId);
 
-let shouldYield = () => false;
+let shouldYield = () => true;
 
 let now = () => Js.Date.now();
 

@@ -34,7 +34,7 @@
   "dependencies": {
     "react-re": "^0.0.0",
     "rx-reason": "^0.0.0",
-    "rx-reason-scheduler-js": "^0.0.0"
+    "rx-reason-js": "^0.0.0"
   },
   "devDependencies": {
     "bs-platform": "^4.0.7"

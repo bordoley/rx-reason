@@ -24,7 +24,7 @@ let useRxState =
         |> RxReason.Observable.pipe2(
              RxReason.Operators.distinctUntilChanged,
              RxReason.Operators.observeOn(
-               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+              RxReasonJs.PriorityScheduler.immediate,
              ),
            )
         |> RxReason.Observables.share;
@@ -33,7 +33,7 @@ let useRxState =
         createStateStream(distinctPropsStream)
         |> RxReason.Observable.pipe3(
              RxReason.Operators.observeOn(
-               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+               RxReasonJs.PriorityScheduler.immediate,
              ),
              RxReason.Operators.onNext(state => setState(Next(state))),
              RxReason.Operators.mapTo(),
@@ -46,7 +46,7 @@ let useRxState =
         ])
         |> RxReason.Observable.pipe2(
              RxReason.Operators.observeOn(
-               RxReasonSchedulerJs.JsScheduler.immediatePriority,
+               RxReasonJs.PriorityScheduler.immediate,
              ),
              RxReason.Operators.onExn(exn => setState(Error(exn))),
            )
