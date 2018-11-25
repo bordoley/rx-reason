@@ -2,9 +2,9 @@ let operator = {
   let onNext = (self, delegate, notif) =>
     switch (notif) {
     | Notification.Next(next) => delegate |> Subscriber.next(next)
-    | Notification.Complete => self^ |> Subscriber.complete
-    | Notification.CompleteWithException(exn) =>
-      self^ |> Subscriber.complete(~exn)
+    | Notification.Complete(None) => self^ |> Subscriber.complete
+    | Notification.Complete(exn) =>
+      self^ |> Subscriber.complete(~exn?)
     };
 
   subscriber => {

@@ -7,12 +7,12 @@ let subscribeOn = {
   let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
     let schedulerSubscription =
       scheduler
-      |> Scheduler.schedule(~delay, doSubscribe(observable, subscriber));
+      |> Scheduler.schedule(~delay?, doSubscribe(observable, subscriber));
     subscriber
     |> Subscriber.addTeardown1(Disposable.dispose, schedulerSubscription)
     |> ignore;
   };
 
-  (~delay=0.0, scheduler, observable) =>
+  (~delay=?, scheduler, observable) =>
     Observable.create3(subscribeOnSource, delay, scheduler, observable);
 };

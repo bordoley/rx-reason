@@ -282,7 +282,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ => Observables.startWithValue(1, Observables.ofList([2, 3])),
-            ~expected=[Next(1), Next(2), Next(3), Complete],
+            ~expected=[Next(1), Next(2), Next(3), RxReason.Notification.complete(None)],
             (),
           ),
         ],

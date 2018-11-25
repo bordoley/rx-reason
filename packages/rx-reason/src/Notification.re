@@ -1,7 +1,15 @@
 type t('a) =
   | Next('a)
-  | Complete
-  | CompleteWithException(exn);
+  | Complete(option(exn));
+
+let completeWithoutExn = Complete(None);
+let complete = exn =>
+  switch (exn) {
+  | Some(_) => Complete(exn)
+  | _ => completeWithoutExn
+  };
+
+let next = next => Next(next);
 
 let equals =
     (
@@ -12,15 +20,15 @@ let equals =
     ) =>
   switch (a, b) {
   | (Next(a), Next(b)) => nextEquals(a, b)
-  | (CompleteWithException(a), CompleteWithException(b)) => exnEquals(a, b)
-  | (Complete, Complete) => true
+  | (Complete(Some(a)), Complete(Some(b))) => exnEquals(a, b)
+  | (Complete(None), Complete(None)) => true
   | _ => false
   };
 
 let toString = (~exnToString=_ => "exn", ~nextToString, notif) =>
   switch (notif) {
   | Next(v) => "Next(" ++ nextToString(v) ++ ")"
-  | CompleteWithException(exn) =>
+  | Complete(Some(exn)) =>
     "CompleteWithException(" ++ exnToString(exn) ++ ")"
-  | Complete => "Complete"
+  | Complete(None) => "Complete"
   };

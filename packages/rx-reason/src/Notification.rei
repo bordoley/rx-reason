@@ -4,8 +4,10 @@
  
 type t('a) =
   | Next('a)
-  | Complete
-  | CompleteWithException(exn);
+  | Complete(option(exn));
+
+let complete: (option(exn)) => t('a);
+let next: 'a => t('a);
 
 let equals:
   (

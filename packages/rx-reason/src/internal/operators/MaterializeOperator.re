@@ -3,11 +3,7 @@ let operator = {
     delegate |> Subscriber.next(Notification.Next(next));
 
   let onComplete = (delegate, exn) => {
-    let next =
-      switch (exn) {
-      | Some(exn) => Notification.CompleteWithException(exn)
-      | None => Notification.Complete
-      };
+    let next = Notification.complete(exn)
     delegate |> Subscriber.next(next);
     delegate |> Subscriber.complete;
   };

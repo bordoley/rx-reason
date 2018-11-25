@@ -854,8 +854,7 @@ let forwardOnNext7 = (_, _, _, _, _, _, _, subscriber, v) =>
 let notify = (notif, subscriber) =>
   switch (notif) {
   | Notification.Next(v) => subscriber |> next(v)
-  | Notification.Complete => subscriber |> complete
-  | Notification.CompleteWithException(exn) => subscriber |> complete(~exn)
+  | Notification.Complete(exn) => subscriber |> complete(~exn?)
   };
 
 let raiseIfDisposed = subscriber =>

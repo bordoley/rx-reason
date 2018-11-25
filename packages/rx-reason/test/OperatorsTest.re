@@ -23,13 +23,13 @@ let test =
                     (15.0, Next(4)),
                     (16.0, Next(5)),
                     (17.0, Next(6)),
-                    (18.0, Complete),
+                    (18.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.lift(
                      Operators.debounce(~scheduler, ~dueTime=5.0),
                    ),
-            ~expected=[Next(3), Next(6), Complete],
+            ~expected=[Next(3), Next(6), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -44,7 +44,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.lift(Operators.defaultIfEmpty(1)),
-            ~expected=[Next(1), Complete],
+            ~expected=[Next(1), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -54,7 +54,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.defaultIfEmpty(1)),
-            ~expected=[Next(1), Next(2), Next(3), Complete],
+            ~expected=[Next(1), Next(2), Next(3), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -77,7 +77,7 @@ let test =
               Next(5),
               Next(3),
               Next(1),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -93,7 +93,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.lift(Operators.every(i => i > 10)),
-            ~expected=[Next(true), Complete],
+            ~expected=[Next(true), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -108,7 +108,7 @@ let test =
                     (2.0, Next(8)),
                     (3.0, Next(14)),
                     (5.0, Next(6)),
-                    (6.0, Complete),
+                    (6.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.pipe2(
@@ -117,7 +117,7 @@ let test =
                        scheduler |> Scheduler.now |> int_of_float
                      ),
                    ),
-            ~expected=[Next(2), Complete],
+            ~expected=[Next(2), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -127,7 +127,7 @@ let test =
               _ =>
                 Observables.ofList([12, 13])
                 |> Observable.lift(Operators.every(i => i > 10)),
-            ~expected=[Next(true), Complete],
+            ~expected=[Next(true), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -148,7 +148,7 @@ let test =
                       (10.0, Next(2)),
                       (20.0, Next(3)),
                       (30.0, Next(4)),
-                      (40.0, Complete),
+                      (40.0, RxReason.Notification.complete(None)),
                     ],
                   );
 
@@ -160,7 +160,7 @@ let test =
                       (10.0, Next(6)),
                       (19.0, Next(7)),
                       (30.0, Next(8)),
-                      (40.0, Complete),
+                      (40.0, RxReason.Notification.complete(None)),
                     ],
                   );
 
@@ -171,7 +171,7 @@ let test =
                     (15.0, Next(childObservableB)),
                     (35.0, Next(childObservableA)),
                     (60.0, Next(childObservableB)),
-                    (75.0, Complete),
+                    (75.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.lift(Operators.exhaust);
@@ -185,7 +185,7 @@ let test =
               Next(6),
               Next(7),
               Next(8),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -201,7 +201,7 @@ let test =
               _ =>
                 Observables.ofList([1, 3, 10, 6, 8])
                 |> Observable.lift(Operators.find(x => x mod 2 === 0)),
-            ~expected=[Next(10), Complete],
+            ~expected=[Next(10), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -216,7 +216,7 @@ let test =
               _ =>
                 Observables.ofList([2, 3])
                 |> Observable.lift(Operators.first),
-            ~expected=[Next(2), Complete],
+            ~expected=[Next(2), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -226,7 +226,7 @@ let test =
               _ =>
                 Observables.raise(Division_by_zero)
                 |> Observable.lift(Operators.first),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -234,7 +234,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ => Observables.empty() |> Observable.lift(Operators.first),
-            ~expected=[CompleteWithException(EmptyException.Exn)],
+            ~expected=[Complete(Some(EmptyException.Exn))],
             (),
           ),
         ],
@@ -250,7 +250,7 @@ let test =
               _ =>
                 Observables.ofList([2, 3])
                 |> Observable.lift(Operators.firstOrNone),
-            ~expected=[Next(Some(2)), Complete],
+            ~expected=[Next(Some(2)), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -261,7 +261,7 @@ let test =
               _ =>
                 Observables.raise(Division_by_zero)
                 |> Observable.lift(Operators.firstOrNone),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some((Division_by_zero)))],
             (),
           ),
           observableIt(
@@ -272,7 +272,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.pipe2(Operators.first, Operators.firstOrNone),
-            ~expected=[Next(None), Complete],
+            ~expected=[Next(None), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -289,10 +289,10 @@ let test =
                   Next(1),
                   Next(2),
                   Next(3),
-                  CompleteWithException(Division_by_zero),
+                  Complete(Some(Division_by_zero)),
                 ])
                 |> Observable.lift(Operators.ignoreElements),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
         ],
@@ -306,7 +306,7 @@ let test =
             ~source=
               _ =>
                 Observables.ofValue(1) |> Observable.lift(Operators.isEmpty),
-            ~expected=[Next(false), Complete],
+            ~expected=[Next(false), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -314,7 +314,7 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ => Observables.empty() |> Observable.lift(Operators.isEmpty),
-            ~expected=[Next(true), Complete],
+            ~expected=[Next(true), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -331,7 +331,7 @@ let test =
                 |> Observable.lift(
                      Operators.keep(_ => raise(Division_by_zero)),
                    ),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -341,7 +341,7 @@ let test =
               _ =>
                 Observables.ofValue(1)
                 |> Observable.lift(Operators.keep(_ => true)),
-            ~expected=[Next(1), Complete],
+            ~expected=[Next(1), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -356,7 +356,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.last),
-            ~expected=[Next(3), Complete],
+            ~expected=[Next(3), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -368,10 +368,10 @@ let test =
                   Next(1),
                   Next(2),
                   Next(3),
-                  CompleteWithException(Division_by_zero),
+                  Complete(Some(Division_by_zero)),
                 ])
                 |> Observable.lift(Operators.last),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -379,7 +379,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ => Observables.empty() |> Observable.lift(Operators.last),
-            ~expected=[CompleteWithException(EmptyException.Exn)],
+            ~expected=[Complete(Some(EmptyException.Exn))],
             (),
           ),
         ],
@@ -395,7 +395,7 @@ let test =
               _ =>
                 Observables.ofList([2, 3])
                 |> Observable.lift(Operators.lastOrNone),
-            ~expected=[Next(Some(3)), Complete],
+            ~expected=[Next(Some(3)), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -407,10 +407,10 @@ let test =
                 Observables.ofNotifications([
                   Next(1),
                   Next(2),
-                  CompleteWithException(Division_by_zero),
+                  Complete(Some(Division_by_zero)),
                 ])
                 |> Observable.lift(Operators.lastOrNone),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -421,7 +421,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.pipe2(Operators.first, Operators.lastOrNone),
-            ~expected=[Next(None), Complete],
+            ~expected=[Next(None), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -438,7 +438,7 @@ let test =
                 |> Observable.lift(
                      Operators.map(_ => raise(Division_by_zero)),
                    ),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -448,7 +448,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.map(i => i + 1)),
-            ~expected=[Next(2), Next(3), Next(4), Complete],
+            ~expected=[Next(2), Next(3), Next(4), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -463,7 +463,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.mapTo("a")),
-            ~expected=[Next("a"), Next("a"), Next("a"), Complete],
+            ~expected=[Next("a"), Next("a"), Next("a"), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -478,7 +478,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.maybeFirst),
-            ~expected=[Next(1), Complete],
+            ~expected=[Next(1), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -488,7 +488,7 @@ let test =
               _ =>
                 Observables.raise(Division_by_zero)
                 |> Observable.lift(Operators.maybeFirst),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -498,7 +498,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.pipe2(Operators.first, Operators.maybeFirst),
-            ~expected=[Complete],
+            ~expected=[RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -513,7 +513,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2, 3])
                 |> Observable.lift(Operators.maybeLast),
-            ~expected=[Next(3), Complete],
+            ~expected=[Next(3), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -524,10 +524,10 @@ let test =
                 Observables.ofNotifications([
                   Next(1),
                   Next(2),
-                  CompleteWithException(Division_by_zero),
+                  Complete(Some(Division_by_zero)),
                 ])
                 |> Observable.lift(Operators.maybeLast),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -537,7 +537,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.pipe2(Operators.first, Operators.maybeLast),
-            ~expected=[Complete],
+            ~expected=[RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -556,7 +556,7 @@ let test =
                 |> Observable.lift(
                      Operators.onComplete(Functions.alwaysUnit1),
                    ),
-            ~expected=[Next(1), Next(2), Complete],
+            ~expected=[Next(1), Next(2), RxReason.Notification.complete(None)],
             (),
           ),
           it("calls the side effect function", () => {
@@ -583,7 +583,7 @@ let test =
               _ =>
                 Observables.ofList([1, 2])
                 |> Observable.lift(Operators.onNext(Functions.alwaysUnit1)),
-            ~expected=[Next(1), Next(2), Complete],
+            ~expected=[Next(1), Next(2), RxReason.Notification.complete(None)],
             (),
           ),
           it("calls the side effect function", () => {
@@ -610,7 +610,7 @@ let test =
                 |> Observable.lift(
                      Operators.scan((acc, next) => acc + next, 0),
                    ),
-            ~expected=[Next(0), Next(2), Next(5), Next(9), Complete],
+            ~expected=[Next(0), Next(2), Next(5), Next(9), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -625,7 +625,7 @@ let test =
               _ =>
                 Observables.empty()
                 |> Observable.lift(Operators.some(i => i > 10)),
-            ~expected=[Next(false), Complete],
+            ~expected=[Next(false), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -635,7 +635,7 @@ let test =
               _ =>
                 Observables.ofList([5, 6, 7])
                 |> Observable.lift(Operators.some(i => i > 10)),
-            ~expected=[Next(false), Complete],
+            ~expected=[Next(false), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
@@ -651,14 +651,14 @@ let test =
                     (3.0, Next(14)),
                     (4.0, Next(6)),
                     (5.0, Next(5)),
-                    (6.0, Complete),
+                    (6.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.pipe2(
                      Operators.some(i => i > 10),
                      Operators.map(_ => now() |> int_of_float),
                    ),
-            ~expected=[Next(2), Complete],
+            ~expected=[Next(2), RxReason.Notification.complete(None)],
             (),
           ),
         ],
@@ -679,7 +679,7 @@ let test =
                       (10.0, Next(2)),
                       (20.0, Next(3)),
                       (30.0, Next(4)),
-                      (40.0, Complete),
+                      (40.0, RxReason.Notification.complete(None)),
                     ],
                   );
 
@@ -691,7 +691,7 @@ let test =
                       (10.0, Next(6)),
                       (19.0, Next(7)),
                       (30.0, Next(8)),
-                      (40.0, Complete),
+                      (40.0, RxReason.Notification.complete(None)),
                     ],
                   );
 
@@ -702,7 +702,7 @@ let test =
                     (15.0, Next(childObservableB)),
                     (35.0, Next(childObservableA)),
                     (60.0, Next(childObservableB)),
-                    (75.0, Complete),
+                    (75.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.lift(Operators.switch_);
@@ -718,7 +718,7 @@ let test =
               Next(3),
               Next(5),
               Next(6),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -740,7 +740,7 @@ let test =
                     (200.0, Next(2)),
                     (400.0, Next(3)),
                     (600.0, Next(4)),
-                    (700.0, Complete),
+                    (700.0, RxReason.Notification.complete(None)),
                   ],
                 )
                 |> Observable.lift(
@@ -753,12 +753,12 @@ let test =
                            (250.0, Next(2)),
                            (300.0, Next(3)),
                            (450.0, Next(4)),
-                           (500.0, Complete),
+                           (500.0, RxReason.Notification.complete(None)),
                          ],
                        ),
                      ),
                    ),
-            ~expected=[Next(3), Next(6), Next(8), Complete],
+            ~expected=[Next(3), Next(6), Next(8), RxReason.Notification.complete(None)],
             (),
           ),
         ],

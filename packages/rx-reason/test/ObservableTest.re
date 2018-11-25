@@ -19,14 +19,14 @@ let test =
                   subscriber |> Subscriber.next(20);
                   subscriber |> Subscriber.complete;
                 }),
-            ~expected=[Next(10), Next(20), Complete],
+            ~expected=[Next(10), Next(20), RxReason.Notification.complete(None)],
             (),
           ),
           observableIt(
             "onSubscribe throws synchronously before completing",
             ~nextToString=string_of_int,
             ~source=_ => Observable.create(_ => raise(Division_by_zero)),
-            ~expected=[CompleteWithException(Division_by_zero)],
+            ~expected=[RxReason.Notification.complete(Some(Division_by_zero))],
             (),
           ),
           it(
