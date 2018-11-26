@@ -2,6 +2,7 @@
 let debounce = DebounceOperator.operator;
 let defaultIfEmpty = DefaultIfEmptyOperator.operator;
 let dematerialize = DematerializeOperator.operator;
+let delay = DelayOperator.operator;
 let distinctUntilChanged = DistinctUntilChangedOperator.operator;
 let every = EveryOperator.operator;
 let exhaust = ExhaustOperator.operator;
@@ -29,4 +30,5 @@ let scan = ScanOperator.operator;
 let some = SomeOperator.operator;
 let switch_ = SwitchOperator.operator;
 let synchronize = SynchronizeOperator.operator;
+let timeout = TimeoutOperator.operator;
 let withLatestFrom = WithLatestFromOperator.operator;

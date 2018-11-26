@@ -5,6 +5,8 @@ let defaultIfEmpty: 'a => Operator.t('a, 'a);
 
 let dematerialize: Operator.t(Notification.t('a), 'a);
 
+let delay: (~scheduler: Scheduler.t, ~delay: float) => Operator.t('a, 'a);
+
 let distinctUntilChanged: (~equals: ('a, 'a) => bool=?) => Operator.t('a, 'a);
 
 let every: ('a => bool) => Operator.t('a, bool);
@@ -60,6 +62,8 @@ let some: ('a => bool) => Operator.t('a, bool);
 let switch_: Operator.t(Observable.t('a), 'a);
 
 let synchronize: Operator.t('a, 'a);
+
+let timeout: (~scheduler: Scheduler.t, ~due: float) => Operator.t('a, 'a);
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, Observable.t('b)) => Operator.t('a, 'c);

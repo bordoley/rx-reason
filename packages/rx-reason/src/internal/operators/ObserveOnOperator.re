@@ -1,17 +1,16 @@
-let schedule = (wip, doWork, scheduler) =>
+let schedule = (wip, doWork, queue, notification, scheduler) => {
+  queue |> MutableQueue.enqueue(notification);
   if (Atomic.incr(wip) === 1) {
     scheduler |> Scheduler.schedule(doWork) |> ignore;
   };
-
-let onNext = (scheduler, wip, doWork, queue, _, next) => {
-  queue |> MutableQueue.enqueue(Notification.Next(next));
-  scheduler |> schedule(wip, doWork);
 };
 
-let onComplete = (scheduler, wip, doWork, queue, _, exn) => {
-  queue |> MutableQueue.enqueue(Notification.Complete(exn));
-  scheduler |> schedule(wip, doWork);
-};
+let onNext = (scheduler, wip, doWork, queue, _, next) =>
+  scheduler |> schedule(wip, doWork, queue, Notification.Next(next));
+
+let onComplete = (scheduler, wip, doWork, queue, _, exn) =>
+  scheduler
+  |> schedule(wip, doWork, queue, Notification.complete(exn));
 
 let operator = (scheduler, subscriber) => {
   let queue = MutableQueue.create();
@@ -20,11 +19,8 @@ let operator = (scheduler, subscriber) => {
   let rec doWork = (~now, ~shouldYield) => {
     let loopAgain =
       switch (MutableQueue.dequeue(queue)) {
-      | Some(Notification.Next(next)) =>
-        subscriber |> Subscriber.next(next);
-        true;
-      | Some(Notification.Complete(exn)) =>
-        subscriber |> Subscriber.complete(~exn?);
+      | Some(notification) =>
+        subscriber |> Subscriber.notify(notification);
         true;
       | _ => false
       };

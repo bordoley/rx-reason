@@ -14,7 +14,9 @@ let enqueue = (scheduledItem, queue) =>
 
 let forEach = (f, queue) => queue |> Js.Array.forEach(f);
 
-/*
-let isEmpty = queue => Js.Array.length(queue) === 0;*/
-
-let peek = queue => queue[0];
+let peek = queue =>
+  if (Js.Array.length(queue) > 0) {
+    Some(queue[0]);
+  } else {
+    None;
+  };
