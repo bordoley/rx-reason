@@ -726,6 +726,54 @@ let test =
       ),
       describe("synchronize", []),
       describe(
+        "timeout",
+        [
+          observableIt(
+            "when timeout does not expire",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observables.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (10.0, Next(4)),
+                    (14.0, RxReason.Notification.complete(None)),
+                  ],
+                )
+                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
+            ~expected=[Next(1), Next(2), Next(3), Next(4), RxReason.Notification.complete(None)],
+            (),
+          ),
+          observableIt(
+            "when timeout expires",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler =>
+                Observables.ofRelativeTimeNotifications(
+                  ~scheduler,
+                  [
+                    (0.0, Next(1)),
+                    (4.0, Next(2)),
+                    (6.0, Next(3)),
+                    (15.0, Next(4)),
+                    (20.0, RxReason.Notification.complete(None)),
+                  ],
+                )
+                |> Observable.lift(Operators.timeout(~due=5.0, ~scheduler)),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              RxReason.Notification.complete(Some(TimeoutException.Exn)),
+            ],
+            (),
+          ),
+        ],
+      ),
+      describe(
         "withLatestFrom",
         [
           observableIt(

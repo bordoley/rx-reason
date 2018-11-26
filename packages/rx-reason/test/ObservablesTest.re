@@ -17,12 +17,12 @@ let test =
                 Observables.concat([
                   Observables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
+                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, RxReason.Notification.complete(None))],
                   ),
                   Observables.ofList([1, 2, 3]),
                   Observables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
+                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, RxReason.Notification.complete(None))],
                   ),
                   Observables.ofList([4, 5, 6]),
                 ]),
@@ -37,7 +37,7 @@ let test =
               Next(4),
               Next(5),
               Next(6),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -74,12 +74,12 @@ let test =
                 Observables.merge([
                   Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, Complete)],
+                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, RxReason.Notification.complete(None))],
                   ),
                   Observables.ofList([1, 2, 3]),
                   Observables.ofAbsoluteTimeNotifications(
                     ~scheduler,
-                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, Complete)],
+                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, RxReason.Notification.complete(None))],
                   ),
                   Observables.ofList([4, 5, 6]),
                 ]),
@@ -94,7 +94,7 @@ let test =
               Next(8),
               Next(9),
               Next(10),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -135,7 +135,7 @@ let test =
               Next(2),
               Next(1),
               Next(2),
-              CompleteWithException(Division_by_zero),
+              RxReason.Notification.complete(Some(Division_by_zero)),
             ],
             (),
           ),
@@ -190,7 +190,7 @@ let test =
                 ~scheduler,
                 [
                   (1.0, Next(5)),
-                  (2.0, CompleteWithException(Division_by_zero)),
+                  (2.0, RxReason.Notification.complete(Some(Division_by_zero))),
                 ],
               )
               |> Observables.retry(~predicate=_ => {
@@ -199,7 +199,7 @@ let test =
                  })
               |> expectObservableToProduce(
                    ~nextToString=string_of_int,
-                   [Next(5), Complete],
+                   [Next(5), RxReason.Notification.complete(None)],
                  );
 
             vts |> VirtualTimeScheduler.run;
@@ -223,7 +223,7 @@ let test =
                       (2.0, Next(2)),
                       (4.0, Next(3)),
                       (6.0, Next(4)),
-                      (9.0, Complete),
+                      (9.0, RxReason.Notification.complete(None)),
                     ],
                   )
                   |> Observables.shareWithReplayBuffer(2)
@@ -241,7 +241,7 @@ let test =
               Next(3),
               Next(4),
               Next(4),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
@@ -259,7 +259,7 @@ let test =
                   [1, 2, 3],
                   Observables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(4)), (2.0, Next(5)), (3.0, Complete)],
+                    [(1.0, Next(4)), (2.0, Next(5)), (3.0, RxReason.Notification.complete(None))],
                   ),
                 ),
             ~expected=[
@@ -268,7 +268,7 @@ let test =
               Next(3),
               Next(4),
               Next(5),
-              Complete,
+              RxReason.Notification.complete(None),
             ],
             (),
           ),
