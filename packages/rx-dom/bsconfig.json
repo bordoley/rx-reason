@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/examples",
+  "name": "@rx-reason/rx-dom",
   "package-specs": [
     {
       "module": "commonjs"
@@ -10,17 +10,8 @@
   ],
   "suffix": ".bs.js",
   "bs-dependencies": [
-    "bs-webapi",
-    "@rx-reason/react",
-    "@rx-reason/react-dom",
     "@rx-reason/rx-core",
-    "@rx-reason/rx-disposables",
-    "@rx-reason/rx-dom",
-    "@rx-reason/rx-js-schedulers",
-    "@rx-reason/rx-observables",
-    "@rx-reason/rx-promise",
-    "@rx-reason/rx-react",
-    "@rx-reason/rx-subject"
+    "@rx-reason/rx-disposables"
   ],
   "bs-dev-dependencies": [],
   "warnings": {

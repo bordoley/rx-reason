@@ -14,10 +14,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "bs-webapi": "^0.13.1",
     "@rx-reason/react": "^0.0.0",
     "@rx-reason/react-dom": "^0.0.0",
     "@rx-reason/rx-core": "^0.0.0",
     "@rx-reason/rx-disposables": "^0.0.0",
+    "@rx-reason/rx-dom": "^0.0.0",
     "@rx-reason/rx-js-schedulers": "^0.0.0",
     "@rx-reason/rx-observables": "^0.0.0",
     "@rx-reason/rx-promise": "^0.0.0",
