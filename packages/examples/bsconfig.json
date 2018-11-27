@@ -27,9 +27,6 @@
     "error": "+101"
   },
   "refmt": 3,
-  "reason": {
-    "react-jsx": 2
-  },
   "sources": {
     "dir": "src",
     "subdirs": true
