@@ -91,37 +91,6 @@ let onNext = (onNext, observable) =>
 let onSubscribe = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.onSubscribe(f));
 
-let pipe2 = (op0, op1, observable) => {
-  let op = subscriber => op0 @@ op1 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
-let pipe3 = (op0, op1, op2, observable) => {
-  let op = subscriber => op0 @@ op1 @@ op2 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
-let pipe4 = (op0, op1, op2, op3, observable) => {
-  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
-let pipe5 = (op0, op1, op2, op3, op4, observable) => {
-  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
-let pipe6 = (op0, op1, op2, op3, op4, op5, observable) => {
-  let op = subscriber => op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
-let pipe7 = (op0, op1, op2, op3, op4, op5, op6, observable) => {
-  let op = subscriber =>
-    op0 @@ op1 @@ op2 @@ op3 @@ op4 @@ op5 @@ op6 @@ subscriber;
-  observable |> RxObservable.lift(op);
-};
-
 let publish = ConnectableObservable.publish;
 let publish1 = ConnectableObservable.publish1;
 let publish2 = ConnectableObservable.publish2;
@@ -206,12 +175,7 @@ let toList = {
   let toListAccumulator = (acc, next) => [next, ...acc];
 
   observable =>
-    observable
-    |> pipe3(
-         ScanOperator.operator(toListAccumulator, []),
-         LastOperator.operator,
-         MapOperator.operator(Lists.rev),
-       );
+    observable |> scan(toListAccumulator, []) |> last |> map(List.rev);
 };
 
 let withLatestFrom = (~selector, other, source) =>

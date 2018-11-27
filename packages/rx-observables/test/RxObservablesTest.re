@@ -17,12 +17,20 @@ let test =
                 RxObservables.concat([
                   RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, RxNotification.complete(None))],
+                    [
+                      (1.0, Next(7)),
+                      (3.0, Next(9)),
+                      (4.0, RxNotification.complete(None)),
+                    ],
                   ),
                   RxObservables.ofList([1, 2, 3]),
                   RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, RxNotification.complete(None))],
+                    [
+                      (2.0, Next(8)),
+                      (4.0, Next(10)),
+                      (5.0, RxNotification.complete(None)),
+                    ],
                   ),
                   RxObservables.ofList([4, 5, 6]),
                 ]),
@@ -50,7 +58,7 @@ let test =
             let count = ref(0);
 
             let observable =
-            RxObservables.defer(() => {
+              RxObservables.defer(() => {
                 incr(count);
                 RxObservables.empty();
               });
@@ -71,15 +79,23 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-              RxObservables.merge([
-                RxObservables.ofAbsoluteTimeNotifications(
+                RxObservables.merge([
+                  RxObservables.ofAbsoluteTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(7)), (3.0, Next(9)), (4.0, RxNotification.complete(None))],
+                    [
+                      (1.0, Next(7)),
+                      (3.0, Next(9)),
+                      (4.0, RxNotification.complete(None)),
+                    ],
                   ),
                   RxObservables.ofList([1, 2, 3]),
                   RxObservables.ofAbsoluteTimeNotifications(
                     ~scheduler,
-                    [(2.0, Next(8)), (4.0, Next(10)), (5.0, RxNotification.complete(None))],
+                    [
+                      (2.0, Next(8)),
+                      (4.0, Next(10)),
+                      (5.0, RxNotification.complete(None)),
+                    ],
                   ),
                   RxObservables.ofList([4, 5, 6]),
                 ]),
@@ -144,26 +160,27 @@ let test =
             let subject = ref(RxSubject.create());
 
             let subscription =
-            RxObservable.create(subscriber => {
+              RxObservable.create(subscriber => {
                 subject := RxSubject.create();
                 let observable = subject^ |> RxSubject.asObservable;
                 let subscription =
                   observable
-                  |> RxObservable.lift(
-                    RxOperators.observe(
-                         ~onNext=next => subscriber |> RxSubscriber.next(next),
-                         ~onComplete=
-                           exn => subscriber |> RxSubscriber.complete(~exn?),
-                       ),
+                  |> RxObservables.observe(
+                       ~onNext=next => subscriber |> RxSubscriber.next(next),
+                       ~onComplete=
+                         exn => subscriber |> RxSubscriber.complete(~exn?),
                      )
                   |> RxObservable.subscribe;
 
                 subscriber
-                |> RxSubscriber.addTeardown1(RxDisposable.dispose, subscription)
+                |> RxSubscriber.addTeardown1(
+                     RxDisposable.dispose,
+                     subscription,
+                   )
                 |> ignore;
               })
               |> RxObservables.retry
-              |> RxObservable.lift(RxOperators.onNext(x => result := [x, ...result^]))
+              |> RxObservables.onNext(x => result := [x, ...result^])
               |> RxObservable.subscribe;
 
             let subscriber = subject^;
@@ -186,7 +203,7 @@ let test =
 
             let subscription = ref(RxDisposable.disposed);
             subscription :=
-            RxObservables.ofAbsoluteTimeNotifications(
+              RxObservables.ofAbsoluteTimeNotifications(
                 ~scheduler,
                 [
                   (1.0, Next(5)),
@@ -216,7 +233,7 @@ let test =
             ~source=
               scheduler => {
                 let source =
-                RxObservables.ofAbsoluteTimeNotifications(
+                  RxObservables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(1)),
@@ -226,9 +243,9 @@ let test =
                       (9.0, RxNotification.complete(None)),
                     ],
                   )
-                  |> RxObservables.shareWithReplayBuffer(2)
+                  |> RxObservables.shareWithReplayBuffer(2);
 
-                  RxObservables.merge([
+                RxObservables.merge([
                   source,
                   source |> RxObservables.subscribeOn(~delay=5.0, scheduler),
                 ]);
@@ -255,11 +272,15 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-              RxObservables.startWithList(
+                RxObservables.startWithList(
                   [1, 2, 3],
                   RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(1.0, Next(4)), (2.0, Next(5)), (3.0, RxNotification.complete(None))],
+                    [
+                      (1.0, Next(4)),
+                      (2.0, Next(5)),
+                      (3.0, RxNotification.complete(None)),
+                    ],
                   ),
                 ),
             ~expected=[
@@ -281,8 +302,17 @@ let test =
             "prepends the values",
             ~nextToString=string_of_int,
             ~source=
-              _ => RxObservables.startWithValue(1, RxObservables.ofList([2, 3])),
-            ~expected=[Next(1), Next(2), Next(3), RxNotification.complete(None)],
+              _ =>
+                RxObservables.startWithValue(
+                  1,
+                  RxObservables.ofList([2, 3]),
+                ),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],

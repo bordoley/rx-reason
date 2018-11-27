@@ -14,7 +14,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-              RxObservables.ofRelativeTimeNotifications(
+                RxObservables.ofRelativeTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(1)),
@@ -26,9 +26,7 @@ let test =
                     (18.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(
-                  RxOperators.debounce(~scheduler, 5.0),
-                   ),
+                |> RxObservables.debounce(~scheduler, 5.0),
             ~expected=[Next(3), Next(6), RxNotification.complete(None)],
             (),
           ),
@@ -42,8 +40,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.empty()
-                |> RxObservable.lift(RxOperators.defaultIfEmpty(1)),
+                RxObservables.empty()
+                |> RxObservables.defaultIfEmpty(1),
             ~expected=[Next(1), RxNotification.complete(None)],
             (),
           ),
@@ -52,9 +50,14 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.defaultIfEmpty(1)),
-            ~expected=[Next(1), Next(2), Next(3), RxNotification.complete(None)],
+                RxObservables.ofList([1, 2, 3])
+                |> RxObservables.defaultIfEmpty(1),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -67,10 +70,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.ofList([1, 1, 1, 3, 5, 3, 3, 1])
-                |> RxObservable.lift(
-                  RxOperators.distinctUntilChanged(~equals=(===)),
-                   ),
+                RxObservables.ofList([1, 1, 1, 3, 5, 3, 3, 1])
+                |> RxObservables.distinctUntilChanged(~equals=(===)),
             ~expected=[
               Next(1),
               Next(3),
@@ -91,8 +92,8 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ =>
-              RxObservables.empty()
-                |> RxObservable.lift(RxOperators.every(i => i > 10)),
+                RxObservables.empty()
+                |> RxObservables.every(i => i > 10),
             ~expected=[Next(true), RxNotification.complete(None)],
             (),
           ),
@@ -101,7 +102,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-              RxObservables.ofAbsoluteTimeNotifications(
+                RxObservables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (1.0, Next(12)),
@@ -111,11 +112,9 @@ let test =
                     (6.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservables.pipe2(
-                  RxOperators.every(i => i > 10),
-                  RxOperators.map(_ =>
-                       scheduler |> RxScheduler.now |> int_of_float
-                     ),
+                |> RxObservables.every(i => i > 10)
+                |> RxObservables.map(_ =>
+                     scheduler |> RxScheduler.now |> int_of_float
                    ),
             ~expected=[Next(2), RxNotification.complete(None)],
             (),
@@ -125,8 +124,8 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ =>
-              RxObservables.ofList([12, 13])
-                |> RxObservable.lift(RxOperators.every(i => i > 10)),
+                RxObservables.ofList([12, 13])
+                |> RxObservables.every(i => i > 10),
             ~expected=[Next(true), RxNotification.complete(None)],
             (),
           ),
@@ -141,7 +140,7 @@ let test =
             ~source=
               scheduler => {
                 let childObservableA =
-                RxObservables.ofRelativeTimeNotifications(
+                  RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(1)),
@@ -153,7 +152,7 @@ let test =
                   );
 
                 let childObservableB =
-                RxObservables.ofRelativeTimeNotifications(
+                  RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
                       (0.0, Next(5)),
@@ -164,7 +163,7 @@ let test =
                     ],
                   );
 
-                  RxObservables.ofAbsoluteTimeNotifications(
+                RxObservables.ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
                     (0.0, Next(childObservableA)),
@@ -174,7 +173,7 @@ let test =
                     (75.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.exhaust);
+                |> RxObservables.exhaust;
               },
             ~expected=[
               Next(1),
@@ -199,8 +198,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.ofList([1, 3, 10, 6, 8])
-                |> RxObservable.lift(RxOperators.find(x => x mod 2 === 0)),
+                RxObservables.ofList([1, 3, 10, 6, 8])
+                |> RxObservables.find(x => x mod 2 === 0),
             ~expected=[Next(10), RxNotification.complete(None)],
             (),
           ),
@@ -214,8 +213,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.ofList([2, 3])
-                |> RxObservable.lift(RxOperators.first),
+                RxObservables.ofList([2, 3])
+                |> RxObservables.first,
             ~expected=[Next(2), RxNotification.complete(None)],
             (),
           ),
@@ -224,8 +223,8 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.raise(Division_by_zero)
-                |> RxObservable.lift(RxOperators.first),
+                RxObservables.raise(Division_by_zero)
+                |> RxObservables.first,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -233,7 +232,8 @@ let test =
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
             ~source=
-              _ => RxObservables.empty() |> RxObservable.lift(RxOperators.first),
+              _ =>
+                RxObservables.empty() |> RxObservables.first,
             ~expected=[Complete(Some(RxEmptyException.Exn))],
             (),
           ),
@@ -248,8 +248,8 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-              RxObservables.ofList([2, 3])
-                |> RxObservable.lift(RxOperators.firstOrNone),
+                RxObservables.ofList([2, 3])
+                |> RxObservables.firstOrNone,
             ~expected=[Next(Some(2)), RxNotification.complete(None)],
             (),
           ),
@@ -259,9 +259,9 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-              RxObservables.raise(Division_by_zero)
-                |> RxObservable.lift(RxOperators.firstOrNone),
-            ~expected=[Complete(Some((Division_by_zero)))],
+                RxObservables.raise(Division_by_zero)
+                |> RxObservables.firstOrNone,
+            ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -270,8 +270,9 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ =>
-              RxObservables.empty()
-                |> RxObservables.pipe2(RxOperators.first, RxOperators.firstOrNone),
+                RxObservables.empty()
+                |> RxObservables.first
+                |> RxObservables.firstOrNone,
             ~expected=[Next(None), RxNotification.complete(None)],
             (),
           ),
@@ -285,13 +286,13 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-              RxObservables.ofNotifications([
+                RxObservables.ofNotifications([
                   Next(1),
                   Next(2),
                   Next(3),
                   Complete(Some(Division_by_zero)),
                 ])
-                |> RxObservable.lift(RxOperators.ignoreElements),
+                |> RxObservables.ignoreElements,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -305,7 +306,8 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ =>
-              RxObservables.ofValue(1) |> RxObservable.lift(RxOperators.isEmpty),
+                RxObservables.ofValue(1)
+                |> RxObservables.isEmpty,
             ~expected=[Next(false), RxNotification.complete(None)],
             (),
           ),
@@ -313,7 +315,9 @@ let test =
             "return true if empty",
             ~nextToString=string_of_bool,
             ~source=
-              _ => RxObservables.empty() |> RxObservable.lift(RxOperators.isEmpty),
+              _ =>
+                RxObservables.empty()
+                |> RxObservables.isEmpty,
             ~expected=[Next(true), RxNotification.complete(None)],
             (),
           ),
@@ -328,9 +332,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofValue(1)
-                |> RxObservable.lift(
-                     RxOperators.keep(_ => raise(Division_by_zero)),
-                   ),
+                |> RxObservables.keep(_ => raise(Division_by_zero)),
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -340,7 +342,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofValue(1)
-                |> RxObservable.lift(RxOperators.keep(_ => true)),
+                |> RxObservables.keep(_ => true),
             ~expected=[Next(1), RxNotification.complete(None)],
             (),
           ),
@@ -355,7 +357,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.last),
+                |> RxObservables.last,
             ~expected=[Next(3), RxNotification.complete(None)],
             (),
           ),
@@ -370,7 +372,7 @@ let test =
                   Next(3),
                   Complete(Some(Division_by_zero)),
                 ])
-                |> RxObservable.lift(RxOperators.last),
+                |> RxObservables.last,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -378,7 +380,8 @@ let test =
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
             ~source=
-              _ => RxObservables.empty() |> RxObservable.lift(RxOperators.last),
+              _ =>
+                RxObservables.empty() |> RxObservables.last,
             ~expected=[Complete(Some(RxEmptyException.Exn))],
             (),
           ),
@@ -392,9 +395,7 @@ let test =
             ~nextEquals=Option.equals,
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
-              _ =>
-                RxObservables.ofList([2, 3])
-                |> RxObservable.lift(RxOperators.lastOrNone),
+              _ => RxObservables.ofList([2, 3]) |> RxObservables.lastOrNone,
             ~expected=[Next(Some(3)), RxNotification.complete(None)],
             (),
           ),
@@ -409,7 +410,7 @@ let test =
                   Next(2),
                   Complete(Some(Division_by_zero)),
                 ])
-                |> RxObservable.lift(RxOperators.lastOrNone),
+                |> RxObservables.lastOrNone,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -420,7 +421,8 @@ let test =
             ~source=
               _ =>
                 RxObservables.empty()
-                |> RxObservables.pipe2(RxOperators.first, RxOperators.lastOrNone),
+                |> RxObservables.first
+                |> RxObservables.lastOrNone,
             ~expected=[Next(None), RxNotification.complete(None)],
             (),
           ),
@@ -435,9 +437,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(
-                     RxOperators.map(_ => raise(Division_by_zero)),
-                   ),
+                |> RxObservables.map(_ => raise(Division_by_zero)),
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -447,8 +447,13 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.map(i => i + 1)),
-            ~expected=[Next(2), Next(3), Next(4), RxNotification.complete(None)],
+                |> RxObservables.map(i => i + 1),
+            ~expected=[
+              Next(2),
+              Next(3),
+              Next(4),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -461,9 +466,13 @@ let test =
             ~nextToString=RxFunctions.identity,
             ~source=
               _ =>
-                RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.mapTo("a")),
-            ~expected=[Next("a"), Next("a"), Next("a"), RxNotification.complete(None)],
+                RxObservables.ofList([1, 2, 3]) |> RxObservables.mapTo("a"),
+            ~expected=[
+              Next("a"),
+              Next("a"),
+              Next("a"),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -476,8 +485,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.maybeFirst),
+                RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeFirst,
             ~expected=[Next(1), RxNotification.complete(None)],
             (),
           ),
@@ -487,7 +495,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.raise(Division_by_zero)
-                |> RxObservable.lift(RxOperators.maybeFirst),
+                |> RxObservables.maybeFirst,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -497,7 +505,8 @@ let test =
             ~source=
               _ =>
                 RxObservables.empty()
-                |> RxObservables.pipe2(RxOperators.first, RxOperators.maybeFirst),
+                |> RxObservables.first
+                |> RxObservables.maybeFirst,
             ~expected=[RxNotification.complete(None)],
             (),
           ),
@@ -510,9 +519,7 @@ let test =
             "publishes the last observed value",
             ~nextToString=string_of_int,
             ~source=
-              _ =>
-                RxObservables.ofList([1, 2, 3])
-                |> RxObservable.lift(RxOperators.maybeLast),
+              _ => RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeLast,
             ~expected=[Next(3), RxNotification.complete(None)],
             (),
           ),
@@ -526,7 +533,7 @@ let test =
                   Next(2),
                   Complete(Some(Division_by_zero)),
                 ])
-                |> RxObservable.lift(RxOperators.maybeLast),
+                |> RxObservables.maybeLast,
             ~expected=[Complete(Some(Division_by_zero))],
             (),
           ),
@@ -536,7 +543,8 @@ let test =
             ~source=
               _ =>
                 RxObservables.empty()
-                |> RxObservables.pipe2(RxOperators.first, RxOperators.maybeLast),
+                |> RxObservables.first
+                |> RxObservables.maybeLast,
             ~expected=[RxNotification.complete(None)],
             (),
           ),
@@ -553,9 +561,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2])
-                |> RxObservable.lift(
-                     RxOperators.onComplete(RxFunctions.alwaysUnit1),
-                   ),
+                |> RxObservables.onComplete(RxFunctions.alwaysUnit1),
             ~expected=[Next(1), Next(2), RxNotification.complete(None)],
             (),
           ),
@@ -563,9 +569,7 @@ let test =
             let sideEffectCount = ref(0);
 
             RxObservables.ofList([1])
-            |> RxObservable.lift(
-                 RxOperators.onComplete(_ => incr(sideEffectCount)),
-               )
+            |> RxObservables.onComplete(_ => incr(sideEffectCount))
             |> RxObservable.subscribe
             |> ignore;
 
@@ -582,7 +586,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2])
-                |> RxObservable.lift(RxOperators.onNext(RxFunctions.alwaysUnit1)),
+                |> RxObservables.onNext(RxFunctions.alwaysUnit1),
             ~expected=[Next(1), Next(2), RxNotification.complete(None)],
             (),
           ),
@@ -590,7 +594,7 @@ let test =
             let sideEffectCount = ref(0);
 
             RxObservables.ofList([1])
-            |> RxObservable.lift(RxOperators.onNext(_ => incr(sideEffectCount)))
+            |> RxObservables.onNext(_ => incr(sideEffectCount))
             |> RxObservable.subscribe
             |> ignore;
 
@@ -607,10 +611,14 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([2, 3, 4])
-                |> RxObservable.lift(
-                     RxOperators.scan((acc, next) => acc + next, 0),
-                   ),
-            ~expected=[Next(0), Next(2), Next(5), Next(9), RxNotification.complete(None)],
+                |> RxObservables.scan((acc, next) => acc + next, 0),
+            ~expected=[
+              Next(0),
+              Next(2),
+              Next(5),
+              Next(9),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -622,9 +630,7 @@ let test =
             "returns false for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
             ~source=
-              _ =>
-                RxObservables.empty()
-                |> RxObservable.lift(RxOperators.some(i => i > 10)),
+              _ => RxObservables.empty() |> RxObservables.some(i => i > 10),
             ~expected=[Next(false), RxNotification.complete(None)],
             (),
           ),
@@ -634,7 +640,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([5, 6, 7])
-                |> RxObservable.lift(RxOperators.some(i => i > 10)),
+                |> RxObservables.some(i => i > 10),
             ~expected=[Next(false), RxNotification.complete(None)],
             (),
           ),
@@ -654,10 +660,8 @@ let test =
                     (6.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservables.pipe2(
-                     RxOperators.some(i => i > 10),
-                     RxOperators.map(_ => now() |> int_of_float),
-                   ),
+                |> RxObservables.some(i => i > 10)
+                |> RxObservables.map(_ => now() |> int_of_float),
             ~expected=[Next(2), RxNotification.complete(None)],
             (),
           ),
@@ -705,7 +709,7 @@ let test =
                     (75.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.switch_);
+                |> RxObservables.switch_;
               },
             ~expected=[
               Next(1),
@@ -743,8 +747,14 @@ let test =
                     (14.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.timeout(~scheduler, 5.0)),
-            ~expected=[Next(1), Next(2), Next(3), Next(4), RxNotification.complete(None)],
+                |> RxObservables.timeout(~scheduler, 5.0),
+            ~expected=[
+              Next(1),
+              Next(2),
+              Next(3),
+              Next(4),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -762,7 +772,7 @@ let test =
                     (20.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.timeout(~scheduler, 5.0)),
+                |> RxObservables.timeout(~scheduler, 5.0),
             ~expected=[
               Next(1),
               Next(2),
@@ -791,25 +801,28 @@ let test =
                     (700.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(
-                     RxOperators.withLatestFrom(
-                       ~selector=(a, b) => a + b,
-                       RxObservables.ofAbsoluteTimeNotifications(
-                         ~scheduler,
-                         [
-                           (100.0, Next(1)),
-                           (250.0, Next(2)),
-                           (300.0, Next(3)),
-                           (450.0, Next(4)),
-                           (500.0, RxNotification.complete(None)),
-                         ],
-                       ),
+                |> RxObservables.withLatestFrom(
+                     ~selector=(a, b) => a + b,
+                     RxObservables.ofAbsoluteTimeNotifications(
+                       ~scheduler,
+                       [
+                         (100.0, Next(1)),
+                         (250.0, Next(2)),
+                         (300.0, Next(3)),
+                         (450.0, Next(4)),
+                         (500.0, RxNotification.complete(None)),
+                       ],
                      ),
                    ),
-            ~expected=[Next(3), Next(6), Next(8), RxNotification.complete(None)],
+            ~expected=[
+              Next(3),
+              Next(6),
+              Next(8),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
       ),
-    ]
+    ],
   );

@@ -4,22 +4,20 @@ open ReUnit.Test;
 let expectObservableToProduce =
     (~nextEquals=(===), ~nextToString, expected, observable) =>
   observable
-  |> RxObservable.lift(RxOperators.materialize)
+  |> RxObservables.materialize
   |> RxObservables.toList
-  |> RxObservables.pipe3(
-       RxOperators.onNext(
-         Expect.toBeEqualToListWith(
-           ~equals=RxNotification.equals(~nextEquals),
-           ~toString=RxNotification.toString(~nextToString),
-           expected,
-         ),
+  |> RxObservables.onNext(
+       Expect.toBeEqualToListWith(
+         ~equals=RxNotification.equals(~nextEquals),
+         ~toString=RxNotification.toString(~nextToString),
+         expected,
        ),
-       RxOperators.first,
-       RxOperators.onComplete(
-         fun
-         | Some(exn) => raise(exn)
-         | _ => (),
-       ),
+     )
+  |> RxObservables.first
+  |> RxObservables.onComplete(
+       fun
+       | Some(exn) => raise(exn)
+       | _ => (),
      )
   |> RxObservable.subscribe;
 

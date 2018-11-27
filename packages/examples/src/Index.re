@@ -3,7 +3,7 @@ let greeting = Components.greeting;
 let windowPopStateSubscription = 
   Webapi.Dom.Window.asEventTarget(Webapi.Dom.window)
   |> RxDomEventTarget.observeEvent("popstate")
-  |> RxObservable.lift(RxOperators.onNext(Js.log))
+  |> RxObservables.onNext(Js.log)
   |> RxObservable.subscribe;
 
 {
@@ -16,15 +16,13 @@ let windowPopStateSubscription =
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let observable = promise |> RxPromise.toObservable;
 observable
-|> RxObservables.pipe2(
-     RxOperators.onNext(Js.log),
-     RxOperators.onComplete(Js.log),
-   )
-|> ignore;
+|> RxObservables.onNext(Js.log)
+|> RxObservables.onComplete(Js.log)
+|> RxObservable.subscribe;
 
 let promise =
   observable
-  |> RxObservable.lift(RxOperators.mapTo("b"))
+  |> RxObservables.mapTo("b")
   |> RxPromise.fromObservable
   |> Js.Promise.then_(a => {
        Js.log(a);

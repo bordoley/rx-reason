@@ -20,35 +20,29 @@ let useRxState =
       let distinctPropsStream =
         propsStream
         |> RxSubject.asObservable
-        |> RxObservables.pipe2(
-             RxOperators.distinctUntilChanged,
-             RxOperators.observeOn(
-               RxJsSchedulers.PriorityScheduler.immediate,
-             ),
+        |> RxObservables.distinctUntilChanged
+        |> RxObservables.observeOn(
+             RxJsSchedulers.PriorityScheduler.immediate,
            )
         |> RxObservables.share;
 
       let stateStream =
         createStateStream(distinctPropsStream)
-        |> RxObservables.pipe3(
-             RxOperators.observeOn(
-               RxJsSchedulers.PriorityScheduler.immediate,
-             ),
-             RxOperators.onNext(state => setState(Next(state))),
-             RxOperators.mapTo(),
-           );
+        |> RxObservables.observeOn(
+             RxJsSchedulers.PriorityScheduler.immediate,
+           )
+        |> RxObservables.onNext(state => setState(Next(state)))
+        |> RxObservables.mapTo();
 
       let subscription =
         RxObservables.merge([
           stateStream,
           createSideEffectsStream(distinctPropsStream),
         ])
-        |> RxObservables.pipe2(
-             RxOperators.observeOn(
-               RxJsSchedulers.PriorityScheduler.immediate,
-             ),
-             RxOperators.onExn(exn => setState(Error(exn))),
+        |> RxObservables.observeOn(
+             RxJsSchedulers.PriorityScheduler.immediate,
            )
+        |> RxObservables.onExn(exn => setState(Error(exn)))
         |> RxObservable.subscribe;
       () => subscription |> RxDisposable.dispose;
     },

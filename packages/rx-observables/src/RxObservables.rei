@@ -237,65 +237,6 @@ let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);
  */
 let onSubscribe: (unit => RxDisposable.t,  RxObservable.t('a)) =>  RxObservable.t('a);
 
-let pipe2:
-  (RxOperator.t('a, 'b), RxOperator.t('b, 'c), RxObservable.t('a)) =>
-  RxObservable.t('c);
-
-let pipe3:
-  (
-    RxOperator.t('a, 'b),
-    RxOperator.t('b, 'c),
-    RxOperator.t('c, 'd),
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('d);
-
-let pipe4:
-  (
-    RxOperator.t('a, 'b),
-    RxOperator.t('b, 'c),
-    RxOperator.t('c, 'd),
-    RxOperator.t('d, 'e),
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('e);
-
-let pipe5:
-  (
-    RxOperator.t('a, 'b),
-    RxOperator.t('b, 'c),
-    RxOperator.t('c, 'd),
-    RxOperator.t('d, 'e),
-    RxOperator.t('e, 'f),
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('f);
-
-let pipe6:
-  (
-    RxOperator.t('a, 'b),
-    RxOperator.t('b, 'c),
-    RxOperator.t('c, 'd),
-    RxOperator.t('d, 'e),
-    RxOperator.t('e, 'f),
-    RxOperator.t('f, 'g),
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('g);
-
-let pipe7:
-  (
-    RxOperator.t('a, 'b),
-    RxOperator.t('b, 'c),
-    RxOperator.t('c, 'd),
-    RxOperator.t('d, 'e),
-    RxOperator.t('e, 'f),
-    RxOperator.t('f, 'g),
-    RxOperator.t('g, 'h),
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('h);
-
 let publish:
   (
     ~onNext: 'a => unit,

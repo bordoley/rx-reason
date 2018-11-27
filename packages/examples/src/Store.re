@@ -20,17 +20,12 @@ let reducer = (state: props, action) =>
   | Actions.SetTitle(greeting) => {...state, greeting}
   };
 
-let create =
-    (props: RxObservable.t(string))
-    : RxObservable.t(props) => {
+let create = (props: RxObservable.t(string)) : RxObservable.t(props) => {
   let subject = RxSubject.create();
 
   let actions = subject |> RxSubject.asObservable;
   let propsActions =
-    props
-    |> RxObservable.lift(
-         RxOperators.map(greeting => Actions.SetTitle(greeting)),
-       );
+    props |> RxObservables.map(greeting => Actions.SetTitle(greeting));
 
   let dispatch = (action, _) => subject |> RxSubject.next(action);
 
@@ -43,5 +38,5 @@ let create =
   };
 
   RxObservables.merge([actions, propsActions])
-  |> RxObservable.lift(RxOperators.scan(reducer, initialState));
+  |> RxObservables.scan(reducer, initialState);
 };
