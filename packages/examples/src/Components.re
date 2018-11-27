@@ -9,6 +9,19 @@ let optional =
     props ? React.Element.array(children) : React.Element.null
   );
 
+let refTest =
+  React.Component.createReasonComponent(
+    ~name="refTest", (~props as _: unit, ~children as _: array(unit)) => {
+    let ref = React.useRef(None);
+    let onClick = _ => Js.log(ref |> React.Ref.currentGet);
+
+    button(
+      ~ref,
+      ~props=ReactDomProps.t(~onClick, ()),
+      [|string("ref button")|],
+    );
+  });
+
 let greeting =
   React.Component.createReasonComponent(
     ~name="Greeting",
@@ -17,6 +30,7 @@ let greeting =
       ~children as _: unit,
     ) =>
     div([|
+      refTest(~props=(), [||]),
       button(
         ~props=ReactDomProps.t(~onClick=incrementCount, ()),
         [|

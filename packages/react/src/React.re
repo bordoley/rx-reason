@@ -203,6 +203,12 @@ external reactUseMemo3 : (unit => 't, ('a, 'b, 'c)) => 't = "useMemo";
 let useMemo3 = (generator: ('a, 'b, 'c) => 't, ctx0: 'a, ctx1: 'b, ctx2: 'c) =>
   reactUseMemo3(() => generator(ctx0, ctx1, ctx2), (ctx0, ctx1, ctx2));
 
+module Ref = {[@bs.deriving abstract]
+  type t('a) = {current: option('a)};};
+
+[@bs.val] [@bs.module "react"]
+external useRef: option('a) => Ref.t('a) = "useRef";
+
 [@bs.val] [@bs.module "react"]
 external reactUseState : 'state => ('state, 'state => unit) = "useState";
 let useState = reactUseState;

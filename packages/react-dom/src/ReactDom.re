@@ -18,8 +18,8 @@ let renderToElementWithId = (reactElement, id) =>
   | Some(element) => render(reactElement, element)
   };
 
-let makeReactProps = (key, props: ReactDomProps.t) => {
-  let keyObj = {"key": key};
+let makeReactProps = (key, ref, props: ReactDomProps.t) => {
+  let keyObj = {"key": key, "ref": ref};
   Js.Obj.assign(Js.Obj.assign(Js.Obj.empty(), Obj.magic(props)), keyObj);
 };
 
@@ -35,17 +35,19 @@ let createElement =
     (
       tag: string,
       ~key: option(string)=?,
+      ~ref: option(React.Ref.t(Dom.element))=?,
       ~props=ReactDomProps.default,
       children: array(React.Element.t),
     )
     : React.Element.t => {
   let childrenLength = Js.Array.length(children);
+  let jsProps = makeReactProps(key, ref, props);
 
   switch (childrenLength) {
   | _ when childrenLength <= 10 =>
     /* Suppress missing key warnings in the common case. */
     let vararg =
-      [|Obj.magic(tag), Obj.magic(props)|] |> Js.Array.concat(children);
+      [|Obj.magic(tag), Obj.magic(jsProps)|] |> Js.Array.concat(children);
     Obj.magic(reactCreateElementWithChildrenVariadic)##apply(
       Js.Nullable.null,
       vararg,
@@ -53,7 +55,7 @@ let createElement =
   | _ =>
     reactCreateElementWithChildren(
       tag,
-      ~props=makeReactProps(key, props),
+      ~props=jsProps,
       children,
     )
   };
