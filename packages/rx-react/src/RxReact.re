@@ -5,8 +5,7 @@ type state('state) =
 
 let useRxState =
     (
-      createStateStream:
-        RxObservable.t('props) => RxObservable.t('state),
+      createStateStream: RxObservable.t('props) => RxObservable.t('state),
       createSideEffectsStream:
         RxObservable.t('props) => RxObservable.t(unit),
       props: 'props,
@@ -16,15 +15,15 @@ let useRxState =
 
   let propsStream = React.useMemo(RxSubject.create);
 
-  React.useEffect1(
-    () => {
+  React.useEffectWithCleanup3(
+    (propsStream, createStateStream, createSideEffectsStream) => {
       let distinctPropsStream =
         propsStream
         |> RxSubject.asObservable
         |> RxObservables.pipe2(
              RxOperators.distinctUntilChanged,
              RxOperators.observeOn(
-              RxJsSchedulers.PriorityScheduler.immediate,
+               RxJsSchedulers.PriorityScheduler.immediate,
              ),
            )
         |> RxObservables.share;
@@ -33,7 +32,7 @@ let useRxState =
         createStateStream(distinctPropsStream)
         |> RxObservables.pipe3(
              RxOperators.observeOn(
-              RxJsSchedulers.PriorityScheduler.immediate,
+               RxJsSchedulers.PriorityScheduler.immediate,
              ),
              RxOperators.onNext(state => setState(Next(state))),
              RxOperators.mapTo(),
@@ -46,24 +45,19 @@ let useRxState =
         ])
         |> RxObservables.pipe2(
              RxOperators.observeOn(
-              RxJsSchedulers.PriorityScheduler.immediate,
+               RxJsSchedulers.PriorityScheduler.immediate,
              ),
              RxOperators.onExn(exn => setState(Error(exn))),
            )
         |> RxObservable.subscribe;
       () => subscription |> RxDisposable.dispose;
     },
-    (),
+    propsStream,
+    createStateStream,
+    createSideEffectsStream,
   );
 
-  React.useEffect1(
-    () => {
-      propsStream |> RxSubject.next(props);
-      () => ();
-    },
-    props,
-  );
-
+  React.useEffect2(RxSubject.next, props, propsStream);
   state;
 };
 

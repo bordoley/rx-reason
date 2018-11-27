@@ -38,11 +38,20 @@ and Element: {
   [@bs.val] external null : Element.t = "null";
 };
 
-type dispose = unit => unit;
+let useEffect: (unit => unit) => unit;
+let useEffect1: ('key => unit, 'key) => unit;
+let useEffect2: (('key0, 'key1) => unit, 'key0, 'key1) => unit;
+let useEffect3: (('key0, 'key1, 'key2) => unit, 'key0, 'key1, 'key2) => unit;
 
-let useEffect: (unit => dispose) => unit;
-let useEffect1: (unit => dispose, 'key) => unit;
-let useEffect2: (unit => dispose, 'key0, 'key1) => unit;
+type cleanup = unit => unit;
+let useEffectWithCleanup: (unit => cleanup) => unit;
+let useEffectWithCleanup1: ('key => cleanup, 'key) => unit;
+let useEffectWithCleanup2: (('key0, 'key1) => cleanup, 'key0, 'key1) => unit;
+let useEffectWithCleanup3: (('key0, 'key1, 'key2) => cleanup, 'key0, 'key1, 'key2) => unit;
 
 let useMemo: (unit => 't) => 't;
+let useMemo1: ('a => 't, 'a) => 't;
+let useMemo2: (('a, 'b) => 't, 'a, 'b) => 't;
+let useMemo3: (('a, 'b, 'c) => 't, 'a, 'b, 'c) => 't;
+
 let useState: 'state => ('state, 'state => unit);
