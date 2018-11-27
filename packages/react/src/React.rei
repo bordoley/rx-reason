@@ -1,7 +1,7 @@
 module rec Component: {
   type t('props, 'children);
 
-  let createReactComponent:
+  let create:
     (
       ~name: string=?,
       ~arePropsEqual: ('props, 'props) => bool=?,
@@ -9,18 +9,6 @@ module rec Component: {
       (~props: 'props, ~children: 'children) => Element.t
     ) =>
     Component.t('props, 'children);
-
-  let createReasonComponent:
-    (
-      ~name: string=?,
-      ~arePropsEqual: ('props, 'props) => bool=?,
-      ~areChildrenEqual: ('children, 'children) => bool=?,
-      (~props: 'props, ~children: 'children) => Element.t,
-      ~key: string=?,
-      ~props: 'props,
-      'children
-    ) =>
-    Element.t;
 }
 and Element: {
   type t;
@@ -37,6 +25,31 @@ and Element: {
   external array : array(t) => t = "%identity";
   [@bs.val] external null : Element.t = "null";
 };
+
+let createComponent:
+(
+  ~name: string=?,
+  ~arePropsEqual: ('props, 'props) => bool=?,
+  ~areChildrenEqual: ('children, 'children) => bool=?,
+  (~props: 'props, ~children: 'children) => Element.t,
+  ~key: string=?,
+  ~props: 'props,
+  'children
+) =>
+Element.t;
+
+let createComponentWithDefaultProps:
+(
+  ~name: string=?,
+  ~arePropsEqual: ('props, 'props) => bool=?,
+  ~areChildrenEqual: ('children, 'children) => bool=?,
+  ~defaultProps: 'props,
+  (~props: 'props, ~children: 'children) => Element.t,
+  ~key: string=?,
+  ~props: 'props=?,
+  'children
+) =>
+Element.t;
 
 module Context: {
   type t('a);

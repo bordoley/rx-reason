@@ -1,17 +1,15 @@
 let greeting = Components.greeting;
 
-let windowPopStateSubscription = 
-  Webapi.Dom.Window.asEventTarget(Webapi.Dom.window)
+let windowPopStateSubscription =
+  Webapi.Dom.window
+  |> Webapi.Dom.Window.asEventTarget
   |> RxDomEventTarget.observeEvent("popstate")
   |> RxObservables.onNext(Js.log)
   |> RxObservable.subscribe;
 
-{
-  open Webapi.Dom;
-  open History;
-
-  pushState(state(history), "My title", "?next=rock", history);
-}
+Webapi.Dom.(
+  History.(pushState(state(history), "My title", "?next=rock", history))
+);
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let observable = promise |> RxPromise.toObservable;

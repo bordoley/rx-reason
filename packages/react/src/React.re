@@ -31,6 +31,8 @@ module Element = {
   [@bs.val] external null : t = "null";
 };
 
+let referenceEquality = (a, b) => a === b;
+
 module Component = {
   type t('props, 'children) = component('props, 'children);
   [@bs.val]
@@ -73,9 +75,7 @@ module Component = {
     a##reasonProps === b##reasonProps
     && a##reasonChildren === b##reasonChildren;
 
-  let referenceEquality = (a, b) => a === b;
-
-  let createReactComponent =
+  let create =
       (
         ~name: option(string)=?,
         ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
@@ -101,29 +101,43 @@ module Component = {
     let component = createComponent(~name?, f);
     reactMemo(component, areEqual);
   };
+};
 
-  let createReasonComponent =
-      (
-        ~name: option(string)=?,
-        ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
-        ~areChildrenEqual: ('children, 'children) => bool=referenceEquality,
-        f: (~props: 'props, ~children: 'children) => element,
-      ) => {
-    let component =
-      createReactComponent(~name?, ~arePropsEqual, ~areChildrenEqual, f);
-    Element.create(component);
-  };
+let createComponent =
+    (
+      ~name: option(string)=?,
+      ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
+      ~areChildrenEqual: ('children, 'children) => bool=referenceEquality,
+      f: (~props: 'props, ~children: 'children) => element,
+    ) => {
+  let component =
+    Component.create(~name?, ~arePropsEqual, ~areChildrenEqual, f);
+  Element.create(component);
+};
+
+let createComponentWithDefaultProps =
+    (
+      ~name: option(string)=?,
+      ~arePropsEqual: ('props, 'props) => bool=referenceEquality,
+      ~areChildrenEqual: ('children, 'children) => bool=referenceEquality,
+      ~defaultProps: 'props,
+      f: (~props: 'props, ~children: 'children) => element,
+    ) => {
+  let reasonComponent =
+    createComponent(~name?, ~arePropsEqual, ~areChildrenEqual, f);
+  (~key=?, ~props=defaultProps, children) =>
+    reasonComponent(~key?, ~props, children);
 };
 
 module Context = {
   type t('a);
 
   [@bs.val] [@bs.module "react"]
-  external create: 'a => t('a) = "createContext";
+  external create : 'a => t('a) = "createContext";
 };
 
 [@bs.val] [@bs.module "react"]
-external useContext: Context.t('a) => 'a = "useContext";
+external useContext : Context.t('a) => 'a = "useContext";
 
 [@bs.val] [@bs.module "react"]
 external reactUseEffect : (unit => Js.null(unit)) => unit = "useEffect";
@@ -213,11 +227,13 @@ external reactUseMemo3 : (unit => 't, ('a, 'b, 'c)) => 't = "useMemo";
 let useMemo3 = (generator: ('a, 'b, 'c) => 't, ctx0: 'a, ctx1: 'b, ctx2: 'c) =>
   reactUseMemo3(() => generator(ctx0, ctx1, ctx2), (ctx0, ctx1, ctx2));
 
-module Ref = {[@bs.deriving abstract]
-  type t('a) = {current: option('a)};};
+module Ref = {
+  [@bs.deriving abstract]
+  type t('a) = {current: option('a)};
+};
 
 [@bs.val] [@bs.module "react"]
-external useRef: option('a) => Ref.t('a) = "useRef";
+external useRef : option('a) => Ref.t('a) = "useRef";
 
 [@bs.val] [@bs.module "react"]
 external reactUseState : 'state => ('state, 'state => unit) = "useState";

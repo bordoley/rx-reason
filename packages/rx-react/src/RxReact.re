@@ -63,7 +63,7 @@ let createReactComponent =
       render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     )
     : React.Component.t('props, 'children) =>
-  React.Component.createReactComponent(
+  React.Component.create(
     ~name?,
     (~props, ~children) => {
       let state =
