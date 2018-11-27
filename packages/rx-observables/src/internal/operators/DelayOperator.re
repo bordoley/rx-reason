@@ -14,7 +14,7 @@ let onComplete = (scheduler, wip, doWork, queue, delay, _, exn) =>
   scheduler
   |> schedule(wip, doWork, queue, delay, RxNotification.complete(exn));
 
-let operator = (~scheduler, ~delay, subscriber) => {
+let operator = (~scheduler, delay, subscriber) => {
   let queue = RxMutableQueue.create();
   let wip = RxAtomic.make(0);
 

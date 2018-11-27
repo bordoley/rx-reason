@@ -41,7 +41,7 @@ let operator = {
     delegate |> RxSubscriber.complete(~exn?);
   };
 
-  (~scheduler, ~dueTime, subscriber) => {
+  (~scheduler, dueTime, subscriber) => {
     let debounceSubscription = RxSerialDisposable.create();
     let lastValue = RxMutableOption.create();
 

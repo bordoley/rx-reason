@@ -27,7 +27,7 @@ let test =
                   ],
                 )
                 |> RxObservable.lift(
-                  RxOperators.debounce(~scheduler, ~dueTime=5.0),
+                  RxOperators.debounce(~scheduler, 5.0),
                    ),
             ~expected=[Next(3), Next(6), RxNotification.complete(None)],
             (),
@@ -743,7 +743,7 @@ let test =
                     (14.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.timeout(~due=5.0, ~scheduler)),
+                |> RxObservable.lift(RxOperators.timeout(~scheduler, 5.0)),
             ~expected=[Next(1), Next(2), Next(3), Next(4), RxNotification.complete(None)],
             (),
           ),
@@ -762,7 +762,7 @@ let test =
                     (20.0, RxNotification.complete(None)),
                   ],
                 )
-                |> RxObservable.lift(RxOperators.timeout(~due=5.0, ~scheduler)),
+                |> RxObservable.lift(RxOperators.timeout(~scheduler, 5.0)),
             ~expected=[
               Next(1),
               Next(2),

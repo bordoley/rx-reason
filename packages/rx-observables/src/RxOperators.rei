@@ -1,11 +1,11 @@
 let debounce:
-  (~scheduler: RxScheduler.t, ~dueTime: float) => RxOperator.t('a, 'a);
+  (~scheduler: RxScheduler.t, float) => RxOperator.t('a, 'a);
 
 let defaultIfEmpty: 'a => RxOperator.t('a, 'a);
 
-let dematerialize: RxOperator.t(RxNotification.t('a), 'a);
+let delay: (~scheduler: RxScheduler.t, float) => RxOperator.t('a, 'a);
 
-let delay: (~scheduler: RxScheduler.t, ~delay: float) => RxOperator.t('a, 'a);
+let dematerialize: RxOperator.t(RxNotification.t('a), 'a);
 
 let distinctUntilChanged:
   (~equals: ('a, 'a) => bool=?) => RxOperator.t('a, 'a);
@@ -64,7 +64,7 @@ let switch_: RxOperator.t(RxObservable.t('a), 'a);
 
 let synchronize: RxOperator.t('a, 'a);
 
-let timeout: (~scheduler: RxScheduler.t, ~due: float) => RxOperator.t('a, 'a);
+let timeout: (~scheduler: RxScheduler.t, float) => RxOperator.t('a, 'a);
 
 let withLatestFrom:
   (~selector: ('a, 'b) => 'c, RxObservable.t('b)) => RxOperator.t('a, 'c);

@@ -21,10 +21,10 @@ let operator = {
     delegate |> RxSubscriber.complete(~exn?);
   };
 
-  (~scheduler, ~due) => {
+  (~scheduler, due) => {
     let timeoutObservable =
-      RxObservables.raise(RxTimeoutException.Exn)
-      |> RxObservable.lift(DelayOperator.operator(~scheduler, ~delay=due));
+      RaiseObservable.raise(RxTimeoutException.Exn)
+      |> RxObservable.lift(DelayOperator.operator(~scheduler, due));
 
     subscriber => {
       let context = {
@@ -41,7 +41,7 @@ let operator = {
            );
 
       context.connect =
-        RxObservables.publish1(
+        ConnectableObservable.publish1(
           ~onNext=RxFunctions.alwaysUnit2,
           ~onComplete=RxSubscriber.forwardOnComplete,
           self,

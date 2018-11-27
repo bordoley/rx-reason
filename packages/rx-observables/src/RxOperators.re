@@ -1,8 +1,8 @@
 
 let debounce = DebounceOperator.operator;
 let defaultIfEmpty = DefaultIfEmptyOperator.operator;
-let dematerialize = DematerializeOperator.operator;
 let delay = DelayOperator.operator;
+let dematerialize = DematerializeOperator.operator;
 let distinctUntilChanged = DistinctUntilChangedOperator.operator;
 let every = EveryOperator.operator;
 let exhaust = ExhaustOperator.operator;
