@@ -9,6 +9,16 @@ let optional =
     props ? React.Element.array(children) : React.Element.null
   );
 
+let context = React.Context.create("book");
+let contextComponent =
+  React.Component.createReasonComponent(
+    ~name="contextComponent",
+    (~props as _: unit, ~children as _: array(unit)) => {
+    let contextValue = React.useContext(context);
+
+    div([|string(contextValue)|]);
+  });
+
 let refTest =
   React.Component.createReasonComponent(
     ~name="refTest", (~props as _: unit, ~children as _: array(unit)) => {
@@ -31,6 +41,7 @@ let greeting =
     ) =>
     div([|
       refTest(~props=(), [||]),
+      contextComponent(~props=(), [||]),
       button(
         ~props=ReactDomProps.t(~onClick=incrementCount, ()),
         [|

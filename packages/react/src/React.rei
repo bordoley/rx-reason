@@ -38,6 +38,16 @@ and Element: {
   [@bs.val] external null : Element.t = "null";
 };
 
+module Context: {
+  type t('a);
+
+  [@bs.val] [@bs.module "react"]
+  external create: 'a => t('a) = "createContext";
+};
+
+[@bs.val] [@bs.module "react"]
+external useContext: Context.t('a) => 'a = "useContext";
+
 let useEffect: (unit => unit) => unit;
 let useEffect1: ('key => unit, 'key) => unit;
 let useEffect2: (('key0, 'key1) => unit, 'key0, 'key1) => unit;

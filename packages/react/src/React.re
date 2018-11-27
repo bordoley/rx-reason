@@ -115,6 +115,16 @@ module Component = {
   };
 };
 
+module Context = {
+  type t('a);
+
+  [@bs.val] [@bs.module "react"]
+  external create: 'a => t('a) = "createContext";
+};
+
+[@bs.val] [@bs.module "react"]
+external useContext: Context.t('a) => 'a = "useContext";
+
 [@bs.val] [@bs.module "react"]
 external reactUseEffect : (unit => Js.null(unit)) => unit = "useEffect";
 let useEffect = generator =>
