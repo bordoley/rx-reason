@@ -6,59 +6,59 @@ type state('state) =
 let useRxState =
     (
       createStateStream:
-        RxReason.Observable.t('props) => RxReason.Observable.t('state),
+        RxObservable.t('props) => RxObservable.t('state),
       createSideEffectsStream:
-        RxReason.Observable.t('props) => RxReason.Observable.t(unit),
+        RxObservable.t('props) => RxObservable.t(unit),
       props: 'props,
     )
     : state('state) => {
   let (state, setState) = React.useState(Null);
 
-  let propsStream = React.useMemo(RxReason.Subject.create);
+  let propsStream = React.useMemo(RxSubject.create);
 
   React.useEffect1(
     () => {
       let distinctPropsStream =
         propsStream
-        |> RxReason.Subject.asObservable
-        |> RxReason.Observable.pipe2(
-             RxReason.Operators.distinctUntilChanged,
-             RxReason.Operators.observeOn(
-              RxReasonJs.PriorityScheduler.immediate,
+        |> RxSubject.asObservable
+        |> RxObservables.pipe2(
+             RxOperators.distinctUntilChanged,
+             RxOperators.observeOn(
+              RxJsSchedulers.PriorityScheduler.immediate,
              ),
            )
-        |> RxReason.Observables.share;
+        |> RxObservables.share;
 
       let stateStream =
         createStateStream(distinctPropsStream)
-        |> RxReason.Observable.pipe3(
-             RxReason.Operators.observeOn(
-               RxReasonJs.PriorityScheduler.immediate,
+        |> RxObservables.pipe3(
+             RxOperators.observeOn(
+              RxJsSchedulers.PriorityScheduler.immediate,
              ),
-             RxReason.Operators.onNext(state => setState(Next(state))),
-             RxReason.Operators.mapTo(),
+             RxOperators.onNext(state => setState(Next(state))),
+             RxOperators.mapTo(),
            );
 
       let subscription =
-        RxReason.Observables.merge([
+        RxObservables.merge([
           stateStream,
           createSideEffectsStream(distinctPropsStream),
         ])
-        |> RxReason.Observable.pipe2(
-             RxReason.Operators.observeOn(
-               RxReasonJs.PriorityScheduler.immediate,
+        |> RxObservables.pipe2(
+             RxOperators.observeOn(
+              RxJsSchedulers.PriorityScheduler.immediate,
              ),
-             RxReason.Operators.onExn(exn => setState(Error(exn))),
+             RxOperators.onExn(exn => setState(Error(exn))),
            )
-        |> RxReason.Observable.subscribe;
-      () => subscription |> RxReason.Disposable.dispose;
+        |> RxObservable.subscribe;
+      () => subscription |> RxDisposable.dispose;
     },
     (),
   );
 
   React.useEffect1(
     () => {
-      propsStream |> RxReason.Subject.next(props);
+      propsStream |> RxSubject.next(props);
       () => ();
     },
     props,
@@ -70,8 +70,8 @@ let useRxState =
 let createReactComponent =
     (
       ~name=?,
-      ~createSideEffectsStream=_ => RxReason.Observables.empty(),
-      ~createStateStream=_ => RxReason.Observables.empty(),
+      ~createSideEffectsStream=_ => RxObservables.empty(),
+      ~createStateStream=_ => RxObservables.empty(),
       render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     )
     : React.Component.t('props, 'children) =>
@@ -92,8 +92,8 @@ let createReactComponent =
 let createElement =
     (
       ~name=?,
-      ~createSideEffectsStream=_ => RxReason.Observables.empty(),
-      ~createStateStream=_ => RxReason.Observables.empty(),
+      ~createSideEffectsStream=_ => RxObservables.empty(),
+      ~createStateStream=_ => RxObservables.empty(),
       render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     ) => {
   let statefulComponent =

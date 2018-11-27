@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/reunit",
+  "name": "@rx-reason/rx-js-schedulers",
   "package-specs": [
     {
       "module": "commonjs"
@@ -9,7 +9,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "bs-dependencies": [],
+  "bs-dependencies": ["@rx-reason/rx-disposables", "@rx-reason/rx-scheduler"],
   "bs-dev-dependencies": [],
   "warnings": {
     "error": "+101"
@@ -20,14 +20,8 @@
       "dir": "src",
       "subdirs": [
         {
-          "dir": "platform",
-          "public": "none",
-          "subdirs": [
-            {
-              "dir": "js",
-              "public": "none"
-            }
-          ]
+          "dir": "internal",
+          "public": "none"
         }
       ]
     }

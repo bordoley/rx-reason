@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/rx-react",
+  "name": "@rx-reason/rx-core",
   "package-specs": [
     {
       "module": "commonjs"
@@ -10,15 +10,11 @@
   ],
   "suffix": ".bs.js",
   "bs-dependencies": [
-    "@rx-reason/react",
-    "@rx-reason/rx-core",
     "@rx-reason/rx-disposables",
-    "@rx-reason/rx-js-schedulers",
-    "@rx-reason/rx-observables",
-    "@rx-reason/rx-subject",
     "@rx-reason/rx-utils-do-not-depend-on"
   ],
   "bs-dev-dependencies": [
+    "@rx-reason/reunit"
   ],
   "warnings": {
     "number": "-44",
@@ -28,6 +24,11 @@
   "sources": [
     {
       "dir": "src"
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
     }
   ]
 }

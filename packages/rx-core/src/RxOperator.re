@@ -1,0 +1,1 @@
+type t('a, 'b) = RxSubscriber.t('b) => RxSubscriber.t('a);

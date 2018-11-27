@@ -1,5 +1,5 @@
 {
-  "name": "reunit",
+  "name": "@rx-reason/reunit",
   "version": "0.0.0",
   "description": "Basic unit testing framework for reason",
   "author": "facebook",

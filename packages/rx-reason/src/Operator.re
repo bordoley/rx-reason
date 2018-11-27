@@ -1,1 +1,0 @@
-type t('a, 'b) = Subscriber.t('b) => Subscriber.t('a);

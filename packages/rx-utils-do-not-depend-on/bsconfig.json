@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/reunit",
+  "name": "@rx-reason/rx-utils-do-not-depend-on",
   "package-specs": [
     {
       "module": "commonjs"
@@ -20,14 +20,7 @@
       "dir": "src",
       "subdirs": [
         {
-          "dir": "platform",
-          "public": "none",
-          "subdirs": [
-            {
-              "dir": "js",
-              "public": "none"
-            }
-          ]
+          "dir": "js"
         }
       ]
     }

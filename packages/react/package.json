@@ -1,18 +1,16 @@
 {
-  "name": "@rx-reason/rx-react",
+  "name": "@rx-reason/react",
   "version": "0.0.0",
-  "description": "React Component using Rx for state management",
+  "description": "react bindings for reason",
   "scripts": {
     "build": "bsb -make-world",
-    "start": "bsb -make-world -w",
     "clean": "bsb -clean-world"
   },
   "keywords": [
-    "reason",
-    "reasonml",
     "ocaml",
     "react",
-    "rx",
+    "reason",
+    "reasonml",
     "BuckleScript"
   ],
   "author": {
@@ -31,13 +29,8 @@
     "url": "https://github.com/bordoley/rx-reason.git"
   },
   "dependencies": {
-    "@rx-reason/react": "^0.0.0",
-    "@rx-reason/rx-core": "^0.0.0",
-    "@rx-reason/rx-disposables": "^0.0.0",
-    "@rx-reason/rx-js-schedulers": "^0.0.0",
-    "@rx-reason/rx-observables": "^0.0.0",
-    "@rx-reason/rx-subject": "^0.0.0",
-    "@rx-reason/rx-utils-do-not-depend-on": "0.0.0"
+    "react": "16.7.0-alpha.2",
+    "react-dom": "16.7.0-alpha.2"
   },
   "devDependencies": {
     "bs-platform": "^4.0.7"

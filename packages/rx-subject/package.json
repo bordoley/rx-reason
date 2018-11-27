@@ -1,17 +1,19 @@
 {
-  "name": "@rx-reason/rx-react",
+  "name": "@rx-reason/rx-subject",
   "version": "0.0.0",
-  "description": "React Component using Rx for state management",
+  "description": "Imperative rx subjects",
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
-    "clean": "bsb -clean-world"
+    "clean": "bsb -clean-world",
+    "test": "npm run build && node lib/js/test/TestRunner.bs.js",
+    "test-debug": "npm run build && node --inspect-brk lib/js/test/TestRunner.bs.js",
+    "test-coverage": "npm run build && nyc node lib/js/test/TestRunner.bs.js && nyc report --reporter=html && open coverage/index.html"
   },
   "keywords": [
+    "ocaml",
     "reason",
     "reasonml",
-    "ocaml",
-    "react",
     "rx",
     "BuckleScript"
   ],
@@ -31,15 +33,13 @@
     "url": "https://github.com/bordoley/rx-reason.git"
   },
   "dependencies": {
-    "@rx-reason/react": "^0.0.0",
     "@rx-reason/rx-core": "^0.0.0",
     "@rx-reason/rx-disposables": "^0.0.0",
-    "@rx-reason/rx-js-schedulers": "^0.0.0",
-    "@rx-reason/rx-observables": "^0.0.0",
-    "@rx-reason/rx-subject": "^0.0.0",
     "@rx-reason/rx-utils-do-not-depend-on": "0.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.7"
+    "bs-platform": "^4.0.7",
+    "nyc": "^13.1.0",
+    "@rx-reason/reunit": "^0.0.0"
   }
 }

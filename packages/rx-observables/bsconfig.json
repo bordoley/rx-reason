@@ -1,0 +1,57 @@
+{
+  "name": "@rx-reason/rx-observables",
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "@rx-reason/rx-core",
+    "@rx-reason/rx-disposables",
+    "@rx-reason/rx-scheduler",
+    "@rx-reason/rx-subject",
+    "@rx-reason/rx-utils-do-not-depend-on"
+  ],
+  "bs-dev-dependencies": [
+    "@rx-reason/reunit",
+    "@rx-reason/rx-virtual-time-scheduler"
+  ],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": [
+        {
+          "dir": "internal",
+          "public": "none",
+          "subdirs": [
+            {
+              "dir": "observables",
+              "public": "none"
+            },
+            {
+              "dir": "operators",
+              "public": "none"
+            },
+            {
+              "dir": "utils",
+              "public": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ]
+}
