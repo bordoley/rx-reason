@@ -1,10 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "lerna run build",
+    "build": "lerna run build all",
     "clean": "lerna run clean",
-    "webpack": "webpack -w",
-    "webpack:production": "NODE_ENV=production webpack",
     "bootstrap": "lerna bootstrap",
     "test": "lerna run test",
     "test-coverage": "lerna run test-coverage",
