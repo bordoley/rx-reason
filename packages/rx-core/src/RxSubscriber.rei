@@ -10,99 +10,16 @@ include RxCompositeDisposable.S1 with type t('a) := t('a);
 include RxObserverLike.S1 with type t('a) := t('a);
 
 /**
+ * Notify the Observer that no more notifications will be sent, optionally with an exception.
+ * Returns true if the Observer has not previously been completed, otherwise false.
+ */
+let completeWithResult: (~exn: exn=?, t('a)) => bool;
+
+/**
  * Construct a new Subscriber with the provided callbacks which automatically disposes
  * itself when completed.
  * */
-let create:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit) => t('a);
-
-let create1:
-  (
-    ~onNext: ('ctx0, 'a) => unit,
-    ~onComplete: ('ctx0, option(exn)) => unit,
-    'ctx0
-  ) =>
-  t('a);
-
-let create2:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
-    'ctx0,
-    'ctx1
-  ) =>
-  t('a);
-
-let create3:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2
-  ) =>
-  t('a);
-
-let create4:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3
-  ) =>
-  t('a);
-
-let create5:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4
-  ) =>
-  t('a);
-
-let create6:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5
-  ) =>
-  t('a);
-
-let create7:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
-    ~onComplete: (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   option(exn)
-                 ) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    'ctx6
-  ) =>
-  t('a);
+let create: unit => t('a);
 
 /** Construct a new Subscriber with the provided callbacks that decorates its disposal to another Subscriber. */
 let decorate:

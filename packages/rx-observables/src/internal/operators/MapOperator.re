@@ -4,32 +4,15 @@ type context('a, 'b) = {
 };
 
 let operator = {
-  let onNext = {
-    let impl = ({mapper, self}, delegate, next) => {
-      let mapped =
-        try (mapper(next)) {
-        | exn =>
-          self |> RxSubscriber.complete(~exn);
-          RxFunctions.returnUnit();
-        };
-      delegate |> RxSubscriber.next(mapped);
-    };
-
-    (ctx, delegate, next) =>
-      RxFunctions.earlyReturnsUnit3(impl, ctx, delegate, next);
+  let onNext = (mapper, delegate, next) => {
+    let mapped = mapper(next);
+    delegate |> RxSubscriber.next(mapped);
   };
 
-  (mapper, subscriber) => {
-    let context = {mapper, self: RxSubscriber.disposed};
-
-    context.self =
-      subscriber
-      |> RxSubscriber.decorate1(
-           ~onNext,
-           ~onComplete=RxSubscriber.forwardOnComplete1,
-           context,
-         );
-
-    context.self;
-  };
+  mapper =>
+    RxSubscriber.decorate1(
+      ~onNext,
+      ~onComplete=RxSubscriber.forwardOnComplete1,
+      mapper,
+    );
 };

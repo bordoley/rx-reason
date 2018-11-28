@@ -8,13 +8,9 @@ type observable('a) = t('a);
 module type S1 = {
   type t('a);
 
-  include RxObservableLike.S1 with type t('a) := t('a);
-
   /** Cast to Observable.t. */
   let asObservable: t('a) => observable('a);
 };
-
-include RxObservableLike.S1 with type t('a) := t('a);
 
 /**
  * Returns an Observable from the specified subscribe function.
@@ -108,3 +104,135 @@ let lift: (RxOperator.t('a, 'b), t('a)) => t('b);
  * Returns an Observable the emits no values and never completes.
  */
 let never: t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe:
+  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, t('a)) => t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe1:
+  (
+    ~onNext: ('ctx0, 'a) => unit,
+    ~onComplete: ('ctx0, option(exn)) => unit,
+    'ctx0,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe2:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe3:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe4:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe5:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe6:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    t('a)
+  ) =>
+  t('a);
+
+/**
+ * Returns an Observable which invokes side-effect functions on each
+ * observed event and on completion.
+ */
+let observe7:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
+    ~onComplete: (
+                   'ctx0,
+                   'ctx1,
+                   'ctx2,
+                   'ctx3,
+                   'ctx4,
+                   'ctx5,
+                   'ctx6,
+                   option(exn)
+                 ) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    'ctx5,
+    'ctx6,
+    t('a)
+  ) =>
+  t('a);
+
+let subscribe: t('a) => RxDisposable.t;

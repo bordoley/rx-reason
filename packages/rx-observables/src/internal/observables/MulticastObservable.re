@@ -24,23 +24,33 @@ let create = {
     };
 
     state.refCount = state.refCount + 1;
-    subscriber |> RxSubscriber.addTeardown1(teardown, state) |> ignore;
-    state.subject |> RxSubject.subscribeWith(subscriber);
+
+    let innerSubscription =
+      state.subject
+      |> RxSubject.asObservable
+      |> RxObservable.observe1(
+           ~onNext=RxSubscriber.forwardOnNext,
+           ~onComplete=RxSubscriber.forwardOnComplete,
+           subscriber,
+         )
+      |> RxObservable.subscribe;
+
+    subscriber
+    |> RxSubscriber.addTeardown1(teardown, state)
+    |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscription)
+    |> ignore;
 
     if (state.refCount === 1) {
       let subscriber =
-        RxSubscriber.create1(
-          ~onNext=RxSubject.forwardOnNext,
-          ~onComplete=RxSubject.forwardOnComplete,
-          state.subject,
-        );
+        state.source
+        |> RxObservable.observe1(
+             ~onNext=RxSubject.forwardOnNext,
+             ~onComplete=RxSubject.forwardOnComplete,
+             state.subject,
+           )
+        |> RxObservable.subscribe;
 
-      state.source |> RxObservable.subscribeWith(subscriber);
-
-      state.subscription
-      |> RxSerialDisposable.setInnerDisposable(
-           subscriber |> RxSubscriber.asDisposable,
-         );
+      state.subscription |> RxSerialDisposable.setInnerDisposable(subscriber);
     };
   };
 

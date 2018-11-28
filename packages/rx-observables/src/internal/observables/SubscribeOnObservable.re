@@ -1,6 +1,18 @@
 let subscribeOn = {
   let doSubscribe = (observable, subscriber, ~now as _, ~shouldYield as _) => {
-    observable |> RxObservable.subscribeWith(subscriber);
+    let innerSubscription =
+      observable
+      |> RxObservable.observe1(
+           ~onNext=RxSubscriber.forwardOnNext,
+           ~onComplete=RxSubscriber.forwardOnComplete,
+           subscriber,
+         )
+      |> RxObservable.subscribe;
+    
+    subscriber
+    |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscription)
+    |> ignore;
+
     RxScheduler.Result.complete;
   };
 

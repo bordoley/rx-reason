@@ -28,21 +28,18 @@ let merge = {
       fun
       | [hd, ...tail] => {
           let innerSubscriber =
-          RxSubscriber.create3(
-              ~onNext,
-              ~onComplete,
-              activeCount,
-              lock,
-              subscriber,
-            );
-
-          hd |> RxObservable.subscribeWith(innerSubscriber);
+            hd
+            |> RxObservable.observe3(
+                 ~onNext,
+                 ~onComplete,
+                 activeCount,
+                 lock,
+                 subscriber,
+               )
+            |> RxObservable.subscribe;
 
           subscriber
-          |> RxSubscriber.addTeardown1(
-            RxDisposable.dispose,
-               innerSubscriber |> RxSubscriber.asDisposable,
-             )
+          |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscriber)
           |> ignore;
           loop(tail);
         }

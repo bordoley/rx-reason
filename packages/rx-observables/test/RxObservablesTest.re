@@ -118,7 +118,6 @@ let test =
       ),
       describe("ofList", []),
       describe("ofValue", []),
-      describe("publish", []),
       describe("raise", []),
       describe(
         "retry",
@@ -165,7 +164,7 @@ let test =
                 let observable = subject^ |> RxSubject.asObservable;
                 let subscription =
                   observable
-                  |> RxObservables.observe(
+                  |> RxObservable.observe(
                        ~onNext=next => subscriber |> RxSubscriber.next(next),
                        ~onComplete=
                          exn => subscriber |> RxSubscriber.complete(~exn?),

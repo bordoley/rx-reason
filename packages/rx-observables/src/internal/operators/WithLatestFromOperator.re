@@ -2,25 +2,14 @@ type context('a, 'b, 'c) = {
   otherLatest: RxMutableOption.t('b),
   mutable otherSubscription: RxDisposable.t,
   selector: ('a, 'b) => 'c,
-  mutable self: RxSubscriber.t('a),
 };
 
-let onNext = {
-  let impl = ({otherLatest, selector, self}, delegate, next) =>
-    if (RxMutableOption.isNotEmpty(otherLatest)) {
-      let latest = otherLatest |> RxMutableOption.get;
-      let nextWithLatest =
-        try (selector(next, latest)) {
-        | exn =>
-          self |> RxSubscriber.complete(~exn);
-          RxFunctions.returnUnit();
-        };
-      delegate |> RxSubscriber.next(nextWithLatest);
-    };
-
-  (ctx, delegate, next) =>
-    RxFunctions.earlyReturnsUnit3(impl, ctx, delegate, next);
-};
+let onNext = ({otherLatest, selector}, delegate, next) =>
+  if (RxMutableOption.isNotEmpty(otherLatest)) {
+    let latest = otherLatest |> RxMutableOption.get;
+    let nextWithLatest = selector(next, latest);
+    delegate |> RxSubscriber.next(nextWithLatest);
+  };
 
 let onComplete = ({otherSubscription}, delegate, exn) => {
   delegate |> RxSubscriber.complete(~exn?);
@@ -43,29 +32,24 @@ let operator = (~selector, other, subscriber) => {
     otherLatest,
     otherSubscription: RxDisposable.disposed,
     selector,
-    self: RxSubscriber.disposed,
   };
 
-  let self =
+  let delegateSubscriber =
     subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, context);
 
-  let innerSubscriber =
-    RxSubscriber.create2(
-      ~onNext=otherOnNext,
-      ~onComplete=otherOnComplete,
-      self,
-      otherLatest,
-    );
+  context.otherSubscription =
+    other
+    |> RxObservable.observe2(
+         ~onNext=otherOnNext,
+         ~onComplete=otherOnComplete,
+         delegateSubscriber,
+         otherLatest,
+       )
+    |> RxObservable.subscribe;
 
-  other |> RxObservable.subscribeWith(innerSubscriber);
-
-  context.otherSubscription = innerSubscriber |> RxSubscriber.asDisposable;
-
-  context.self =
-    self
-    |> RxSubscriber.addTeardown1(
-         RxDisposable.dispose,
-         context.otherSubscription,
-       );
-  self;
+  delegateSubscriber
+  |> RxSubscriber.addTeardown1(
+       RxDisposable.dispose,
+       context.otherSubscription,
+     );
 };

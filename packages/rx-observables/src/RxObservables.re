@@ -67,9 +67,6 @@ let merge = MergeObservable.merge;
 let none = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.none(predicate));
 
-let observe = (~onNext, ~onComplete, observable) =>
-  observable |> RxObservable.lift(RxOperators.observe(~onNext, ~onComplete));
-
 let observeOn = (scheduler, observable) =>
   observable |> RxObservable.lift(RxOperators.observeOn(scheduler));
 
@@ -80,25 +77,25 @@ let ofRelativeTimeNotifications = OfObservable.ofRelativeTimeNotifications;
 let ofValue = OfObservable.ofValue;
 
 let onComplete = (onComplete, observable) =>
-  observable |> RxObservable.lift(RxOperators.onComplete(onComplete));
+  observable
+  |> RxObservable.observe(~onNext=RxFunctions.alwaysUnit1, ~onComplete);
 
 let onExn = (onExn, observable) =>
-  observable |> RxObservable.lift(RxOperators.onExn(onExn));
+  observable
+  |> RxObservable.observe(
+       ~onNext=RxFunctions.alwaysUnit1,
+       ~onComplete=
+         fun
+         | None => ()
+         | Some(exn) => onExn(exn),
+     );
 
 let onNext = (onNext, observable) =>
-  observable |> RxObservable.lift(RxOperators.onNext(onNext));
+  observable
+  |> RxObservable.observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
 
 let onSubscribe = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.onSubscribe(f));
-
-let publish = ConnectableObservable.publish;
-let publish1 = ConnectableObservable.publish1;
-let publish2 = ConnectableObservable.publish2;
-let publish3 = ConnectableObservable.publish3;
-let publish4 = ConnectableObservable.publish4;
-let publish5 = ConnectableObservable.publish5;
-let publish6 = ConnectableObservable.publish6;
-let publish7 = ConnectableObservable.publish7;
 
 let raise = RaiseObservable.raise;
 

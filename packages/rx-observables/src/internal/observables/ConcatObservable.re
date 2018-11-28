@@ -17,17 +17,6 @@ let concat = {
           subscriber |> RxSubscriber.complete;
           RxDisposable.disposed;
         | [hd, ...tail] =>
-          let innerSubscriber =
-            RxSubscriber.create5(
-              ~onNext=RxSubscriber.forwardOnNext4,
-              ~onComplete,
-              scheduler,
-              tail,
-              loop,
-              innerSubscription,
-              subscriber,
-            );
-
           (
             switch (scheduler) {
             | Some(scheduler) =>
@@ -35,9 +24,16 @@ let concat = {
             | None => hd
             }
           )
-          |> RxObservable.subscribeWith(innerSubscriber);
-
-          innerSubscriber |> RxSubscriber.asDisposable;
+          |> RxObservable.observe5(
+               ~onNext=RxSubscriber.forwardOnNext4,
+               ~onComplete,
+               scheduler,
+               tail,
+               loop,
+               innerSubscription,
+               subscriber,
+             )
+          |> RxObservable.subscribe
         };
       if (! RxDisposable.isDisposed(newSubscription)) {
         innerSubscription

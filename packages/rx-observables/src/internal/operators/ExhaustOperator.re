@@ -27,17 +27,16 @@ let operator = {
       let hasActiveSubscription = hasActiveSubscription(ctx);
       if (! hasActiveSubscription) {
         let subscription =
-          RxSubscriber.create2(
-            ~onNext=RxSubscriber.forwardOnNext1,
-            ~onComplete,
-            ctx,
-            delegate,
-          );
-        next |> RxObservable.subscribeWith(subscription);
+          next
+          |> RxObservable.observe2(
+               ~onNext=RxSubscriber.forwardOnNext1,
+               ~onComplete,
+               ctx,
+               delegate,
+             )
+          |> RxObservable.subscribe;
         innerSubscription
-        |> RxSerialDisposable.setInnerDisposable(
-             subscription |> RxSubscriber.asDisposable,
-           );
+        |> RxSerialDisposable.setInnerDisposable(subscription);
       };
     };
   };

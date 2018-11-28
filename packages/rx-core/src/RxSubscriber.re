@@ -1,92 +1,6 @@
 type t('a) =
-  | AutoDisposing(
-      RxCompositeDisposable.t,
-      RxAtomic.t(bool),
-      'a => unit,
-      option(exn) => unit,
-    )
-  | AutoDisposing1(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    ('ctx0, 'a) => unit,
-                    ('ctx0, option(exn)) => unit,
-                  ): t('a)
-  | AutoDisposing2(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    ('ctx0, 'ctx1, 'a) => unit,
-                    ('ctx0, 'ctx1, option(exn)) => unit,
-                  ): t('a)
-  | AutoDisposing3(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    'ctx2,
-                    ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
-                    ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
-                  ): t('a)
-  | AutoDisposing4(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    'ctx2,
-                    'ctx3,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
-                  ): t('a)
-  | AutoDisposing5(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    'ctx2,
-                    'ctx3,
-                    'ctx4,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
-                  ): t('a)
-  | AutoDisposing6(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    'ctx2,
-                    'ctx3,
-                    'ctx4,
-                    'ctx5,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
-                    unit,
-                  ): t('a)
-  | AutoDisposing7(
-                    RxCompositeDisposable.t,
-                    RxAtomic.t(bool),
-                    'ctx0,
-                    'ctx1,
-                    'ctx2,
-                    'ctx3,
-                    'ctx4,
-                    'ctx5,
-                    'ctx6,
-                    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) =>
-                    unit,
-                    (
-                      'ctx0,
-                      'ctx1,
-                      'ctx2,
-                      'ctx3,
-                      'ctx4,
-                      'ctx5,
-                      'ctx6,
-                      option(exn)
-                    ) =>
-                    unit,
-                  ): t('a)
+  | Disposed
+  | AutoDisposing(RxCompositeDisposable.t)
   | Decorating(
                 t('b),
                 RxAtomic.t(bool),
@@ -195,19 +109,12 @@ type t('a) =
                    option(exn)
                  ) =>
                  unit,
-               ): t('a)
-  | Disposed;
+               ): t('a);
 
 let rec asCompositeDisposable: type a. t(a) => RxCompositeDisposable.t =
   fun
-  | AutoDisposing(disposable, _, _, _) => disposable
-  | AutoDisposing1(disposable, _, _, _, _) => disposable
-  | AutoDisposing2(disposable, _, _, _, _, _) => disposable
-  | AutoDisposing3(disposable, _, _, _, _, _, _) => disposable
-  | AutoDisposing4(disposable, _, _, _, _, _, _, _) => disposable
-  | AutoDisposing5(disposable, _, _, _, _, _, _, _, _) => disposable
-  | AutoDisposing6(disposable, _, _, _, _, _, _, _, _, _) => disposable
-  | AutoDisposing7(disposable, _, _, _, _, _, _, _, _, _, _) => disposable
+  | Disposed => RxCompositeDisposable.disposed
+  | AutoDisposing(disposable) => disposable
   | Decorating(delegate, _, _, _) => delegate |> asCompositeDisposable
   | Decorating1(delegate, _, _, _, _) => delegate |> asCompositeDisposable
   | Decorating2(delegate, _, _, _, _, _) => delegate |> asCompositeDisposable
@@ -220,8 +127,8 @@ let rec asCompositeDisposable: type a. t(a) => RxCompositeDisposable.t =
   | Decorating6(delegate, _, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
   | Decorating7(delegate, _, _, _, _, _, _, _, _, _, _) =>
-    delegate |> asCompositeDisposable
-  | Disposed => RxCompositeDisposable.disposed;
+    delegate |> asCompositeDisposable;
+
 
 let addTeardown = (teardown, subscriber) => {
   subscriber
@@ -290,110 +197,9 @@ let addTeardown7 = (teardown, d0, d1, d2, d3, d4, d5, d6, subscriber) => {
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.asDisposable;
 
-let create = (~onNext, ~onComplete) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing(disposable, isStopped, onNext, onComplete);
-};
-
-let create1 = (~onNext, ~onComplete, ctx0) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing1(disposable, isStopped, ctx0, onNext, onComplete);
-};
-
-let create2 = (~onNext, ~onComplete, ctx0, ctx1) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing2(disposable, isStopped, ctx0, ctx1, onNext, onComplete);
-};
-
-let create3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing3(disposable, isStopped, ctx0, ctx1, ctx2, onNext, onComplete);
-};
-
-let create4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing4(
-    disposable,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    onNext,
-    onComplete,
-  );
-};
-
-let create5 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing5(
-    disposable,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    onNext,
-    onComplete,
-  );
-};
-
-let create6 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing6(
-    disposable,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    onNext,
-    onComplete,
-  );
-};
-
-let create7 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) => {
-  let isStopped = RxAtomic.make(false);
-  let disposable =
-    RxCompositeDisposable.create()
-    |> RxCompositeDisposable.addTeardown1(RxAtomic.setTrue, isStopped);
-  AutoDisposing7(
-    disposable,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    ctx6,
-    onNext,
-    onComplete,
-  );
+let create = () => {
+  let disposable = RxCompositeDisposable.create();
+  AutoDisposing(disposable);
 };
 
 let decorate = (~onNext, ~onComplete, subscriber) => {
@@ -510,14 +316,8 @@ let isDisposed = subscriber =>
 
 let isStopped =
   fun
-  | AutoDisposing(_, isStopped, _, _)
-  | AutoDisposing1(_, isStopped, _, _, _)
-  | AutoDisposing2(_, isStopped, _, _, _, _)
-  | AutoDisposing3(_, isStopped, _, _, _, _, _)
-  | AutoDisposing4(_, isStopped, _, _, _, _, _, _)
-  | AutoDisposing5(_, isStopped, _, _, _, _, _, _, _)
-  | AutoDisposing6(_, isStopped, _, _, _, _, _, _, _, _)
-  | AutoDisposing7(_, isStopped, _, _, _, _, _, _, _, _, _)
+  | Disposed => true
+  | AutoDisposing(disposable) => RxCompositeDisposable.isDisposed(disposable)
   | Decorating(_, isStopped, _, _)
   | Decorating1(_, isStopped, _, _, _)
   | Decorating2(_, isStopped, _, _, _, _)
@@ -526,19 +326,13 @@ let isStopped =
   | Decorating5(_, isStopped, _, _, _, _, _, _, _)
   | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
   | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
-    RxAtomic.get(isStopped)
-  | Disposed => true;
+    RxAtomic.get(isStopped);
 
 let shouldComplete =
   fun
-  | AutoDisposing(_, isStopped, _, _)
-  | AutoDisposing1(_, isStopped, _, _, _)
-  | AutoDisposing2(_, isStopped, _, _, _, _)
-  | AutoDisposing3(_, isStopped, _, _, _, _, _)
-  | AutoDisposing4(_, isStopped, _, _, _, _, _, _)
-  | AutoDisposing5(_, isStopped, _, _, _, _, _, _, _)
-  | AutoDisposing6(_, isStopped, _, _, _, _, _, _, _, _)
-  | AutoDisposing7(_, isStopped, _, _, _, _, _, _, _, _, _)
+  | Disposed => false
+  | AutoDisposing(disposable) =>
+    ! RxCompositeDisposable.isDisposed(disposable)
   | Decorating(_, isStopped, _, _)
   | Decorating1(_, isStopped, _, _, _)
   | Decorating2(_, isStopped, _, _, _, _)
@@ -547,101 +341,14 @@ let shouldComplete =
   | Decorating5(_, isStopped, _, _, _, _, _, _, _)
   | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
   | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
-    ! RxAtomic.exchange(isStopped, true)
-  | Disposed => false;
+    ! RxAtomic.exchange(isStopped, true);
+
 
 let completeWithResult = {
   let doComplete = (exn, subscriber) =>
     switch (subscriber) {
-    | AutoDisposing(disposable, _, _, onComplete) =>
-      try (onComplete(exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing1(disposable, _, ctx0, _, onComplete) =>
-      try (onComplete(ctx0, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing2(disposable, _, ctx0, ctx1, _, onComplete) =>
-      try (onComplete(ctx0, ctx1, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing3(disposable, _, ctx0, ctx1, ctx2, _, onComplete) =>
-      try (onComplete(ctx0, ctx1, ctx2, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing4(disposable, _, ctx0, ctx1, ctx2, ctx3, _, onComplete) =>
-      try (onComplete(ctx0, ctx1, ctx2, ctx3, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing5(
-        disposable,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        _,
-        onComplete,
-      ) =>
-      try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing6(
-        disposable,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        _,
-        onComplete,
-      ) =>
-      try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
-    | AutoDisposing7(
-        disposable,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        ctx6,
-        _,
-        onComplete,
-      ) =>
-      try (onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, exn)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      };
-      disposable |> RxCompositeDisposable.dispose;
+    | Disposed => ()
+    | AutoDisposing(disposable) => disposable |> RxCompositeDisposable.dispose
     | Decorating(delegate, _, _, onComplete) => onComplete(delegate, exn)
     | Decorating1(delegate, _, ctx0, _, onComplete) =>
       onComplete(ctx0, delegate, exn)
@@ -680,13 +387,32 @@ let completeWithResult = {
         onComplete,
       ) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, exn)
+    };
+
+  let completeDelegate = (exn, subscriber) =>
+    switch (subscriber) {
     | Disposed => ()
+    | AutoDisposing(_) => ()
+    | Decorating(delegate, _, _, _) => delegate |> doComplete(exn)
+    | Decorating1(delegate, _, _, _, _) => delegate |> doComplete(exn)
+    | Decorating2(delegate, _, _, _, _, _) => delegate |> doComplete(exn)
+    | Decorating3(delegate, _, _, _, _, _, _) => delegate |> doComplete(exn)
+    | Decorating4(delegate, _, _, _, _, _, _, _) =>
+      delegate |> doComplete(exn)
+    | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
+      delegate |> doComplete(exn)
+    | Decorating6(delegate, _, _, _, _, _, _, _, _, _) =>
+      delegate |> doComplete(exn)
+    | Decorating7(delegate, _, _, _, _, _, _, _, _, _, _) =>
+      delegate |> doComplete(exn)
     };
 
   (~exn=?, subscriber) => {
     let shouldComplete = shouldComplete(subscriber);
     if (shouldComplete) {
-      doComplete(exn, subscriber);
+      try (doComplete(exn, subscriber)) {
+      | exn => subscriber |> completeDelegate(Some(exn))
+      };
     };
     shouldComplete;
   };
@@ -698,77 +424,8 @@ let complete = (~exn=?, subscriber) =>
 let next = {
   let doNext = (next, subscriber) =>
     switch (subscriber) {
-    | AutoDisposing(disposable, _, onNext, _) =>
-      try (onNext(next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing1(disposable, _, ctx0, onNext, _) =>
-      try (onNext(ctx0, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing2(disposable, _, ctx0, ctx1, onNext, _) =>
-      try (onNext(ctx0, ctx1, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing3(disposable, _, ctx0, ctx1, ctx2, onNext, _) =>
-      try (onNext(ctx0, ctx1, ctx2, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing4(disposable, _, ctx0, ctx1, ctx2, ctx3, onNext, _) =>
-      try (onNext(ctx0, ctx1, ctx2, ctx3, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing5(disposable, _, ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _) =>
-      try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing6(
-        disposable,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        onNext,
-        _,
-      ) =>
-      try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
-    | AutoDisposing7(
-        disposable,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        ctx6,
-        onNext,
-        _,
-      ) =>
-      try (onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, next)) {
-      | exn =>
-        disposable |> RxCompositeDisposable.dispose;
-        raise(exn);
-      }
+    | Disposed => ()
+    | AutoDisposing(_) => ()
     | Decorating(delegate, _, onNext, _) => onNext(delegate, next)
     | Decorating1(delegate, _, ctx0, onNext, _) =>
       onNext(ctx0, delegate, next)
@@ -796,13 +453,14 @@ let next = {
         _,
       ) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, next)
-    | Disposed => ()
     };
 
   (next, subscriber) => {
     let isStopped = subscriber |> isStopped;
     if (! isStopped) {
-      doNext(next, subscriber);
+      try (doNext(next, subscriber)) {
+      | exn => subscriber |> complete(~exn)
+      };
     };
   };
 };

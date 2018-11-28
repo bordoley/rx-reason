@@ -1,27 +1,10 @@
 let operator = {
-  let rec onComplete = {
-    let impl = (observable, shouldRepeat, subscription, delegate, exn) => {
-      let shouldComplete =
-        try (! shouldRepeat(exn)) {
-        | exn =>
-          delegate |> RxSubscriber.complete(~exn);
-          RxFunctions.returnUnit();
-        };
+  let rec onComplete = (observable, shouldRepeat, subscription, delegate, exn) => {
+    let shouldComplete = ! shouldRepeat(exn);
 
-      shouldComplete ?
-        delegate |> RxSubscriber.complete(~exn?) :
-        setupSubscription(observable, shouldRepeat, subscription, delegate);
-    };
-
-    (observable, shouldRepeat, subscription, delegate, exn) =>
-      RxFunctions.earlyReturnsUnit5(
-        impl,
-        observable,
-        shouldRepeat,
-        subscription,
-        delegate,
-        exn,
-      );
+    shouldComplete ?
+      delegate |> RxSubscriber.complete(~exn?) :
+      setupSubscription(observable, shouldRepeat, subscription, delegate);
   }
   and setupSubscription = (observable, shouldRepeat, subscription, delegate) => {
     let alreadyDisposed = subscription |> RxSerialDisposable.isDisposed;
@@ -31,19 +14,18 @@ let operator = {
       |> RxSerialDisposable.getInnerDisposable
       |> RxDisposable.dispose;
       let newInnerSubscription =
-        RxSubscriber.create4(
-          ~onNext=RxSubscriber.forwardOnNext3,
-          ~onComplete,
-          observable,
-          shouldRepeat,
-          subscription,
-          delegate,
-        );
-      observable |> RxObservable.subscribeWith(newInnerSubscription);
+        observable
+        |> RxObservable.observe4(
+             ~onNext=RxSubscriber.forwardOnNext3,
+             ~onComplete,
+             observable,
+             shouldRepeat,
+             subscription,
+             delegate,
+           )
+        |> RxObservable.subscribe;
       subscription
-      |> RxSerialDisposable.setInnerDisposable(
-           newInnerSubscription |> RxSubscriber.asDisposable,
-         );
+      |> RxSerialDisposable.setInnerDisposable(newInnerSubscription);
     };
   };
 

@@ -17,7 +17,9 @@ let defer: (unit => RxObservable.t('a)) => RxObservable.t('a);
  * are followed by another item within a debounce duration
  * determined by the scheduler.
  */
-let debounce: (~scheduler: RxScheduler.t, float, RxObservable.t('a)) => RxObservable.t('a);
+let debounce:
+  (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which emits a default value if the
@@ -32,14 +34,11 @@ let defaultIfEmpty: ('a, RxObservable.t('a)) => RxObservable.t('a);
 let defer: (unit => RxObservable.t('a)) => RxObservable.t('a);
 
 let delay:
-  (
-    ~scheduler: RxScheduler.t,
-    float,
-    RxObservable.t('a)
-  ) =>
+  (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
   RxObservable.t('a);
 
-let dematerialize: RxObservable.t(RxNotification.t('a)) => RxObservable.t('a);
+let dematerialize:
+  RxObservable.t(RxNotification.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which emits items that are distinct from
@@ -47,7 +46,8 @@ let dematerialize: RxObservable.t(RxNotification.t('a)) => RxObservable.t('a);
  * equality function. By default, reference equality is
  * used.
  */
-let distinctUntilChanged: (~equals: ('a, 'a) => bool=?, RxObservable.t('a)) => RxObservable.t('a);
+let distinctUntilChanged:
+  (~equals: ('a, 'a) => bool=?, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable that emits no items and immediately completes.
@@ -162,22 +162,10 @@ let merge: list(RxObservable.t('a)) => RxObservable.t('a);
 let none: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
 
 /**
- * Returns an Observable which invokes side-effect functions on each
- * observed event and on completion.
- */
-let observe:
-  (~onNext: 'a => unit, ~onComplete: option(exn) => unit, RxObservable.t('a)) => RxObservable.t('a);
-
-/**
  * Returns an Observable which emits notifications on the specified scheduler. The default
  * buffer strategy is to throw, and default buffer size is unbound.
  */
-let observeOn:
-  (
-    RxScheduler.t,
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('a);
+let observeOn: (RxScheduler.t, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which emits the specified notifications at the
@@ -216,7 +204,8 @@ let ofValue: (~scheduler: RxScheduler.t=?, 'a) => RxObservable.t('a);
 /**
  * Returns an Observable which invokes the side-effect function when it completes.
  */
-let onComplete: (option(exn) => unit,  RxObservable.t('a)) =>  RxObservable.t('a);
+let onComplete:
+  (option(exn) => unit, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
@@ -235,118 +224,8 @@ let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);
  * calling the specified function when subscribed to, and
  * disposing the returned Disposable when disposed.
  */
-let onSubscribe: (unit => RxDisposable.t,  RxObservable.t('a)) =>  RxObservable.t('a);
-
-let publish:
-  (
-    ~onNext: 'a => unit,
-    ~onComplete: option(exn) => unit,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish1:
-  (
-    ~onNext: ('ctx0, 'a) => unit,
-    ~onComplete: ('ctx0, option(exn)) => unit,
-    'ctx0,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish2:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish3:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish4:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish5:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish6:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
-
-let publish7:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
-    ~onComplete: (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   option(exn)
-                 ) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    'ctx6,
-    RxObservable.t('a),
-    unit
-  ) =>
-  RxDisposable.t;
+let onSubscribe:
+  (unit => RxDisposable.t, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable that completes with the specified exception
@@ -375,7 +254,8 @@ let retry:
  * for each item observed from the source, emitting the intermediate
  * accumulated values. The first item emitted is the initial value.
  */
-let scan: (('acc, 'a) => 'acc, 'acc, RxObservable.t('a)) => RxObservable.t('acc);
+let scan:
+  (('acc, 'a) => 'acc, 'acc, RxObservable.t('a)) => RxObservable.t('acc);
 
 /**
  * Returns an Observable that emits a single true value if any
@@ -439,7 +319,9 @@ let synchronize: RxObservable.t('a) => RxObservable.t('a);
  * no notifications are observed before a duration determined
  * by the scheduler.
  */
-let timeout: (~scheduler: RxScheduler.t, float, RxObservable.t('a)) => RxObservable.t('a);
+let timeout:
+  (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which collects all observed items in a list
@@ -458,4 +340,6 @@ let toList: RxObservable.t('a) => RxObservable.t(list('a));
  * Note: Observed items from the source are ignored, if the other Observable
  * has not yet produced any values.
  */
-let withLatestFrom: (~selector: ('a, 'b) => 'c, RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('c);
+let withLatestFrom:
+  (~selector: ('a, 'b) => 'c, RxObservable.t('b), RxObservable.t('a)) =>
+  RxObservable.t('c);

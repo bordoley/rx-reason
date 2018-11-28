@@ -34,20 +34,18 @@ let operator = {
       |> RxSerialDisposable.setInnerDisposable(RxDisposable.disposed);
 
       let newInnerSubscription =
-        RxSubscriber.create3(
-          ~onNext=onNextInner,
-          ~onComplete=onCompleteInner,
-          id,
-          ctx,
-          delegate,
-        );
-
-      next |> RxObservable.subscribeWith(newInnerSubscription);
+        next
+        |> RxObservable.observe3(
+             ~onNext=onNextInner,
+             ~onComplete=onCompleteInner,
+             id,
+             ctx,
+             delegate,
+           )
+        |> RxObservable.subscribe;
 
       ctx.innerSubscription
-      |> RxSerialDisposable.setInnerDisposable(
-           newInnerSubscription |> RxSubscriber.asDisposable,
-         );
+      |> RxSerialDisposable.setInnerDisposable(newInnerSubscription);
     };
   };
 
