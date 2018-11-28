@@ -20,9 +20,9 @@ let useClick = {
 };
 
 let useFocus = {
-  let click = ((), ele) =>
+  let focus = ((), ele) =>
     ele
     |> Webapi.Dom.HtmlElement.ofElement
     |> optionDo(Webapi.Dom.HtmlElement.focus);
-  RxReact.useOnNextWithRef(click);
+  RxReact.useOnNextWithRef(focus);
 };
