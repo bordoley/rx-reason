@@ -111,49 +111,35 @@ module ObserveOperator = {
           'c4,
         ): t('a);
 
-  let onNext = (context: t('a), subscriber, next) =>
+  let onNext = (context: t('a), subscriber, next) => {
     switch (context) {
-    | C0(onNext, _) =>
-      onNext(next);
-      subscriber |> RxSubscriber.next(next);
-    | C1(onNext, _, c0) =>
-      onNext(c0, next);
-      subscriber |> RxSubscriber.next(next);
-    | C2(onNext, _, c0, c1) =>
-      onNext(c0, c1, next);
-      subscriber |> RxSubscriber.next(next);
-    | C3(onNext, _, c0, c1, c2) =>
-      onNext(c0, c1, c2, next);
-      subscriber |> RxSubscriber.next(next);
-    | C4(onNext, _, c0, c1, c2, c3) =>
-      onNext(c0, c1, c2, c3, next);
-      subscriber |> RxSubscriber.next(next);
-    | C5(onNext, _, c0, c1, c2, c3, c4) =>
-      onNext(c0, c1, c2, c3, c4, next);
-      subscriber |> RxSubscriber.next(next);
+    | C0(onNext, _) => onNext(next)
+    | C1(onNext, _, c0) => onNext(c0, next)
+    | C2(onNext, _, c0, c1) => onNext(c0, c1, next)
+    | C3(onNext, _, c0, c1, c2) => onNext(c0, c1, c2, next)
+    | C4(onNext, _, c0, c1, c2, c3) => onNext(c0, c1, c2, c3, next)
+    | C5(onNext, _, c0, c1, c2, c3, c4) => onNext(c0, c1, c2, c3, c4, next)
     };
+    subscriber |> RxSubscriber.next(next);
+  };
 
-  let onComplete = (context, subscriber, exn) =>
+  let onComplete = (context, subscriber, exn) => {
     switch (context) {
     | C0(_, onComplete) =>
       onComplete(exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     | C1(_, onComplete, c0) =>
       onComplete(c0, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     | C2(_, onComplete, c0, c1) =>
       onComplete(c0, c1, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     | C3(_, onComplete, c0, c1, c2) =>
       onComplete(c0, c1, c2, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     | C4(_, onComplete, c0, c1, c2, c3) =>
       onComplete(c0, c1, c2, c3, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     | C5(_, onComplete, c0, c1, c2, c3, c4) =>
       onComplete(c0, c1, c2, c3, c4, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
     };
+    subscriber |> RxSubscriber.complete(~exn?);
+  };
 
   let decorate = (context, subscriber) =>
     subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, context);
