@@ -27,6 +27,8 @@ let operator = (scheduler, subscriber) => {
     let yieldRequested = shouldYield();
     if (loopAgain && ! yieldRequested) {
       doWork(~now, ~shouldYield);
+    } else if (loopAgain) {
+      RxScheduler.Result.yield(doWork);
     } else if (RxAtomic.decr(wip) !== 0) {
       RxScheduler.Result.yield(doWork);
     } else {

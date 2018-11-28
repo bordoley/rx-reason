@@ -39,10 +39,10 @@ let operator = (~scheduler, delay, subscriber) => {
       } else {
         RxScheduler.Result.complete;
       };
-    } else if (! yieldRequested) {
-      doWork(~now, ~shouldYield);
-    } else {
+    } else if (yieldRequested) {
       RxScheduler.Result.yield(doWork);
+    } else {
+      doWork(~now, ~shouldYield);
     };
   };
 
