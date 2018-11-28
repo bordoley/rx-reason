@@ -63,38 +63,6 @@ let create5:
   t('a);
 
 /**
- * Returns an Observable from the specified subscribe function.
- */
-let create6:
-  (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, RxSubscriber.t('a)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5
-  ) =>
-  t('a);
-
-/**
- * Returns an Observable from the specified subscribe function.
- */
-let create7:
-  (
-    ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, RxSubscriber.t('a)) =>
-    unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    'ctx6
-  ) =>
-  t('a);
-
-/**
  * Returns an Observable that applies the Operator function to the
  * source Observable's notifications.
  */
@@ -183,54 +151,6 @@ let observe5:
     'ctx2,
     'ctx3,
     'ctx4,
-    t('a)
-  ) =>
-  t('a);
-
-/**
- * Returns an Observable which invokes side-effect functions on each
- * observed event and on completion.
- */
-let observe6:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, option(exn)) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    t('a)
-  ) =>
-  t('a);
-
-/**
- * Returns an Observable which invokes side-effect functions on each
- * observed event and on completion.
- */
-let observe7:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) => unit,
-    ~onComplete: (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   option(exn)
-                 ) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    'ctx6,
     t('a)
   ) =>
   t('a);

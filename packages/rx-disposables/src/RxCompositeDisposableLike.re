@@ -16,23 +16,6 @@ module type S = {
 
   let addTeardown5:
     (RxDisposableTeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t) => t;
-
-  let addTeardown6:
-    (RxDisposableTeardownLogic.t6('b, 'c, 'd, 'e, 'f, 'g), 'b, 'c, 'd, 'e, 'f, 'g, t) => t;
-
-  let addTeardown7:
-    (
-      RxDisposableTeardownLogic.t7('b, 'c, 'd, 'e, 'f, 'g, 'h),
-      'b,
-      'c,
-      'd,
-      'e,
-      'f,
-      'g,
-      'h,
-      t
-    ) =>
-    t;
 };
 
 module type S1 = {
@@ -54,32 +37,5 @@ module type S1 = {
 
   let addTeardown5:
     (RxDisposableTeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t('a)) =>
-    t('a);
-
-  let addTeardown6:
-    (
-      RxDisposableTeardownLogic.t6('b, 'c, 'd, 'e, 'f, 'g),
-      'b,
-      'c,
-      'd,
-      'e,
-      'f,
-      'g,
-      t('a)
-    ) =>
-    t('a);
-
-  let addTeardown7:
-    (
-      RxDisposableTeardownLogic.t7('b, 'c, 'd, 'e, 'f, 'g, 'h),
-      'b,
-      'c,
-      'd,
-      'e,
-      'f,
-      'g,
-      'h,
-      t('a)
-    ) =>
     t('a);
 };

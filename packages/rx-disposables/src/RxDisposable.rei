@@ -71,30 +71,6 @@ let create4: (RxDisposableTeardownLogic.t4('a, 'b, 'c, 'd), 'a, 'b, 'c, 'd) => t
 let create5: (RxDisposableTeardownLogic.t5('a, 'b, 'c, 'd, 'e), 'a, 'b, 'c, 'd, 'e) => t;
 
 /**
- * Constructs a Disposable instance which executes
- * the provided teardown function exactly once when disposed.
- */
-let create6:
-  (RxDisposableTeardownLogic.t6('a, 'b, 'c, 'd, 'e, 'f), 'a, 'b, 'c, 'd, 'e, 'f) => t;
-
-/**
- * Constructs a Disposable instance which executes
- * the provided teardown function exactly once when disposed.
- */
-let create7:
-  (
-    RxDisposableTeardownLogic.t7('a, 'b, 'c, 'd, 'e, 'f, 'g),
-    'a,
-    'b,
-    'c,
-    'd,
-    'e,
-    'f,
-    'g
-  ) =>
-  t;
-
-/**
  * A disposed Disposable instance.
  */
 let disposed: t;

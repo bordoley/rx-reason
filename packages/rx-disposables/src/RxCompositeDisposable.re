@@ -17,25 +17,6 @@ type teardownLogic =
                     'c,
                     'd,
                     'e,
-                  ): teardownLogic
-  | TeardownLogic6(
-                    RxDisposableTeardownLogic.t6('a, 'b, 'c, 'd, 'e, 'f),
-                    'a,
-                    'b,
-                    'c,
-                    'd,
-                    'e,
-                    'f,
-                  ): teardownLogic
-  | TeardownLogic7(
-                    RxDisposableTeardownLogic.t7('a, 'b, 'c, 'd, 'e, 'f, 'g),
-                    'a,
-                    'b,
-                    'c,
-                    'd,
-                    'e,
-                    'f,
-                    'g,
                   ): teardownLogic;
 
 type t =
@@ -83,11 +64,7 @@ let create = {
       | TeardownLogic3(tdl, d0, d1, d2) => tdl(d0, d1, d2)
       | TeardownLogic4(tdl, d0, d1, d2, d3) => tdl(d0, d1, d2, d3)
       | TeardownLogic5(tdl, d0, d1, d2, d3, d4) =>
-        tdl(d0, d1, d2, d3, d4)
-      | TeardownLogic6(tdl, d0, d1, d2, d3, d4, d5) =>
-        tdl(d0, d1, d2, d3, d4, d5)
-      | TeardownLogic7(tdl, d0, d1, d2, d3, d4, d5, d6) =>
-        tdl(d0, d1, d2, d3, d4, d5, d6);
+        tdl(d0, d1, d2, d3, d4);
 
     (lock, teardown) => {
       lock |> RxLock.acquire;
@@ -178,26 +155,6 @@ let addTeardown5 = (cb, d0, d1, d2, d3, d4, self) => {
     self |> addInternal(TeardownLogic5(cb, d0, d1, d2, d3, d4));
   if (isDisposed) {
     cb(d0, d1, d2, d3, d4);
-  };
-
-  self;
-};
-
-let addTeardown6 = (cb, d0, d1, d2, d3, d4, d5, self) => {
-  let isDisposed =
-    self |> addInternal(TeardownLogic6(cb, d0, d1, d2, d3, d4, d5));
-  if (isDisposed) {
-    cb(d0, d1, d2, d3, d4, d5);
-  };
-
-  self;
-};
-
-let addTeardown7 = (cb, d0, d1, d2, d3, d4, d5, d6, self) => {
-  let isDisposed =
-    self |> addInternal(TeardownLogic7(cb, d0, d1, d2, d3, d4, d5, d6));
-  if (isDisposed) {
-    cb(d0, d1, d2, d3, d4, d5, d6);
   };
 
   self;

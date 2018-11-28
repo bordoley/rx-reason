@@ -86,57 +86,6 @@ let decorate5:
   ) =>
   t('a);
 
-let decorate6:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('b), 'a) => unit,
-    ~onComplete: (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   t('b),
-                   option(exn)
-                 ) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    t('b)
-  ) =>
-  t('a);
-
-let decorate7:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('b), 'a) =>
-             unit,
-    ~onComplete: (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   t('b),
-                   option(exn)
-                 ) =>
-                 unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    'ctx5,
-    'ctx6,
-    t('b)
-  ) =>
-  t('a);
-
 let forwardOnComplete: (t('a), option(exn)) => unit;
 let forwardOnComplete1: ('ctx0, t('a), option(exn)) => unit;
 let forwardOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
@@ -145,11 +94,6 @@ let forwardOnComplete4:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), option(exn)) => unit;
 let forwardOnComplete5:
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), option(exn)) => unit;
-let forwardOnComplete6:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('a), option(exn)) => unit;
-let forwardOnComplete7:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('a), option(exn)) =>
-  unit;
 
 let forwardOnNext: (t('a), 'a) => unit;
 let forwardOnNext1: ('ctx0, t('a), 'a) => unit;
@@ -157,10 +101,6 @@ let forwardOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
 let forwardOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
 let forwardOnNext4: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), 'a) => unit;
 let forwardOnNext5: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), 'a) => unit;
-let forwardOnNext6:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('a), 'a) => unit;
-let forwardOnNext7:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, t('a), 'a) => unit;
 
 /**
  * A disposed Subscriber instance.

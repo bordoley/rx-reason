@@ -52,63 +52,6 @@ type t('a) =
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
                  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
                  unit,
-               ): t('a)
-  | Decorating6(
-                 t('b),
-                 RxAtomic.t(bool),
-                 'ctx0,
-                 'ctx1,
-                 'ctx2,
-                 'ctx3,
-                 'ctx4,
-                 'ctx5,
-                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, t('b), 'a) => unit,
-                 (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   t('b),
-                   option(exn)
-                 ) =>
-                 unit,
-               ): t('a)
-  | Decorating7(
-                 t('b),
-                 RxAtomic.t(bool),
-                 'ctx0,
-                 'ctx1,
-                 'ctx2,
-                 'ctx3,
-                 'ctx4,
-                 'ctx5,
-                 'ctx6,
-                 (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   t('b),
-                   'a
-                 ) =>
-                 unit,
-                 (
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                   'ctx5,
-                   'ctx6,
-                   t('b),
-                   option(exn)
-                 ) =>
-                 unit,
                ): t('a);
 
 let rec asCompositeDisposable: type a. t(a) => RxCompositeDisposable.t =
@@ -123,12 +66,7 @@ let rec asCompositeDisposable: type a. t(a) => RxCompositeDisposable.t =
   | Decorating4(delegate, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable
   | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
-    delegate |> asCompositeDisposable
-  | Decorating6(delegate, _, _, _, _, _, _, _, _, _) =>
-    delegate |> asCompositeDisposable
-  | Decorating7(delegate, _, _, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable;
-
 
 let addTeardown = (teardown, subscriber) => {
   subscriber
@@ -174,22 +112,6 @@ let addTeardown5 = (teardown, d0, d1, d2, d3, d4, subscriber) => {
   subscriber
   |> asCompositeDisposable
   |> RxCompositeDisposable.addTeardown5(teardown, d0, d1, d2, d3, d4)
-  |> ignore;
-  subscriber;
-};
-
-let addTeardown6 = (teardown, d0, d1, d2, d3, d4, d5, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown6(teardown, d0, d1, d2, d3, d4, d5)
-  |> ignore;
-  subscriber;
-};
-
-let addTeardown7 = (teardown, d0, d1, d2, d3, d4, d5, d6, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown7(teardown, d0, d1, d2, d3, d4, d5, d6)
   |> ignore;
   subscriber;
 };
@@ -258,54 +180,6 @@ let decorate5 =
   );
 };
 
-let decorate6 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber) => {
-  let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
-  Decorating6(
-    subscriber,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    onNext,
-    onComplete,
-  );
-};
-
-let decorate7 =
-    (
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      subscriber,
-    ) => {
-  let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
-  Decorating7(
-    subscriber,
-    isStopped,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    ctx6,
-    onNext,
-    onComplete,
-  );
-};
-
 let dispose = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.dispose;
 
@@ -323,9 +197,7 @@ let isStopped =
   | Decorating2(_, isStopped, _, _, _, _)
   | Decorating3(_, isStopped, _, _, _, _, _)
   | Decorating4(_, isStopped, _, _, _, _, _, _)
-  | Decorating5(_, isStopped, _, _, _, _, _, _, _)
-  | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
-  | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
+  | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
     RxAtomic.get(isStopped);
 
 let shouldComplete =
@@ -338,9 +210,7 @@ let shouldComplete =
   | Decorating2(_, isStopped, _, _, _, _)
   | Decorating3(_, isStopped, _, _, _, _, _)
   | Decorating4(_, isStopped, _, _, _, _, _, _)
-  | Decorating5(_, isStopped, _, _, _, _, _, _, _)
-  | Decorating6(_, isStopped, _, _, _, _, _, _, _, _)
-  | Decorating7(_, isStopped, _, _, _, _, _, _, _, _, _) =>
+  | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
     ! RxAtomic.exchange(isStopped, true);
 
 
@@ -360,34 +230,7 @@ let completeWithResult = {
       onComplete(ctx0, ctx1, ctx2, ctx3, delegate, exn)
     | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, exn)
-    | Decorating6(
-        delegate,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        _,
-        onComplete,
-      ) =>
-      onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, exn)
-    | Decorating7(
-        delegate,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        ctx6,
-        _,
-        onComplete,
-      ) =>
-      onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, exn)
-    };
+  };
 
   let completeDelegate = (exn, subscriber) =>
     switch (subscriber) {
@@ -400,10 +243,6 @@ let completeWithResult = {
     | Decorating4(delegate, _, _, _, _, _, _, _) =>
       delegate |> doComplete(exn)
     | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
-      delegate |> doComplete(exn)
-    | Decorating6(delegate, _, _, _, _, _, _, _, _, _) =>
-      delegate |> doComplete(exn)
-    | Decorating7(delegate, _, _, _, _, _, _, _, _, _, _) =>
       delegate |> doComplete(exn)
     };
 
@@ -437,22 +276,6 @@ let next = {
       onNext(ctx0, ctx1, ctx2, ctx3, delegate, next)
     | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, next)
-    | Decorating6(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, onNext, _) =>
-      onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, delegate, next)
-    | Decorating7(
-        delegate,
-        _,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        ctx6,
-        onNext,
-        _,
-      ) =>
-      onNext(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, delegate, next)
     };
 
   (next, subscriber) => {
@@ -482,12 +305,6 @@ let forwardOnComplete4 = (_, _, _, _, subscriber, exn) =>
 let forwardOnComplete5 = (_, _, _, _, _, subscriber, exn) =>
   subscriber |> complete(~exn?);
 
-let forwardOnComplete6 = (_, _, _, _, _, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnComplete7 = (_, _, _, _, _, _, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
 let forwardOnNext = (subscriber, v) => subscriber |> next(v);
 
 let forwardOnNext1 = (_, subscriber, v) => subscriber |> next(v);
@@ -499,12 +316,6 @@ let forwardOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
 let forwardOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
 
 let forwardOnNext5 = (_, _, _, _, _, subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext6 = (_, _, _, _, _, _, subscriber, v) =>
-  subscriber |> next(v);
-
-let forwardOnNext7 = (_, _, _, _, _, _, _, subscriber, v) =>
-  subscriber |> next(v);
 
 let notify = (notif, subscriber) =>
   switch (notif) {

@@ -7,11 +7,6 @@ type source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) =
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, RxSubscriber.t('a)) => unit;
 type source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) =
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, RxSubscriber.t('a)) => unit;
-type source6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'a) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, RxSubscriber.t('a)) => unit;
-type source7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'a) =
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, RxSubscriber.t('a)) =>
-  unit;
 
 type t('a) =
   | Source(source('b), RxOperator.t('b, 'a)): t('a)
@@ -42,27 +37,6 @@ type t('a) =
              'ctx3,
              'ctx4,
              RxOperator.t('b, 'a),
-           ): t('a)
-  | Source6(
-             source6('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'b),
-             'ctx0,
-             'ctx1,
-             'ctx2,
-             'ctx3,
-             'ctx4,
-             'ctx5,
-             RxOperator.t('b, 'a),
-           ): t('a)
-  | Source7(
-             source7('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'ctx5, 'ctx6, 'b),
-             'ctx0,
-             'ctx1,
-             'ctx2,
-             'ctx3,
-             'ctx4,
-             'ctx5,
-             'ctx6,
-             RxOperator.t('b, 'a),
            ): t('a);
 
 type observable('a) = t('a);
@@ -85,29 +59,6 @@ let create4 = (onSubscribe, ctx0, ctx1, ctx2, ctx3) =>
   Source4(onSubscribe, ctx0, ctx1, ctx2, ctx3, RxFunctions.identity);
 let create5 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4) =>
   Source5(onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4, RxFunctions.identity);
-let create6 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5) =>
-  Source6(
-    onSubscribe,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    RxFunctions.identity,
-  );
-let create7 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6) =>
-  Source7(
-    onSubscribe,
-    ctx0,
-    ctx1,
-    ctx2,
-    ctx3,
-    ctx4,
-    ctx5,
-    ctx6,
-    RxFunctions.identity,
-  );
 
 let liftOperator = (op0, op1, subscriber) => op0 @@ op1 @@ subscriber;
 
@@ -124,29 +75,6 @@ let lift = (operator, observable) =>
     Source4(source, ctx0, ctx1, ctx2, ctx3, liftOperator(op, operator))
   | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, op) =>
     Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, liftOperator(op, operator))
-  | Source6(source, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, op) =>
-    Source6(
-      source,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      liftOperator(op, operator),
-    )
-  | Source7(source, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, op) =>
-    Source7(
-      source,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      liftOperator(op, operator),
-    )
   };
 
 let never = Source(RxFunctions.alwaysUnit1, RxFunctions.identity);
@@ -181,27 +109,6 @@ module ObserveOperator = {
           'c2,
           'c3,
           'c4,
-        ): t('a)
-    | C6(
-          ('c0, 'c1, 'c2, 'c3, 'c4, 'c5, 'a) => unit,
-          ('c0, 'c1, 'c2, 'c3, 'c4, 'c5, option(exn)) => unit,
-          'c0,
-          'c1,
-          'c2,
-          'c3,
-          'c4,
-          'c5,
-        ): t('a)
-    | C7(
-          ('c0, 'c1, 'c2, 'c3, 'c4, 'c5, 'c6, 'a) => unit,
-          ('c0, 'c1, 'c2, 'c3, 'c4, 'c5, 'c6, option(exn)) => unit,
-          'c0,
-          'c1,
-          'c2,
-          'c3,
-          'c4,
-          'c5,
-          'c6,
         ): t('a);
 
   let onNext = (context: t('a), subscriber, next) =>
@@ -224,12 +131,6 @@ module ObserveOperator = {
     | C5(onNext, _, c0, c1, c2, c3, c4) =>
       onNext(c0, c1, c2, c3, c4, next);
       subscriber |> RxSubscriber.next(next);
-    | C6(onNext, _, c0, c1, c2, c3, c4, c5) =>
-      onNext(c0, c1, c2, c3, c4, c5, next);
-      subscriber |> RxSubscriber.next(next);
-    | C7(onNext, _, c0, c1, c2, c3, c4, c5, c6) =>
-      onNext(c0, c1, c2, c3, c4, c5, c6, next);
-      subscriber |> RxSubscriber.next(next);
     };
 
   let onComplete = (context, subscriber, exn) =>
@@ -251,12 +152,6 @@ module ObserveOperator = {
       subscriber |> RxSubscriber.complete(~exn?);
     | C5(_, onComplete, c0, c1, c2, c3, c4) =>
       onComplete(c0, c1, c2, c3, c4, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
-    | C6(_, onComplete, c0, c1, c2, c3, c4, c5) =>
-      onComplete(c0, c1, c2, c3, c4, c5, exn);
-      subscriber |> RxSubscriber.complete(~exn?);
-    | C7(_, onComplete, c0, c1, c2, c3, c4, c5, c6) =>
-      onComplete(c0, c1, c2, c3, c4, c5, c6, exn);
       subscriber |> RxSubscriber.complete(~exn?);
     };
 
@@ -293,30 +188,6 @@ module ObserveOperator = {
     let context = C5(onNext, onComplete, ctx0, ctx1, ctx2, ctx3, ctx4);
     decorate(context, subscriber);
   };
-
-  let observe6 =
-      (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber) => {
-    let context = C6(onNext, onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5);
-    decorate(context, subscriber);
-  };
-
-  let observe7 =
-      (
-        ~onNext,
-        ~onComplete,
-        ctx0,
-        ctx1,
-        ctx2,
-        ctx3,
-        ctx4,
-        ctx5,
-        ctx6,
-        subscriber,
-      ) => {
-    let context =
-      C7(onNext, onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6);
-    decorate(context, subscriber);
-  };
 };
 
 let observe = (~onNext, ~onComplete, observable) =>
@@ -351,50 +222,6 @@ let observe5 =
          ctx2,
          ctx3,
          ctx4,
-       ),
-     );
-
-let observe6 =
-    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, observable) =>
-  observable
-  |> lift(
-       ObserveOperator.observe6(
-         ~onNext,
-         ~onComplete,
-         ctx0,
-         ctx1,
-         ctx2,
-         ctx3,
-         ctx4,
-         ctx5,
-       ),
-     );
-
-let observe7 =
-    (
-      ~onNext,
-      ~onComplete,
-      ctx0,
-      ctx1,
-      ctx2,
-      ctx3,
-      ctx4,
-      ctx5,
-      ctx6,
-      observable,
-    ) =>
-  observable
-  |> lift(
-       ObserveOperator.observe7(
-         ~onNext,
-         ~onComplete,
-         ctx0,
-         ctx1,
-         ctx2,
-         ctx3,
-         ctx4,
-         ctx5,
-         ctx6,
        ),
      );
 
@@ -443,16 +270,6 @@ let subscribe = observable => {
   | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, op) =>
     let subscriber = op(subscriber);
     try (source(ctx0, ctx1, ctx2, ctx3, ctx4, subscriber)) {
-    | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
-    };
-  | Source6(source, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, op) =>
-    let subscriber = op(subscriber);
-    try (source(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, subscriber)) {
-    | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
-    };
-  | Source7(source, ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, op) =>
-    let subscriber = op(subscriber);
-    try (source(ctx0, ctx1, ctx2, ctx3, ctx4, ctx5, ctx6, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
   };
