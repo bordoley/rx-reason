@@ -41,8 +41,9 @@ let fromObservable = {
     Js.Promise.make((~resolve, ~reject) => {
       let last = RxMutableOption.create();
 
-      let subscriber =
-        RxSubscriber.create3(~onNext, ~onComplete, last, resolve, reject);
-      observable |> RxObservable.subscribeWith(subscriber);
+      observable
+      |> RxObservable.observe3(~onNext, ~onComplete, last, resolve, reject)
+      |> RxObservable.subscribe
+      |> ignore;
     });
 };
