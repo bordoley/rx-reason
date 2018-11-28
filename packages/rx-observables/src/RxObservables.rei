@@ -215,6 +215,18 @@ let onNext: ('a => unit, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
+ * with each observed item.
+ */
+let onNext1: (('ctx0, 'a) => unit, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+
+/**
+ * Returns an Observable which invokes the side-effect function
+ * with each observed item.
+ */
+let onNext2: (('ctx0, 'ctx1, 'a) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) => RxObservable.t('a);
+
+/**
+ * Returns an Observable which invokes the side-effect function
  * when an exception occurs.
  */
 let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);

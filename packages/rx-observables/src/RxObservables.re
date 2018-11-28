@@ -94,6 +94,14 @@ let onNext = (onNext, observable) =>
   observable
   |> RxObservable.observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
 
+let onNext1 = (onNext, ctx0, observable) =>
+  observable
+  |> RxObservable.observe1(~onNext, ~onComplete=RxFunctions.alwaysUnit2, ctx0);
+
+let onNext2 = (onNext, ctx0, ctx1, observable) =>
+  observable
+  |> RxObservable.observe2(~onNext, ~onComplete=RxFunctions.alwaysUnit3, ctx0, ctx1);
+
 let onSubscribe = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.onSubscribe(f));
 

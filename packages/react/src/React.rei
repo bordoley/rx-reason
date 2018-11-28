@@ -72,11 +72,14 @@ let useEffectWithCleanup1: ('key => cleanup, 'key) => unit;
 let useEffectWithCleanup2: (('key0, 'key1) => cleanup, 'key0, 'key1) => unit;
 let useEffectWithCleanup3:
   (('key0, 'key1, 'key2) => cleanup, 'key0, 'key1, 'key2) => unit;
+let useEffectWithCleanup4:
+  (('key0, 'key1, 'key2, 'key3) => cleanup, 'key0, 'key1, 'key2, 'key3) => unit;
 
 let useMemo: (unit => 't) => 't;
 let useMemo1: ('a => 't, 'a) => 't;
 let useMemo2: (('a, 'b) => 't, 'a, 'b) => 't;
 let useMemo3: (('a, 'b, 'c) => 't, 'a, 'b, 'c) => 't;
+let useMemo4: (('a, 'b, 'c, 'd) => 't, 'a, 'b, 'c, 'd) => 't;
 
 module Ref: {[@bs.deriving abstract]
              type t('a) = {current: option('a)};};

@@ -2,6 +2,7 @@ let div = ReactDom.div;
 let button = ReactDom.button;
 let span = ReactDom.span;
 let string = ReactDom.string;
+let textarea = ReactDom.textarea;
 
 let optional =
   React.createComponent(
@@ -36,6 +37,25 @@ let refTest =
     },
   );
 
+let rxRefTest = React.createComponentWithDefaultProps(
+  ~name="RxRefTest",
+  ~defaultProps=(),
+  (~props as _: unit, ~children as _: unit) => {
+    let subject = React.useMemo(RxSubject.create);
+    let reactRef = React.useRef(None);
+
+    RxReactDomHtmlElement.useFocus(reactRef, subject |> RxSubject.asObservable);
+
+    div([|
+      button(
+        ~props=ReactDomProps.t(~onClick=_=>subject |> RxSubject.next(), ()),
+        [| string("focus clicker")|],
+      ),
+      textarea(~ref=reactRef, [||]),
+    |]);
+  },
+);
+
 let greeting =
   React.createComponent(
     ~name="Greeting",
@@ -59,5 +79,6 @@ let greeting =
         [|string("Toggle greeting")|],
       ),
       optional(~props=show, [|string(greeting)|]),
+      rxRefTest(()),
     |])
   );

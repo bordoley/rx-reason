@@ -209,6 +209,16 @@ let useEffectWithCleanup3 = (generator, k0, k1, k2) =>
   reactUseEffectWithCleanup3(() => generator(k0, k1, k2), (k0, k1, k2));
 
 [@bs.val] [@bs.module "react"]
+external reactUseEffectWithCleanup4 :
+  (unit => cleanup, ('k0, 'k1, 'k2, 'k3)) => unit =
+  "useEffect";
+let useEffectWithCleanup4 = (generator, k0, k1, k2, k3) =>
+  reactUseEffectWithCleanup4(
+    () => generator(k0, k1, k2, k3),
+    (k0, k1, k2, k3),
+  );
+
+[@bs.val] [@bs.module "react"]
 external reactUseMemo : (unit => 't) => 't = "useMemo";
 let useMemo = (generator: unit => 't) => reactUseMemo(generator);
 
@@ -226,6 +236,11 @@ let useMemo2 = (generator: ('a, 'b) => 't, ctx0: 'a, ctx1: 'b) =>
 external reactUseMemo3 : (unit => 't, ('a, 'b, 'c)) => 't = "useMemo";
 let useMemo3 = (generator: ('a, 'b, 'c) => 't, ctx0: 'a, ctx1: 'b, ctx2: 'c) =>
   reactUseMemo3(() => generator(ctx0, ctx1, ctx2), (ctx0, ctx1, ctx2));
+
+[@bs.val] [@bs.module "react"]
+external reactUseMemo4 : (unit => 't, ('a, 'b, 'c, 'd)) => 't = "useMemo";
+let useMemo4 = (generator: ('a, 'b, 'c, 'd) => 't, ctx0: 'a, ctx1: 'b, ctx2: 'c, ctx3: 'd) =>
+  reactUseMemo4(() => generator(ctx0, ctx1, ctx2, ctx3), (ctx0, ctx1, ctx2, ctx3));
 
 module Ref = {
   [@bs.deriving abstract]

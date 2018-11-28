@@ -28,7 +28,7 @@ let promise =
      });
 
 let greetingStateComponent =
-  RxReact.createElement(
+  RxReact.createComponent(
     ~name="GreetingStateComponent",
     ~createStateStream=Store.create,
     greeting,

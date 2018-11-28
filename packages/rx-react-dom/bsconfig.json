@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/examples",
+  "name": "@rx-reason/rx-react-dom",
   "package-specs": [
     {
       "module": "commonjs"
@@ -12,24 +12,24 @@
   "bs-dependencies": [
     "bs-webapi",
     "@rx-reason/react",
-    "@rx-reason/react-dom",
     "@rx-reason/rx-core",
     "@rx-reason/rx-disposables",
-    "@rx-reason/rx-dom",
     "@rx-reason/rx-js-schedulers",
     "@rx-reason/rx-observables",
-    "@rx-reason/rx-promise",
     "@rx-reason/rx-react",
-    "@rx-reason/rx-react-dom",
-    "@rx-reason/rx-subject"
+    "@rx-reason/rx-subject",
+    "@rx-reason/rx-utils-do-not-depend-on"
   ],
-  "bs-dev-dependencies": [],
+  "bs-dev-dependencies": [
+  ],
   "warnings": {
+    "number": "-44",
     "error": "+101"
   },
   "refmt": 3,
-  "sources": {
-    "dir": "src",
-    "subdirs": true
-  }
+  "sources": [
+    {
+      "dir": "src"
+    }
+  ]
 }

@@ -80,6 +80,7 @@ let ol = createElement("ol");
 let span = createElement("span");
 let table = createElement("table");
 let td = createElement("td");
+let textarea = createElement("textarea");
 let tfoot = createElement("tfoot");
 let th = createElement("th");
 let thead = createElement("thead");
