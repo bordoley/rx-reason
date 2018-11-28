@@ -61,17 +61,30 @@ let complete = (~exn=?) =>
   | S0(subs, _, _, isStopped, _, onComplete) =>
     if (! RxAtomic.exchange(isStopped, true)) {
       onComplete(exn, subs);
+      subs := RxCopyOnWriteArray.empty();
     }
   | S1(subs, _, _, isStopped, _, onComplete, ctx0) =>
     if (! RxAtomic.exchange(isStopped, true)) {
       onComplete(ctx0, exn, subs);
+      subs := RxCopyOnWriteArray.empty();
     }
   | S2(subs, _, _, isStopped, _, onComplete, ctx0, ctx1) =>
     if (! RxAtomic.exchange(isStopped, true)) {
       onComplete(ctx0, ctx1, exn, subs);
+      subs := RxCopyOnWriteArray.empty();
     };
 
-let dispose = self => self |> asDisposable |> RxDisposable.dispose;
+let dispose =
+  fun
+  | Disposed => ()
+  | S0(subs, _, disposable, isStopped, _, _)
+  | S1(subs, _, disposable, isStopped, _, _, _)
+  | S2(subs, _, disposable, isStopped, _, _, _, _) => {
+      if (! RxAtomic.exchange(isStopped, true)) {
+        subs := RxCopyOnWriteArray.empty();
+      };
+      disposable |> RxDisposable.dispose;
+    };
 
 let isDisposed = self => self |> asDisposable |> RxDisposable.isDisposed;
 
@@ -104,7 +117,7 @@ let notify = (notif, subject) =>
 let raiseIfDisposed = self =>
   self |> asDisposable |> RxDisposable.raiseIfDisposed;
 
-let create = {
+module Subject = {
   let subscriberTeardown = (subscriber, subscribers) => {
     let currentSubscribers = subscribers^;
     subscribers :=
@@ -112,17 +125,19 @@ let create = {
       |> RxCopyOnWriteArray.findAndRemoveReference(subscriber);
   };
 
-  let observableSource = (subscribers, disposable, subscriber) => {
+  let observableSource = (subscribers, disposable, isStopped, subscriber) => {
     disposable |> RxDisposable.raiseIfDisposed;
-    subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
 
-    subscriber
-    |> RxSubscriber.addTeardown2(subscriberTeardown, subscriber, subscribers)
-    |> ignore;
+    if (RxAtomic.get(isStopped)) {
+      subscriber |> RxSubscriber.dispose;
+    } else {
+      subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
+
+      subscriber
+      |> RxSubscriber.addTeardown2(subscriberTeardown, subscriber, subscribers)
+      |> ignore;
+      }
   };
-
-  let subscribersTeardown = subscribers =>
-    subscribers := RxCopyOnWriteArray.empty();
 
   let onComplete = (exn, subscribers) => {
     let currentSubscribers = subscribers^;
@@ -135,41 +150,35 @@ let create = {
 
   let onNext = (next, subscribers) => {
     let currentSubscribers = subscribers^;
-    
+
     currentSubscribers
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.next(next)
        );
   };
 
-  () => {
+  let create = () => {
     let subscribers = ref(RxCopyOnWriteArray.empty());
-    let disposable = RxDisposable.create1(subscribersTeardown, subscribers);
+    let disposable = RxDisposable.empty();
+    let isStopped = RxAtomic.make(false);
+
     let observable =
-      RxObservable.create2(observableSource, subscribers, disposable);
+      RxObservable.create3(observableSource, subscribers, disposable, isStopped);
 
     S0(
       subscribers,
       observable,
       disposable,
-      RxAtomic.make(false),
+      isStopped,
       onNext,
       onComplete,
     );
   };
 };
 
-let createWithReplayBuffer = {
-  let subscriberTeardown = (subscriber, subscribers) => {
-    let currentSubscribers = subscribers^;
-    subscribers :=
-      currentSubscribers
-      |> RxCopyOnWriteArray.findAndRemoveReference(subscriber);
-  };
-
-  let observableSource = (buffer, disposable, subscribers, subscriber) => {
+module ReplayBufferSubject = {
+  let observableSource = (buffer, subscribers, disposable, isStopped, subscriber) => {
     disposable |> RxDisposable.raiseIfDisposed;
-    subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
 
     let currentBuffer = buffer^;
     RxCopyOnWriteArray.forEach(
@@ -177,9 +186,7 @@ let createWithReplayBuffer = {
       currentBuffer,
     );
 
-    subscriber
-    |> RxSubscriber.addTeardown2(subscriberTeardown, subscriber, subscribers)
-    |> ignore;
+    Subject.observableSource(subscribers, disposable, isStopped, subscriber);
   };
 
   let onNext = (maxBufferCount, buffer, next, subscribers) => {
@@ -216,12 +223,11 @@ let createWithReplayBuffer = {
        );
   };
 
-  let subscribersTeardown = (buffer, subscribers) => {
+  let bufferTeardown = (buffer) => {
     buffer := RxCopyOnWriteArray.empty();
-    subscribers := RxCopyOnWriteArray.empty();
   };
 
-  (maxBufferCount: int) => {
+  let create = (maxBufferCount: int) => {
     /* This is fine for small buffers, eg. < 32
      * Ideally we'd use something like an Immutable.re vector
      * for large replay buffers.
@@ -233,16 +239,18 @@ let createWithReplayBuffer = {
     let subscribers = ref(RxCopyOnWriteArray.empty());
 
     let disposable =
-      RxDisposable.create2(subscribersTeardown, buffer, subscribers);
+      RxDisposable.create1(bufferTeardown, buffer);
+
+    let isStopped = RxAtomic.make(false);
 
     let observable =
-      RxObservable.create3(observableSource, buffer, disposable, subscribers);
+      RxObservable.create4(observableSource, buffer, subscribers, disposable, isStopped);
 
     S2(
       subscribers,
       observable,
       disposable,
-      RxAtomic.make(false),
+      isStopped,
       onNext,
       onComplete,
       maxBufferCount,
@@ -250,3 +258,6 @@ let createWithReplayBuffer = {
     );
   };
 };
+
+let create = Subject.create;
+let createWithReplayBuffer = ReplayBufferSubject.create;
