@@ -15,6 +15,7 @@ type t('a) =
         subscribers('a),
         RxObservable.t('a),
         RxDisposable.t,
+        RxAtomic.t(bool),
         onNext0('a),
         onComplete0('a),
       ): t('a)
@@ -22,6 +23,7 @@ type t('a) =
         subscribers('a),
         RxObservable.t('a),
         RxDisposable.t,
+        RxAtomic.t(bool),
         onNext1('a, 'ctx0),
         onComplete1('a, 'ctx0),
         'ctx0,
@@ -30,6 +32,7 @@ type t('a) =
         subscribers('a),
         RxObservable.t('a),
         RxDisposable.t,
+        RxAtomic.t(bool),
         onNext2('a, 'ctx0, 'ctx1),
         onComplete2('a, 'ctx0, 'ctx1),
         'ctx0,
@@ -41,24 +44,32 @@ let disposed = Disposed;
 let asDisposable =
   fun
   | Disposed => RxDisposable.disposed
-  | S0(_, _, disposable, _, _)
-  | S1(_, _, disposable, _, _, _)
-  | S2(_, _, disposable, _, _, _, _) => disposable;
+  | S0(_, _, disposable, _, _, _)
+  | S1(_, _, disposable, _, _, _, _)
+  | S2(_, _, disposable, _, _, _, _, _) => disposable;
 
 let asObservable =
   fun
   | Disposed => RxObservable.never
-  | S0(_, obs, _, _, _)
-  | S1(_, obs, _, _, _, _)
-  | S2(_, obs, _, _, _, _, _) => obs;
+  | S0(_, obs, _, _, _, _)
+  | S1(_, obs, _, _, _, _, _)
+  | S2(_, obs, _, _, _, _, _, _) => obs;
 
 let complete = (~exn=?) =>
   fun
   | Disposed => ()
-  | S0(subs, _, _, _, onComplete) => onComplete(exn, subs)
-  | S1(subs, _, _, _, onComplete, ctx0) => onComplete(ctx0, exn, subs)
-  | S2(subs, _, _, _, onComplete, ctx0, ctx1) =>
-    onComplete(ctx0, ctx1, exn, subs);
+  | S0(subs, _, _, isStopped, _, onComplete) =>
+    if (! RxAtomic.exchange(isStopped, true)) {
+      onComplete(exn, subs);
+    }
+  | S1(subs, _, _, isStopped, _, onComplete, ctx0) =>
+    if (! RxAtomic.exchange(isStopped, true)) {
+      onComplete(ctx0, exn, subs);
+    }
+  | S2(subs, _, _, isStopped, _, onComplete, ctx0, ctx1) =>
+    if (! RxAtomic.exchange(isStopped, true)) {
+      onComplete(ctx0, ctx1, exn, subs);
+    };
 
 let dispose = self => self |> asDisposable |> RxDisposable.dispose;
 
@@ -67,9 +78,18 @@ let isDisposed = self => self |> asDisposable |> RxDisposable.isDisposed;
 let next = next =>
   fun
   | Disposed => ()
-  | S0(subs, _, _, onNext, _) => onNext(next, subs)
-  | S1(subs, _, _, onNext, _, ctx0) => onNext(ctx0, next, subs)
-  | S2(subs, _, _, onNext, _, ctx0, ctx1) => onNext(ctx0, ctx1, next, subs);
+  | S0(subs, _, _, isStopped, onNext, _) =>
+    if (! RxAtomic.get(isStopped)) {
+      onNext(next, subs);
+    }
+  | S1(subs, _, _, isStopped, onNext, _, ctx0) =>
+    if (! RxAtomic.get(isStopped)) {
+      onNext(ctx0, next, subs);
+    }
+  | S2(subs, _, _, isStopped, onNext, _, ctx0, ctx1) =>
+    if (! RxAtomic.get(isStopped)) {
+      onNext(ctx0, ctx1, next, subs);
+    };
 
 let forwardOnComplete = (subject, exn) => subject |> complete(~exn?);
 
@@ -106,6 +126,7 @@ let create = {
 
   let onComplete = (exn, subscribers) => {
     let currentSubscribers = subscribers^;
+
     currentSubscribers
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.complete(~exn?)
@@ -114,6 +135,7 @@ let create = {
 
   let onNext = (next, subscribers) => {
     let currentSubscribers = subscribers^;
+    
     currentSubscribers
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.next(next)
@@ -126,7 +148,14 @@ let create = {
     let observable =
       RxObservable.create2(observableSource, subscribers, disposable);
 
-    S0(subscribers, observable, disposable, onNext, onComplete);
+    S0(
+      subscribers,
+      observable,
+      disposable,
+      RxAtomic.make(false),
+      onNext,
+      onComplete,
+    );
   };
 };
 
@@ -155,6 +184,7 @@ let createWithReplayBuffer = {
 
   let onNext = (maxBufferCount, buffer, next, subscribers) => {
     let currentBuffer = buffer^;
+    let currentSubscribers = subscribers^;
 
     buffer :=
       currentBuffer
@@ -163,7 +193,6 @@ let createWithReplayBuffer = {
            RxNotification.next(next),
          );
 
-    let currentSubscribers = subscribers^;
     currentSubscribers
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.next(next)
@@ -172,6 +201,7 @@ let createWithReplayBuffer = {
 
   let onComplete = (maxBufferCount, buffer, exn, subscribers) => {
     let currentBuffer = buffer^;
+    let currentSubscribers = subscribers^;
 
     buffer :=
       currentBuffer
@@ -180,7 +210,6 @@ let createWithReplayBuffer = {
            RxNotification.complete(exn),
          );
 
-    let currentSubscribers = subscribers^;
     currentSubscribers
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.complete(~exn?)
@@ -213,6 +242,7 @@ let createWithReplayBuffer = {
       subscribers,
       observable,
       disposable,
+      RxAtomic.make(false),
       onNext,
       onComplete,
       maxBufferCount,
