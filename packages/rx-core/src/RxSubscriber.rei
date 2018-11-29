@@ -10,12 +10,6 @@ include RxCompositeDisposable.S1 with type t('a) := t('a);
 include RxObserverLike.S1 with type t('a) := t('a);
 
 /**
- * Notify the Observer that no more notifications will be sent, optionally with an exception.
- * Returns true if the Observer has not previously been completed, otherwise false.
- */
-let completeWithResult: (~exn: exn=?, t('a)) => bool;
-
-/**
  * Construct a new Subscriber with the provided callbacks which automatically disposes
  * itself when completed.
  * */
@@ -106,6 +100,3 @@ let forwardOnNext5: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), 'a) => unit;
  * A disposed Subscriber instance.
  */
 let disposed: t('a);
-
-/** Returns true if the Observer has been completed or disposed. */
-let isStopped: t('a) => bool;

@@ -12,8 +12,6 @@ let test =
             let subscriber =
               RxSubscriber.create();
 
-            subscriber |> RxSubscriber.isStopped |> Expect.toBeEqualToFalse;
-
             subscriber
             |> RxSubscriber.completeWithResult
             |> Expect.toBeEqualToTrue;
@@ -22,7 +20,6 @@ let test =
             let subscriber =
               RxSubscriber.create();
 
-            subscriber |> RxSubscriber.isStopped |> Expect.toBeEqualToFalse;
             subscriber |> RxSubscriber.complete;
 
             subscriber
@@ -38,10 +35,8 @@ let test =
             let subscriber =
               RxSubscriber.create();
             subscriber |> RxSubscriber.isDisposed |> Expect.toBeEqualToFalse;
-            subscriber |> RxSubscriber.isStopped |> Expect.toBeEqualToFalse;
             subscriber |> RxSubscriber.asDisposable |> RxDisposable.dispose;
             subscriber |> RxSubscriber.isDisposed |> Expect.toBeEqualToTrue;
-            subscriber |> RxSubscriber.isStopped |> Expect.toBeEqualToTrue;
           }),
         ],
       ),

@@ -1,69 +1,69 @@
 type context('a) = {
+  mutable completed: bool,
   innerSubscription: RxSerialDisposable.t,
   mutable self: RxSubscriber.t('a),
 };
 
-let operator = {
-  let hasActiveSubscription = ({innerSubscription}) =>
-    innerSubscription
-    |> RxSerialDisposable.getInnerDisposable
-    |> RxDisposable.isDisposed
-    |> (!);
+let hasActiveSubscription = ({innerSubscription}) =>
+  innerSubscription
+  |> RxSerialDisposable.getInnerDisposable
+  |> RxDisposable.isDisposed
+  |> (!);
 
-  let completeSubscriber = ({innerSubscription}, delegate, exn) => {
-    innerSubscription |> RxSerialDisposable.dispose;
-    delegate |> RxSubscriber.complete(~exn?);
-  };
+let completeSubscriber = ({innerSubscription}, delegate, exn) => {
+  innerSubscription |> RxSerialDisposable.dispose;
+  delegate |> RxSubscriber.complete(~exn?);
+};
 
-  let onNext = {
-    let onComplete = (ctx, delegate, exn) =>
-      if (ctx.self |> RxSubscriber.isStopped) {
-        completeSubscriber(ctx, delegate, exn);
-      } else if (exn !== None) {
-        ctx.self |> RxSubscriber.complete(~exn?);
-      };
-
-    ({innerSubscription} as ctx, delegate, next) => {
-      let hasActiveSubscription = hasActiveSubscription(ctx);
-      if (! hasActiveSubscription) {
-        let subscription =
-          next
-          |> RxObservable.observe2(
-               ~onNext=RxSubscriber.forwardOnNext1,
-               ~onComplete,
-               ctx,
-               delegate,
-             )
-          |> RxObservable.subscribe;
-        innerSubscription
-        |> RxSerialDisposable.setInnerDisposable(subscription);
-      };
+let onNext = {
+  let onComplete = (ctx, delegate, exn) =>
+    if (ctx.completed) {
+      completeSubscriber(ctx, delegate, exn);
+    } else if (exn !== None) {
+      ctx.self |> RxSubscriber.complete(~exn?);
     };
-  };
 
-  let onComplete = (ctx, delegate, exn) => {
+  ({innerSubscription} as ctx, delegate, next) => {
     let hasActiveSubscription = hasActiveSubscription(ctx);
-    switch (exn) {
-    | Some(_)
-    | None when ! hasActiveSubscription =>
-      completeSubscriber(ctx, delegate, exn)
-    | _ => ()
+    if (! hasActiveSubscription) {
+      let subscription =
+        next
+        |> RxObservable.observe2(
+             ~onNext=RxSubscriber.forwardOnNext1,
+             ~onComplete,
+             ctx,
+             delegate,
+           )
+        |> RxObservable.subscribe;
+      innerSubscription |> RxSerialDisposable.setInnerDisposable(subscription);
     };
   };
+};
 
-  subscriber => {
-    let context = {
-      innerSubscription: RxSerialDisposable.create(),
-      self: RxSubscriber.disposed,
-    };
-
-    context.self =
-      subscriber
-      |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
-      |> RxSubscriber.addTeardown1(
-           RxSerialDisposable.dispose,
-           context.innerSubscription,
-         );
-    context.self;
+let onComplete = (ctx, delegate, exn) => {
+  ctx.completed = true;
+  let hasActiveSubscription = hasActiveSubscription(ctx);
+  switch (exn) {
+  | Some(_)
+  | None when ! hasActiveSubscription =>
+    completeSubscriber(ctx, delegate, exn)
+  | _ => ()
   };
+};
+
+let operator = subscriber => {
+  let context = {
+    completed: false,
+    innerSubscription: RxSerialDisposable.create(),
+    self: RxSubscriber.disposed,
+  };
+
+  context.self =
+    subscriber
+    |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
+    |> RxSubscriber.addTeardown1(
+         RxSerialDisposable.dispose,
+         context.innerSubscription,
+       );
+  context.self;
 };

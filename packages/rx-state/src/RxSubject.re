@@ -39,47 +39,55 @@ let asDisposable =
 let asObservable =
   fun
   | Disposed => RxObservable.never
-  | S0(_, obs, _, _, _, _)
-  | S2(_, obs, _, _, _, _, _, _) => obs;
+  | S0(_, observable, _, _, _, _)
+  | S2(_, observable, _, _, _, _, _, _) => observable;
 
-let complete = (~exn=?) =>
+let dispose = subject => subject |> asDisposable |> RxDisposable.dispose;
+
+let isDisposed = subject => subject |> asDisposable |> RxDisposable.isDisposed;
+
+let raiseIfDisposed = subject =>
+  subject |> asDisposable |> RxDisposable.raiseIfDisposed;
+
+let shouldComplete =
   fun
-  | Disposed => ()
-  | S0(subs, _, _, isStopped, _, onComplete) =>
-    if (! RxAtomic.exchange(isStopped, true)) {
-      onComplete(exn, subs);
-      subs := RxCopyOnWriteArray.empty();
-    }
-  | S2(subs, _, _, isStopped, _, onComplete, ctx0, ctx1) =>
-    if (! RxAtomic.exchange(isStopped, true)) {
-      onComplete(ctx0, ctx1, exn, subs);
-      subs := RxCopyOnWriteArray.empty();
-    };
+  | Disposed => false
+  | S0(_, _, _, isStopped, _, _)
+  | S2(_, _, _, isStopped, _, _, _, _) =>
+    ! RxAtomic.exchange(isStopped, true);
 
-let dispose =
+let completeWithResult = (~exn=?, subscriber) => {
+  let shouldComplete = shouldComplete(subscriber);
+
+  if (shouldComplete) {
+    switch (subscriber) {
+    | Disposed => ()
+    | S0(subscribers, _, _, _, _, onComplete) => onComplete(exn, subscribers)
+    | S2(subscribers, _, _, _, _, onComplete, ctx0, ctx1) =>
+      onComplete(ctx0, ctx1, exn, subscribers)
+    };
+  };
+  shouldComplete;
+};
+
+let complete = (~exn=?, subscriber) =>
+  subscriber |> completeWithResult(~exn?) |> ignore;
+
+let isStopped =
   fun
-  | Disposed => ()
-  | S0(subs, _, disposable, isStopped, _, _)
-  | S2(subs, _, disposable, isStopped, _, _, _, _) => {
-      if (! RxAtomic.exchange(isStopped, true)) {
-        subs := RxCopyOnWriteArray.empty();
-      };
-      disposable |> RxDisposable.dispose;
-    };
+  | Disposed => true
+  | S0(_, _, _, isStopped, _, _)
+  | S2(_, _, _, isStopped, _, _, _, _) => RxAtomic.get(isStopped);
 
-let isDisposed = self => self |> asDisposable |> RxDisposable.isDisposed;
-
-let next = next =>
-  fun
-  | Disposed => ()
-  | S0(subs, _, _, isStopped, onNext, _) =>
-    if (! RxAtomic.get(isStopped)) {
-      onNext(next, subs);
-    }
-  | S2(subs, _, _, isStopped, onNext, _, ctx0, ctx1) =>
-    if (! RxAtomic.get(isStopped)) {
-      onNext(ctx0, ctx1, next, subs);
+let next = (next, subject) =>
+  if (! isStopped(subject)) {
+    switch (subject) {
+    | Disposed => ()
+    | S0(subscribers, _, _, _, onNext, _) => onNext(next, subscribers)
+    | S2(subscribers, _, _, _, onNext, _, ctx0, ctx1) =>
+      onNext(ctx0, ctx1, next, subscribers)
     };
+  };
 
 let forwardOnComplete = (subject, exn) => subject |> complete(~exn?);
 
@@ -90,9 +98,6 @@ let notify = (notif, subject) =>
   | RxNotification.Next(v) => subject |> next(v)
   | RxNotification.Complete(exn) => subject |> complete(~exn?)
   };
-
-let raiseIfDisposed = self =>
-  self |> asDisposable |> RxDisposable.raiseIfDisposed;
 
 module Subject = {
   let subscriberTeardown = (subscriber, subscribers) => {
@@ -111,9 +116,13 @@ module Subject = {
       subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
 
       subscriber
-      |> RxSubscriber.addTeardown2(subscriberTeardown, subscriber, subscribers)
+      |> RxSubscriber.addTeardown2(
+           subscriberTeardown,
+           subscriber,
+           subscribers,
+         )
       |> ignore;
-      }
+    };
   };
 
   let onComplete = (exn, subscribers) => {
@@ -123,6 +132,8 @@ module Subject = {
     |> RxCopyOnWriteArray.forEach(subscriber =>
          subscriber |> RxSubscriber.complete(~exn?)
        );
+
+    subscribers := RxCopyOnWriteArray.empty();
   };
 
   let onNext = (next, subscribers) => {
@@ -134,27 +145,31 @@ module Subject = {
        );
   };
 
+  let disposableTeardown = (isStopped, subscribers) => {
+    RxAtomic.set(isStopped, true);
+    subscribers := RxCopyOnWriteArray.empty();
+  };
+
   let create = () => {
     let subscribers = ref(RxCopyOnWriteArray.empty());
     let disposable = RxDisposable.empty();
     let isStopped = RxAtomic.make(false);
 
     let observable =
-      RxObservable.create3(observableSource, subscribers, disposable, isStopped);
+      RxObservable.create3(
+        observableSource,
+        subscribers,
+        disposable,
+        isStopped,
+      );
 
-    S0(
-      subscribers,
-      observable,
-      disposable,
-      isStopped,
-      onNext,
-      onComplete,
-    );
+    S0(subscribers, observable, disposable, isStopped, onNext, onComplete);
   };
 };
 
 module ReplayBufferSubject = {
-  let observableSource = (buffer, subscribers, disposable, isStopped, subscriber) => {
+  let observableSource =
+      (buffer, subscribers, disposable, isStopped, subscriber) => {
     disposable |> RxDisposable.raiseIfDisposed;
 
     let currentBuffer = buffer^;
@@ -168,7 +183,6 @@ module ReplayBufferSubject = {
 
   let onNext = (maxBufferCount, buffer, next, subscribers) => {
     let currentBuffer = buffer^;
-    let currentSubscribers = subscribers^;
 
     buffer :=
       currentBuffer
@@ -177,15 +191,11 @@ module ReplayBufferSubject = {
            RxNotification.next(next),
          );
 
-    currentSubscribers
-    |> RxCopyOnWriteArray.forEach(subscriber =>
-         subscriber |> RxSubscriber.next(next)
-       );
+    Subject.onNext(next, subscribers);
   };
 
   let onComplete = (maxBufferCount, buffer, exn, subscribers) => {
     let currentBuffer = buffer^;
-    let currentSubscribers = subscribers^;
 
     buffer :=
       currentBuffer
@@ -194,13 +204,11 @@ module ReplayBufferSubject = {
            RxNotification.complete(exn),
          );
 
-    currentSubscribers
-    |> RxCopyOnWriteArray.forEach(subscriber =>
-         subscriber |> RxSubscriber.complete(~exn?)
-       );
+    Subject.onComplete(exn, subscribers);
   };
 
-  let bufferTeardown = (buffer) => {
+  let disposableTeardown = (buffer, isStopped, subscribers) => {
+    Subject.disposableTeardown(isStopped, subscribers);
     buffer := RxCopyOnWriteArray.empty();
   };
 
@@ -210,18 +218,28 @@ module ReplayBufferSubject = {
      * for large replay buffers.
      *
      * We use a cow array in order to snapshot the events we replay
-     * in case their is feedback in the event system.
+     * in case there is feedback in the event system.
      */
     let buffer = ref(RxCopyOnWriteArray.empty());
+
     let subscribers = ref(RxCopyOnWriteArray.empty());
-
-    let disposable =
-      RxDisposable.create1(bufferTeardown, buffer);
-
     let isStopped = RxAtomic.make(false);
+    let disposable =
+      RxDisposable.create3(
+        disposableTeardown,
+        buffer,
+        isStopped,
+        subscribers,
+      );
 
     let observable =
-      RxObservable.create4(observableSource, buffer, subscribers, disposable, isStopped);
+      RxObservable.create4(
+        observableSource,
+        buffer,
+        subscribers,
+        disposable,
+        isStopped,
+      );
 
     S2(
       subscribers,
@@ -237,4 +255,5 @@ module ReplayBufferSubject = {
 };
 
 let create = Subject.create;
+
 let createWithReplayBuffer = ReplayBufferSubject.create;
