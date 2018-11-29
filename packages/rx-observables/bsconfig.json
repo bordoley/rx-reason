@@ -13,7 +13,7 @@
     "@rx-reason/rx-core",
     "@rx-reason/rx-disposables",
     "@rx-reason/rx-scheduler",
-    "@rx-reason/rx-subject",
+    "@rx-reason/rx-state",
     "@rx-reason/rx-utils-do-not-depend-on"
   ],
   "bs-dev-dependencies": [

@@ -36,7 +36,7 @@
     "@rx-reason/rx-disposables": "^0.0.0",
     "@rx-reason/rx-js-schedulers": "^0.0.0",
     "@rx-reason/rx-observables": "^0.0.0",
-    "@rx-reason/rx-subject": "^0.0.0",
+    "@rx-reason/rx-state": "^0.0.0",
     "@rx-reason/rx-utils-do-not-depend-on": "0.0.0"
   },
   "devDependencies": {

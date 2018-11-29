@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/rx-subject",
+  "name": "@rx-reason/rx-state",
   "package-specs": [
     {
       "module": "commonjs"

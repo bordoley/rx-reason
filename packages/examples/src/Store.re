@@ -9,34 +9,35 @@ type props = {
 module Actions = {
   type t =
     | Click
-    | Toggle
-    | SetTitle(string);
+    | Toggle;
 };
 
-let reducer = (state: props, action) =>
+type state = {
+  count: int,
+  greeting: string,
+  show: bool,
+};
+
+let reducer = (action, state) =>
   switch (action) {
   | Actions.Click => {...state, count: state.count + 1}
   | Actions.Toggle => {...state, show: ! state.show}
-  | Actions.SetTitle(greeting) => {...state, greeting}
   };
 
-let create = (props: RxObservable.t(string)) : RxObservable.t(props) => {
-  let subject = RxSubject.create();
+let create = (props: RxObservable.t(string)) : RxObservable.t(props) =>
+  props
+  |> RxObservables.map(greeting => {
+       let state = RxValue.create({count: 0, greeting, show: false});
 
-  let actions = subject |> RxSubject.asObservable;
-  let propsActions =
-    props |> RxObservables.map(greeting => Actions.SetTitle(greeting));
+       let dispatch = (action, _) =>
+         state |> RxValue.update1(reducer, action);
+       let incrementCount = dispatch(Actions.Click);
+       let toggle = dispatch(Actions.Toggle);
 
-  let dispatch = (action, _) => subject |> RxSubject.next(action);
-
-  let initialState: props = {
-    count: 0,
-    greeting: "",
-    incrementCount: dispatch(Actions.Click),
-    show: false,
-    toggle: dispatch(Actions.Toggle),
-  };
-
-  RxObservables.merge([actions, propsActions])
-  |> RxObservables.scan(reducer, initialState);
-};
+       state
+       |> RxValue.asObservable
+       |> RxObservables.map(({count, greeting, show}) =>
+            {count, greeting, incrementCount, show, toggle}
+          );
+     })
+  |> RxObservables.switch_;

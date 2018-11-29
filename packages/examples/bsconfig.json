@@ -21,7 +21,7 @@
     "@rx-reason/rx-promise",
     "@rx-reason/rx-react",
     "@rx-reason/rx-react-dom",
-    "@rx-reason/rx-subject"
+    "@rx-reason/rx-state"
   ],
   "bs-dev-dependencies": [],
   "warnings": {

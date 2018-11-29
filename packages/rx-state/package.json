@@ -1,7 +1,7 @@
 {
-  "name": "@rx-reason/rx-subject",
+  "name": "@rx-reason/rx-state",
   "version": "0.0.0",
-  "description": "Imperative rx subjects",
+  "description": "Rx constructs for stateful programming",
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
