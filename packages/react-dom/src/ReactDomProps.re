@@ -514,5 +514,4 @@ type t = {
   [@bs.optional] suppressContentEditableWarning: bool,
 };
 
-let create = t;
 let default = t();

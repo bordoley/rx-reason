@@ -75,8 +75,6 @@ let create = () => {
   {currentTime, disposable, timeQueue, scheduler};
 };
 
-let now = ({currentTime}: t) => float_of_int(currentTime^);
-
 let run = ({disposable, timeQueue} as vts: t) => {
   RxDisposable.raiseIfDisposed(disposable);
 

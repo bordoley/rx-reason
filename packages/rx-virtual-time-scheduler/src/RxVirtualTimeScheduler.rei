@@ -13,8 +13,5 @@ let advance: t => unit;
 /** Constructs a new VirtualTimeScheduler. */
 let create: unit => t;
 
-/** Returns the current time in milliseconds. */
-let now: t => float;
-
 /** Runs the VirtualTimeScheduler until it has no more work to execute. */
 let run: t => unit;

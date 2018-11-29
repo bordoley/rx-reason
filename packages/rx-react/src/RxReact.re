@@ -7,9 +7,22 @@ let useObservable = (observable: RxObservable.t('a)) =>
     observable,
   );
 
+  let onNextWithRef = {
+    let onNextCallback = (onNext, reactRef, next) => {
+      let ele = reactRef |> React.Ref.currentGet;
+      switch (ele) {
+      | Some(ele) => ele |> onNext(next)
+      | None => ()
+      };
+    };
+  
+    (onNext, reactRef, observable) =>
+      observable |> RxObservables.onNext2(onNextCallback, onNext, reactRef);
+  };
+
 let useOnNextWithRef =
   (onNext, reactRef, observable) => {
-    let observable = React.useMemo3(RxReactObservables.onNextWithRef, onNext, reactRef, observable);
+    let observable = React.useMemo3(onNextWithRef, onNext, reactRef, observable);
     useObservable(observable);
   };
 
