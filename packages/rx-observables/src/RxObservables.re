@@ -1,3 +1,5 @@
+let combineLatest2 = CombineLatest2Observable.create;
+
 let concat = ConcatObservable.concat;
 
 let debounce = (~scheduler, dueTime, observable) =>

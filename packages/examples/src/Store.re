@@ -14,7 +14,6 @@ module Actions = {
 
 type state = {
   count: int,
-  greeting: string,
   show: bool,
 };
 
@@ -24,20 +23,23 @@ let reducer = (action, state) =>
   | Actions.Toggle => {...state, show: ! state.show}
   };
 
-let create = (props: RxObservable.t(string)) : RxObservable.t(props) =>
-  props
-  |> RxObservables.map(greeting => {
-       let state = RxValue.create({count: 0, greeting, show: false});
+let create = (props: RxObservable.t(string)) : RxObservable.t(props) => {
+  let state = RxValue.create({count: 0, show: false});
 
-       let dispatch = (action, ()) =>
-         state |> RxValue.update1(reducer, action);
-       let incrementCount = dispatch(Actions.Click);
-       let toggle = dispatch(Actions.Toggle);
+  let dispatch = (action, ()) => state |> RxValue.update1(reducer, action);
+  let incrementCount = dispatch(Actions.Click);
+  let toggle = dispatch(Actions.Toggle);
 
-       state
-       |> RxValue.asObservable
-       |> RxObservables.map(({count, greeting, show}) =>
-            {count, greeting, incrementCount, show, toggle}
-          );
-     })
-  |> RxObservables.switch_;
+  RxObservables.combineLatest2(
+    ~selector=
+      (greeting, {count, show}) => {
+        count,
+        greeting,
+        incrementCount,
+        show,
+        toggle,
+      },
+    props,
+    state |> RxValue.asObservable,
+  );
+};

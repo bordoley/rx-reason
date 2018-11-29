@@ -6,6 +6,10 @@ let concat:
   (~scheduler: RxScheduler.t=?, list(RxObservable.t('a))) =>
   RxObservable.t('a);
 
+let combineLatest2:
+  (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
+  RxObservable.t('c);
+
 /**
  * Returns an Observable that calls an Observable factory to
  * create a new Observable for each subscription.
@@ -217,13 +221,16 @@ let onNext: ('a => unit, RxObservable.t('a)) => RxObservable.t('a);
  * Returns an Observable which invokes the side-effect function
  * with each observed item.
  */
-let onNext1: (('ctx0, 'a) => unit, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+let onNext1:
+  (('ctx0, 'a) => unit, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
  * with each observed item.
  */
-let onNext2: (('ctx0, 'ctx1, 'a) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) => RxObservable.t('a);
+let onNext2:
+  (('ctx0, 'ctx1, 'a) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
