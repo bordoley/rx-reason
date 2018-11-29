@@ -16,10 +16,11 @@ let contextComponent =
     ~name="contextComponent",
     ~defaultProps=(),
     (~props as _: unit, ~children as _: unit) => {
-    let contextValue = React.useContext(context);
+      let contextValue = React.useContext(context);
 
-    div([|string(contextValue)|]);
-  });
+      div([|string(contextValue)|]);
+    },
+  );
 
 let refTest =
   React.createComponentWithDefaultProps(
@@ -37,24 +38,29 @@ let refTest =
     },
   );
 
-let rxRefTest = React.createComponentWithDefaultProps(
-  ~name="RxRefTest",
-  ~defaultProps=(),
-  (~props as _: unit, ~children as _: unit) => {
-    let subject = React.useMemo(RxSubject.create);
-    let reactRef = React.useRef(None);
+let rxRefTest =
+  React.createComponentWithDefaultProps(
+    ~name="RxRefTest",
+    ~defaultProps=(),
+    (~props as _: unit, ~children as _: unit) => {
+      let subject = React.useMemo(RxSubject.create);
+      let reactRef = React.useRef(None);
 
-    RxReactDomHtmlElement.useFocus(reactRef, subject |> RxSubject.asObservable);
+      RxReactDomHtmlElement.useFocus(
+        reactRef,
+        subject |> RxSubject.asObservable,
+      );
 
-    div([|
-      button(
-        ~props=ReactDomProps.t(~onClick=_=>subject |> RxSubject.next(), ()),
-        [| string("focus clicker")|],
-      ),
-      textarea(~ref=reactRef, [||]),
-    |]);
-  },
-);
+      div([|
+        button(
+          ~props=
+            ReactDomProps.t(~onClick=_ => subject |> RxSubject.next(), ()),
+          [|string("focus clicker")|],
+        ),
+        textarea(~ref=reactRef, [||]),
+      |]);
+    },
+  );
 
 let greeting =
   React.createComponent(
@@ -62,10 +68,18 @@ let greeting =
     (
       ~props as {count, greeting, incrementCount, show, toggle}: Store.props,
       ~children as _: unit,
-    ) =>
+    ) => {
+    let incrementCount =
+      React.useMemo1(
+        (incrementCount, _) => incrementCount(),
+        incrementCount,
+      );
+
+    let toggle = React.useMemo1((toggle, _) => toggle(), toggle);
+
     div([|
-      refTest(()),
-      contextComponent(()),
+      refTest(),
+      contextComponent(),
       button(
         ~props=ReactDomProps.t(~onClick=incrementCount, ()),
         [|
@@ -79,6 +93,6 @@ let greeting =
         [|string("Toggle greeting")|],
       ),
       optional(~props=show, [|string(greeting)|]),
-      rxRefTest(()),
-    |])
-  );
+      rxRefTest(),
+    |]);
+  });

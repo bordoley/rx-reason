@@ -1,9 +1,9 @@
 type props = {
   count: int,
   greeting: string,
-  incrementCount: ReactDomEvent.Mouse.t => unit,
+  incrementCount: unit => unit,
   show: bool,
-  toggle: ReactDomEvent.Mouse.t => unit,
+  toggle: unit => unit,
 };
 
 module Actions = {
@@ -29,7 +29,7 @@ let create = (props: RxObservable.t(string)) : RxObservable.t(props) =>
   |> RxObservables.map(greeting => {
        let state = RxValue.create({count: 0, greeting, show: false});
 
-       let dispatch = (action, _) =>
+       let dispatch = (action, ()) =>
          state |> RxValue.update1(reducer, action);
        let incrementCount = dispatch(Actions.Click);
        let toggle = dispatch(Actions.Toggle);
