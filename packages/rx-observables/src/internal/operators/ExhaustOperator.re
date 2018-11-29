@@ -29,7 +29,7 @@ let onNext = {
       let subscription =
         next
         |> RxObservable.observe2(
-             ~onNext=RxSubscriber.forwardOnNext1,
+             ~onNext=SubscriberForward.onNext1,
              ~onComplete,
              ctx,
              delegate,

@@ -47,7 +47,7 @@ let operator = {
         timeoutObservable
         |> RxObservable.observe1(
              ~onNext=RxFunctions.alwaysUnit2,
-             ~onComplete=RxSubscriber.forwardOnComplete,
+             ~onComplete=SubscriberForward.onComplete,
              subscriber,
            );
 

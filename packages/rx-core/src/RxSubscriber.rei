@@ -80,22 +80,6 @@ let decorate5:
   ) =>
   t('a);
 
-let forwardOnComplete: (t('a), option(exn)) => unit;
-let forwardOnComplete1: ('ctx0, t('a), option(exn)) => unit;
-let forwardOnComplete2: ('ctx0, 'ctx1, t('a), option(exn)) => unit;
-let forwardOnComplete3: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit;
-let forwardOnComplete4:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), option(exn)) => unit;
-let forwardOnComplete5:
-  ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), option(exn)) => unit;
-
-let forwardOnNext: (t('a), 'a) => unit;
-let forwardOnNext1: ('ctx0, t('a), 'a) => unit;
-let forwardOnNext2: ('ctx0, 'ctx1, t('a), 'a) => unit;
-let forwardOnNext3: ('ctx0, 'ctx1, 'ctx2, t('a), 'a) => unit;
-let forwardOnNext4: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), 'a) => unit;
-let forwardOnNext5: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), 'a) => unit;
-
 /**
  * A disposed Subscriber instance.
  */

@@ -25,7 +25,7 @@ let concat = {
             }
           )
           |> RxObservable.observe5(
-               ~onNext=RxSubscriber.forwardOnNext4,
+               ~onNext=SubscriberForward.onNext4,
                ~onComplete,
                scheduler,
                tail,

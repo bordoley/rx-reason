@@ -16,7 +16,7 @@ let operator = {
       let newInnerSubscription =
         observable
         |> RxObservable.observe4(
-             ~onNext=RxSubscriber.forwardOnNext3,
+             ~onNext=SubscriberForward.onNext3,
              ~onComplete,
              observable,
              shouldRepeat,
@@ -34,7 +34,7 @@ let operator = {
 
     subscriber
     |> RxSubscriber.decorate3(
-         ~onNext=RxSubscriber.forwardOnNext3,
+         ~onNext=SubscriberForward.onNext3,
          ~onComplete,
          observable,
          shouldRepeat,

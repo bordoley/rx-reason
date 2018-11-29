@@ -10,5 +10,5 @@ let operator = {
 
   subscriber =>
     subscriber
-    |> RxSubscriber.decorate(~onNext=RxSubscriber.forwardOnNext, ~onComplete);
+    |> RxSubscriber.decorate(~onNext=SubscriberForward.onNext, ~onComplete);
 };

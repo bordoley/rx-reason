@@ -3,8 +3,8 @@ let subscribeOn = {
     let innerSubscription =
       observable
       |> RxObservable.observe1(
-           ~onNext=RxSubscriber.forwardOnNext,
-           ~onComplete=RxSubscriber.forwardOnComplete,
+           ~onNext=SubscriberForward.onNext,
+           ~onComplete=SubscriberForward.onComplete,
            subscriber,
          )
       |> RxObservable.subscribe;

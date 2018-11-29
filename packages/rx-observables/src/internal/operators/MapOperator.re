@@ -12,7 +12,7 @@ let operator = {
   mapper =>
     RxSubscriber.decorate1(
       ~onNext,
-      ~onComplete=RxSubscriber.forwardOnComplete1,
+      ~onComplete=SubscriberForward.onComplete1,
       mapper,
     );
 };

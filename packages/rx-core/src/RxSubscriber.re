@@ -288,35 +288,6 @@ let next = {
   };
 };
 
-let forwardOnComplete = (subscriber, exn) => subscriber |> complete(~exn?);
-
-let forwardOnComplete1 = (_, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnComplete2 = (_, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnComplete3 = (_, _, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnComplete4 = (_, _, _, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnComplete5 = (_, _, _, _, _, subscriber, exn) =>
-  subscriber |> complete(~exn?);
-
-let forwardOnNext = (subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext1 = (_, subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext2 = (_, _, subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext3 = (_, _, _, subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext4 = (_, _, _, _, subscriber, v) => subscriber |> next(v);
-
-let forwardOnNext5 = (_, _, _, _, _, subscriber, v) => subscriber |> next(v);
-
 let notify = (notif, subscriber) =>
   switch (notif) {
   | RxNotification.Next(v) => subscriber |> next(v)

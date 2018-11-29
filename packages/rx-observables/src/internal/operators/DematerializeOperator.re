@@ -12,7 +12,7 @@ let operator = {
       subscriber
       |> RxSubscriber.decorate1(
            ~onNext,
-           ~onComplete=RxSubscriber.forwardOnComplete1,
+           ~onComplete=SubscriberForward.onComplete1,
            self,
          );
     self^;

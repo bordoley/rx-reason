@@ -89,10 +89,6 @@ let next = (next, subject) =>
     };
   };
 
-let forwardOnComplete = (subject, exn) => subject |> complete(~exn?);
-
-let forwardOnNext = (subject, v) => subject |> next(v);
-
 let notify = (notif, subject) =>
   switch (notif) {
   | RxNotification.Next(v) => subject |> next(v)
