@@ -7,15 +7,25 @@ include RxDisposable.S1 with type t('a) := t('a);
 include RxObservable.S1 with type t('a) := t('a);
 include RxObserverLike.S1 with type t('a) := t('a);
 
-/** Constructs a new Subject instance. */
-let create: unit => t('a);
+let create:
+  (
+    ~onNext: 'a => unit,
+    ~onComplete: option(exn) => unit,
+    ~onSubscribe: RxSubscriber.t('a) => unit,
+    ~onDispose: unit => unit
+  ) =>
+  t('a);
 
-/**
- * Constructs a new Subject instance with the specified buffer size
- * which will replay the most recent buffered notifications when
- * subscribed to.
- * */
-let createWithReplayBuffer: int => t('a);
+let create2:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'a) => unit,
+    ~onComplete: ('ctx0, 'ctx1, option(exn)) => unit,
+    ~onSubscribe: ('ctx0, 'ctx1, RxSubscriber.t('a)) => unit,
+    ~onDispose: ('ctx0, 'ctx1) => unit,
+    'ctx0,
+    'ctx1
+  ) =>
+  t('a);
 
 /**
  * A disposed Subject instance.

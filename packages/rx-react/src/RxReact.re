@@ -60,7 +60,7 @@ let useObservableState = {
     createSideEffectsStream: RxObservable.t('props) => RxObservable.t(unit),
     props: 'props,
   ) => {
-    let propsStream = React.useMemo(RxSubject.create);
+    let propsStream = React.useMemo(RxSubjects.createMulticast);
     let (state, setState) = React.useState(Null);
 
     let observable =

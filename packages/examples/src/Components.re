@@ -43,7 +43,7 @@ let rxRefTest =
     ~name="RxRefTest",
     ~defaultProps=(),
     (~props as _: unit, ~children as _: unit) => {
-      let subject = React.useMemo(RxSubject.create);
+      let subject = React.useMemo(RxSubjects.createMulticast);
       let reactRef = React.useRef(None);
 
       RxReactDomHtmlElement.useFocus(
