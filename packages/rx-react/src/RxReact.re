@@ -1,30 +1,31 @@
-let useObservable = (observable: RxObservable.t('a)) =>
-  React.useEffectWithCleanup1(
-    observable => {
-      let subscription = observable |> RxObservable.subscribe;
-      () => subscription |> RxDisposable.dispose;
-    },
-    observable,
-  );
+let useObservable = {
+  let subscribe = observable => {
+    let subscription = observable |> RxObservable.subscribe;
+    () => subscription |> RxDisposable.dispose;
+  };
 
-  let onNextWithRef = {
-    let onNextCallback = (onNext, reactRef, next) => {
-      let ele = reactRef |> React.Ref.currentGet;
-      switch (ele) {
-      | Some(ele) => ele |> onNext(next)
-      | None => ()
-      };
+  (observable: RxObservable.t('a)) =>
+    React.useEffectWithCleanup1(subscribe, observable);
+};
+
+let onNextWithRef = {
+  let onNextCallback = (onNext, reactRef, next) => {
+    let ele = reactRef |> React.Ref.currentGet;
+    switch (ele) {
+    | Some(ele) => ele |> onNext(next)
+    | None => ()
     };
-  
-    (onNext, reactRef, observable) =>
-      observable |> RxObservables.onNext2(onNextCallback, onNext, reactRef);
   };
 
-let useOnNextWithRef =
-  (onNext, reactRef, observable) => {
-    let observable = React.useMemo3(onNextWithRef, onNext, reactRef, observable);
-    useObservable(observable);
-  };
+  (onNext, reactRef, observable) =>
+    observable |> RxObservables.onNext2(onNextCallback, onNext, reactRef);
+};
+
+let useOnNextWithRef = (onNext, reactRef, observable) => {
+  let observable =
+    React.useMemo3(onNextWithRef, onNext, reactRef, observable);
+  useObservable(observable);
+};
 
 type state('state) =
   | Null
