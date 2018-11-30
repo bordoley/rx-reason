@@ -27,6 +27,10 @@ let every = (predicate, observable) =>
 let exhaust = observable =>
   observable |> RxObservable.lift(RxOperators.exhaust);
 
+let exhaustMap = (f, observable) =>
+  observable
+  |> RxObservable.lift(s => RxOperators.map(f) @@ RxOperators.exhaust @@ s);
+
 let find = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.find(predicate));
 
@@ -102,7 +106,12 @@ let onNext1 = (onNext, ctx0, observable) =>
 
 let onNext2 = (onNext, ctx0, ctx1, observable) =>
   observable
-  |> RxObservable.observe2(~onNext, ~onComplete=RxFunctions.alwaysUnit3, ctx0, ctx1);
+  |> RxObservable.observe2(
+       ~onNext,
+       ~onComplete=RxFunctions.alwaysUnit3,
+       ctx0,
+       ctx1,
+     );
 
 let onSubscribe = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.onSubscribe(f));
@@ -171,6 +180,10 @@ let subscribeOn = SubscribeOnObservable.subscribeOn;
 
 let switch_ = observable =>
   observable |> RxObservable.lift(RxOperators.switch_);
+
+let switchMap = (f, observable) =>
+  observable
+  |> RxObservable.lift(s => RxOperators.map(f) @@ RxOperators.switch_ @@ s);
 
 let synchronize = observable =>
   observable |> RxObservable.lift(RxOperators.synchronize);

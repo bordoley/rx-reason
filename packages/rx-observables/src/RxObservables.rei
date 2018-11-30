@@ -74,6 +74,9 @@ let every: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
  */
 let exhaust: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
+
+let exhaustMap: ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+
 /**
  * Returns an Observable which emits the first observed item
  * from the source which satisfies the predicate.
@@ -324,6 +327,8 @@ let subscribeOn:
  * next one is observed. Also see: exhaust.
  */
 let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
+
+let switchMap: ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 /**
  * Returns an Observable that utilizes locking, to ensure subscriber

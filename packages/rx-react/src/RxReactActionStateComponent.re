@@ -25,10 +25,9 @@ let propsToStateMapper =
 
 let propsToState = (mapStateToRenderProps, setupSideEffects, propsStream) =>
   propsStream
-  |> RxObservables.map(
+  |> RxObservables.switchMap(
        propsToStateMapper(mapStateToRenderProps, setupSideEffects),
-     )
-  |> RxObservables.switch_;
+     );
 
 let createReactComponent =
     (
