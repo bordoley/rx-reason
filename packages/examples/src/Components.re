@@ -62,11 +62,19 @@ let rxRefTest =
     },
   );
 
+type greetingProps = {
+  count: int,
+  greeting: string,
+  incrementCount: unit => unit,
+  show: bool,
+  toggle: unit => unit,
+};
+
 let greeting =
   React.createComponent(
     ~name="Greeting",
     (
-      ~props as {count, greeting, incrementCount, show, toggle}: Store.props,
+      ~props as {count, greeting, incrementCount, show, toggle}: greetingProps,
       ~children as _: unit,
     ) => {
     let incrementCount =
