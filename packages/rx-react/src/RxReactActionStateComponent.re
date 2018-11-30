@@ -44,16 +44,16 @@ let createReactComponent =
            ~stateStore: RxValue.t('state)
          ) =>
          RxObservable.t(unit),
-      ~renderNull:
-         option((~key: string=?, unit, 'children) => React.Element.t)=?,
-      ~renderExn: option((~key: string=?, exn, 'children) => React.Element.t)=?,
+      ~renderDefault:
+         option((~key: string=?, ~props: unit, 'children) => React.Element.t)=?,
+      ~renderExn: option((~key: string=?, ~props: exn, 'children) => React.Element.t)=?,
       ~render:
          (~key: string=?, ~props: 'renderProps, 'children) => React.Element.t,
     ) =>
   RxReact.createReactComponent(
     ~name,
     ~propsToState=propsToState(mapStateToRenderProps, setupSideEffects),
-    ~renderNull?,
+    ~renderDefault?,
     ~renderExn?,
     ~render,
   );
@@ -63,7 +63,7 @@ let create =
       ~name,
       ~mapStateToRenderProps,
       ~setupSideEffects,
-      ~renderNull=?,
+      ~renderDefault=?,
       ~renderExn=?,
       ~render,
       (),
@@ -71,7 +71,7 @@ let create =
   RxReact.createComponent(
     ~name,
     ~propsToState=propsToState(mapStateToRenderProps, setupSideEffects),
-    ~renderNull?,
+    ~renderDefault?,
     ~renderExn?,
     ~render,
     (),

@@ -253,3 +253,7 @@ external useRef : option('a) => Ref.t('a) = "useRef";
 [@bs.val] [@bs.module "react"]
 external reactUseState : 'state => ('state, 'state => unit) = "useState";
 let useState = reactUseState;
+
+let null = (~key as _=?, ~props as _, _) => Element.null;
+
+let raise = (~key as _=?, ~props as exn, _): Element.t => raise(exn);

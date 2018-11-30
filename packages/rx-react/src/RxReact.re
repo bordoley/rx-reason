@@ -4,7 +4,7 @@ let useObservable = {
     () => subscription |> RxDisposable.dispose;
   };
 
-  (observable) =>
+  observable =>
     React.useEffectWithCleanup1(subscribe, observable);
 };
 
@@ -41,12 +41,11 @@ let useObservableState = {
     | _ => setState(Null)
     };
 
-  let makeStateStream = (propsToState, setState, propsStream) => {
+  let makeStateStream = (propsToState, setState, propsStream) =>
     propsStream
     |> RxSubject.asObservable
     |> propsToState
     |> RxObservable.observe1(~onNext, ~onComplete, setState);
-  };
 
   (propsToState, props) => {
     let propsStream = React.useMemo(RxSubjects.createMulticast);
@@ -57,21 +56,19 @@ let useObservableState = {
     |> React.useMemo3(makeStateStream, propsToState, setState)
     |> useObservable;
 
-    React.useEffect2(RxSubject.next, props, propsStream);
+    propsStream |> React.useEffect2(RxSubject.next, props);
     state;
   };
 };
 
-let defaultRenderNull = (~key as _=?, _, _) => React.Element.null;
-let defaultRenderExn = (~key as _=?, exn, _) => raise(exn);
-
 let createReactComponent =
     (
       ~name: option(string)=?,
-      ~propsToState: RxObservable.observable('props) => RxObservable.t('state),
-      ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=defaultRenderNull,
-      ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=defaultRenderExn,
-      ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t
+      ~propsToState:
+         RxObservable.observable('props) => RxObservable.t('state),
+      ~renderDefault: (~key: string=?, ~props: unit, 'children) => React.Element.t=React.null,
+      ~renderExn: (~key: string=?, ~props: exn, 'children) => React.Element.t=React.raise,
+      ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     ) =>
   React.Component.create(
     ~name?,
@@ -79,27 +76,20 @@ let createReactComponent =
       let state = useObservableState(propsToState, props);
 
       switch (state) {
-      | Null => renderNull((), children)
-      | Error(exn) => renderExn(exn, children)
+      | Null => renderDefault(~props=(), children)
+      | Error(exn) => renderExn(~props=exn, children)
       | Next(props) => render(~props, children)
       };
     },
   );
 
 let createComponent =
-    (
-      ~name=?,
-      ~propsToState,
-      ~renderNull=?,
-      ~renderExn=?,
-      ~render,
-      (),
-    ) => {
+    (~name=?, ~propsToState, ~renderDefault=?, ~renderExn=?, ~render, ()) => {
   let statefulComponent =
     createReactComponent(
       ~name?,
       ~propsToState,
-      ~renderNull?,
+      ~renderDefault?,
       ~renderExn?,
       ~render,
     );

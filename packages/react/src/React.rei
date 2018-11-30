@@ -58,6 +58,9 @@ module Context: {
   external create: 'a => t('a) = "createContext";
 };
 
+let null: (~key: 'a=?, ~props: 'b, 'c) => Element.t
+let raise: (~key: 'a=?, ~props: exn, 'c) => Element.t
+
 [@bs.val] [@bs.module "react"]
 external useContext: Context.t('a) => 'a = "useContext";
 

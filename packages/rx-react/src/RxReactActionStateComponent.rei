@@ -18,8 +18,8 @@ let createReactComponent:
                          ~stateStore: RxValue.t('state)
                        ) =>
                        RxObservable.t(unit),
-    ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
-    ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
+    ~renderDefault: (~key: string=?,  ~props: unit, 'children) => React.Element.t=?,
+    ~renderExn: (~key: string=?,  ~props: exn, 'children) => React.Element.t=?,
     ~render: (~key: string=?, ~props: 'renderProps, 'children) =>
              React.Element.t
   ) =>
@@ -38,8 +38,8 @@ let create:
                          ~stateStore: RxValue.t('state)
                        ) =>
                        RxObservable.t(unit),
-    ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
-    ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
+    ~renderDefault: (~key: string=?,  ~props: unit, 'children) => React.Element.t=?,
+    ~renderExn: (~key: string=?,  ~props: exn, 'children) => React.Element.t=?,
     ~render: (~key: string=?, ~props: 'renderProps, 'children) =>
              React.Element.t,
     unit,
