@@ -77,11 +77,11 @@ let notifyComplete = (exn, subscribers) => {
   subscribers := RxCopyOnWriteArray.empty();
 };
 
-let completeWithResult = (~exn=?, subscriber) => {
-  let shouldComplete = shouldComplete(subscriber);
+let completeWithResult = (~exn=?, subject) => {
+  let shouldComplete = shouldComplete(subject);
 
   if (shouldComplete) {
-    switch (subscriber) {
+    switch (subject) {
     | Disposed => ()
     | S0(subscribers, _, _, _, _, onComplete, _, _) =>
       onComplete(exn);
@@ -94,8 +94,8 @@ let completeWithResult = (~exn=?, subscriber) => {
   shouldComplete;
 };
 
-let complete = (~exn=?, subscriber) =>
-  subscriber |> completeWithResult(~exn?) |> ignore;
+let complete = (~exn=?, subject) =>
+subject |> completeWithResult(~exn?) |> ignore;
 
 let isStopped =
   fun
