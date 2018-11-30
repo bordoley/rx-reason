@@ -1,6 +1,6 @@
 let combineLatest2 = CombineLatest2Observable.create;
 
-let concat = ConcatObservable.concat;
+let concatList = ConcatListObservable.concat;
 
 let debounce = (~scheduler, dueTime, observable) =>
   observable |> RxObservable.lift(RxOperators.debounce(~scheduler, dueTime));
@@ -64,7 +64,7 @@ let maybeFirst = observable =>
 let maybeLast = observable =>
   observable |> RxObservable.lift(RxOperators.maybeLast);
 
-let merge = MergeObservable.merge;
+let mergeList = MergeListObservable.merge;
 
 let none = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.none(predicate));
@@ -162,10 +162,10 @@ let some = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.some(predicate));
 
 let startWithList = (~scheduler=?, values, observable) =>
-  concat([ofList(~scheduler?, values), observable]);
+  concatList([ofList(~scheduler?, values), observable]);
 
 let startWithValue = (~scheduler=?, value, observable) =>
-  concat([ofValue(~scheduler?, value), observable]);
+  concatList([ofValue(~scheduler?, value), observable]);
 
 let subscribeOn = SubscribeOnObservable.subscribeOn;
 

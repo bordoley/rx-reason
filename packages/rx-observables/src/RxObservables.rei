@@ -2,7 +2,7 @@
  * Returns an Observable which concatenates elements of each provided Observable
  * into a single sequence of elements without interleaving them.
  */
-let concat:
+let concatList:
   (~scheduler: RxScheduler.t=?, list(RxObservable.t('a))) =>
   RxObservable.t('a);
 
@@ -154,7 +154,7 @@ let maybeLast: RxObservable.t('a) => RxObservable.t('a);
  * Returns an Observable that merges items emitted by the source Observables,
  * interleaving the items emitted by each Observable.
  */
-let merge: list(RxObservable.t('a)) => RxObservable.t('a);
+let mergeList: list(RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable that emits a single true value if every

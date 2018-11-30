@@ -20,7 +20,7 @@ let propsToStateMapper =
   let sideEffectsStream =
     setupSideEffects(~actions, ~stateStore) |> RxObservables.ignoreElements;
 
-  RxObservables.merge([renderPropsStream, sideEffectsStream]);
+  RxObservables.mergeList([renderPropsStream, sideEffectsStream]);
 };
 
 let propsToState = (mapStateToRenderProps, setupSideEffects, propsStream) =>
