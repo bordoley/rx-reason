@@ -4,7 +4,7 @@ let useObservable = {
     () => subscription |> RxDisposable.dispose;
   };
 
-  (observable: RxObservable.t('a)) =>
+  (observable) =>
     React.useEffectWithCleanup1(subscribe, observable);
 };
 
@@ -33,73 +33,55 @@ type state('state) =
   | Error(exn);
 
 let useObservableState = {
-  let make =
-      (propsStream, createStateStream, createSideEffectsStream, setState) => {
-    let distinctPropsStream =
-      propsStream
-      |> RxSubject.asObservable
-      |> RxObservables.distinctUntilChanged
-      |> RxObservables.observeOn(RxJsSchedulers.PriorityScheduler.immediate)
-      |> RxObservables.share;
+  let onNext = (setState, next) => setState(Next(next));
 
-    let stateStream =
-      createStateStream(distinctPropsStream)
-      |> RxObservables.observeOn(RxJsSchedulers.PriorityScheduler.immediate)
-      |> RxObservables.onNext(state => setState(Next(state)))
-      |> RxObservables.mapTo();
+  let onComplete = (setState, exn) =>
+    switch (exn) {
+    | Some(exn) => setState(Error(exn))
+    | _ => setState(Null)
+    };
 
-    RxObservables.merge([
-      stateStream,
-      createSideEffectsStream(distinctPropsStream),
-    ])
-    |> RxObservables.observeOn(RxJsSchedulers.PriorityScheduler.immediate)
-    |> RxObservables.onExn(exn => setState(Error(exn)));
+  let makeStateStream = (propsToState, setState, propsStream) => {
+    propsStream
+    |> RxSubject.asObservable
+    |> propsToState
+    |> RxObservable.observe1(~onNext, ~onComplete, setState);
   };
 
-  (
-    createStateStream: RxObservable.t('props) => RxObservable.t('state),
-    createSideEffectsStream: RxObservable.t('props) => RxObservable.t(unit),
-    props: 'props,
-  ) => {
+  (propsToState, props) => {
     let propsStream = React.useMemo(RxSubjects.createMulticast);
+
     let (state, setState) = React.useState(Null);
 
-    let observable =
-      React.useMemo4(
-        make,
-        propsStream,
-        createStateStream,
-        createSideEffectsStream,
-        setState,
-      );
-
-    useObservable(observable);
+    propsStream
+    |> React.useMemo3(makeStateStream, propsToState, setState)
+    |> useObservable;
 
     React.useEffect2(RxSubject.next, props, propsStream);
     state;
   };
 };
 
+let defaultRenderNull = (~key as _=?, _, _) => React.Element.null;
+let defaultRenderExn = (~key as _=?, exn, _) => raise(exn);
+
 let createReactComponent =
     (
-      ~name=?,
-      ~createSideEffectsStream=_ => RxObservables.empty(),
-      ~createStateStream=_ => RxObservables.empty(),
-      ~renderNull=() => React.Element.null,
-      ~renderExn=raise,
-      render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
-    )
-    : React.Component.t('props, 'children) =>
+      ~name: option(string)=?,
+      ~propsToState: RxObservable.observable('props) => RxObservable.t('state),
+      ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=defaultRenderNull,
+      ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=defaultRenderExn,
+      ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t
+    ) =>
   React.Component.create(
     ~name?,
     (~props, ~children) => {
-      let state =
-        useObservableState(createStateStream, createSideEffectsStream, props);
+      let state = useObservableState(propsToState, props);
 
       switch (state) {
-      | Null => renderNull()
-      | Error(exn) => renderExn(exn)
-      | Next(state) => render(~props=state, children)
+      | Null => renderNull((), children)
+      | Error(exn) => renderExn(exn, children)
+      | Next(props) => render(~props, children)
       };
     },
   );
@@ -107,20 +89,18 @@ let createReactComponent =
 let createComponent =
     (
       ~name=?,
-      ~createSideEffectsStream=_ => RxObservables.empty(),
-      ~createStateStream=_ => RxObservables.empty(),
-      ~renderNull=() => React.Element.null,
-      ~renderExn=raise,
-      render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
+      ~propsToState,
+      ~renderNull=?,
+      ~renderExn=?,
+      render,
     ) => {
   let statefulComponent =
     createReactComponent(
       ~name?,
-      ~createSideEffectsStream,
-      ~createStateStream,
-      ~renderNull,
-      ~renderExn,
-      render,
+      ~propsToState,
+      ~renderNull?,
+      ~renderExn?,
+      ~render,
     );
   React.Element.create(statefulComponent);
 };

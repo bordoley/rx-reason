@@ -5,25 +5,22 @@ let useOnNextWithRef:
 let createReactComponent:
   (
     ~name: string=?,
-    ~createSideEffectsStream: RxObservable.t('props) => RxObservable.t(unit)
-                                =?,
-    ~createStateStream: RxObservable.t('props) => RxObservable.t('state)=?,
-    ~renderNull: unit => React.Element.t=?,
-    ~renderExn: exn => React.Element.t=?,
-    (~key: string=?, ~props: 'state, 'children) => React.Element.t
+    ~propsToState: RxObservable.observable('props) => RxObservable.t('state),
+    ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
+    ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
+    ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t
   ) =>
   React.Component.t('props, 'children);
 
 let createComponent:
   (
     ~name: string=?,
-    ~createSideEffectsStream: RxObservable.t('a) => RxObservable.t(unit)=?,
-    ~createStateStream: RxObservable.t('a) => RxObservable.t('state)=?,
-    ~renderNull: unit => React.Element.t=?,
-    ~renderExn: exn => React.Element.t=?,
+    ~propsToState: RxObservable.observable('props) => RxObservable.t('state),
+    ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
+    ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
     (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     ~key: string=?,
-    ~props: 'a,
+    ~props: 'props,
     'children
   ) =>
   React.Element.t;
