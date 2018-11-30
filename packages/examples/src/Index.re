@@ -85,7 +85,8 @@ let greetingStateComponent =
     ~name="GreetingStateComponent",
     ~mapStateToRenderProps,
     ~setupSideEffects,
-    Components.greeting,
+    ~render=Components.greeting,
+    (),
   );
 let state = ref(true);
 Js.Global.setInterval(

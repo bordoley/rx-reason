@@ -66,12 +66,14 @@ let create =
       ~setupSideEffects,
       ~renderNull=?,
       ~renderExn=?,
-      render,
+      ~render,
+      (),
     ) =>
   RxReact.createComponent(
     ~name,
     ~propsToState=propsToState(mapStateToRenderProps, setupSideEffects),
     ~renderNull?,
     ~renderExn?,
-    render,
+    ~render,
+    (),
   );

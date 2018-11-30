@@ -20,7 +20,8 @@ let createReactComponent:
                        RxObservable.t(unit),
     ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
     ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
-    ~render: (~key: string=?, ~props: 'renderProps, 'children) => React.Element.t
+    ~render: (~key: string=?, ~props: 'renderProps, 'children) =>
+             React.Element.t
   ) =>
   React.Component.t(Props.t('action, 'state), 'children);
 
@@ -39,7 +40,9 @@ let create:
                        RxObservable.t(unit),
     ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
     ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
-   (~key: string=?, ~props: 'renderProps, 'children) => React.Element.t,
+    ~render: (~key: string=?, ~props: 'renderProps, 'children) =>
+             React.Element.t,
+    unit,
     ~key: string=?,
     ~props: Props.t('action, 'state),
     'children

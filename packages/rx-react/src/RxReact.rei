@@ -18,7 +18,8 @@ let createComponent:
     ~propsToState: RxObservable.observable('props) => RxObservable.t('state),
     ~renderNull: (~key: string=?, unit, 'children) => React.Element.t=?,
     ~renderExn: (~key: string=?, exn, 'children) => React.Element.t=?,
-    (~key: string=?, ~props: 'state, 'children) => React.Element.t,
+    ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
+    unit,
     ~key: string=?,
     ~props: 'props,
     'children

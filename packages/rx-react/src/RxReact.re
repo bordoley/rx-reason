@@ -92,7 +92,8 @@ let createComponent =
       ~propsToState,
       ~renderNull=?,
       ~renderExn=?,
-      render,
+      ~render,
+      (),
     ) => {
   let statefulComponent =
     createReactComponent(
