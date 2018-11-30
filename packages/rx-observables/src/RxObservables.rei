@@ -95,7 +95,7 @@ let firstOrNone: RxObservable.t('a) => RxObservable.t(option('a));
 /**
  * Returns an Observable which drops all items from the source.
  */
-let ignoreElements: RxObservable.t('a) => RxObservable.t('a);
+let ignoreElements: RxObservable.t('a) => RxObservable.t('b);
 
 /**
  * Returns an Observable which emits true if the source emits
