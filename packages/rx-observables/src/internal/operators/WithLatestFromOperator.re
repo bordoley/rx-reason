@@ -47,9 +47,5 @@ let operator = (~selector, other, subscriber) => {
        )
     |> RxObservable.subscribe;
 
-  delegateSubscriber
-  |> RxSubscriber.addTeardown1(
-       RxDisposable.dispose,
-       context.otherSubscription,
-     );
+  delegateSubscriber |> RxSubscriber.addDisposable(context.otherSubscription);
 };

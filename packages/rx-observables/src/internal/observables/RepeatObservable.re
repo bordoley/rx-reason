@@ -31,7 +31,7 @@ let operator = {
 
   (shouldRepeat, observable, subscriber) => {
     let subscription = RxSerialDisposable.create();
-
+    let disposable = subscription |> RxSerialDisposable.asDisposable;
     subscriber
     |> RxSubscriber.decorate3(
          ~onNext=SubscriberForward.onNext3,
@@ -40,7 +40,7 @@ let operator = {
          shouldRepeat,
          subscription,
        )
-    |> RxSubscriber.addTeardown1(RxSerialDisposable.dispose, subscription);
+    |> RxSubscriber.addDisposable(disposable);
   };
 };
 

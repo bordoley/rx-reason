@@ -1,29 +1,8 @@
-type teardownLogic =
-  | TeardownLogic(RxDisposableTeardownLogic.t): teardownLogic
-  | TeardownLogic1(RxDisposableTeardownLogic.t1('a), 'a): teardownLogic
-  | TeardownLogic2(RxDisposableTeardownLogic.t2('a, 'b), 'a, 'b): teardownLogic
-  | TeardownLogic3(RxDisposableTeardownLogic.t3('a, 'b, 'c), 'a, 'b, 'c): teardownLogic
-  | TeardownLogic4(
-                    RxDisposableTeardownLogic.t4('a, 'b, 'c, 'd),
-                    'a,
-                    'b,
-                    'c,
-                    'd,
-                  ): teardownLogic
-  | TeardownLogic5(
-                    RxDisposableTeardownLogic.t5('a, 'b, 'c, 'd, 'e),
-                    'a,
-                    'b,
-                    'c,
-                    'd,
-                    'e,
-                  ): teardownLogic;
-
 type t =
   | Disposed
   | CompositeDisposable(
       RxLock.t,
-      RxMutableQueue.t(teardownLogic),
+      RxMutableList.t(RxDisposable.t),
       RxDisposable.t,
     );
 
@@ -55,27 +34,15 @@ let asDisposable =
 let disposed = Disposed;
 
 let create = {
-  let teardown = {
-    let doTeardown =
-      fun
-      | TeardownLogic(tdl) => tdl()
-      | TeardownLogic1(tdl, d0) => tdl(d0)
-      | TeardownLogic2(tdl, d0, d1) => tdl(d0, d1)
-      | TeardownLogic3(tdl, d0, d1, d2) => tdl(d0, d1, d2)
-      | TeardownLogic4(tdl, d0, d1, d2, d3) => tdl(d0, d1, d2, d3)
-      | TeardownLogic5(tdl, d0, d1, d2, d3, d4) =>
-        tdl(d0, d1, d2, d3, d4);
-
-    (lock, teardown) => {
-      lock |> RxLock.acquire;
-      teardown |> RxMutableQueue.forEach(doTeardown);
-      teardown |> RxMutableQueue.clear;
-      lock |> RxLock.release;
-    };
+  let teardown = (lock, teardown) => {
+    lock |> RxLock.acquire;
+    teardown |> RxMutableList.forEachReversed(RxDisposable.dispose);
+    teardown |> RxMutableList.clear;
+    lock |> RxLock.release;
   };
 
   () => {
-    let children = RxMutableQueue.create();
+    let children = RxMutableList.create();
     let lock = RxLock.create();
     let disposable = RxDisposable.create2(teardown, lock, children);
     CompositeDisposable(lock, children, disposable);
@@ -90,72 +57,34 @@ let isDisposed = disposable =>
 let raiseIfDisposed = disposable =>
   disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
 
-let addInternal = (teardownLogic, self) =>
+let addDisposable = (disposable, self) => {
   switch (self) {
-  | Disposed => true
+  | Disposed => ()
   | CompositeDisposable(lock, children, _) =>
     lock |> RxLock.acquire;
 
     let isDisposed = isDisposed(self);
     if (! isDisposed) {
-      children |> RxMutableQueue.enqueue(teardownLogic);
+      children |> RxMutableList.add(disposable);
     };
 
     lock |> RxLock.release;
-    isDisposed;
   };
-
-let addTeardown = (cb, self) => {
-  let isDisposed = self |> addInternal(TeardownLogic(cb));
-  if (isDisposed) {
-    cb();
-  };
-
   self;
 };
 
-let addTeardown1 = (cb, d0, self) => {
-  let isDisposed = self |> addInternal(TeardownLogic1(cb, d0));
-  if (isDisposed) {
-    cb(d0);
+let removeDisposable = (disposable, self) => {
+  switch (self) {
+  | Disposed => ()
+  | CompositeDisposable(lock, children, _) =>
+    lock |> RxLock.acquire;
+
+    let isDisposed = isDisposed(self);
+    if (! isDisposed) {
+      children |> RxMutableList.remove(disposable);
+    };
+
+    lock |> RxLock.release;
   };
-
-  self;
-};
-
-let addTeardown2 = (cb, d0, d1, self) => {
-  let isDisposed = self |> addInternal(TeardownLogic2(cb, d0, d1));
-  if (isDisposed) {
-    cb(d0, d1);
-  };
-
-  self;
-};
-
-let addTeardown3 = (cb, d0, d1, d2, self) => {
-  let isDisposed = self |> addInternal(TeardownLogic3(cb, d0, d1, d2));
-  if (isDisposed) {
-    cb(d0, d1, d2);
-  };
-
-  self;
-};
-
-let addTeardown4 = (cb, d0, d1, d2, d3, self) => {
-  let isDisposed = self |> addInternal(TeardownLogic4(cb, d0, d1, d2, d3));
-  if (isDisposed) {
-    cb(d0, d1, d2, d3);
-  };
-
-  self;
-};
-
-let addTeardown5 = (cb, d0, d1, d2, d3, d4, self) => {
-  let isDisposed =
-    self |> addInternal(TeardownLogic5(cb, d0, d1, d2, d3, d4));
-  if (isDisposed) {
-    cb(d0, d1, d2, d3, d4);
-  };
-
   self;
 };

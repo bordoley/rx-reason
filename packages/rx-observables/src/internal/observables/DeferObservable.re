@@ -9,9 +9,7 @@ let defer = {
          )
       |> RxObservable.subscribe;
 
-    subscriber
-    |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscription)
-    |> ignore;
+    subscriber |> RxSubscriber.addDisposable(innerSubscription) |> ignore;
   };
 
   f => RxObservable.create1(source, f);

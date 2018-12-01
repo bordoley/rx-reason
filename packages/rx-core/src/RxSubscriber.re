@@ -68,53 +68,22 @@ let rec asCompositeDisposable: type a. t(a) => RxCompositeDisposable.t =
   | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
     delegate |> asCompositeDisposable;
 
-let addTeardown = (teardown, subscriber) => {
+let addDisposable = (disposable, subscriber) => {
   subscriber
   |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown(teardown)
+  |> RxCompositeDisposable.addDisposable(disposable)
   |> ignore;
   subscriber;
 };
 
-let addTeardown1 = (teardown, d0, subscriber) => {
+let removeDisposable = (disposable, subscriber) => {
   subscriber
   |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown1(teardown, d0)
+  |> RxCompositeDisposable.removeDisposable(disposable)
   |> ignore;
   subscriber;
 };
 
-let addTeardown2 = (teardown, d0, d1, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown2(teardown, d0, d1)
-  |> ignore;
-  subscriber;
-};
-
-let addTeardown3 = (teardown, d0, d1, d2, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown3(teardown, d0, d1, d2)
-  |> ignore;
-  subscriber;
-};
-
-let addTeardown4 = (teardown, d0, d1, d2, d3, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown4(teardown, d0, d1, d2, d3)
-  |> ignore;
-  subscriber;
-};
-
-let addTeardown5 = (teardown, d0, d1, d2, d3, d4, subscriber) => {
-  subscriber
-  |> asCompositeDisposable
-  |> RxCompositeDisposable.addTeardown5(teardown, d0, d1, d2, d3, d4)
-  |> ignore;
-  subscriber;
-};
 
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.asDisposable;
@@ -126,31 +95,36 @@ let create = () => {
 
 let decorate = (~onNext, ~onComplete, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating(subscriber, isStopped, onNext, onComplete);
 };
 
 let decorate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating1(subscriber, isStopped, ctx0, onNext, onComplete);
 };
 
 let decorate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating2(subscriber, isStopped, ctx0, ctx1, onNext, onComplete);
 };
 
 let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating3(subscriber, isStopped, ctx0, ctx1, ctx2, onNext, onComplete);
 };
 
 let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating4(
     subscriber,
     isStopped,
@@ -166,7 +140,8 @@ let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
 let decorate5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subscriber) => {
   let isStopped = RxAtomic.make(false);
-  subscriber |> addTeardown1(RxAtomic.setTrue, isStopped) |> ignore;
+  let disposable = RxDisposable.create1(RxAtomic.setTrue, isStopped);
+  subscriber |> addDisposable(disposable) |> ignore;
   Decorating5(
     subscriber,
     isStopped,

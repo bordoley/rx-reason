@@ -3,19 +3,8 @@ module type S = {
 
   include RxDisposableLike.S with type t := t;
 
-  let addTeardown: (RxDisposableTeardownLogic.t, t) => t;
-
-  let addTeardown1: (RxDisposableTeardownLogic.t1('b), 'b, t) => t;
-
-  let addTeardown2: (RxDisposableTeardownLogic.t2('b, 'c), 'b, 'c, t) => t;
-
-  let addTeardown3: (RxDisposableTeardownLogic.t3('b, 'c, 'd), 'b, 'c, 'd, t) => t;
-
-  let addTeardown4:
-    (RxDisposableTeardownLogic.t4('b, 'c, 'd, 'e), 'b, 'c, 'd, 'e, t) => t;
-
-  let addTeardown5:
-    (RxDisposableTeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t) => t;
+  let addDisposable: (RxDisposable.t, t) => t;
+  let removeDisposable: (RxDisposable.t, t) => t;
 };
 
 module type S1 = {
@@ -23,19 +12,6 @@ module type S1 = {
 
   include RxDisposableLike.S1 with type t('a) := t('a);
 
-  let addTeardown: (RxDisposableTeardownLogic.t, t('a)) => t('a);
-
-  let addTeardown1: (RxDisposableTeardownLogic.t1('b), 'b, t('a)) => t('a);
-
-  let addTeardown2: (RxDisposableTeardownLogic.t2('b, 'c), 'b, 'c, t('a)) => t('a);
-
-  let addTeardown3:
-    (RxDisposableTeardownLogic.t3('b, 'c, 'd), 'b, 'c, 'd, t('a)) => t('a);
-
-  let addTeardown4:
-    (RxDisposableTeardownLogic.t4('b, 'c, 'd, 'e), 'b, 'c, 'd, 'e, t('a)) => t('a);
-
-  let addTeardown5:
-    (RxDisposableTeardownLogic.t5('b, 'c, 'd, 'e, 'f), 'b, 'c, 'd, 'e, 'f, t('a)) =>
-    t('a);
+  let addDisposable: (RxDisposable.t, t('a)) => t('a);
+  let removeDisposable: (RxDisposable.t, t('a)) => t('a);
 };

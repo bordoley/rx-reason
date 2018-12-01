@@ -38,9 +38,7 @@ let merge = {
                )
             |> RxObservable.subscribe;
 
-          subscriber
-          |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscriber)
-          |> ignore;
+          subscriber |> RxSubscriber.addDisposable(innerSubscriber) |> ignore;
           loop(tail);
         }
       | [] => ();

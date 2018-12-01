@@ -143,8 +143,10 @@ let subscribeOrDisposeSubscriber = (subscribers, isStopped, subscriber) =>
   } else {
     subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
 
+    let disposable = RxDisposable.create2(subscriberTeardown, subscriber, subscribers);
+
     subscriber
-    |> RxSubscriber.addTeardown2(subscriberTeardown, subscriber, subscribers)
+    |> RxSubscriber.addDisposable(disposable)
     |> ignore;
   };
 

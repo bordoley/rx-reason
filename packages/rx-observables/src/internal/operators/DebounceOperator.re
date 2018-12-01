@@ -45,6 +45,8 @@ let operator = {
     let debounceSubscription = RxSerialDisposable.create();
     let lastValue = RxMutableOption.create();
 
+    let disposable = debounceSubscription |> RxSerialDisposable.asDisposable;
+
     subscriber
     |> RxSubscriber.decorate4(
          ~onNext,
@@ -54,6 +56,6 @@ let operator = {
          scheduler,
          dueTime,
        )
-    |> RxSubscriber.addTeardown1(RxSerialDisposable.dispose, debounceSubscription);
+    |> RxSubscriber.addDisposable(disposable);
   };
 };

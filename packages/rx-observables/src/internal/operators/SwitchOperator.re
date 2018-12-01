@@ -64,13 +64,12 @@ let operator = {
       self: RxSubscriber.disposed,
     };
 
+    let dispsable = context.innerSubscription |> RxSerialDisposable.asDisposable;
+
     context.self =
       subscriber
       |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
-      |> RxSubscriber.addTeardown1(
-           RxSerialDisposable.dispose,
-           context.innerSubscription,
-         );
+      |> RxSubscriber.addDisposable(dispsable);
     context.self;
   };
 };

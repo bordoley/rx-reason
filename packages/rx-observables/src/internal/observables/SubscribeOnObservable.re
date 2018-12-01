@@ -8,10 +8,8 @@ let subscribeOn = {
            subscriber,
          )
       |> RxObservable.subscribe;
-    
-    subscriber
-    |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscription)
-    |> ignore;
+
+    subscriber |> RxSubscriber.addDisposable(innerSubscription) |> ignore;
 
     RxScheduler.Result.complete;
   };
@@ -20,9 +18,7 @@ let subscribeOn = {
     let schedulerSubscription =
       scheduler
       |> RxScheduler.schedule(~delay?, doSubscribe(observable, subscriber));
-    subscriber
-    |> RxSubscriber.addTeardown1(RxDisposable.dispose, schedulerSubscription)
-    |> ignore;
+    subscriber |> RxSubscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
   (~delay=?, scheduler, observable) =>

@@ -10,24 +10,28 @@ type context('a, 'b, 'c) = {
 let onNext = (ctx, value, _, next) => {
   value |> RxMutableOption.set(next);
 
-  let haveValues = RxMutableOption.isNotEmpty(ctx.value0) && RxMutableOption.isNotEmpty(ctx.value1);
+  let haveValues =
+    RxMutableOption.isNotEmpty(ctx.value0)
+    && RxMutableOption.isNotEmpty(ctx.value1);
   if (haveValues) {
     let next =
-      ctx.selector(RxMutableOption.get(ctx.value0), RxMutableOption.get(ctx.value1));
+      ctx.selector(
+        RxMutableOption.get(ctx.value0),
+        RxMutableOption.get(ctx.value1),
+      );
     ctx.subscriber |> RxSubscriber.next(next);
   };
 };
 
-let onComplete = (ctx, _, other, exn) => {
+let onComplete = (ctx, _, other, exn) =>
   switch (exn) {
-    | Some(_) => ctx.subscriber |> RxSubscriber.complete(~exn?)
-    | None =>
-      let shouldComplete = RxDisposable.isDisposed(other^);
-      if (shouldComplete) {
-        ctx.subscriber |> RxSubscriber.complete(~exn?);
-      };
+  | Some(_) => ctx.subscriber |> RxSubscriber.complete(~exn?)
+  | None =>
+    let shouldComplete = RxDisposable.isDisposed(other^);
+    if (shouldComplete) {
+      ctx.subscriber |> RxSubscriber.complete(~exn?);
     };
-};
+  };
 
 let observableSource = (selector, observable0, observable1, subscriber) => {
   let ctx = {
@@ -62,10 +66,14 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
     |> RxObservable.subscribe;
 
   subscriber
-  |> RxSubscriber.addTeardown1(RxDisposable.dispose, ctx.subscription0^)
-  |> RxSubscriber.addTeardown1(RxDisposable.dispose, ctx.subscription1^)
-  |> RxSubscriber.addTeardown1(RxMutableOption.unset, ctx.value0)
-  |> RxSubscriber.addTeardown1(RxMutableOption.unset, ctx.value1)
+  |> RxSubscriber.addDisposable(ctx.subscription0^)
+  |> RxSubscriber.addDisposable(ctx.subscription1^)
+  |> RxSubscriber.addDisposable(
+       RxDisposable.create1(RxMutableOption.unset, ctx.value0),
+     )
+  |> RxSubscriber.addDisposable(
+       RxDisposable.create1(RxMutableOption.unset, ctx.value1),
+     )
   |> ignore;
 };
 

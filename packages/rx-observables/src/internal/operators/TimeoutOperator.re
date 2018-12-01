@@ -35,13 +35,12 @@ let operator = {
         timeoutSubscription: RxSerialDisposable.create(),
       };
 
+      let disposable =
+        context.timeoutSubscription |> RxSerialDisposable.asDisposable;
       let self =
         subscriber
         |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
-        |> RxSubscriber.addTeardown1(
-             RxSerialDisposable.dispose,
-             context.timeoutSubscription,
-           );
+        |> RxSubscriber.addDisposable(disposable);
 
       context.connect =
         timeoutObservable

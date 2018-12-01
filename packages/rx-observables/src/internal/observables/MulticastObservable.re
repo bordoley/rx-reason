@@ -40,8 +40,9 @@ let create = {
       |> RxObservable.subscribe;
 
     subscriber
-    |> RxSubscriber.addTeardown1(teardown, state)
-    |> RxSubscriber.addTeardown1(RxDisposable.dispose, innerSubscription)
+    |> RxSubscriber.addDisposable(
+      RxDisposable.create1(teardown, state))
+    |> RxSubscriber.addDisposable(innerSubscription)
     |> ignore;
 
     if (state.refCount === 1) {

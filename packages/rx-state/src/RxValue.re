@@ -18,9 +18,10 @@ let subscriberTeardown = (subscribers, subscriber) => {
 
 let observableSource = (value, subscribers, subscriber) => {
   subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
-  subscriber
-  |> RxSubscriber.addTeardown2(subscriberTeardown, subscribers, subscriber)
-  |> ignore;
+  let disposable =
+    RxDisposable.create2(subscriberTeardown, subscribers, subscriber);
+
+  subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
 
   subscriber |> RxSubscriber.next(value^);
 };

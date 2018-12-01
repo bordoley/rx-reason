@@ -33,9 +33,7 @@ let ofList = {
 
     let schedulerSubscription =
       scheduler |> RxScheduler.schedule(~delay=0.0, loop(list));
-    subscriber
-    |> RxSubscriber.addTeardown1(RxDisposable.dispose, schedulerSubscription)
-    |> ignore;
+    subscriber |> RxSubscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
   (~scheduler=?, list) =>
@@ -102,10 +100,7 @@ let ofRelativeTimeNotifications = {
                loop(subscriber, notif, delay, tail),
              );
         subscriber
-        |> RxSubscriber.addTeardown1(
-             RxDisposable.dispose,
-             schedulerSubscription,
-           )
+        |> RxSubscriber.addDisposable(schedulerSubscription)
         |> ignore;
       | [] => ()
       };
