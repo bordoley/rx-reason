@@ -1,5 +1,11 @@
 let combineLatest2 = CombineLatest2Observable.create;
 
+let concat = observable =>
+  observable |> RxObservable.lift(RxOperators.concat);
+
+let concatMap = (f, observable) =>
+  observable |> RxObservable.lift(RxOperators.concatMap(f));
+
 let concatList = ConcatListObservable.concat;
 
 let debounce = (~scheduler, dueTime, observable) =>
@@ -28,8 +34,7 @@ let exhaust = observable =>
   observable |> RxObservable.lift(RxOperators.exhaust);
 
 let exhaustMap = (f, observable) =>
-  observable
-  |> RxObservable.lift(RxOperators.exhaustMap(f));
+  observable |> RxObservable.lift(RxOperators.exhaustMap(f));
 
 let find = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.find(predicate));
@@ -68,7 +73,17 @@ let maybeFirst = observable =>
 let maybeLast = observable =>
   observable |> RxObservable.lift(RxOperators.maybeLast);
 
+let merge = (~maxBufferSize=?, ~maxConcurrency=?, observable) =>
+  observable
+  |> RxObservable.lift(RxOperators.merge(~maxBufferSize?, ~maxConcurrency?));
+
 let mergeList = MergeListObservable.merge;
+
+let mergeMap = (~maxBufferSize=?, ~maxConcurrency=?, f, observable) =>
+  observable
+  |> RxObservable.lift(
+       RxOperators.mergeMap(~maxBufferSize?, ~maxConcurrency?, f),
+     );
 
 let none = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.none(predicate));
@@ -182,8 +197,7 @@ let switch_ = observable =>
   observable |> RxObservable.lift(RxOperators.switch_);
 
 let switchMap = (f, observable) =>
-  observable
-  |> RxObservable.lift(RxOperators.switchMap(f));
+  observable |> RxObservable.lift(RxOperators.switchMap(f));
 
 let synchronize = observable =>
   observable |> RxObservable.lift(RxOperators.synchronize);

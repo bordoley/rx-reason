@@ -1,3 +1,5 @@
+let concat: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
+
 /**
  * Returns an Observable which concatenates elements of each provided Observable
  * into a single sequence of elements without interleaving them.
@@ -5,6 +7,9 @@
 let concatList:
   (~scheduler: RxScheduler.t=?, list(RxObservable.t('a))) =>
   RxObservable.t('a);
+
+let concatMap:
+  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let combineLatest2:
   (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
@@ -74,8 +79,8 @@ let every: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
  */
 let exhaust: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
-
-let exhaustMap: ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+let exhaustMap:
+  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 /**
  * Returns an Observable which emits the first observed item
@@ -153,11 +158,29 @@ let maybeFirst: RxObservable.t('a) => RxObservable.t('a);
  * completes.
  */
 let maybeLast: RxObservable.t('a) => RxObservable.t('a);
+
+let merge:
+  (
+    ~maxBufferSize: int=?,
+    ~maxConcurrency: int=?,
+    RxObservable.t(RxObservable.t('a))
+  ) =>
+  RxObservable.t('a);
+
 /**
  * Returns an Observable that merges items emitted by the source Observables,
  * interleaving the items emitted by each Observable.
  */
 let mergeList: list(RxObservable.t('a)) => RxObservable.t('a);
+
+let mergeMap:
+  (
+    ~maxBufferSize: int=?,
+    ~maxConcurrency: int=?,
+    'a => RxObservable.t('b),
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
 
 /**
  * Returns an Observable that emits a single true value if every
@@ -328,7 +351,8 @@ let subscribeOn:
  */
 let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
-let switchMap: ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+let switchMap:
+  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 /**
  * Returns an Observable that utilizes locking, to ensure subscriber

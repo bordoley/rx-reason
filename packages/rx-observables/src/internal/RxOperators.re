@@ -1,4 +1,5 @@
-
+let concat = ConcatOperator.operator;
+let concatMap = ConcatMapOperator.operator;
 let debounce = DebounceOperator.operator;
 let defaultIfEmpty = DefaultIfEmptyOperator.operator;
 let delay = DelayOperator.operator;
@@ -20,6 +21,8 @@ let mapTo = MapToOperator.operator;
 let materialize = MaterializeOperator.operator;
 let maybeFirst = MaybeFirstOperator.operator;
 let maybeLast = MaybeLastOperator.operator;
+let merge = MergeOperator.operator;
+let mergeMap = MergeMapOperator.operator;
 let none = NoneOperator.operator;
 let observeOn = ObserveOnOperator.operator;
 let onSubscribe = OnSubscribeOperator.operator;

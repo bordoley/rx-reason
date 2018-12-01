@@ -72,7 +72,7 @@ let test =
       ),
       describe("empty", []),
       describe(
-        "merge",
+        "mergeList",
         [
           observableIt(
             "synchronous and asynchronous observables",

@@ -1,0 +1,1 @@
+let operator = subscriber => MergeOperator.operator(~maxConcurrency=1, subscriber);
