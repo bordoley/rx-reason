@@ -66,9 +66,12 @@ let addDisposable = (disposable, self) => {
     let isDisposed = isDisposed(self);
     if (! isDisposed) {
       children |> RxMutableList.add(disposable);
+      lock |> RxLock.release;
+    }
+    else {
+      lock |> RxLock.release;
+      disposable |> RxDisposable.dispose;
     };
-
-    lock |> RxLock.release;
   };
   self;
 };
