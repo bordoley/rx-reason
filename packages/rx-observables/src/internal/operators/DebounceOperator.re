@@ -13,7 +13,13 @@ let operator = {
   };
 
   let onDebounceScheduled =
-      (debounceSubscription, lastValue, delegate, ~now as _, ~shouldYield as _) => {
+      (
+        debounceSubscription,
+        lastValue,
+        delegate,
+        ~now as _,
+        ~shouldYield as _,
+      ) => {
     debounceNext(debounceSubscription, lastValue, delegate);
     RxScheduler.Result.complete;
   };
@@ -45,7 +51,8 @@ let operator = {
     let debounceSubscription = RxSerialDisposable.create();
     let lastValue = RxMutableOption.create();
 
-    let disposable = debounceSubscription |> RxSerialDisposable.asDisposable;
+    let debounceDisposable =
+      debounceSubscription |> RxSerialDisposable.asDisposable;
 
     subscriber
     |> RxSubscriber.decorate4(
@@ -56,6 +63,6 @@ let operator = {
          scheduler,
          dueTime,
        )
-    |> RxSubscriber.addDisposable(disposable);
+    |> RxSubscriber.addDisposable(debounceDisposable);
   };
 };

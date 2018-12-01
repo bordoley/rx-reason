@@ -36,17 +36,16 @@ let subscribe = (capture, passive, eventName, node, subscriber) => {
   let options = {"capture": capture, "passive": passive};
   node |. addEventListener(eventName, eventHandler, options);
 
-  let disposable = RxDisposable.create4(
-    removeEventListenerTeardown,
-    eventName,
-    eventHandler,
-    options,
-    node,
-  );
+  let disposable =
+    RxDisposable.create4(
+      removeEventListenerTeardown,
+      eventName,
+      eventHandler,
+      options,
+      node,
+    );
 
-  subscriber
-  |> RxSubscriber.addDisposable(disposable)
-  |> ignore;
+  subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
 };
 
 let observeEvent =

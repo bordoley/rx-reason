@@ -11,8 +11,9 @@ let create = () : t('a) => [||];
 
 let forEachReversed = (f, list) => {
   let length = Js.Array.length(list);
-  for (x in (length - 1) to 0) {
-    f(list[x]);
+  for (i in 0 to length - 1) {
+    let idx = length - 1 - i;
+    f(list[idx]);
   };
 };
 

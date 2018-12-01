@@ -20,7 +20,7 @@ let operator = {
   subscriber => {
     let last = RxMutableOption.create();
     let disposable = RxDisposable.create1(RxMutableOption.unset, last);
-    
+
     subscriber
     |> RxSubscriber.decorate1(~onNext, ~onComplete, last)
     |> RxSubscriber.addDisposable(disposable);

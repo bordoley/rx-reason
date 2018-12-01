@@ -3,7 +3,7 @@ let operator = {
     delegate |> RxSubscriber.next(RxNotification.Next(next));
 
   let onComplete = (delegate, exn) => {
-    let next = RxNotification.complete(exn)
+    let next = RxNotification.complete(exn);
     delegate |> RxSubscriber.next(next);
     delegate |> RxSubscriber.complete;
   };

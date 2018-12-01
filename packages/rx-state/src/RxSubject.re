@@ -95,7 +95,7 @@ let completeWithResult = (~exn=?, subject) => {
 };
 
 let complete = (~exn=?, subject) =>
-subject |> completeWithResult(~exn?) |> ignore;
+  subject |> completeWithResult(~exn?) |> ignore;
 
 let isStopped =
   fun
@@ -143,11 +143,10 @@ let subscribeOrDisposeSubscriber = (subscribers, isStopped, subscriber) =>
   } else {
     subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
 
-    let disposable = RxDisposable.create2(subscriberTeardown, subscriber, subscribers);
+    let disposable =
+      RxDisposable.create2(subscriberTeardown, subscriber, subscribers);
 
-    subscriber
-    |> RxSubscriber.addDisposable(disposable)
-    |> ignore;
+    subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
   };
 
 let observableSource = (self, subscriber) => {

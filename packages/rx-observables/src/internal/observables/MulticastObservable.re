@@ -6,7 +6,8 @@ type multicastState('a) = {
   subscription: RxSerialDisposable.t,
 };
 
-let forwardOnComplete = (subject, exn) => subject |> RxSubject.complete(~exn?);
+let forwardOnComplete = (subject, exn) =>
+  subject |> RxSubject.complete(~exn?);
 
 let forwardOnNext = (subject, v) => subject |> RxSubject.next(v);
 
@@ -40,8 +41,7 @@ let create = {
       |> RxObservable.subscribe;
 
     subscriber
-    |> RxSubscriber.addDisposable(
-      RxDisposable.create1(teardown, state))
+    |> RxSubscriber.addDisposable(RxDisposable.create1(teardown, state))
     |> RxSubscriber.addDisposable(innerSubscription)
     |> ignore;
 

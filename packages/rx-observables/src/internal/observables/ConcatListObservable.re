@@ -44,8 +44,9 @@ let concat = {
     (scheduler, observables, subscriber) => {
       let innerSubscription = RxSerialDisposable.create();
 
-      let disposable = innerSubscription |> RxSerialDisposable.asDisposable;
-      subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
+      let innerDisposable =
+        innerSubscription |> RxSerialDisposable.asDisposable;
+      subscriber |> RxSubscriber.addDisposable(innerDisposable) |> ignore;
 
       loop(scheduler, observables, innerSubscription, subscriber);
     };

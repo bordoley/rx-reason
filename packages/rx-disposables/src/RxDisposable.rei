@@ -38,37 +38,37 @@ let compose: list(t) => t;
  * Constructs a Disposable instance which executes
  * the provided function exactly once when disposed.
  */
-let create: RxDisposableTeardownLogic.t => t;
+let create: (unit => unit) => t;
 
 /**
  * Constructs a Disposable instance which executes
  * the provided teardown function exactly once when disposed.
  */
-let create1: (RxDisposableTeardownLogic.t1('a), 'a) => t;
+let create1: ('a => unit, 'a) => t;
 
 /**
  * Constructs a Disposable instance which executes
  * the provided teardown function exactly once when disposed.
  */
-let create2: (RxDisposableTeardownLogic.t2('a, 'b), 'a, 'b) => t;
+let create2: (('a, 'b) => unit, 'a, 'b) => t;
 
 /**
  * Constructs a Disposable instance which executes
  * the provided teardown function exactly once when disposed.
  */
-let create3: (RxDisposableTeardownLogic.t3('a, 'b, 'c), 'a, 'b, 'c) => t;
+let create3: (('a, 'b, 'c) => unit, 'a, 'b, 'c) => t;
 
 /**
  * Constructs a Disposable instance which executes
  * the provided teardown function exactly once when disposed.
  */
-let create4: (RxDisposableTeardownLogic.t4('a, 'b, 'c, 'd), 'a, 'b, 'c, 'd) => t;
+let create4: (('a, 'b, 'c, 'd) => unit, 'a, 'b, 'c, 'd) => t;
 
 /**
  * Constructs a Disposable instance which executes
  * the provided teardown function exactly once when disposed.
  */
-let create5: (RxDisposableTeardownLogic.t5('a, 'b, 'c, 'd, 'e), 'a, 'b, 'c, 'd, 'e) => t;
+let create5: (('a, 'b, 'c, 'd, 'e) => unit, 'a, 'b, 'c, 'd, 'e) => t;
 
 /**
  * A disposed Disposable instance.

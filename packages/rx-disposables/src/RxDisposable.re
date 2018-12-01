@@ -7,28 +7,19 @@ let rec iterList = (f, list) =>
   };
 
 type t =
-  | Disposable(RxAtomic.t(bool), RxDisposableTeardownLogic.t)
-  | Disposable1(
-                 RxAtomic.t(bool),
-                 RxDisposableTeardownLogic.t1('ctx0),
-                 'ctx0,
-               ): t
-  | Disposable2(
-                 RxAtomic.t(bool),
-                 RxDisposableTeardownLogic.t2('ctx0, 'ctx1),
-                 'ctx0,
-                 'ctx1,
-               ): t
+  | Disposable(RxAtomic.t(bool), unit => unit)
+  | Disposable1(RxAtomic.t(bool), 'ctx0 => unit, 'ctx0): t
+  | Disposable2(RxAtomic.t(bool), ('ctx0, 'ctx1) => unit, 'ctx0, 'ctx1): t
   | Disposable3(
                  RxAtomic.t(bool),
-                 RxDisposableTeardownLogic.t3('ctx0, 'ctx1, 'ctx2),
+                 ('ctx0, 'ctx1, 'ctx2) => unit,
                  'ctx0,
                  'ctx1,
                  'ctx2,
                ): t
   | Disposable4(
                  RxAtomic.t(bool),
-                 RxDisposableTeardownLogic.t4('ctx0, 'ctx1, 'ctx2, 'ctx3),
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3) => unit,
                  'ctx0,
                  'ctx1,
                  'ctx2,
@@ -36,13 +27,7 @@ type t =
                ): t
   | Disposable5(
                  RxAtomic.t(bool),
-                 RxDisposableTeardownLogic.t5(
-                   'ctx0,
-                   'ctx1,
-                   'ctx2,
-                   'ctx3,
-                   'ctx4,
-                 ),
+                 ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4) => unit,
                  'ctx0,
                  'ctx1,
                  'ctx2,
