@@ -23,7 +23,7 @@ module Expect: {
   let toBeEqualToNoneWith: (~toString: 'a => string, option('a)) => unit;
   let toBeEqualToNoneOfInt: option(int) => unit;
   let toBeEqualToNoneOfString: option(string) => unit;
-  let toBeReferenceEqual: ('a, 'a) => unit;
+  let toBeReferenceEqualTo: ('a, 'a) => unit;
   let toBeEqualToSomeWith:
     (~equals: ('a, 'a) => bool, ~toString: 'a => string, 'a, option('a)) => unit;
   let toBeEqualToSomeOfInt: (int, option(int)) => unit;

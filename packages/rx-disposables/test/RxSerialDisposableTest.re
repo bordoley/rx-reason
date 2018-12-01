@@ -17,14 +17,14 @@ let test =
 
                 serialDisposable
                 |> RxSerialDisposable.getInnerDisposable
-                |> Expect.toBeReferenceEqual(RxDisposable.disposed);
+                |> Expect.toBeReferenceEqualTo(RxDisposable.disposed);
 
                 serialDisposable
                 |> RxSerialDisposable.setInnerDisposable(disposable);
 
                 serialDisposable
                 |> RxSerialDisposable.getInnerDisposable
-                |> Expect.toBeReferenceEqual(disposable);
+                |> Expect.toBeReferenceEqualTo(disposable);
               }),
             ],
           ),
@@ -52,7 +52,7 @@ let test =
               it("returns RxDisposable.disposed", () =>
                 RxSerialDisposable.disposed
                 |> RxSerialDisposable.getInnerDisposable
-                |> Expect.toBeReferenceEqual(RxDisposable.disposed)
+                |> Expect.toBeReferenceEqualTo(RxDisposable.disposed)
               ),
             ],
           ),

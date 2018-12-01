@@ -98,7 +98,7 @@ module Expect = {
     toBeEqualToNoneWith(~toString=string_of_int, expect);
   let toBeEqualToNoneOfString = (expect: option('a)) =>
     toBeEqualToNoneWith(~toString=identity, expect);
-  let toBeReferenceEqual = (expect: 'a) =>
+  let toBeReferenceEqualTo = (expect: 'a) =>
     toBeEqualToWith(~equals=Equality.reference, ~toString=_=>"unknown", expect);
   let toBeEqualToSomeWith = (~equals: ('a, 'a) => bool, ~toString: 'a => string, value: 'a) =>
     toBeEqualToWith(

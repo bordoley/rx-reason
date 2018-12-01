@@ -83,7 +83,7 @@ let test =
               it("is equal to RxDisposable.disposed", () =>
                 RxCompositeDisposable.disposed
                 |> RxCompositeDisposable.asDisposable
-                |> Expect.toBeReferenceEqual(RxDisposable.disposed)
+                |> Expect.toBeReferenceEqualTo(RxDisposable.disposed)
               ),
             ],
           ),
