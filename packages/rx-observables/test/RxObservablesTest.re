@@ -14,7 +14,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                RxObservables.concat([
+                RxObservables.concatList([
                   RxObservables.ofRelativeTimeNotifications(
                     ~scheduler,
                     [
@@ -79,7 +79,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               scheduler =>
-                RxObservables.merge([
+                RxObservables.mergeList([
                   RxObservables.ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
@@ -244,7 +244,7 @@ let test =
                   )
                   |> RxObservables.shareWithReplayBuffer(2);
 
-                RxObservables.merge([
+                RxObservables.mergeList([
                   source,
                   source |> RxObservables.subscribeOn(~delay=5.0, scheduler),
                 ]);

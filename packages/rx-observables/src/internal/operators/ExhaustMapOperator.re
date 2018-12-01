@@ -1,0 +1,1 @@
+let operator = (f, s) => MapOperator.operator(f) @@ ExhaustOperator.operator @@ s;

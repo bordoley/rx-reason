@@ -29,7 +29,7 @@ let exhaust = observable =>
 
 let exhaustMap = (f, observable) =>
   observable
-  |> RxObservable.lift(s => RxOperators.map(f) @@ RxOperators.exhaust @@ s);
+  |> RxObservable.lift(RxOperators.exhaustMap(f));
 
 let find = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.find(predicate));
@@ -183,7 +183,7 @@ let switch_ = observable =>
 
 let switchMap = (f, observable) =>
   observable
-  |> RxObservable.lift(s => RxOperators.map(f) @@ RxOperators.switch_ @@ s);
+  |> RxObservable.lift(RxOperators.switchMap(f));
 
 let synchronize = observable =>
   observable |> RxObservable.lift(RxOperators.synchronize);
