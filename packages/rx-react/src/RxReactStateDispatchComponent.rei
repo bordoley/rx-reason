@@ -26,13 +26,13 @@ let createReactComponent:
 let create:
   (
     ~name: string=?,
-    ~renderDefault: (~key: string=?, ~props: unit, 'a) => React.Element.t=?,
-    ~renderExn: (~key: string=?, ~props: exn, 'a) => React.Element.t=?,
-    ~render: (~key: string=?, ~props: ('b, Dispatcher.t('c)), 'a) =>
+    ~renderDefault: (~key: string=?, ~props: unit, 'children) => React.Element.t=?,
+    ~renderExn: (~key: string=?, ~props: exn, 'children) => React.Element.t=?,
+    ~render: (~key: string=?, ~props: ('state, Dispatcher.t('action)), 'children) =>
              React.Element.t,
     unit,
     ~key: string=?,
-    ~props: Props.t('b, 'c),
-    'a
+    ~props: Props.t('state, 'action),
+    'children
   ) =>
   React.Element.t;
