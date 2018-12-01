@@ -4,6 +4,7 @@ ReUnit.run(
   describe(
     "rx-core",
     [
+      RxObservableTest.test,
       RxSubscriberTest.test,
     ],
   ),

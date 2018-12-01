@@ -3,22 +3,20 @@ open ReUnit.Test;
 
 let test =
   describe(
-    "Subscriber",
+    "RxSubscriber",
     [
       describe(
         "completeWithResult",
         [
           it("returns true if not stopped", () => {
-            let subscriber =
-              RxSubscriber.create();
+            let subscriber = RxSubscriber.create();
 
             subscriber
             |> RxSubscriber.completeWithResult
             |> Expect.toBeEqualToTrue;
           }),
           it("returns false if stopped", () => {
-            let subscriber =
-              RxSubscriber.create();
+            let subscriber = RxSubscriber.create();
 
             subscriber |> RxSubscriber.complete;
 
@@ -29,15 +27,21 @@ let test =
         ],
       ),
       describe(
-        "dispose",
+        "create",
         [
-          it("stops and disposes the subscriber", () => {
-            let subscriber =
-              RxSubscriber.create();
-            subscriber |> RxSubscriber.isDisposed |> Expect.toBeEqualToFalse;
-            subscriber |> RxSubscriber.asDisposable |> RxDisposable.dispose;
-            subscriber |> RxSubscriber.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          describe(
+            "dispose",
+            [
+              it("disposes the subscriber", () => {
+                let subscriber = RxSubscriber.create();
+                subscriber
+                |> RxSubscriber.isDisposed
+                |> Expect.toBeEqualToFalse;
+                subscriber |> RxSubscriber.asDisposable |> RxDisposable.dispose;
+                subscriber |> RxSubscriber.isDisposed |> Expect.toBeEqualToTrue;
+              }),
+            ],
+          ),
         ],
       ),
     ],
