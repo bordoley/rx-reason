@@ -19,18 +19,10 @@ let useRef = {
   (update, observable) => {
     let ref = React.useRef(None);
 
-    let doUpdateMemoized = React.useMemo2(
-      doUpdate,
-      update,
-      ref,
-    );
+    let doUpdateMemoized = React.useMemo2(doUpdate, update, ref);
 
     let memoizedObservable =
-      React.useMemo2(
-        RxObservables.onNext,
-        doUpdateMemoized,
-        observable,
-      );
+      React.useMemo2(RxObservables.onNext, doUpdateMemoized, observable);
 
     useObservable(memoizedObservable);
 
@@ -106,4 +98,19 @@ let createComponent =
       ~render,
     );
   React.Element.create(statefulComponent);
+};
+
+let useImperativeMethods =
+    (
+      mutate,
+      component,
+      ~key: option(string)=?,
+      ~commands,
+      ~props=?,
+      children,
+    )
+    : React.Element.t => {
+  let ref = useRef(mutate, commands);
+  let ref = Some(ref);
+  component(~key?, ~ref?, ~props?, children);
 };

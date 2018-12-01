@@ -24,7 +24,6 @@
     "@rx-reason/rx-observables": "^0.0.0",
     "@rx-reason/rx-promise": "^0.0.0",
     "@rx-reason/rx-react": "^0.0.0",
-    "@rx-reason/rx-react-dom": "^0.0.0",
     "@rx-reason/rx-state": "^0.0.0"
   },
   "devDependencies": {

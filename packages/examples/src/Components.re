@@ -38,28 +38,30 @@ let refTest =
     },
   );
 
+let focusableTextArea =
+  textarea
+  |> RxReact.useImperativeMethods((ele, ()) =>
+       switch (Webapi.Dom.HtmlElement.ofElement(ele)) {
+       | Some(ele) => ele |> Webapi.Dom.HtmlElement.focus
+       | _ => ()
+       }
+     );
+
 let rxRefTest =
   React.createComponentWithDefaultProps(
     ~name="RxRefTest",
     ~defaultProps=(),
     (~props as _: unit, ~children as _: unit) => {
       let event = React.useMemo(RxEvent.create);
-
-      let textAreaRef =
-        RxReactDomHtmlElement.useRef(event |> RxEvent.asObservable);
+      let onClick =
+        React.useMemo1((event, _) => event |> RxEvent.trigger(), event);
 
       div([|
         button(
-          ~props=
-            ReactDomProps.t(
-              ~onClick=
-                _ =>
-                  event |> RxEvent.trigger(RxReactDomHtmlElement.Action.Focus),
-              (),
-            ),
+          ~props=ReactDomProps.t(~onClick, ()),
           [|string("focus clicker")|],
         ),
-        textarea(~ref=textAreaRef, [||]),
+        focusableTextArea(~commands=RxEvent.asObservable(event), [||]),
       |]);
     },
   );
