@@ -172,10 +172,7 @@ let test =
                   |> RxObservable.subscribe;
 
                 subscriber
-                |> RxSubscriber.addTeardown1(
-                     RxDisposable.dispose,
-                     subscription,
-                   )
+                |> RxSubscriber.addDisposable(subscription)
                 |> ignore;
               })
               |> RxObservables.retry

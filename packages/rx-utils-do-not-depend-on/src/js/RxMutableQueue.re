@@ -20,3 +20,5 @@ let peek = queue =>
   } else {
     None;
   };
+
+let length = Js.Array.length;
