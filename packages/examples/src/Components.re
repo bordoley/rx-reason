@@ -43,10 +43,10 @@ let rxRefTest =
     ~name="RxRefTest",
     ~defaultProps=(),
     (~props as _: unit, ~children as _: unit) => {
-      let subject = React.useMemo(RxSubjects.createMulticast);
+      let event = React.useMemo(RxEvent.create);
 
       let textAreaRef =
-        RxReactDomHtmlElement.useRef(subject |> RxSubject.asObservable);
+        RxReactDomHtmlElement.useRef(event |> RxEvent.asObservable);
 
       div([|
         button(
@@ -54,8 +54,7 @@ let rxRefTest =
             ReactDomProps.t(
               ~onClick=
                 _ =>
-                  subject
-                  |> RxSubject.next(RxReactDomHtmlElement.Action.Focus),
+                  event |> RxEvent.trigger(RxReactDomHtmlElement.Action.Focus),
               (),
             ),
           [|string("focus clicker")|],
