@@ -1,6 +1,18 @@
 open ReUnit;
 open ReUnit.Test;
 
+let itIsNotDisposedWhenCreated = f =>
+  it("is not disposed when created", () =>
+    f() |> RxDisposable.isDisposed |> Expect.toBeEqualToFalse
+  );
+
+let itIsDisposedAfterDisposedCall = f =>
+  it("is disposed after being disposed", () => {
+    let disposable = f();
+    disposable |> RxDisposable.dispose;
+    disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
+  });
+
 let test =
   describe(
     "RxDisposable",
@@ -10,17 +22,18 @@ let test =
         [
           it("individual disposables disposed in order", () => {
             let count = ref(0);
-            let disposable0 = RxDisposable.create(() => {
-              count^ |> Expect.toBeEqualToInt(0);
-              incr(count);
-            });
-            let disposable1 = RxDisposable.create(() => {
-              count^ |> Expect.toBeEqualToInt(1);
-              incr(count);
-            });
-            let disposable2 = RxDisposable.create(() => {
-              count^ |> Expect.toBeEqualToInt(2);
-            });
+            let disposable0 =
+              RxDisposable.create(() => {
+                count^ |> Expect.toBeEqualToInt(0);
+                incr(count);
+              });
+            let disposable1 =
+              RxDisposable.create(() => {
+                count^ |> Expect.toBeEqualToInt(1);
+                incr(count);
+              });
+            let disposable2 =
+              RxDisposable.create(() => count^ |> Expect.toBeEqualToInt(2));
 
             RxDisposable.compose([disposable0, disposable1, disposable2])
             |> RxDisposable.dispose;
@@ -30,16 +43,8 @@ let test =
       describe(
         "create",
         [
-          it("is not disposed when created", () =>
-            RxDisposable.create(() => ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
-          ),
-          it("is disposed after being disposed", () => {
-            let disposable = RxDisposable.create(() => ());
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsNotDisposedWhenCreated(() => RxDisposable.create(() => ())),
+          itIsDisposedAfterDisposedCall(() => RxDisposable.create(() => ())),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable = RxDisposable.create(() => called := true);
@@ -51,16 +56,10 @@ let test =
       describe(
         "create1",
         [
-          it("is not disposed when created", () =>
+          itIsNotDisposedWhenCreated(() => RxDisposable.create1(_ => (), ())),
+          itIsDisposedAfterDisposedCall(() =>
             RxDisposable.create1(_ => (), ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
           ),
-          it("is disposed after being disposed", () => {
-            let disposable = RxDisposable.create1(_ => (), ());
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable = RxDisposable.create1(_ => called := true, ());
@@ -72,16 +71,12 @@ let test =
       describe(
         "create2",
         [
-          it("is not disposed when created", () =>
+          itIsNotDisposedWhenCreated(() =>
             RxDisposable.create2((_, _) => (), (), ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
           ),
-          it("is disposed after being disposed", () => {
-            let disposable = RxDisposable.create2((_, _) => (), (), ());
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsDisposedAfterDisposedCall(() =>
+            RxDisposable.create2((_, _) => (), (), ())
+          ),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable =
@@ -94,17 +89,12 @@ let test =
       describe(
         "create3",
         [
-          it("is not disposed when created", () =>
+          itIsNotDisposedWhenCreated(() =>
             RxDisposable.create3((_, _, _) => (), (), (), ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
           ),
-          it("is disposed after being disposed", () => {
-            let disposable =
-              RxDisposable.create3((_, _, _) => (), (), (), ());
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsDisposedAfterDisposedCall(() =>
+            RxDisposable.create3((_, _, _) => (), (), (), ())
+          ),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable =
@@ -117,17 +107,12 @@ let test =
       describe(
         "create4",
         [
-          it("is not disposed when created", () =>
+          itIsNotDisposedWhenCreated(() =>
             RxDisposable.create4((_, _, _, _) => (), (), (), (), ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
           ),
-          it("is disposed after being disposed", () => {
-            let disposable =
-              RxDisposable.create4((_, _, _, _) => (), (), (), (), ());
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsDisposedAfterDisposedCall(() =>
+            RxDisposable.create4((_, _, _, _) => (), (), (), (), ())
+          ),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable =
@@ -146,24 +131,12 @@ let test =
       describe(
         "create5",
         [
-          it("is not disposed when created", () =>
+          itIsNotDisposedWhenCreated(() =>
             RxDisposable.create5((_, _, _, _, _) => (), (), (), (), (), ())
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
           ),
-          it("is disposed after being disposed", () => {
-            let disposable =
-              RxDisposable.create5(
-                (_, _, _, _, _) => (),
-                (),
-                (),
-                (),
-                (),
-                (),
-              );
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsDisposedAfterDisposedCall(() =>
+            RxDisposable.create5((_, _, _, _, _) => (), (), (), (), (), ())
+          ),
           it("dispose calls teardown logic", () => {
             let called = ref(false);
             let disposable =
@@ -206,16 +179,8 @@ let test =
       describe(
         "empty",
         [
-          it("is not disposed when created", () =>
-            RxDisposable.empty()
-            |> RxDisposable.isDisposed
-            |> Expect.toBeEqualToFalse
-          ),
-          it("is disposed after being disposed", () => {
-            let disposable = RxDisposable.empty();
-            disposable |> RxDisposable.dispose;
-            disposable |> RxDisposable.isDisposed |> Expect.toBeEqualToTrue;
-          }),
+          itIsNotDisposedWhenCreated(RxDisposable.empty),
+          itIsDisposedAfterDisposedCall(RxDisposable.empty),
         ],
       ),
       describe(
