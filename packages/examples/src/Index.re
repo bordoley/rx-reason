@@ -1,4 +1,85 @@
-let greeting = Components.greeting;
+module State = {
+  type t = {
+    count: int,
+    greeting: string,
+    show: bool,
+  };
+};
+
+module Action = {
+  type t =
+    | Click
+    | SetGreeting(string)
+    | Toggle;
+};
+
+let greetingStateComponent = {
+  let useMemoCb = React.useMemo2((dispatch, action, ()) => dispatch(action));
+
+  let name = "GreetingStateComponent";
+
+  let render = (~key as _=?, ~props, ()) => {
+    let ({count, greeting, show}: State.t, dispatch) = props;
+
+    let incrementCount = useMemoCb(dispatch, Action.Click);
+    let toggle = useMemoCb(dispatch, Action.Toggle);
+
+    Components.greeting(
+      ~props={count, greeting, show, incrementCount, toggle},
+      (),
+    );
+  };
+
+  RxReactStateDispatchComponent.create(~name, ~render, ());
+};
+
+let actions: RxEvent.t(Action.t) = RxEvent.create();
+
+let stateStore =
+  RxValue.create(
+    {count: 0, greeting: "Initial Greeting", show: false}: State.t,
+  );
+
+let sideEffectsSubscription = {
+  let reducer = (action, state) =>
+    switch (action) {
+    | Action.Click => {...state, State.count: state.State.count + 1}
+    | Action.SetGreeting(greeting) => {...state, State.greeting}
+    | Action.Toggle => {...state, State.show: ! state.State.show}
+    };
+
+  let onNext = (stateStore, action) =>
+    stateStore |> RxValue.update1(reducer, action);
+
+  let onComplete = (stateStore, _) => stateStore |> RxValue.dispose;
+
+  actions
+  |> RxEvent.asObservable
+  |> RxObservable.observe1(~onNext, ~onComplete, stateStore)
+  |> RxObservable.subscribe;
+};
+
+ReactDom.renderToElementWithId(
+  greetingStateComponent(
+    ~props={
+      dispatch: action => actions |> RxEvent.trigger(action),
+      stateStream: stateStore |> RxValue.asObservable,
+    },
+    (),
+  ),
+  "index2",
+);
+
+let state = ref(true);
+Js.Global.setInterval(
+  () => {
+    Js.log("settting props");
+    state := ! state^;
+    actions |> RxEvent.trigger(Action.SetGreeting(state^ ? "true" : "false"));
+  },
+  5000,
+)
+|> ignore;
 
 let windowPopStateSubscription =
   Webapi.Dom.window
@@ -8,7 +89,9 @@ let windowPopStateSubscription =
   |> RxObservable.subscribe;
 
 Webapi.Dom.(
-  History.(pushState(state(history), "My title", "?next=rock", history))
+  History.(
+    pushState(History.state(history), "My title", "?next=rock", history)
+  )
 );
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
@@ -26,81 +109,3 @@ let promise =
        Js.log(a);
        Js.Promise.resolve();
      });
-
-type state = {
-  count: int,
-  greeting: string,
-  show: bool,
-};
-
-module Actions = {
-  type t =
-    | Click
-    | SetGreeting(string)
-    | Toggle;
-};
-
-let actions: RxEvent.t(Actions.t) = RxEvent.create();
-
-let stateStore =
-  RxValue.create({count: 0, greeting: "Initial Greeting", show: false});
-
-let mapStateToRenderProps =
-    (~state: RxObservable.t('state), ~dispatch)
-    : RxObservable.t(Components.greetingProps) => {
-  let incrementCount = () => dispatch(Actions.Click);
-  let toggle = () => dispatch(Actions.Toggle);
-
-  state
-  |> RxObservables.map(state =>
-       (
-         {
-           count: state.count,
-           greeting: state.greeting,
-           show: state.show,
-           incrementCount,
-           toggle,
-         }: Components.greetingProps
-       )
-     );
-};
-
-let setupSideEffects = (~actions, ~stateStore) =>
-  actions
-  |> RxObservables.onNext(action =>
-       switch (action) {
-       | Actions.Click =>
-         stateStore
-         |> RxValue.update(state => {...state, count: state.count + 1})
-       | Actions.SetGreeting(greeting) =>
-         stateStore |> RxValue.update(state => {...state, greeting})
-       | Actions.Toggle =>
-         stateStore |> RxValue.update(state => {...state, show: ! state.show})
-       }
-     )
-  |> RxObservables.ignoreElements;
-
-let greetingStateComponent =
-  RxReactActionStateComponent.create(
-    ~name="GreetingStateComponent",
-    ~mapStateToRenderProps,
-    ~setupSideEffects,
-    ~render=Components.greeting,
-    (),
-  );
-let state = ref(true);
-Js.Global.setInterval(
-  () => {
-    Js.log("settting props");
-    state := ! state^;
-    actions
-    |> RxEvent.trigger(Actions.SetGreeting(state^ ? "true" : "false"));
-  },
-  5000,
-)
-|> ignore;
-
-ReactDom.renderToElementWithId(
-  greetingStateComponent(~props={actions, stateStore}, ()),
-  "index2",
-);
