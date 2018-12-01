@@ -1,6 +1,8 @@
 type t('a) = array('a);
 
-let add = (value, list) => list |> Js.Array.push(value) |> ignore;
+let add = (value, list) => {
+  list |> Js.Array.push(value) |> ignore;
+}
 
 let clear = queue =>
   queue
@@ -20,6 +22,6 @@ let forEachReversed = (f, list) => {
 let remove = (value, list) => {
   let pos = list |> Js.Array.indexOf(value);
   if (pos >= 0) {
-    list |> Js.Array.removeFromInPlace(~pos) |> ignore;
+    list |> Js.Array.removeCountInPlace(~pos, ~count=1) |> ignore;
   };
 };

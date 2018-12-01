@@ -27,6 +27,14 @@ let asDisposable =
   | Disposed => RxDisposable.disposed
   | SerialDisposable(_, disposable) => disposable;
 
+let dispose = disposable => disposable |> asDisposable |> RxDisposable.dispose;
+
+let isDisposed = disposable =>
+  disposable |> asDisposable |> RxDisposable.isDisposed;
+
+let raiseIfDisposed = disposable =>
+  disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
+
 let create = {
   let teardown = innerDisposable =>
   RxAtomic.exchange(innerDisposable, RxDisposable.disposed)
@@ -39,15 +47,7 @@ let create = {
   };
 };
 
-let dispose = disposable => disposable |> asDisposable |> RxDisposable.dispose;
-
 let disposed = Disposed;
-
-let isDisposed = disposable =>
-  disposable |> asDisposable |> RxDisposable.isDisposed;
-
-let raiseIfDisposed = disposable =>
-  disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
 
 let getInnerDisposable =
   fun

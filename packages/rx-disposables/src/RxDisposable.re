@@ -1,11 +1,3 @@
-let rec iterList = (f, list) =>
-  switch (list) {
-  | [] => ()
-  | [hd, ...tail] =>
-    f(hd);
-    iterList(f, tail);
-  };
-
 type t =
   | Disposable(RxAtomic.t(bool), unit => unit)
   | Disposable1(RxAtomic.t(bool), 'ctx0 => unit, 'ctx0): t
@@ -68,6 +60,10 @@ let create4 = (teardown, d0, d1, d2, d3) : t =>
 let create5 = (teardown, d0, d1, d2, d3, d4) : t =>
   Disposable5(RxAtomic.make(false), teardown, d0, d1, d2, d3, d4);
 
+let empty = () => Empty(RxAtomic.make(false));
+
+let disposed: t = Disposed;
+
 let dispose = {
   let shouldDispose =
     fun
@@ -101,13 +97,16 @@ let dispose = {
 };
 
 let compose = {
-  let dispose = iterList(dispose);
-  disposables => create1(dispose, disposables);
+  let rec disposeAll = list =>
+    switch (list) {
+    | [] => ()
+    | [hd, ...tail] =>
+      dispose(hd);
+      disposeAll(tail);
+    };
+
+  disposables => create1(disposeAll, disposables);
 };
-
-let empty = () => Empty(RxAtomic.make(false));
-
-let disposed: t = Disposed;
 
 let isDisposed =
   fun

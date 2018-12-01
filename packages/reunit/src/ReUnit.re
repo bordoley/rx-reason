@@ -28,6 +28,7 @@ module Equality = {
     | (None, None) => true
     | _ => false
     };
+  let reference = (this: 'a, that: 'a) => this === that;
 };
 
 module ToString = {
@@ -97,6 +98,8 @@ module Expect = {
     toBeEqualToNoneWith(~toString=string_of_int, expect);
   let toBeEqualToNoneOfString = (expect: option('a)) =>
     toBeEqualToNoneWith(~toString=identity, expect);
+  let toBeReferenceEqual = (expect: 'a) =>
+    toBeEqualToWith(~equals=Equality.reference, ~toString=_=>"unknown", expect);
   let toBeEqualToSomeWith = (~equals: ('a, 'a) => bool, ~toString: 'a => string, value: 'a) =>
     toBeEqualToWith(
       ~equals=Equality.optionWith(~equals),

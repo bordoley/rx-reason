@@ -31,13 +31,21 @@ let asDisposable =
   | Disposed => RxDisposable.disposed
   | CompositeDisposable(_, _, disposable) => disposable;
 
+let dispose = disposable => disposable |> asDisposable |> RxDisposable.dispose;
+
+let isDisposed = disposable =>
+  disposable |> asDisposable |> RxDisposable.isDisposed;
+
+let raiseIfDisposed = disposable =>
+  disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
+
 let disposed = Disposed;
 
 let create = {
-  let teardown = (lock, teardown) => {
+  let teardown = (lock, children) => {
     lock |> RxLock.acquire;
-    teardown |> RxMutableList.forEachReversed(RxDisposable.dispose);
-    teardown |> RxMutableList.clear;
+    children |> RxMutableList.forEachReversed(RxDisposable.dispose);
+    children |> RxMutableList.clear;
     lock |> RxLock.release;
   };
 
@@ -49,17 +57,9 @@ let create = {
   };
 };
 
-let dispose = disposable => disposable |> asDisposable |> RxDisposable.dispose;
-
-let isDisposed = disposable =>
-  disposable |> asDisposable |> RxDisposable.isDisposed;
-
-let raiseIfDisposed = disposable =>
-  disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
-
 let addDisposable = (disposable, self) => {
   switch (self) {
-  | Disposed => ()
+  | Disposed => disposable |> RxDisposable.dispose
   | CompositeDisposable(lock, children, _) =>
     lock |> RxLock.acquire;
 
