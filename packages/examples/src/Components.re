@@ -44,20 +44,23 @@ let rxRefTest =
     ~defaultProps=(),
     (~props as _: unit, ~children as _: unit) => {
       let subject = React.useMemo(RxSubjects.createMulticast);
-      let reactRef = React.useRef(None);
 
-      RxReactDomHtmlElement.useFocus(
-        reactRef,
-        subject |> RxSubject.asObservable,
-      );
+      let textAreaRef =
+        RxReactDomHtmlElement.useRef(subject |> RxSubject.asObservable);
 
       div([|
         button(
           ~props=
-            ReactDomProps.t(~onClick=_ => subject |> RxSubject.next(), ()),
+            ReactDomProps.t(
+              ~onClick=
+                _ =>
+                  subject
+                  |> RxSubject.next(RxReactDomHtmlElement.Action.Focus),
+              (),
+            ),
           [|string("focus clicker")|],
         ),
-        textarea(~ref=reactRef, [||]),
+        textarea(~ref=textAreaRef, [||]),
       |]);
     },
   );

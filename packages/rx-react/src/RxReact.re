@@ -4,27 +4,38 @@ let useObservable = {
     () => subscription |> RxDisposable.dispose;
   };
 
-  observable =>
-    React.useEffectWithCleanup1(subscribe, observable);
+  observable => React.useEffectWithCleanup1(subscribe, observable);
 };
 
-let onNextWithRef = {
-  let onNextCallback = (onNext, reactRef, next) => {
-    let ele = reactRef |> React.Ref.currentGet;
-    switch (ele) {
-    | Some(ele) => ele |> onNext(next)
+let useRef = {
+  let doUpdate = (update, ref, action) => {
+    let current = ref |> React.Ref.currentGet;
+    switch (current) {
+    | Some(ele) => update(ele, action)
     | None => ()
     };
   };
 
-  (onNext, reactRef, observable) =>
-    observable |> RxObservables.onNext2(onNextCallback, onNext, reactRef);
-};
+  (update, observable) => {
+    let ref = React.useRef(None);
 
-let useOnNextWithRef = (onNext, reactRef, observable) => {
-  let observable =
-    React.useMemo3(onNextWithRef, onNext, reactRef, observable);
-  useObservable(observable);
+    let doUpdateMemoized = React.useMemo2(
+      doUpdate,
+      update,
+      ref,
+    );
+
+    let memoizedObservable =
+      React.useMemo2(
+        RxObservables.onNext,
+        doUpdateMemoized,
+        observable,
+      );
+
+    useObservable(memoizedObservable);
+
+    ref;
+  };
 };
 
 type state('state) =
@@ -66,7 +77,8 @@ let createReactComponent =
       ~name: option(string)=?,
       ~propsToState:
          RxObservable.observable('props) => RxObservable.t('state),
-      ~renderDefault: (~key: string=?, ~props: unit, 'children) => React.Element.t=React.null,
+      ~renderDefault:
+         (~key: string=?, ~props: unit, 'children) => React.Element.t=React.null,
       ~renderExn: (~key: string=?, ~props: exn, 'children) => React.Element.t=React.raise,
       ~render: (~key: string=?, ~props: 'state, 'children) => React.Element.t,
     ) =>

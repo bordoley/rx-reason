@@ -1,5 +1,10 @@
-let useBlur: (React.Ref.t(Dom.element), RxObservable.t(unit)) => unit;
+module Action: {
+  type t =
+    | Blur
+    | Click
+    | Focus;
+};
 
-let useClick:(React.Ref.t(Dom.element), RxObservable.t(unit)) => unit;
+let update: (Dom.element, Action.t) => unit;
 
-let useFocus:(React.Ref.t(Dom.element), RxObservable.t(unit)) => unit;
+let useRef: RxObservable.t(Action.t) => React.Ref.t(Dom.element);

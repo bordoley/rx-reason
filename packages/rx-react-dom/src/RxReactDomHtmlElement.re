@@ -1,28 +1,18 @@
-let optionDo = f =>
-  fun
-  | Some(opt) => f(opt)
-  | _ => ();
-
-let useBlur = {
-  let blur = ((), ele) =>
-    ele
-    |> Webapi.Dom.HtmlElement.ofElement
-    |> optionDo(Webapi.Dom.HtmlElement.blur);
-  RxReact.useOnNextWithRef(blur);
+module Action = {
+  type t =
+    | Blur
+    | Click
+    | Focus;
 };
 
-let useClick = {
-  let click = ((), ele) =>
-    ele
-    |> Webapi.Dom.HtmlElement.ofElement
-    |> optionDo(Webapi.Dom.HtmlElement.click);
-  RxReact.useOnNextWithRef(click);
+let update = (ele, action) => {
+  let ele = ele |> Webapi.Dom.HtmlElement.ofElement;
+  switch (ele, action) {
+  | (Some(ele), Action.Blur) => ele |> Webapi.Dom.HtmlElement.blur
+  | (Some(ele), Action.Click) => ele |> Webapi.Dom.HtmlElement.click
+  | (Some(ele), Action.Focus) => ele |> Webapi.Dom.HtmlElement.focus
+  | _ => ()
+  };
 };
 
-let useFocus = {
-  let focus = ((), ele) =>
-    ele
-    |> Webapi.Dom.HtmlElement.ofElement
-    |> optionDo(Webapi.Dom.HtmlElement.focus);
-  RxReact.useOnNextWithRef(focus);
-};
+let useRef = observable => RxReact.useRef(update, observable);

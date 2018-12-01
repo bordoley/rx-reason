@@ -1,6 +1,6 @@
 let useObservable: RxObservable.t('a) => unit;
-let useOnNextWithRef:
-  (('a, 'b) => unit, React.Ref.t('b), RxObservable.t('a)) => unit;
+
+let useRef: (('a, 'action) => unit, RxObservable.t('action)) => React.Ref.t('a)
 
 let createReactComponent:
   (
