@@ -8,6 +8,8 @@ include RxObservable.S1 with type t('a) := t('a);
 
 let create: 'a => t('a);
 
+let disposed: t('a);
+
 let update: ('a => 'a, t('a)) => unit;
 let update1: (('ctx0, 'a) => 'a, 'ctx0, t('a)) => unit;
 let update2: (('ctx0, 'ctx1, 'a) => 'a, 'ctx0, 'ctx1, t('a)) => unit;

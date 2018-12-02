@@ -5,6 +5,7 @@ ReUnit.run(
     "rx-imperative",
     [
       RxSubjectTest.test,
+      RxValueTest.test,
     ],
   ),
 );

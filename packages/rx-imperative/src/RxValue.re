@@ -1,13 +1,24 @@
 type subscribers('a) = ref(RxCopyOnWriteArray.t(RxSubscriber.t('a)));
 
-type t('a) = {
-  disposable: RxDisposable.t,
-  observable: RxObservable.t('a),
-  subscribers: subscribers('a),
-  value: ref('a),
-};
+type t('a) =
+  | Disposed
+  | Value(ref('a), subscribers('a), RxDisposable.t, RxObservable.t('a));
 
-let asObservable = ({observable}) => observable;
+let asObservable =
+  fun
+  | Disposed => RxObservable.never
+  | Value(_, _, _, observable) => observable;
+
+let asDisposable =
+  fun
+  | Disposed => RxDisposable.disposed
+  | Value(_, _, disposable, _) => disposable;
+
+let dispose = rxValue => rxValue |> asDisposable |> RxDisposable.dispose;
+
+let isDisposed = rxValue => rxValue |> asDisposable |> RxDisposable.isDisposed;
+
+let disposed = Disposed;
 
 let subscriberTeardown = (subscribers, subscriber) => {
   let currentSubscribers = subscribers^;
@@ -16,15 +27,15 @@ let subscriberTeardown = (subscribers, subscriber) => {
     |> RxCopyOnWriteArray.findAndRemoveReference(subscriber);
 };
 
-let observableSource = (value, subscribers, subscriber) => {
-  subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
-  let disposable =
-    RxDisposable.create2(subscriberTeardown, subscribers, subscriber);
+let observableSource = (value, subscribers, disposable, subscriber) =>
+  if (! RxDisposable.isDisposed(disposable)) {
+    subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
+    let disposable =
+      RxDisposable.create2(subscriberTeardown, subscribers, subscriber);
 
-  subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
-
-  subscriber |> RxSubscriber.next(value^);
-};
+    subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
+    subscriber |> RxSubscriber.next(value^);
+  };
 
 let onDispose = subscribers => {
   let currentSubscribers = subscribers^;
@@ -35,49 +46,66 @@ let onDispose = subscribers => {
 let create = initialValue => {
   let value = ref(initialValue);
   let subscribers = ref(RxCopyOnWriteArray.empty());
-  let observable = RxObservable.create2(observableSource, value, subscribers);
   let disposable = RxDisposable.create1(onDispose, subscribers);
+  let observable =
+    RxObservable.create3(observableSource, value, subscribers, disposable);
 
-  {disposable, observable, subscribers, value};
+  Value(value, subscribers, disposable, observable);
 };
 
-let asDisposable = ({disposable}) => disposable;
+let notify = nextValue =>
+  fun
+  | Disposed => ()
+  | Value(value, subscribers, _, _) => {
+      value := nextValue;
+      subscribers^
+      |> RxCopyOnWriteArray.forEach(RxSubscriber.next(nextValue));
+    };
 
-let dispose = rxValue => rxValue |> asDisposable |> RxDisposable.dispose;
+let update = (f, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(value^);
+    notify(nextValue, self);
+  };
 
-let isDisposed = rxValue => rxValue |> asDisposable |> RxDisposable.isDisposed;
+let update1 = (f, ctx0, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(ctx0, value^);
+    notify(nextValue, self);
+  };
 
-let notify = (value, nextValue, subscribers) => {
-  value := nextValue;
-  RxCopyOnWriteArray.forEach(RxSubscriber.next(nextValue), subscribers);
-};
+let update2 = (f, ctx0, ctx1, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(ctx0, ctx1, value^);
+    notify(nextValue, self);
+  };
 
-let update = (f, {subscribers, value}) => {
-  let nextValue = f(value^);
-  notify(value, nextValue, subscribers^);
-};
+let update3 = (f, ctx0, ctx1, ctx2, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(ctx0, ctx1, ctx2, value^);
+    notify(nextValue, self);
+  };
 
-let update1 = (f, ctx0, {subscribers, value}) => {
-  let nextValue = f(ctx0, value^);
-  notify(value, nextValue, subscribers^);
-};
+let update4 = (f, ctx0, ctx1, ctx2, ctx3, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(ctx0, ctx1, ctx2, ctx3, value^);
+    notify(nextValue, self);
+  };
 
-let update2 = (f, ctx0, ctx1, {subscribers, value}) => {
-  let nextValue = f(ctx0, ctx1, value^);
-  notify(value, nextValue, subscribers^);
-};
-
-let update3 = (f, ctx0, ctx1, ctx2, {subscribers, value}) => {
-  let nextValue = f(ctx0, ctx1, ctx2, value^);
-  notify(value, nextValue, subscribers^);
-};
-
-let update4 = (f, ctx0, ctx1, ctx2, ctx3, {subscribers, value}) => {
-  let nextValue = f(ctx0, ctx1, ctx2, ctx3, value^);
-  notify(value, nextValue, subscribers^);
-};
-
-let update5 = (f, ctx0, ctx1, ctx2, ctx3, ctx4, {subscribers, value}) => {
-  let nextValue = f(ctx0, ctx1, ctx2, ctx3, ctx4, value^);
-  notify(value, nextValue, subscribers^);
-};
+let update5 = (f, ctx0, ctx1, ctx2, ctx3, ctx4, self) =>
+  switch (self) {
+  | Disposed => ()
+  | Value(value, _, _, _) =>
+    let nextValue = f(ctx0, ctx1, ctx2, ctx3, ctx4, value^);
+    notify(nextValue, self);
+  };

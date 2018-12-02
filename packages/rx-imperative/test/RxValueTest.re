@@ -8,6 +8,45 @@ let test =
       describe(
         "asObservable",
         [
+          it("disposed instance emits no values", () => {
+            let value = RxValue.disposed;
+            let observedValue = ref(0);
+
+            value |> RxValue.dispose;
+
+            value
+            |> RxValue.asObservable
+            |> RxObservable.lift(
+                 RxSubscriber.decorate(
+                   ~onNext=(_, next) => observedValue := next,
+                   ~onComplete=(_, _) => (),
+                 ),
+               )
+            |> RxObservable.subscribe
+            |> ignore;
+
+            value |> RxValue.update(old => old + 1);
+            observedValue^ |> Expect.toBeEqualToInt(0);
+          }),
+          it("emits no values after being disposed", () => {
+            let value = RxValue.create(1);
+            let observedValue = ref(0);
+
+            value |> RxValue.dispose;
+
+            value
+            |> RxValue.asObservable
+            |> RxObservable.lift(
+                 RxSubscriber.decorate(
+                   ~onNext=(_, next) => observedValue := next,
+                   ~onComplete=(_, _) => (),
+                 ),
+               )
+            |> RxObservable.subscribe
+            |> ignore;
+
+            observedValue^ |> Expect.toBeEqualToInt(0);
+          }),
           it("publishes the current value on subscribe", () => {
             let value = RxValue.create(1);
             let observedValue = ref(0);
@@ -73,17 +112,5 @@ let test =
           }),
         ],
       ),
-      describe(
-        "update",
-        [
-          it("raises an exception if disposed", () => {
-            let rxValue = RxValue.create(1);
-            rxValue |> RxValue.dispose;
-            Expect.shouldRaise(() => {
-              rxValue |> RxValue.update(x => x + 1);
-            })
-          })
-        ]
-      )
     ],
   );
