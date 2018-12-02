@@ -245,12 +245,5 @@ let synchronize = observable =>
 let timeout = (~scheduler, due, observable) =>
   observable |> RxObservable.lift(RxOperators.timeout(~scheduler, due));
 
-let toList = {
-  let toListAccumulator = (acc, next) => [next, ...acc];
-
-  observable =>
-    observable |> scan(toListAccumulator, []) |> last |> map(List.rev);
-};
-
 let withLatestFrom = (~selector, other, source) =>
   source |> RxObservable.lift(RxOperators.withLatestFrom(~selector, other));

@@ -457,17 +457,7 @@ let synchronize: RxObservable.t('a) => RxObservable.t('a);
 let timeout:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
   RxObservable.t('a);
-
-/**
- * Returns an Observable which collects all observed items in a list
- * and emits a single list of observed values in the observed
- * order when completed.
- *
- * Note: This Operator is intended to support testing. Using this
- * operator on unbounded Observable sources may lead to memory exhaustion.
- */
-let toList: RxObservable.t('a) => RxObservable.t(list('a));
-
+  
 /**
  * Returns an Observable that combines each observed item from the source with
  * the last observed item from the other Observable using the selector function.

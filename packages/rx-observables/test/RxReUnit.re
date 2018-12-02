@@ -2,6 +2,13 @@ open ReUnit;
 open ReUnit.Test;
 
 
+let observableToList = {
+  let toListAccumulator = (acc, next) => [next, ...acc];
+
+  observable =>
+    observable |> RxObservables.scan(toListAccumulator, []) |> RxObservables.last |> RxObservables.map(List.rev);
+};
+
 let rxNotificationEquals =
     (
       ~exnEquals=RxFunctions.referenceEquality,
@@ -28,7 +35,7 @@ let expectObservableToProduce =
     (~nextEquals=(===), ~nextToString, expected, observable) =>
   observable
   |> RxObservables.materialize
-  |> RxObservables.toList
+  |> observableToList
   |> RxObservables.onNext(
        Expect.toBeEqualToListWith(
          ~equals=rxNotificationEquals(~nextEquals),
