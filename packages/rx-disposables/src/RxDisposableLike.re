@@ -9,9 +9,6 @@ module type S = {
 
   /** Returns true if this resource has been disposed. */
   let isDisposed: t => bool;
-
-  /** Raises a DisposedException if the the Disposable is disposed. */
-  let raiseIfDisposed: t => unit;
 };
 
 /**
@@ -25,7 +22,4 @@ module type S1 = {
 
   /** Returns true if this resource has been disposed. */
   let isDisposed: t('a) => bool;
-
-  /** Raises a DisposedException if the the Disposable is disposed. */
-  let raiseIfDisposed: t('a) => unit;
 };

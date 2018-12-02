@@ -189,18 +189,5 @@ let test =
           itIsDisposedAfterDisposedCall(RxDisposable.empty),
         ],
       ),
-      describe(
-        "raiseIfDisposed",
-        [
-          it("does nothing if not disposed", () =>
-            RxDisposable.empty() |> RxDisposable.raiseIfDisposed
-          ),
-          it("raises RxDisposedException when disposed", () =>
-            Expect.shouldRaise(() =>
-              RxDisposable.disposed |> RxDisposable.raiseIfDisposed
-            )
-          ),
-        ],
-      ),
     ],
   );

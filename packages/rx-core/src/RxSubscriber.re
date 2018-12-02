@@ -93,9 +93,6 @@ let dispose = subscriber =>
 let isDisposed = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.isDisposed;
 
-let raiseIfDisposed = subscriber =>
-  subscriber |> asCompositeDisposable |> RxCompositeDisposable.raiseIfDisposed;
-
 let create = () => {
   let disposable = RxCompositeDisposable.create();
   AutoDisposing(disposable);

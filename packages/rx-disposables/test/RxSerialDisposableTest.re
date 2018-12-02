@@ -67,17 +67,6 @@ let test =
             ],
           ),
           describe(
-            "raisedIfDisposed",
-            [
-              it("is true", () =>
-                Expect.shouldRaise(() =>
-                  RxSerialDisposable.disposed
-                  |> RxSerialDisposable.raiseIfDisposed
-                )
-              ),
-            ],
-          ),
-          describe(
             "setInnerDisposable",
             [
               it("disposes the provided disposable", () => {

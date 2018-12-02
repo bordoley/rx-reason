@@ -30,12 +30,12 @@ let test =
                       },
                   lastDecorator,
                 );
-              ();
+
               throwingDecorator
-              |> RxSubscriber.complete(~exn=RxDisposedException.Exn);
+              |> RxSubscriber.complete(~exn=Division_by_zero);
 
               observedException^
-              |> Expect.toBeEqualToSomeReference(RxDisposedException.Exn);
+              |> Expect.toBeEqualToSomeReference(Division_by_zero);
             },
           ),
         ],
@@ -130,19 +130,6 @@ let test =
             decorator |> RxSubscriber.next();
             completed^ |> Expect.toBeEqualToTrue;
           }),
-        ],
-      ),
-      describe(
-        "raiseIfDisposed",
-        [
-          it("does nothing if not disposed", () =>
-            RxSubscriber.create() |> RxSubscriber.raiseIfDisposed
-          ),
-          it("raises RxDisposedException when disposed", () =>
-            Expect.shouldRaise(() =>
-              RxSubscriber.disposed |> RxSubscriber.raiseIfDisposed
-            )
-          ),
         ],
       ),
     ],

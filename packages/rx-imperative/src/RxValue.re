@@ -47,9 +47,6 @@ let dispose = rxValue => rxValue |> asDisposable |> RxDisposable.dispose;
 
 let isDisposed = rxValue => rxValue |> asDisposable |> RxDisposable.isDisposed;
 
-let raiseIfDisposed = rxValue =>
-  rxValue |> asDisposable |> RxDisposable.raiseIfDisposed;
-
 let notify = (value, nextValue, subscribers) => {
   value := nextValue;
   RxCopyOnWriteArray.forEach(RxSubscriber.next(nextValue), subscribers);

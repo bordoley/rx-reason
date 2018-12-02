@@ -35,10 +35,7 @@ let dispose = disposable => disposable |> asDisposable |> RxDisposable.dispose;
 
 let isDisposed = disposable =>
   disposable |> asDisposable |> RxDisposable.isDisposed;
-
-let raiseIfDisposed = disposable =>
-  disposable |> asDisposable |> RxDisposable.raiseIfDisposed;
-
+  
 let disposed = Disposed;
 
 let create = {

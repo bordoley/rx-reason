@@ -5,5 +5,4 @@ let asObservable = RxSubject.asObservable;
 let create = RxSubject.createMulticast;
 let dispose = RxSubject.dispose;
 let isDisposed = RxSubject.isDisposed;
-let raiseIfDisposed = RxSubject.raiseIfDisposed;
 let trigger = RxSubject.next;

@@ -123,8 +123,3 @@ let isDisposed =
   | Disposable5(isDisposed, _, _, _, _, _, _)
   | Empty(isDisposed) => RxAtomic.get(isDisposed)
   | Disposed => true;
-
-let raiseIfDisposed = (disposable: t) =>
-  if (isDisposed(disposable)) {
-    RxDisposedException.raise();
-  };

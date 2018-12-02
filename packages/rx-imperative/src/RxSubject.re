@@ -45,9 +45,6 @@ let dispose = subject => subject |> asDisposable |> RxDisposable.dispose;
 
 let isDisposed = subject => subject |> asDisposable |> RxDisposable.isDisposed;
 
-let raiseIfDisposed = subject =>
-  subject |> asDisposable |> RxDisposable.raiseIfDisposed;
-
 let shouldComplete =
   fun
   | Disposed => false
@@ -130,7 +127,6 @@ let subscribeOrDisposeSubscriber = (subscribers, isStopped, subscriber) =>
 
 let observableSource = (self, subscriber) => {
   let self = self^;
-  self |> raiseIfDisposed;
 
   switch (self) {
   | Disposed => ()

@@ -98,17 +98,6 @@ let test =
             ],
           ),
           describe(
-            "raisedIfDisposed",
-            [
-              it("is true", () =>
-                Expect.shouldRaise(() =>
-                  RxCompositeDisposable.disposed
-                  |> RxCompositeDisposable.raiseIfDisposed
-                )
-              ),
-            ],
-          ),
-          describe(
             "removeDisposable",
             [
               it("does nothing", () => {
