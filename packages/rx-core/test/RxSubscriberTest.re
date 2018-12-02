@@ -31,9 +31,11 @@ let test =
                   lastDecorator,
                 );
               ();
-              throwingDecorator |> RxSubscriber.complete(~exn=RxDisposedException.Exn);
+              throwingDecorator
+              |> RxSubscriber.complete(~exn=RxDisposedException.Exn);
 
-              observedException^ |> Expect.toBeEqualToSomeReference(RxDisposedException.Exn);
+              observedException^
+              |> Expect.toBeEqualToSomeReference(RxDisposedException.Exn);
             },
           ),
         ],
@@ -84,32 +86,33 @@ let test =
             let onNextCalledCount = ref(0);
 
             let subscriber = RxSubscriber.create();
-            let decorator = RxSubscriber.decorate(
-              ~onNext=(_, _) => incr(onNextCalledCount),
-              ~onComplete=(_,_) => (),
-              subscriber,
-            );
+            let decorator =
+              RxSubscriber.decorate(
+                ~onNext=(_, _) => incr(onNextCalledCount),
+                ~onComplete=(_, _) => (),
+                subscriber,
+              );
 
-            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.next();
             decorator |> RxSubscriber.complete;
-            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.next();
 
             onNextCalledCount^ |> Expect.toBeEqualToInt(1);
           }),
-
           it("does nothing if the subscriber has been disposed", () => {
             let onNextCalledCount = ref(0);
 
             let subscriber = RxSubscriber.create();
-            let decorator = RxSubscriber.decorate(
-              ~onNext=(_, _) => incr(onNextCalledCount),
-              ~onComplete=(_,_) => (),
-              subscriber,
-            );
+            let decorator =
+              RxSubscriber.decorate(
+                ~onNext=(_, _) => incr(onNextCalledCount),
+                ~onComplete=(_, _) => (),
+                subscriber,
+              );
 
-            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.next();
             decorator |> RxSubscriber.dispose;
-            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.next();
 
             onNextCalledCount^ |> Expect.toBeEqualToInt(1);
           }),
@@ -117,16 +120,30 @@ let test =
             let completed = ref(false);
 
             let subscriber = RxSubscriber.create();
-            let decorator = RxSubscriber.decorate(
-              ~onNext=(_, _) => raise(Division_by_zero),
-              ~onComplete=(_,_) => {completed := true},
-              subscriber,
-            );
+            let decorator =
+              RxSubscriber.decorate(
+                ~onNext=(_, _) => raise(Division_by_zero),
+                ~onComplete=(_, _) => completed := true,
+                subscriber,
+              );
 
-            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.next();
             completed^ |> Expect.toBeEqualToTrue;
           }),
-        ]
-      )
+        ],
+      ),
+      describe(
+        "raiseIfDisposed",
+        [
+          it("does nothing if not disposed", () =>
+            RxSubscriber.create() |> RxSubscriber.raiseIfDisposed
+          ),
+          it("raises RxDisposedException when disposed", () =>
+            Expect.shouldRaise(() =>
+              RxSubscriber.disposed |> RxSubscriber.raiseIfDisposed
+            )
+          ),
+        ],
+      ),
     ],
   );
