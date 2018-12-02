@@ -10,33 +10,33 @@ type source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) =
 
 type t('a) =
   | Source(source('b), RxOperator.t('b, 'a)): t('a)
-  | Source1(source1('ctx0, 'b), 'ctx0, RxOperator.t('b, 'a)): t('a)
-  | Source2(source2('ctx0, 'ctx1, 'b), 'ctx0, 'ctx1, RxOperator.t('b, 'a)): t(
+  | Source1(source1('ctx0, 'b), RxOperator.t('b, 'a), 'ctx0): t('a)
+  | Source2(source2('ctx0, 'ctx1, 'b), RxOperator.t('b, 'a), 'ctx0, 'ctx1): t(
                                                                     'a,
                                                                     )
   | Source3(
              source3('ctx0, 'ctx1, 'ctx2, 'b),
+             RxOperator.t('b, 'a),
              'ctx0,
              'ctx1,
              'ctx2,
-             RxOperator.t('b, 'a),
            ): t('a)
   | Source4(
              source4('ctx0, 'ctx1, 'ctx2, 'ctx3, 'b),
+             RxOperator.t('b, 'a),
              'ctx0,
              'ctx1,
              'ctx2,
              'ctx3,
-             RxOperator.t('b, 'a),
            ): t('a)
   | Source5(
              source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'b),
+             RxOperator.t('b, 'a),
              'ctx0,
              'ctx1,
              'ctx2,
              'ctx3,
              'ctx4,
-             RxOperator.t('b, 'a),
            ): t('a);
 
 type observable('a) = t('a);
@@ -50,31 +50,31 @@ module type S1 = {
 
 let create = onSubscribe => Source(onSubscribe, RxFunctions.identity);
 let create1 = (onSubscribe, ctx0) =>
-  Source1(onSubscribe, ctx0, RxFunctions.identity);
+  Source1(onSubscribe, RxFunctions.identity, ctx0);
 let create2 = (onSubscribe, ctx0, ctx1) =>
-  Source2(onSubscribe, ctx0, ctx1, RxFunctions.identity);
+  Source2(onSubscribe, RxFunctions.identity, ctx0, ctx1);
 let create3 = (onSubscribe, ctx0, ctx1, ctx2) =>
-  Source3(onSubscribe, ctx0, ctx1, ctx2, RxFunctions.identity);
+  Source3(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2);
 let create4 = (onSubscribe, ctx0, ctx1, ctx2, ctx3) =>
-  Source4(onSubscribe, ctx0, ctx1, ctx2, ctx3, RxFunctions.identity);
+  Source4(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2, ctx3);
 let create5 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4) =>
-  Source5(onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4, RxFunctions.identity);
+  Source5(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2, ctx3, ctx4);
 
 let liftOperator = (op0, op1, subscriber) => op0 @@ op1 @@ subscriber;
 
 let lift = (operator, observable) =>
   switch (observable) {
   | Source(source, op) => Source(source, liftOperator(op, operator))
-  | Source1(source, ctx0, op) =>
-    Source1(source, ctx0, liftOperator(op, operator))
-  | Source2(source, ctx0, ctx1, op) =>
-    Source2(source, ctx0, ctx1, liftOperator(op, operator))
-  | Source3(source, ctx0, ctx1, ctx2, op) =>
-    Source3(source, ctx0, ctx1, ctx2, liftOperator(op, operator))
-  | Source4(source, ctx0, ctx1, ctx2, ctx3, op) =>
-    Source4(source, ctx0, ctx1, ctx2, ctx3, liftOperator(op, operator))
-  | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, op) =>
-    Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, liftOperator(op, operator))
+  | Source1(source, op, ctx0) =>
+    Source1(source, liftOperator(op, operator), ctx0)
+  | Source2(source, op, ctx0, ctx1) =>
+    Source2(source, liftOperator(op, operator), ctx0, ctx1)
+  | Source3(source, op, ctx0, ctx1, ctx2) =>
+    Source3(source, liftOperator(op, operator), ctx0, ctx1, ctx2)
+  | Source4(source, op, ctx0, ctx1, ctx2, ctx3) =>
+    Source4(source, liftOperator(op, operator), ctx0, ctx1, ctx2, ctx3)
+  | Source5(source, op, ctx0, ctx1, ctx2, ctx3, ctx4) =>
+    Source5(source, liftOperator(op, operator), ctx0, ctx1, ctx2, ctx3, ctx4)
   };
 
 let never = Source(RxFunctions.alwaysUnit1, RxFunctions.identity);
@@ -101,27 +101,27 @@ let subscribe = observable => {
     try (source(subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
-  | Source1(source, ctx0, op) =>
+  | Source1(source, op, ctx0) =>
     let subscriber = op(subscriber);
     try (source(ctx0, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
-  | Source2(source, ctx0, ctx1, op) =>
+  | Source2(source, op, ctx0, ctx1) =>
     let subscriber = op(subscriber);
     try (source(ctx0, ctx1, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
-  | Source3(source, ctx0, ctx1, ctx2, op) =>
+  | Source3(source, op, ctx0, ctx1, ctx2) =>
     let subscriber = op(subscriber);
     try (source(ctx0, ctx1, ctx2, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
-  | Source4(source, ctx0, ctx1, ctx2, ctx3, op) =>
+  | Source4(source, op, ctx0, ctx1, ctx2, ctx3) =>
     let subscriber = op(subscriber);
     try (source(ctx0, ctx1, ctx2, ctx3, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
     };
-  | Source5(source, ctx0, ctx1, ctx2, ctx3, ctx4, op) =>
+  | Source5(source, op, ctx0, ctx1, ctx2, ctx3, ctx4) =>
     let subscriber = op(subscriber);
     try (source(ctx0, ctx1, ctx2, ctx3, ctx4, subscriber)) {
     | exn => subscriber |> tryCompleteWithExceptionOrRaise(exn)
