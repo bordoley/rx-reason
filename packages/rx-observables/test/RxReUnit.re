@@ -1,6 +1,29 @@
 open ReUnit;
 open ReUnit.Test;
 
+
+let rxNotificationEquals =
+    (
+      ~exnEquals=RxFunctions.referenceEquality,
+      ~nextEquals=RxFunctions.referenceEquality,
+      a,
+      b,
+    ) =>
+  switch (a, b) {
+  | (RxNotification.Next(a), RxNotification.Next(b)) => nextEquals(a, b)
+  | (RxNotification.Complete(Some(a)), RxNotification.Complete(Some(b))) => exnEquals(a, b)
+  | (RxNotification.Complete(None), RxNotification.Complete(None)) => true
+  | _ => false
+  };
+
+let rxNotificationToString = (~exnToString=_ => "exn", ~nextToString, notif) =>
+  switch (notif) {
+  | RxNotification.Next(v) => "Next(" ++ nextToString(v) ++ ")"
+  | RxNotification.Complete(Some(exn)) =>
+    "CompleteWithException(" ++ exnToString(exn) ++ ")"
+  | RxNotification.Complete(None) => "Complete"
+  };
+
 let expectObservableToProduce =
     (~nextEquals=(===), ~nextToString, expected, observable) =>
   observable
@@ -8,8 +31,8 @@ let expectObservableToProduce =
   |> RxObservables.toList
   |> RxObservables.onNext(
        Expect.toBeEqualToListWith(
-         ~equals=RxNotification.equals(~nextEquals),
-         ~toString=RxNotification.toString(~nextToString),
+         ~equals=rxNotificationEquals(~nextEquals),
+         ~toString=rxNotificationToString(~nextToString),
          expected,
        ),
      )
