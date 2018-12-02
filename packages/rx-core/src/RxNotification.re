@@ -11,24 +11,3 @@ let complete = exn =>
 
 let next = next => Next(next);
 
-let equals =
-    (
-      ~exnEquals=RxFunctions.referenceEquality,
-      ~nextEquals=RxFunctions.referenceEquality,
-      a,
-      b,
-    ) =>
-  switch (a, b) {
-  | (Next(a), Next(b)) => nextEquals(a, b)
-  | (Complete(Some(a)), Complete(Some(b))) => exnEquals(a, b)
-  | (Complete(None), Complete(None)) => true
-  | _ => false
-  };
-
-let toString = (~exnToString=_ => "exn", ~nextToString, notif) =>
-  switch (notif) {
-  | Next(v) => "Next(" ++ nextToString(v) ++ ")"
-  | Complete(Some(exn)) =>
-    "CompleteWithException(" ++ exnToString(exn) ++ ")"
-  | Complete(None) => "Complete"
-  };
