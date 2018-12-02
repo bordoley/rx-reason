@@ -77,7 +77,7 @@ let merge = (~maxBufferSize=?, ~maxConcurrency=?, observable) =>
   observable
   |> RxObservable.lift(RxOperators.merge(~maxBufferSize?, ~maxConcurrency?));
 
-let mergeList = MergeListObservable.merge;
+let mergeList = MergeListObservable.mergeList;
 
 let mergeMap = (~maxBufferSize=?, ~maxConcurrency=?, f, observable) =>
   observable
