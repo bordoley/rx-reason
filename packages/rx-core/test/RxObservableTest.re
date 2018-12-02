@@ -5,17 +5,19 @@ let testSourceThrows = observable =>
   it("notifies complete with synchronous exceptions", () => {
     let exceptionCaught = ref(false);
 
+    let operator = RxSubscriber.decorate(
+      ~onNext=(_, _) => (),
+      ~onComplete=_ =>
+        fun
+        | Some(_) => {
+            exceptionCaught := true;
+            ();
+          }
+        | _ => (),
+    );
+
     observable
-    |> RxObservable.observe(
-         ~onNext=_ => (),
-         ~onComplete=
-           fun
-           | Some(_) => {
-               exceptionCaught := true;
-               ();
-             }
-           | _ => (),
-       )
+    |> RxObservable.lift(operator)
     |> RxObservable.subscribe
     |> ignore;
 
