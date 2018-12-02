@@ -87,6 +87,15 @@ let removeDisposable = (disposable, subscriber) => {
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.asDisposable;
 
+let dispose = subscriber =>
+  subscriber |> asCompositeDisposable |> RxCompositeDisposable.dispose;
+
+let isDisposed = subscriber =>
+  subscriber |> asCompositeDisposable |> RxCompositeDisposable.isDisposed;
+
+let raiseIfDisposed = subscriber =>
+  subscriber |> asCompositeDisposable |> RxCompositeDisposable.raiseIfDisposed;
+
 let create = () => {
   let disposable = RxCompositeDisposable.create();
   AutoDisposing(disposable);
@@ -154,13 +163,7 @@ let decorate5 =
   );
 };
 
-let dispose = subscriber =>
-  subscriber |> asCompositeDisposable |> RxCompositeDisposable.dispose;
-
 let disposed = Disposed;
-
-let isDisposed = subscriber =>
-  subscriber |> asCompositeDisposable |> RxCompositeDisposable.isDisposed;
 
 let isStopped =
   fun
@@ -235,8 +238,6 @@ and complete: 'a .(~exn: exn=?, t('a)) => unit =
 let next = {
   let doNext = (next, subscriber) =>
     switch (subscriber) {
-    | Disposed => ()
-    | AutoDisposing(_) => ()
     | Decorating(delegate, _, onNext, _) => onNext(delegate, next)
     | Decorating1(delegate, _, ctx0, onNext, _) =>
       onNext(ctx0, delegate, next)
@@ -248,6 +249,8 @@ let next = {
       onNext(ctx0, ctx1, ctx2, ctx3, delegate, next)
     | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, onNext, _) =>
       onNext(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, next)
+    | Disposed
+    | AutoDisposing(_) => ()
     };
 
   (next, subscriber) => {
@@ -265,6 +268,3 @@ let notify = (notif, subscriber) =>
   | RxNotification.Next(v) => subscriber |> next(v)
   | RxNotification.Complete(exn) => subscriber |> complete(~exn?)
   };
-
-let raiseIfDisposed = subscriber =>
-  subscriber |> asCompositeDisposable |> RxCompositeDisposable.raiseIfDisposed;
