@@ -7,14 +7,7 @@ include RxDisposable.S1 with type t('a) := t('a);
 include RxObservable.S1 with type t('a) := t('a);
 include RxObserverLike.S1 with type t('a) := t('a);
 
-let create:
-  (
-    ~onNext: 'a => unit,
-    ~onComplete: option(exn) => unit,
-    ~onSubscribe: RxSubscriber.t('a) => unit,
-    ~onDispose: unit => unit
-  ) =>
-  t('a);
+let createMulticast: unit => t('a);
 
 let create2:
   (

@@ -156,11 +156,11 @@ let test =
           ),
           it("with hot observable", () => {
             let result = ref([]);
-            let subject = ref(RxSubjects.createMulticast());
+            let subject = ref(RxSubject.createMulticast());
 
             let subscription =
               RxObservable.create(subscriber => {
-                subject := RxSubjects.createMulticast();
+                subject := RxSubject.createMulticast();
                 let observable = subject^ |> RxSubject.asObservable;
                 let subscription =
                   observable
