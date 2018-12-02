@@ -2,10 +2,12 @@ let defer = {
   let source = (f, subscriber) => {
     let innerSubscription =
       f()
-      |> RxObservable.observe1(
-           ~onNext=SubscriberForward.onNext,
-           ~onComplete=SubscriberForward.onComplete,
-           subscriber,
+      |> RxObservable.lift(
+           ObserveOperator.operator1(
+             ~onNext=SubscriberForward.onNext,
+             ~onComplete=SubscriberForward.onComplete,
+             subscriber,
+           ),
          )
       |> RxObservable.subscribe;
 

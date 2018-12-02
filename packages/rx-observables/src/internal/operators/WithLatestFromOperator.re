@@ -39,11 +39,13 @@ let operator = (~selector, other, subscriber) => {
 
   context.otherSubscription =
     other
-    |> RxObservable.observe2(
-         ~onNext=otherOnNext,
-         ~onComplete=otherOnComplete,
-         delegateSubscriber,
-         otherLatest,
+    |> RxObservable.lift(
+         ObserveOperator.operator2(
+           ~onNext=otherOnNext,
+           ~onComplete=otherOnComplete,
+           delegateSubscriber,
+           otherLatest,
+         ),
        )
     |> RxObservable.subscribe;
 

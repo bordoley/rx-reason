@@ -33,10 +33,12 @@ let create = {
     let innerSubscription =
       state.subject
       |> RxSubject.asObservable
-      |> RxObservable.observe1(
-           ~onNext=SubscriberForward.onNext,
-           ~onComplete=SubscriberForward.onComplete,
-           subscriber,
+      |> RxObservable.lift(
+           ObserveOperator.operator1(
+             ~onNext=SubscriberForward.onNext,
+             ~onComplete=SubscriberForward.onComplete,
+             subscriber,
+           ),
          )
       |> RxObservable.subscribe;
 
@@ -48,10 +50,12 @@ let create = {
     if (state.refCount === 1) {
       let subscriber =
         state.source
-        |> RxObservable.observe1(
-             ~onNext=forwardOnNext,
-             ~onComplete=forwardOnComplete,
-             state.subject,
+        |> RxObservable.lift(
+             ObserveOperator.operator1(
+               ~onNext=forwardOnNext,
+               ~onComplete=forwardOnComplete,
+               state.subject,
+             ),
            )
         |> RxObservable.subscribe;
 

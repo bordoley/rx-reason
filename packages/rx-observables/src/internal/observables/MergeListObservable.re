@@ -29,12 +29,14 @@ let merge = {
       | [hd, ...tail] => {
           let innerSubscriber =
             hd
-            |> RxObservable.observe3(
-                 ~onNext,
-                 ~onComplete,
-                 activeCount,
-                 lock,
-                 subscriber,
+            |> RxObservable.lift(
+                 ObserveOperator.operator3(
+                   ~onNext,
+                   ~onComplete,
+                   activeCount,
+                   lock,
+                   subscriber,
+                 ),
                )
             |> RxObservable.subscribe;
 

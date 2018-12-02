@@ -26,9 +26,9 @@ let toObservable = {
 };
 
 let fromObservable = {
-  let onNext = (last, _, _, next) => RxMutableOption.set(next, last);
+  let onNext = (last, _, _, _, next) => RxMutableOption.set(next, last);
 
-  let onComplete = (last, resolve, reject, exn) =>
+  let onComplete = (last, resolve, reject, _, exn) =>
     switch (exn) {
     | Some(exn) => reject(. exn)
     | None when ! RxMutableOption.isEmpty(last) =>
@@ -36,13 +36,17 @@ let fromObservable = {
       resolve(. lastValue);
     | _ => ()
     };
+  
+  let operator = (last, resolve, reject) => RxSubscriber.decorate3(
+    ~onNext, ~onComplete, last, resolve, reject
+  );
 
   observable =>
     Js.Promise.make((~resolve, ~reject) => {
       let last = RxMutableOption.create();
 
       observable
-      |> RxObservable.observe3(~onNext, ~onComplete, last, resolve, reject)
+      |> RxObservable.lift(operator(last, resolve, reject))
       |> RxObservable.subscribe
       |> ignore;
     });

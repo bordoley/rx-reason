@@ -48,7 +48,7 @@ let useObservableState = {
     propsStream
     |> RxSubject.asObservable
     |> propsToState
-    |> RxObservable.observe1(~onNext, ~onComplete, setState);
+    |> RxObservables.observe1(~onNext, ~onComplete, setState);
 
   (propsToState, props) => {
     let propsStream = React.useMemo(RxSubjects.createMulticast);

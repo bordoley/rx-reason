@@ -24,14 +24,16 @@ let concat = {
             | None => hd
             }
           )
-          |> RxObservable.observe5(
-               ~onNext=SubscriberForward.onNext4,
-               ~onComplete,
-               scheduler,
-               tail,
-               loop,
-               innerSubscription,
-               subscriber,
+          |> RxObservable.lift(
+               ObserveOperator.operator5(
+                 ~onNext=SubscriberForward.onNext4,
+                 ~onComplete,
+                 scheduler,
+                 tail,
+                 loop,
+                 innerSubscription,
+                 subscriber,
+               ),
              )
           |> RxObservable.subscribe
         };

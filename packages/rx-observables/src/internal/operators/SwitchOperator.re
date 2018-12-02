@@ -7,7 +7,7 @@ type context('a) = {
 
 let operator = {
   let onNext = {
-    let onNextInner = (id, ctx, delegate, next) => {
+    let onNextInner = (id, ctx, delegate, _, next) => {
       ctx.lock |> RxLock.acquire;
       if (ctx.latest === id) {
         delegate |> RxSubscriber.next(next);
@@ -15,7 +15,7 @@ let operator = {
       ctx.lock |> RxLock.release;
     };
 
-    let onCompleteInner = (id, ctx, _, exn) =>
+    let onCompleteInner = (id, ctx, _, _, exn) =>
       switch (exn) {
       | Some(_) =>
         if (ctx.latest === id) {
@@ -23,6 +23,15 @@ let operator = {
         }
       | None => ()
       };
+
+    let innerOperator = (id, ctx, delegate) =>
+      RxSubscriber.decorate3(
+        ~onNext=onNextInner,
+        ~onComplete=onCompleteInner,
+        id,
+        ctx,
+        delegate,
+      );
 
     (ctx, delegate, next) => {
       ctx.lock |> RxLock.acquire;
@@ -35,13 +44,7 @@ let operator = {
 
       let newInnerSubscription =
         next
-        |> RxObservable.observe3(
-             ~onNext=onNextInner,
-             ~onComplete=onCompleteInner,
-             id,
-             ctx,
-             delegate,
-           )
+        |> RxObservable.lift(innerOperator(id, ctx, delegate))
         |> RxObservable.subscribe;
 
       ctx.innerSubscription

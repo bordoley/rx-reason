@@ -88,6 +88,46 @@ let mergeMap = (~maxBufferSize=?, ~maxConcurrency=?, f, observable) =>
 let none = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.none(predicate));
 
+let observe = (~onNext, ~onComplete, observable) =>
+  observable |> RxObservable.lift(RxOperators.observe(~onNext, ~onComplete));
+
+let observe1 = (~onNext, ~onComplete, ctx0, observable) =>
+  observable
+  |> RxObservable.lift(RxOperators.observe1(~onNext, ~onComplete, ctx0));
+
+let observe2 = (~onNext, ~onComplete, ctx0, ctx1, observable) =>
+  observable
+  |> RxObservable.lift(
+       RxOperators.observe2(~onNext, ~onComplete, ctx0, ctx1),
+     );
+
+let observe3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) =>
+  observable
+  |> RxObservable.lift(
+       RxOperators.observe3(~onNext, ~onComplete, ctx0, ctx1, ctx2),
+     );
+
+let observe4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) =>
+  observable
+  |> RxObservable.lift(
+       RxOperators.observe4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3),
+     );
+
+let observe5 =
+    (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, observable) =>
+  observable
+  |> RxObservable.lift(
+       RxOperators.observe5(
+         ~onNext,
+         ~onComplete,
+         ctx0,
+         ctx1,
+         ctx2,
+         ctx3,
+         ctx4,
+       ),
+     );
+
 let observeOn = (scheduler, observable) =>
   observable |> RxObservable.lift(RxOperators.observeOn(scheduler));
 
@@ -99,11 +139,11 @@ let ofValue = OfObservable.ofValue;
 
 let onComplete = (onComplete, observable) =>
   observable
-  |> RxObservable.observe(~onNext=RxFunctions.alwaysUnit1, ~onComplete);
+  |> observe(~onNext=RxFunctions.alwaysUnit1, ~onComplete);
 
 let onExn = (onExn, observable) =>
   observable
-  |> RxObservable.observe(
+  |> observe(
        ~onNext=RxFunctions.alwaysUnit1,
        ~onComplete=
          fun
@@ -113,15 +153,15 @@ let onExn = (onExn, observable) =>
 
 let onNext = (onNext, observable) =>
   observable
-  |> RxObservable.observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
+  |> observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
 
 let onNext1 = (onNext, ctx0, observable) =>
   observable
-  |> RxObservable.observe1(~onNext, ~onComplete=RxFunctions.alwaysUnit2, ctx0);
+  |> observe1(~onNext, ~onComplete=RxFunctions.alwaysUnit2, ctx0);
 
 let onNext2 = (onNext, ctx0, ctx1, observable) =>
   observable
-  |> RxObservable.observe2(
+  |> observe2(
        ~onNext,
        ~onComplete=RxFunctions.alwaysUnit3,
        ctx0,

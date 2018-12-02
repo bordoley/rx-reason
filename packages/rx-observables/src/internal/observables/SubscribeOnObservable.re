@@ -2,10 +2,12 @@ let subscribeOn = {
   let doSubscribe = (observable, subscriber, ~now as _, ~shouldYield as _) => {
     let innerSubscription =
       observable
-      |> RxObservable.observe1(
-           ~onNext=SubscriberForward.onNext,
-           ~onComplete=SubscriberForward.onComplete,
-           subscriber,
+      |> RxObservable.lift(
+           ObserveOperator.operator1(
+             ~onNext=SubscriberForward.onNext,
+             ~onComplete=SubscriberForward.onComplete,
+             subscriber,
+           ),
          )
       |> RxObservable.subscribe;
 

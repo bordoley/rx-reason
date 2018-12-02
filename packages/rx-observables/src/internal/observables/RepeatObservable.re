@@ -15,13 +15,15 @@ let operator = {
       |> RxDisposable.dispose;
       let newInnerSubscription =
         observable
-        |> RxObservable.observe4(
-             ~onNext=SubscriberForward.onNext3,
-             ~onComplete,
-             observable,
-             shouldRepeat,
-             subscription,
-             delegate,
+        |> RxObservable.lift(
+             ObserveOperator.operator4(
+               ~onNext=SubscriberForward.onNext3,
+               ~onComplete,
+               observable,
+               shouldRepeat,
+               subscription,
+               delegate,
+             ),
            )
         |> RxObservable.subscribe;
       subscription

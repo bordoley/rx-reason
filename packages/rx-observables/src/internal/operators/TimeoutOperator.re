@@ -44,10 +44,12 @@ let operator = {
 
       context.connect =
         timeoutObservable
-        |> RxObservable.observe1(
-             ~onNext=RxFunctions.alwaysUnit2,
-             ~onComplete=SubscriberForward.onComplete,
-             subscriber,
+        |> RxObservable.lift(
+             ObserveOperator.operator1(
+               ~onNext=RxFunctions.alwaysUnit2,
+               ~onComplete=SubscriberForward.onComplete,
+               subscriber,
+             ),
            );
 
       subscribeToTimeout(context);

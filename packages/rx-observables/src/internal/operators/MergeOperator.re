@@ -14,9 +14,9 @@ module InnerSubscriber = {
     mutable disposable: RxDisposable.t,
   };
 
-  let onNext = (self, next) => self.delegate |> RxSubscriber.next(next);
+  let onNext = (self, _, next) => self.delegate |> RxSubscriber.next(next);
 
-  let rec onComplete = (self, exn) => {
+  let rec onComplete = (self, _, exn) => {
     RxAtomic.decr(self.parent.activeCount) |> ignore;
     self.parent.subscriber
     |> RxSubscriber.removeDisposable(self.disposable)
@@ -31,7 +31,8 @@ module InnerSubscriber = {
     | _ => ()
     };
   }
-  
+  and innerSubscriberOperator = self =>
+    RxSubscriber.decorate1(~onNext, ~onComplete, self)
   and doSubscribe = (parent, delegate, next) => {
     RxAtomic.incr(parent.activeCount) |> ignore;
 
@@ -39,7 +40,7 @@ module InnerSubscriber = {
 
     self.disposable =
       next
-      |> RxObservable.observe1(~onNext, ~onComplete, self)
+      |> RxObservable.lift(innerSubscriberOperator(self))
       |> RxObservable.subscribe;
 
     parent.subscriber |> RxSubscriber.addDisposable(self.disposable) |> ignore;

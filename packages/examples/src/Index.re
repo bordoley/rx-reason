@@ -55,7 +55,7 @@ let sideEffectsSubscription = {
 
   actions
   |> RxEvent.asObservable
-  |> RxObservable.observe1(~onNext, ~onComplete, stateStore)
+  |> RxObservables.observe1(~onNext, ~onComplete, stateStore)
   |> RxObservable.subscribe;
 };
 
