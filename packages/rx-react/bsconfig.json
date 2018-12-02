@@ -15,7 +15,7 @@
     "@rx-reason/rx-disposables",
     "@rx-reason/rx-js-schedulers",
     "@rx-reason/rx-observables",
-    "@rx-reason/rx-state",
+    "@rx-reason/rx-imperative",
     "@rx-reason/rx-utils-do-not-depend-on"
   ],
   "bs-dev-dependencies": [

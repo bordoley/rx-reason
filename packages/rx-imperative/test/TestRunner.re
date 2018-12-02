@@ -2,7 +2,7 @@ open ReUnit.Test;
 
 ReUnit.run(
   describe(
-    "rx-state",
+    "rx-imperative",
     [
       RxSubjectTest.test,
     ],
