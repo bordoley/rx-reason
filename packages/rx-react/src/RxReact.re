@@ -46,12 +46,12 @@ let useObservableState = {
 
   let makeStateStream = (propsToState, setState, propsStream) =>
     propsStream
-    |> RxSubject.asObservable
+    |> RxEvent.asObservable
     |> propsToState
     |> RxObservables.observe1(~onNext, ~onComplete, setState);
 
   (propsToState, props) => {
-    let propsStream = React.useMemo(RxSubjects.createMulticast);
+    let propsStream = React.useMemo(RxEvent.create);
 
     let (state, setState) = React.useState(Null);
 
@@ -59,7 +59,7 @@ let useObservableState = {
     |> React.useMemo3(makeStateStream, propsToState, setState)
     |> useObservable;
 
-    propsStream |> React.useEffect2(RxSubject.next, props);
+    propsStream |> React.useEffect2(RxEvent.trigger, props);
     state;
   };
 };

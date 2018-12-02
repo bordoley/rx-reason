@@ -18,8 +18,11 @@ let operator = (scheduler, subscriber) => {
   let rec doWork = (~now, ~shouldYield) => {
     let loopAgain =
       switch (RxMutableQueue.dequeue(queue)) {
-      | Some(notification) =>
-        subscriber |> RxSubscriber.notify(notification);
+      | Some(RxNotification.Next(v)) =>
+        subscriber |> RxSubscriber.next(v);
+        true;
+      | Some(RxNotification.Complete(exn)) =>
+        subscriber |> RxSubscriber.complete(~exn?);
         true;
       | _ => false
       };

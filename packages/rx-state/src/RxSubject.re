@@ -124,12 +124,6 @@ let next = (next, subject) =>
     };
   };
 
-let notify = (notif, subject) =>
-  switch (notif) {
-  | RxNotification.Next(v) => subject |> next(v)
-  | RxNotification.Complete(exn) => subject |> complete(~exn?)
-  };
-
 let subscriberTeardown = (subscriber, subscribers) => {
   let currentSubscribers = subscribers^;
   subscribers :=

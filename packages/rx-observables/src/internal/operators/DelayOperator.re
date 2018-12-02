@@ -24,7 +24,13 @@ let operator = (~scheduler, delay, subscriber) => {
       switch (RxMutableQueue.peek(queue)) {
       | Some((dueTime, notification)) when currentTime >= dueTime =>
         RxMutableQueue.dequeue(queue) |> ignore;
-        subscriber |> RxSubscriber.notify(notification);
+
+        switch (notification) {
+        | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
+        | RxNotification.Complete(exn) =>
+          subscriber |> RxSubscriber.complete(~exn?)
+        };
+        
         0.0;
       | Some((dueTime, _)) => dueTime -. currentTime
       | _ => (-1.0)

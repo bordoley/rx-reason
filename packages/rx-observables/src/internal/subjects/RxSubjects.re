@@ -32,15 +32,17 @@ let createWithReplayBuffer = {
   let onSubscribe = (_, buffer, subscriber) => {
     let currentBuffer = buffer^;
     RxCopyOnWriteArray.forEach(
-      next => subscriber |> RxSubscriber.notify(next),
+      next =>
+        switch (next) {
+        | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
+        | RxNotification.Complete(exn) =>
+          subscriber |> RxSubscriber.complete(~exn?)
+        },
       currentBuffer,
     );
   };
 
-
-  let onDispose = (_, buffer) => {
-    buffer := RxCopyOnWriteArray.empty();
-  };
+  let onDispose = (_, buffer) => buffer := RxCopyOnWriteArray.empty();
 
   maxBufferCount => {
     let buffer = ref(RxCopyOnWriteArray.empty());

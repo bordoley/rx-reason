@@ -262,9 +262,3 @@ let next = {
     };
   };
 };
-
-let notify = (notif, subscriber) =>
-  switch (notif) {
-  | RxNotification.Next(v) => subscriber |> next(v)
-  | RxNotification.Complete(exn) => subscriber |> complete(~exn?)
-  };

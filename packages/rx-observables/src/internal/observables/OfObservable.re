@@ -76,7 +76,12 @@ let ofRelativeTimeNotifications = {
               ~now as _,
               ~shouldYield as _,
             ) => {
-      subscriber |> RxSubscriber.notify(notif);
+              
+      switch (notif) {
+        | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
+        | RxNotification.Complete(exn) =>
+          subscriber |> RxSubscriber.complete(~exn?)
+        };        
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
