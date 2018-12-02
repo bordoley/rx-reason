@@ -28,7 +28,9 @@ let subscriberTeardown = (subscribers, subscriber) => {
 };
 
 let observableSource = (value, subscribers, disposable, subscriber) =>
-  if (! RxDisposable.isDisposed(disposable)) {
+  if (RxDisposable.isDisposed(disposable)) {
+    subscriber |> RxSubscriber.dispose;
+  } else {
     subscribers := subscribers^ |> RxCopyOnWriteArray.addLast(subscriber);
     let disposable =
       RxDisposable.create2(subscriberTeardown, subscribers, subscriber);

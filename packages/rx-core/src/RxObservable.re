@@ -9,6 +9,7 @@ type source5('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) =
   ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, RxSubscriber.t('a)) => unit;
 
 type t('a) =
+  | Never
   | Source(source('b), RxOperator.t('b, 'a)): t('a)
   | Source1(source1('ctx0, 'b), RxOperator.t('b, 'a), 'ctx0): t('a)
   | Source2(source2('ctx0, 'ctx1, 'b), RxOperator.t('b, 'a), 'ctx0, 'ctx1): t(
@@ -64,6 +65,7 @@ let liftOperator = (op0, op1, subscriber) => op0 @@ op1 @@ subscriber;
 
 let lift = (operator, observable) =>
   switch (observable) {
+  | Never => Never
   | Source(source, op) => Source(source, liftOperator(op, operator))
   | Source1(source, op, ctx0) =>
     Source1(source, liftOperator(op, operator), ctx0)
@@ -77,7 +79,7 @@ let lift = (operator, observable) =>
     Source5(source, liftOperator(op, operator), ctx0, ctx1, ctx2, ctx3, ctx4)
   };
 
-let never = Source(RxFunctions.alwaysUnit1, RxFunctions.identity);
+let never = Never;
 
 let tryCompleteWithExceptionOrRaise = (exn, subscriber) => {
   let shouldRaise =
@@ -96,6 +98,7 @@ let subscribe = observable => {
   let subscriber = RxSubscriber.create();
 
   switch (observable) {
+  | Never => subscriber |> RxSubscriber.dispose;
   | Source(source, op) =>
     let subscriber = op(subscriber);
     try (source(subscriber)) {

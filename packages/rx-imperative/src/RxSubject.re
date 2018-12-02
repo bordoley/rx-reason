@@ -125,19 +125,21 @@ let subscribeOrDisposeSubscriber = (subscribers, isStopped, subscriber) =>
     subscriber |> RxSubscriber.addDisposable(disposable) |> ignore;
   };
 
-let observableSource = (self, subscriber) => {
-  let self = self^;
+let observableSource = (self, subscriber) =>
+  if (isDisposed(self^)) {
+    subscriber |> RxSubscriber.dispose;
+  } else {
+    let self = self^;
 
-  switch (self) {
-  | Disposed => ()
-  | Multicast(subscribers, _, _, isStopped) =>
-    subscribeOrDisposeSubscriber(subscribers, isStopped, subscriber)
-
-  | S2(subscribers, _, _, isStopped, _, _, onSubscribe, _, ctx0, ctx1) =>
-    onSubscribe(ctx0, ctx1, subscriber);
-    subscribeOrDisposeSubscriber(subscribers, isStopped, subscriber);
+    switch (self) {
+    | Disposed => ()
+    | Multicast(subscribers, _, _, isStopped) =>
+      subscribeOrDisposeSubscriber(subscribers, isStopped, subscriber)
+    | S2(subscribers, _, _, isStopped, _, _, onSubscribe, _, ctx0, ctx1) =>
+      onSubscribe(ctx0, ctx1, subscriber);
+      subscribeOrDisposeSubscriber(subscribers, isStopped, subscriber);
+    };
   };
-};
 
 let disposableTeardown = {
   let stopAndClearSubscribers = (subscribers, isStopped) => {

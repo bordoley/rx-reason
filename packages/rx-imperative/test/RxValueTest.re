@@ -8,11 +8,9 @@ let test =
       describe(
         "asObservable",
         [
-          it("disposed instance emits no values", () => {
+          it("disposed instance emits no values.", () => {
             let value = RxValue.disposed;
             let observedValue = ref(0);
-
-            value |> RxValue.dispose;
 
             value
             |> RxValue.asObservable
@@ -23,10 +21,21 @@ let test =
                  ),
                )
             |> RxObservable.subscribe
-            |> ignore;
+            |> RxDisposable.isDisposed
+            |> Expect.toBeEqualToTrue;
 
             value |> RxValue.update(old => old + 1);
             observedValue^ |> Expect.toBeEqualToInt(0);
+          }),
+          it("subscribe after dispose returns a disposed Disposable", () => {
+            let value = RxValue.create(1);
+            value |> RxValue.dispose;
+
+            value
+            |> RxValue.asObservable
+            |> RxObservable.subscribe
+            |> RxDisposable.isDisposed
+            |> Expect.toBeEqualToTrue;
           }),
           it("emits no values after being disposed", () => {
             let value = RxValue.create(1);

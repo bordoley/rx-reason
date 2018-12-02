@@ -5,16 +5,18 @@ let testSourceThrows = observable =>
   it("notifies complete with synchronous exceptions", () => {
     let exceptionCaught = ref(false);
 
-    let operator = RxSubscriber.decorate(
-      ~onNext=(_, _) => (),
-      ~onComplete=_ =>
-        fun
-        | Some(_) => {
-            exceptionCaught := true;
-            ();
-          }
-        | _ => (),
-    );
+    let operator =
+      RxSubscriber.decorate(
+        ~onNext=(_, _) => (),
+        ~onComplete=
+          _ =>
+            fun
+            | Some(_) => {
+                exceptionCaught := true;
+                ();
+              }
+            | _ => (),
+      );
 
     observable
     |> RxObservable.lift(operator)
@@ -27,12 +29,23 @@ let testSourceThrows = observable =>
 let testSourceThrowsAfterCompletingSynchronous = observable =>
   it("rethrows synchronous exceptions if subscriber is completed", () =>
     Expect.shouldRaise(() => observable |> RxObservable.subscribe |> ignore)
-  );  
+  );
 
 let test =
   describe(
     "RxObservable",
     [
+      describe(
+        "never",
+        [
+          it("subscribe returns a disposed disposable", () =>
+            RxObservable.never
+            |> RxObservable.subscribe
+            |> RxDisposable.isDisposed
+            |> Expect.toBeEqualToTrue
+          ),
+        ],
+      ),
       describe(
         "create",
         [
