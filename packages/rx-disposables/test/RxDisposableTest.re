@@ -153,6 +153,12 @@ let test =
           }),
         ],
       ),
+      describe("dispose", [
+        it("catches and ignores exceptions thrown in teardown logic", () => {
+          let disposable = RxDisposable.create(()=> raise(Division_by_zero));
+          disposable |> RxDisposable.dispose;
+        })
+      ]),
       describe(
         "disposed",
         [

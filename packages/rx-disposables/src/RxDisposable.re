@@ -91,7 +91,12 @@ let dispose = {
   disposable => {
     let shouldDispose = shouldDispose(disposable);
     if (shouldDispose) {
-      doTeardown(disposable);
+      try( doTeardown(disposable)) {
+      /* Proactively catch exceptions thrown in teardown logic. Teardown functions
+       * shouldn't throw, so this is to proactively prevent unexpected exceptions.
+       */
+      | _ => ()
+      }
     };
   };
 };
