@@ -77,5 +77,56 @@ let test =
           ),
         ],
       ),
+      describe(
+        "next",
+        [
+          it("does nothing if the subscriber has been completed", () => {
+            let onNextCalledCount = ref(0);
+
+            let subscriber = RxSubscriber.create();
+            let decorator = RxSubscriber.decorate(
+              ~onNext=(_, _) => incr(onNextCalledCount),
+              ~onComplete=(_,_) => (),
+              subscriber,
+            );
+
+            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.complete;
+            decorator |> RxSubscriber.next(());
+
+            onNextCalledCount^ |> Expect.toBeEqualToInt(1);
+          }),
+
+          it("does nothing if the subscriber has been disposed", () => {
+            let onNextCalledCount = ref(0);
+
+            let subscriber = RxSubscriber.create();
+            let decorator = RxSubscriber.decorate(
+              ~onNext=(_, _) => incr(onNextCalledCount),
+              ~onComplete=(_,_) => (),
+              subscriber,
+            );
+
+            decorator |> RxSubscriber.next(());
+            decorator |> RxSubscriber.dispose;
+            decorator |> RxSubscriber.next(());
+
+            onNextCalledCount^ |> Expect.toBeEqualToInt(1);
+          }),
+          it("completes if onNext throws an exception", () => {
+            let completed = ref(false);
+
+            let subscriber = RxSubscriber.create();
+            let decorator = RxSubscriber.decorate(
+              ~onNext=(_, _) => raise(Division_by_zero),
+              ~onComplete=(_,_) => {completed := true},
+              subscriber,
+            );
+
+            decorator |> RxSubscriber.next(());
+            completed^ |> Expect.toBeEqualToTrue;
+          }),
+        ]
+      )
     ],
   );
