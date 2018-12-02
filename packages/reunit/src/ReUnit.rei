@@ -26,6 +26,7 @@ module Expect: {
   let toBeReferenceEqualTo: ('a, 'a) => unit;
   let toBeEqualToSomeWith:
     (~equals: ('a, 'a) => bool, ~toString: 'a => string, 'a, option('a)) => unit;
+  let toBeEqualToSomeReference: ('a, option('a)) => unit;
   let toBeEqualToSomeOfInt: (int, option(int)) => unit;
   let toBeEqualToSomeOfString: (string, option(string)) => unit;
   let toBeEqualToString: (string, string) => unit;

@@ -110,6 +110,8 @@ module Expect = {
     toBeEqualToSomeWith(~equals=Equality.int, ~toString=string_of_int, value);
   let toBeEqualToSomeOfString = (value: string) =>
     toBeEqualToSomeWith(~equals=Pervasives.(==), ~toString=identity, value);
+  let toBeEqualToSomeReference = (value: 'a) =>
+    toBeEqualToSomeWith(~equals=Pervasives.(===), ~toString=_=>"unknown", value);
   let toBeEqualToString = (value: string) =>
     toBeEqualToWith(~equals=Pervasives.(==), ~toString=identity, value);
   let toBeEqualToTrue = toBeEqualToWith(~equals=Equality.bool, ~toString=string_of_bool, true);

@@ -6,6 +6,39 @@ let test =
     "RxSubscriber",
     [
       describe(
+        "complete",
+        [
+          it(
+            "recursively call onComplete when an exception is thrown from the delegate handler",
+            () => {
+              let subscriber = RxSubscriber.create();
+              let observedException = ref(None);
+              let lastDecorator =
+                RxSubscriber.decorate(
+                  ~onNext=(_, _) => (),
+                  ~onComplete=(_, exn) => observedException := exn,
+                  subscriber,
+                );
+              let throwingDecorator =
+                RxSubscriber.decorate(
+                  ~onNext=(_, _) => (),
+                  ~onComplete=
+                    (_, exn) =>
+                      switch (exn) {
+                      | Some(exn) => raise(exn)
+                      | _ => ()
+                      },
+                  lastDecorator,
+                );
+              ();
+              throwingDecorator |> RxSubscriber.complete(~exn=RxDisposedException.Exn);
+
+              observedException^ |> Expect.toBeEqualToSomeReference(RxDisposedException.Exn);
+            },
+          ),
+        ],
+      ),
+      describe(
         "completeWithResult",
         [
           it("returns true if not stopped", () => {
