@@ -84,7 +84,6 @@ let removeDisposable = (disposable, subscriber) => {
   subscriber;
 };
 
-
 let asDisposable = subscriber =>
   subscriber |> asCompositeDisposable |> RxCompositeDisposable.asDisposable;
 
@@ -188,8 +187,7 @@ let shouldComplete =
   | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
     ! RxAtomic.exchange(isStopped, true);
 
-
-let completeWithResult = {
+let rec completeWithResult: 'a .(~exn: exn=?, t('a)) => bool = {
   let doComplete = (exn, subscriber) =>
     switch (subscriber) {
     | Disposed => ()
@@ -205,20 +203,20 @@ let completeWithResult = {
       onComplete(ctx0, ctx1, ctx2, ctx3, delegate, exn)
     | Decorating5(delegate, _, ctx0, ctx1, ctx2, ctx3, ctx4, _, onComplete) =>
       onComplete(ctx0, ctx1, ctx2, ctx3, ctx4, delegate, exn)
-  };
+    };
 
   let completeDelegate = (exn, subscriber) =>
     switch (subscriber) {
-    | Disposed => ()
-    | AutoDisposing(_) => ()
-    | Decorating(delegate, _, _, _) => delegate |> doComplete(exn)
-    | Decorating1(delegate, _, _, _, _) => delegate |> doComplete(exn)
-    | Decorating2(delegate, _, _, _, _, _) => delegate |> doComplete(exn)
-    | Decorating3(delegate, _, _, _, _, _, _) => delegate |> doComplete(exn)
+    | Decorating(delegate, _, _, _) => delegate |> complete(~exn?)
+    | Decorating1(delegate, _, _, _, _) => delegate |> complete(~exn?)
+    | Decorating2(delegate, _, _, _, _, _) => delegate |> complete(~exn?)
+    | Decorating3(delegate, _, _, _, _, _, _) => delegate |> complete(~exn?)
     | Decorating4(delegate, _, _, _, _, _, _, _) =>
-      delegate |> doComplete(exn)
+      delegate |> complete(~exn?)
     | Decorating5(delegate, _, _, _, _, _, _, _, _) =>
-      delegate |> doComplete(exn)
+      delegate |> complete(~exn?)
+    | Disposed
+    | AutoDisposing(_) => ()
     };
 
   (~exn=?, subscriber) => {
@@ -230,10 +228,9 @@ let completeWithResult = {
     };
     shouldComplete;
   };
-};
-
-let complete = (~exn=?, subscriber) =>
-  subscriber |> completeWithResult(~exn?) |> ignore;
+}
+and complete: 'a .(~exn: exn=?, t('a)) => unit =
+  (~exn=?, subscriber) => subscriber |> completeWithResult(~exn?) |> ignore;
 
 let next = {
   let doNext = (next, subscriber) =>
