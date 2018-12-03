@@ -76,9 +76,8 @@ let create = () => {
 };
 
 let run = ({disposable, timeQueue} as vts: t) => {
-  RxDisposable.raiseIfDisposed(disposable);
-
-  let break = ref(false);
+  let break = ref(RxDisposable.isDisposed(disposable));
+  
   while (! break^) {
     advance(vts);
     break :=
