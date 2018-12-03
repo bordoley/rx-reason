@@ -11,67 +11,59 @@ let forwardOnComplete = (subject, exn) =>
 
 let forwardOnNext = (subject, v) => subject |> RxSubject.next(v);
 
-let create = {
-  let teardown = state => {
-    state.refCount = state.refCount - 1;
+let teardown = state => {
+  state.refCount = state.refCount - 1;
 
-    if (state.refCount === 0) {
-      state.subscription
-      |> RxSerialDisposable.setInnerDisposable(RxDisposable.disposed);
-      state.subject |> RxSubject.dispose;
-      state.subject = RxSubject.disposed;
-    };
+  if (state.refCount === 0) {
+    state.subscription
+    |> RxSerialDisposable.setInnerDisposable(RxDisposable.disposed);
+    state.subject |> RxSubject.dispose;
+    state.subject = RxSubject.disposed;
+  };
+};
+
+let source = (state, subscriber) => {
+  if (state.refCount === 0) {
+    state.subject = state.createSubject();
   };
 
-  let source = (state, subscriber) => {
-    if (state.refCount === 0) {
-      state.subject = state.createSubject();
-    };
+  state.refCount = state.refCount + 1;
 
-    state.refCount = state.refCount + 1;
+  let innerSubscription =
+    state.subject
+    |> RxSubject.asObservable
+    |> RxObservable.lift(ForwardingOperator.operator(subscriber))
+    |> RxObservable.subscribe;
 
-    let innerSubscription =
-      state.subject
-      |> RxSubject.asObservable
+  subscriber
+  |> RxSubscriber.addDisposable(RxDisposable.create1(teardown, state))
+  |> RxSubscriber.addDisposable(innerSubscription)
+  |> ignore;
+
+  if (state.refCount === 1) {
+    let subscriber =
+      state.source
       |> RxObservable.lift(
            ObserveOperator.operator1(
-             ~onNext=SubscriberForward.onNext,
-             ~onComplete=SubscriberForward.onComplete,
-             subscriber,
+             ~onNext=forwardOnNext,
+             ~onComplete=forwardOnComplete,
+             state.subject,
            ),
          )
       |> RxObservable.subscribe;
 
-    subscriber
-    |> RxSubscriber.addDisposable(RxDisposable.create1(teardown, state))
-    |> RxSubscriber.addDisposable(innerSubscription)
-    |> ignore;
+    state.subscription |> RxSerialDisposable.setInnerDisposable(subscriber);
+  };
+};
 
-    if (state.refCount === 1) {
-      let subscriber =
-        state.source
-        |> RxObservable.lift(
-             ObserveOperator.operator1(
-               ~onNext=forwardOnNext,
-               ~onComplete=forwardOnComplete,
-               state.subject,
-             ),
-           )
-        |> RxObservable.subscribe;
-
-      state.subscription |> RxSerialDisposable.setInnerDisposable(subscriber);
-    };
+let create = (createSubject, observable) => {
+  let state = {
+    createSubject,
+    refCount: 0,
+    source: observable,
+    subscription: RxSerialDisposable.create(),
+    subject: RxSubject.disposed,
   };
 
-  (createSubject, observable) => {
-    let state = {
-      createSubject,
-      refCount: 0,
-      source: observable,
-      subscription: RxSerialDisposable.create(),
-      subject: RxSubject.disposed,
-    };
-
-    RxObservable.create1(source, state);
-  };
+  RxObservable.create1(source, state);
 };

@@ -6,7 +6,7 @@ let concat = observable =>
 let concatMap = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.concatMap(f));
 
-let concatList = ConcatListObservable.concat;
+let concatList = ConcatListObservable.create;
 
 let debounce = (~scheduler, dueTime, observable) =>
   observable |> RxObservable.lift(RxOperators.debounce(~scheduler, dueTime));
@@ -14,7 +14,7 @@ let debounce = (~scheduler, dueTime, observable) =>
 let defaultIfEmpty = (default, observable) =>
   observable |> RxObservable.lift(RxOperators.defaultIfEmpty(default));
 
-let defer = DeferObservable.defer;
+let defer = DeferObservable.create;
 
 let delay = (~scheduler, delay, observable) =>
   observable |> RxObservable.lift(RxOperators.delay(~scheduler, delay));
@@ -25,7 +25,7 @@ let dematerialize = observable =>
 let distinctUntilChanged = (~equals=?, observable) =>
   observable |> RxObservable.lift(RxOperators.distinctUntilChanged(~equals?));
 
-let empty = EmptyObservable.empty;
+let empty = EmptyObservable.create;
 
 let every = (predicate, observable) =>
   observable |> RxObservable.lift(RxOperators.every(predicate));
@@ -77,7 +77,7 @@ let merge = (~maxBufferSize=?, ~maxConcurrency=?, observable) =>
   observable
   |> RxObservable.lift(RxOperators.merge(~maxBufferSize?, ~maxConcurrency?));
 
-let mergeList = MergeListObservable.mergeList;
+let mergeList = MergeListObservable.create;
 
 let mergeMap = (~maxBufferSize=?, ~maxConcurrency=?, f, observable) =>
   observable
@@ -131,13 +131,14 @@ let observe5 =
 let observeOn = (scheduler, observable) =>
   observable |> RxObservable.lift(RxOperators.observeOn(scheduler));
 
-let ofList = OfObservable.ofList;
-let ofNotifications = OfObservable.ofNotifications;
-let ofValue = OfObservable.ofValue;
+let ofList = OfListObservable.create;
+
+let ofNotifications = OfNotificationsObservable.create;
+
+let ofValue = OfValueObservable.create;
 
 let onComplete = (onComplete, observable) =>
-  observable
-  |> observe(~onNext=RxFunctions.alwaysUnit1, ~onComplete);
+  observable |> observe(~onNext=RxFunctions.alwaysUnit1, ~onComplete);
 
 let onExn = (onExn, observable) =>
   observable
@@ -150,26 +151,19 @@ let onExn = (onExn, observable) =>
      );
 
 let onNext = (onNext, observable) =>
-  observable
-  |> observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
+  observable |> observe(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
 
 let onNext1 = (onNext, ctx0, observable) =>
-  observable
-  |> observe1(~onNext, ~onComplete=RxFunctions.alwaysUnit2, ctx0);
+  observable |> observe1(~onNext, ~onComplete=RxFunctions.alwaysUnit2, ctx0);
 
 let onNext2 = (onNext, ctx0, ctx1, observable) =>
   observable
-  |> observe2(
-       ~onNext,
-       ~onComplete=RxFunctions.alwaysUnit3,
-       ctx0,
-       ctx1,
-     );
+  |> observe2(~onNext, ~onComplete=RxFunctions.alwaysUnit3, ctx0, ctx1);
 
 let onSubscribe = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.onSubscribe(f));
 
-let raise = RaiseObservable.raise;
+let raise = RaiseObservable.create;
 
 let repeat = {
   let defaultPredicate =
@@ -185,7 +179,7 @@ let repeat = {
           | None => predicate()
           | Some(_) => false
         );
-    RepeatObservable.repeat(predicate);
+    RepeatObservable.create(predicate);
   };
 };
 
@@ -205,7 +199,7 @@ let retry = {
           | Some(exn) => predicate(exn)
         );
 
-    RepeatObservable.repeat(predicate);
+    RepeatObservable.create(predicate);
   };
 };
 
@@ -229,14 +223,14 @@ let startWithList = (~scheduler=?, values, observable) =>
 let startWithValue = (~scheduler=?, value, observable) =>
   concatList([ofValue(~scheduler?, value), observable]);
 
-let subscribeOn = SubscribeOnObservable.subscribeOn;
+let subscribeOn = SubscribeOnObservable.create;
 
 let switch_ = observable =>
   observable |> RxObservable.lift(RxOperators.switch_);
 
 let switchMap = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.switchMap(f));
-  
+
 let timeout = (~scheduler, due, observable) =>
   observable |> RxObservable.lift(RxOperators.timeout(~scheduler, due));
 

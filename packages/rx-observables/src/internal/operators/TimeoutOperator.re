@@ -26,7 +26,7 @@ let operator = {
 
   (~scheduler, due) => {
     let timeoutObservable =
-      RaiseObservable.raise(RxTimeoutException.Exn)
+      RaiseObservable.create(RxTimeoutException.Exn)
       |> RxObservable.lift(DelayOperator.operator(~scheduler, due));
 
     subscriber => {

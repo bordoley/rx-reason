@@ -1,4 +1,4 @@
-let mergeList = observables =>
+let create = observables =>
   observables
-  |> OfObservable.ofList
+  |> OfListObservable.create
   |> RxObservable.lift(MergeOperator.operator);

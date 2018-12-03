@@ -1,14 +1,10 @@
-let empty = {
-  let emptySynchronousSource = (subscriber) =>
-    subscriber |> RxSubscriber.complete;
+let emptySynchronousSource = subscriber => subscriber |> RxSubscriber.complete;
 
-  (~scheduler=?, ()) => {
-    let source = RxObservable.create(emptySynchronousSource);
+let create = (~scheduler=?, ()) => {
+  let source = RxObservable.create(emptySynchronousSource);
 
-    switch (scheduler) {
-    | Some(scheduler) =>
-      source |> SubscribeOnObservable.subscribeOn(scheduler);
-    | None => source;
-    };
+  switch (scheduler) {
+  | Some(scheduler) => source |> SubscribeOnObservable.create(scheduler)
+  | None => source
   };
 };

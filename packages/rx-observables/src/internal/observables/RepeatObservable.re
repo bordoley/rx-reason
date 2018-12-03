@@ -46,5 +46,5 @@ let operator = {
   };
 };
 
-let repeat = (predicate, observable) =>
+let create = (predicate, observable) =>
   observable |> RxObservable.lift(operator(predicate, observable));
