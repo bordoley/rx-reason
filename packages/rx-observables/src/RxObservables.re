@@ -131,10 +131,8 @@ let observe5 =
 let observeOn = (scheduler, observable) =>
   observable |> RxObservable.lift(RxOperators.observeOn(scheduler));
 
-let ofAbsoluteTimeNotifications = OfObservable.ofAbsoluteTimeNotifications;
 let ofList = OfObservable.ofList;
 let ofNotifications = OfObservable.ofNotifications;
-let ofRelativeTimeNotifications = OfObservable.ofRelativeTimeNotifications;
 let ofValue = OfObservable.ofValue;
 
 let onComplete = (onComplete, observable) =>

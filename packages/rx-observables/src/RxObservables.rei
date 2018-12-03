@@ -285,14 +285,6 @@ let none: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
 let observeOn: (RxScheduler.t, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
- * Returns an Observable which emits the specified notifications at the
- * specified absolutes times using the supplied scheduler.
- */
-let ofAbsoluteTimeNotifications:
-  (~scheduler: RxScheduler.t, list((float, RxNotification.t('a)))) =>
-  RxObservable.t('a);
-
-/**
  * Returns an Observable that emits the given items and then completes.
  */
 let ofList: (~scheduler: RxScheduler.t=?, list('a)) => RxObservable.t('a);
@@ -303,14 +295,6 @@ let ofList: (~scheduler: RxScheduler.t=?, list('a)) => RxObservable.t('a);
  */
 let ofNotifications:
   (~scheduler: RxScheduler.t=?, list(RxNotification.t('a))) =>
-  RxObservable.t('a);
-
-/**
- * Returns an Observable which emits the specified notifications at the
- * specified relative times using the supplied scheduler.
- */
-let ofRelativeTimeNotifications:
-  (~scheduler: RxScheduler.t, list((float, RxNotification.t('a)))) =>
   RxObservable.t('a);
 
 /**
