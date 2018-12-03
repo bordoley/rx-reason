@@ -29,7 +29,7 @@ external schedulerShouldYield : unit => bool = "unstable_shouldYield";
 external schedulerNow : unit => float = "unstable_now";
 
 [@bs.val]
-external setTimeout : ('a, float, 'b, 'c, 'd) => Js.Global.timeoutId =
+external setTimeout : ('a, float, 'b, 'c, 'd, 'e) => Js.Global.timeoutId =
   "setTimeout";
 
 let cancelCallback = handle => schedulerCancelCallback(handle);
@@ -37,15 +37,10 @@ let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 let now = () => schedulerNow();
 let scheduleCallback = (cb, ()) => schedulerScheduleCallback(cb);
 
-let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
+let rec scheduleNowWithPriority = (shouldYield, disposable, priority, continuation) => {
   let isDisposed = RxSerialDisposable.isDisposed(disposable);
 
   if (! isDisposed) {
-    let shouldYield = () => {
-      let isDisposed = RxSerialDisposable.isDisposed(disposable);
-      isDisposed || schedulerShouldYield();
-    };
-
     let rec callback =
             (continuation: RxScheduler.Continuation.t, ())
             : option(callback) => {
@@ -57,7 +52,7 @@ let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
         switch (result) {
         | Yield(continuation) => Some(Obj.magic(callback(continuation)))
         | ContinueAfter(delay, continuation) =>
-          scheduleInternal(disposable, priority, ~delay, continuation);
+          scheduleInternal(shouldYield, disposable, priority, ~delay, continuation);
           None;
         | Complete => None
         };
@@ -77,7 +72,7 @@ let rec scheduleNowWithPriority = (disposable, priority, continuation) => {
     disposable |> RxSerialDisposable.setInnerDisposable(innerDisposable);
   };
 }
-and scheduleInternal = (disposable, priority, ~delay=?, continuation) => {
+and scheduleInternal = (shouldYield, disposable, priority, ~delay=?, continuation) => {
   disposable |> RxSerialDisposable.getInnerDisposable |> RxDisposable.dispose;
 
   switch (delay) {
@@ -98,6 +93,7 @@ and scheduleInternal = (disposable, priority, ~delay=?, continuation) => {
       setTimeout(
         scheduleNowWithPriority,
         delay,
+        shouldYield,
         priority,
         disposable,
         continuation,
@@ -105,13 +101,19 @@ and scheduleInternal = (disposable, priority, ~delay=?, continuation) => {
     let innerDisposable = RxDisposable.create1(clearTimeout, timeoutId);
     disposable |> RxSerialDisposable.setInnerDisposable(innerDisposable);
 
-  | _ => scheduleNowWithPriority(disposable, priority, continuation)
+  | _ => scheduleNowWithPriority(shouldYield, disposable, priority, continuation)
   };
 };
 
 let schedule = (priority, ~delay=?, continuation) => {
   let disposable = RxSerialDisposable.create();
-  scheduleInternal(disposable, priority, ~delay?, continuation);
+
+  let shouldYield = () => {
+    let isDisposed = RxSerialDisposable.isDisposed(disposable);
+    isDisposed || schedulerShouldYield();
+  };
+
+  scheduleInternal(shouldYield, disposable, priority, ~delay?, continuation);
   disposable |> RxSerialDisposable.asDisposable;
 };
 
