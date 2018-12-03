@@ -37,42 +37,55 @@ let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 let now = () => schedulerNow();
 let scheduleCallback = (cb, ()) => schedulerScheduleCallback(cb);
 
-let rec scheduleNowWithPriority = (shouldYield, disposable, priority, continuation) => {
+let rec makeCallback =
+        (shouldYield, disposable, priority, continuation: RxScheduler.Continuation.t, ())
+        : option(callback) => {
   let isDisposed = RxSerialDisposable.isDisposed(disposable);
 
   if (! isDisposed) {
-    let rec callback =
-            (continuation: RxScheduler.Continuation.t, ())
-            : option(callback) => {
-      let isDisposed = RxSerialDisposable.isDisposed(disposable);
+    let result = continuation(~now, ~shouldYield);
 
-      if (! isDisposed) {
-        let result = continuation(~now, ~shouldYield);
-
-        switch (result) {
-        | Yield(continuation) => Some(Obj.magic(callback(continuation)))
-        | ContinueAfter(delay, continuation) =>
-          scheduleInternal(shouldYield, disposable, priority, ~delay, continuation);
-          None;
-        | Complete => None
-        };
-      } else {
-        None;
-      };
+    switch (result) {
+    | Yield(continuation) =>
+      let callback = makeCallback(shouldYield, disposable, priority, continuation);
+      Some(Obj.magic(callback))
+    | ContinueAfter(delay, continuation) =>
+      scheduleInternal(
+        shouldYield,
+        disposable,
+        priority,
+        ~delay,
+        continuation,
+      );
+      None;
+    | Complete => None
     };
+  } else {
+    None;
+  };
+} 
+
+and scheduleNowWithPriority =
+        (shouldYield, disposable, priority, continuation) => {
+  let isDisposed = RxSerialDisposable.isDisposed(disposable);
+
+  if (! isDisposed) {
+    let callback = makeCallback(shouldYield, disposable, priority, continuation);
 
     let callbackHandle =
       runWithPriority(
         priority,
-        scheduleCallback(Obj.magic(callback(continuation))),
+        scheduleCallback(Obj.magic(callback)),
       );
+      
     let innerDisposable =
       RxDisposable.create1(cancelCallback, callbackHandle);
 
     disposable |> RxSerialDisposable.setInnerDisposable(innerDisposable);
   };
 }
-and scheduleInternal = (shouldYield, disposable, priority, ~delay=?, continuation) => {
+and scheduleInternal =
+    (shouldYield, disposable, priority, ~delay=?, continuation) => {
   disposable |> RxSerialDisposable.getInnerDisposable |> RxDisposable.dispose;
 
   switch (delay) {
@@ -101,7 +114,8 @@ and scheduleInternal = (shouldYield, disposable, priority, ~delay=?, continuatio
     let innerDisposable = RxDisposable.create1(clearTimeout, timeoutId);
     disposable |> RxSerialDisposable.setInnerDisposable(innerDisposable);
 
-  | _ => scheduleNowWithPriority(shouldYield, disposable, priority, continuation)
+  | _ =>
+    scheduleNowWithPriority(shouldYield, disposable, priority, continuation)
   };
 };
 
