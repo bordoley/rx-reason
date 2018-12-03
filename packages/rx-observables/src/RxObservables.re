@@ -213,11 +213,11 @@ let scan = (reducer, initialValue, observable) =>
   observable |> RxObservable.lift(ScanOperator.create(reducer, initialValue));
 
 let share = observable =>
-  MulticastObservable.create(RxSubject.createMulticast, observable);
+  ShareObservable.create(RxSubject.createMulticast, observable);
 
 let shareWithReplayBuffer = count => {
   let createSubject = () => RxReplayBufferSubject.create(count);
-  obs => MulticastObservable.create(createSubject, obs);
+  obs => ShareObservable.create(createSubject, obs);
 };
 
 let some = (predicate, observable) =>
