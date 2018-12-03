@@ -238,10 +238,7 @@ let switch_ = observable =>
 
 let switchMap = (f, observable) =>
   observable |> RxObservable.lift(RxOperators.switchMap(f));
-
-let synchronize = observable =>
-  observable |> RxObservable.lift(RxOperators.synchronize);
-
+  
 let timeout = (~scheduler, due, observable) =>
   observable |> RxObservable.lift(RxOperators.timeout(~scheduler, due));
 

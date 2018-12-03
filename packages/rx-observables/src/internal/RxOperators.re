@@ -36,6 +36,5 @@ let scan = ScanOperator.operator;
 let some = SomeOperator.operator;
 let switch_ = SwitchOperator.operator;
 let switchMap = SwitchMapOperator.operator;
-let synchronize = SynchronizeOperator.operator;
 let timeout = TimeoutOperator.operator;
 let withLatestFrom = WithLatestFromOperator.operator;

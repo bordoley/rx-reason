@@ -440,15 +440,7 @@ let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let switchMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
-
-/**
- * Returns an Observable that utilizes locking, to ensure subscriber
- * callbacks are synchronized.
- *
- * Note: Only defined to support a future native ocaml version.
- */
-let synchronize: RxObservable.t('a) => RxObservable.t('a);
-
+  
 /**
  * Returns an Observable which completes with a TimeoutException if
  * no notifications are observed before a duration determined
