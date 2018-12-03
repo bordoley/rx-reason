@@ -16,12 +16,6 @@ let combineLatest2:
   RxObservable.t('c);
 
 /**
- * Returns an Observable that calls an Observable factory to
- * create a new Observable for each subscription.
- */
-let defer: (unit => RxObservable.t('a)) => RxObservable.t('a);
-
-/**
  * Returns an Observable which drops items from the source that
  * are followed by another item within a debounce duration
  * determined by the scheduler.

@@ -32,7 +32,7 @@ let ofList = {
       };
 
     let schedulerSubscription =
-      scheduler |> RxScheduler.schedule(~delay=0.0, loop(list));
+      scheduler |> RxScheduler.schedule(loop(list));
     subscriber |> RxSubscriber.addDisposable(schedulerSubscription) |> ignore;
   };
 
