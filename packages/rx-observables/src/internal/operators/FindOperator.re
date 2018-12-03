@@ -1,2 +1,4 @@
-let create = (predicate, subscriber) =>
-  KeepOperator.create(predicate) @@ MaybeFirstOperator.create @@ subscriber;
+let create = predicate => {
+  let keepOperator = KeepOperator.create(predicate);
+  subscriber => keepOperator @@ MaybeFirstOperator.create @@ subscriber;
+};

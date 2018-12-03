@@ -1,5 +1,8 @@
-let create = (predicate, subscriber) =>
-  MapOperator.create(predicate) @@
-  KeepOperator.create(RxFunctions.identity) @@
-  IsEmptyOperator.create @@
-  subscriber;
+let keepIfTrueOperator = KeepOperator.create(RxFunctions.identity);
+
+let create = predicate => {
+  let mapOperator = MapOperator.create(predicate);
+
+  subscriber =>
+    mapOperator @@ keepIfTrueOperator @@ IsEmptyOperator.create @@ subscriber;
+};

@@ -1,1 +1,4 @@
-let create = (f, s) => MapOperator.create(f) @@ ExhaustOperator.create @@ s;
+let create = f => {
+  let mapOperator = MapOperator.create(f);
+  s => mapOperator @@ ExhaustOperator.create @@ s;
+};
