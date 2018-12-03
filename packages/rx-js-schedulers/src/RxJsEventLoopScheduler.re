@@ -63,7 +63,7 @@ and scheduleInternal = (disposable, ~delay=?, continuation) => {
   };
 };
 
-let scheduler: RxScheduler.t = {
+let instance: RxScheduler.t = {
   now,
   schedule: (~delay=?, continuation) => {
     let disposable = RxSerialDisposable.create();

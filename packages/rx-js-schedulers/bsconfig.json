@@ -17,13 +17,7 @@
   "refmt": 3,
   "sources": [
     {
-      "dir": "src",
-      "subdirs": [
-        {
-          "dir": "internal",
-          "public": "none"
-        }
-      ]
+      "dir": "src"
     }
   ]
 }
