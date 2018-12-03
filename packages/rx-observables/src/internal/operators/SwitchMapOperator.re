@@ -1,1 +1,1 @@
-let operator = (f, s) => MapOperator.operator(f) @@ SwitchOperator.operator @@ s;
+let create = (f, s) => MapOperator.create(f) @@ SwitchOperator.create @@ s;

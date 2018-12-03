@@ -1,2 +1,2 @@
-let operator = subscriber =>
-  FirstOperator.operator @@ MaybeOperator.operator @@ subscriber;
+let create = subscriber =>
+  FirstOperator.create @@ MaybeOperator.create @@ subscriber;

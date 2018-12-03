@@ -1,5 +1,5 @@
-let operator = (predicate, subscriber) =>
-  MapOperator.operator(predicate) @@
-  KeepOperator.operator(RxFunctions.identity) @@
-  IsEmptyOperator.operator @@
+let create = (predicate, subscriber) =>
+  MapOperator.create(predicate) @@
+  KeepOperator.create(RxFunctions.identity) @@
+  IsEmptyOperator.create @@
   subscriber;

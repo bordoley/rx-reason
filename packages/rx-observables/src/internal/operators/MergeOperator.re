@@ -65,7 +65,7 @@ let onComplete = (self, delegate, exn) => {
   };
 };
 
-let operator = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
+let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
   let self = {
     activeCount: RxAtomic.make(0),
     isStopped: RxAtomic.make(false),

@@ -1,4 +1,4 @@
-let operator = (scanner, initialValue, subscriber) => {
+let create = (scanner, initialValue, subscriber) => {
   let acc = ref(initialValue);
   let mapper = next => {
     let prevAcc = acc^;
@@ -7,5 +7,5 @@ let operator = (scanner, initialValue, subscriber) => {
     nextAcc;
   };
   subscriber |> RxSubscriber.next(initialValue);
-  MapOperator.operator(mapper, subscriber);
+  MapOperator.create(mapper, subscriber);
 };

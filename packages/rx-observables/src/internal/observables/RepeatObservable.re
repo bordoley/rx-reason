@@ -16,7 +16,7 @@ let operator = {
       let newInnerSubscription =
         observable
         |> RxObservable.lift(
-             ObserveOperator.operator4(
+             ObserveOperator.create4(
                ~onNext=SubscriberForward.onNext3,
                ~onComplete,
                observable,

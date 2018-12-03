@@ -1,2 +1,2 @@
-let operator = (predicate, subscriber) =>
-  KeepOperator.operator(predicate) @@ MaybeFirstOperator.operator @@ subscriber;
+let create = (predicate, subscriber) =>
+  KeepOperator.create(predicate) @@ MaybeFirstOperator.create @@ subscriber;

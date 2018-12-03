@@ -1,4 +1,4 @@
-let operator = (~maxBufferSize=?, ~maxConcurrency=?, f, s) =>
-  MapOperator.operator(f) @@
-  MergeOperator.operator(~maxBufferSize?, ~maxConcurrency?) @@
+let create = (~maxBufferSize=?, ~maxConcurrency=?, f, s) =>
+  MapOperator.create(f) @@
+  MergeOperator.create(~maxBufferSize?, ~maxConcurrency?) @@
   s;

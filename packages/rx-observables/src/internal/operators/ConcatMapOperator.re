@@ -1,1 +1,1 @@
-let operator = (f, s) => MapOperator.operator(f) @@ ConcatOperator.operator @@ s;
+let create = (f, s) => MapOperator.create(f) @@ ConcatOperator.create @@ s;

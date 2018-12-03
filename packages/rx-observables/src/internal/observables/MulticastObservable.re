@@ -32,7 +32,7 @@ let source = (state, subscriber) => {
   let innerSubscription =
     state.subject
     |> RxSubject.asObservable
-    |> RxObservable.lift(ForwardingOperator.operator(subscriber))
+    |> RxObservable.lift(ForwardingOperator.create(subscriber))
     |> RxObservable.subscribe;
 
   subscriber
@@ -44,7 +44,7 @@ let source = (state, subscriber) => {
     let subscriber =
       state.source
       |> RxObservable.lift(
-           ObserveOperator.operator1(
+           ObserveOperator.create1(
              ~onNext=forwardOnNext,
              ~onComplete=forwardOnComplete,
              state.subject,

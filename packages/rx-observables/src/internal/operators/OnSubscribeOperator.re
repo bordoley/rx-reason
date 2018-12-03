@@ -1,2 +1,2 @@
-let operator = (f, subscriber) =>
+let create = (f, subscriber) =>
   subscriber |> RxSubscriber.addDisposable(f());

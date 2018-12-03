@@ -3,18 +3,16 @@ type context('a) = {
   mutable self: RxSubscriber.t('a),
 };
 
-let operator = {
-  let onNext = (predicate, subscriber, next) => {
-    let shouldKeep = predicate(next);
-    if (shouldKeep) {
-      subscriber |> RxSubscriber.next(next);
-    };
+let onNext = (predicate, subscriber, next) => {
+  let shouldKeep = predicate(next);
+  if (shouldKeep) {
+    subscriber |> RxSubscriber.next(next);
   };
-
-  predicate =>
-    RxSubscriber.decorate1(
-      ~onNext,
-      ~onComplete=SubscriberForward.onComplete1,
-      predicate,
-    );
 };
+
+let create = predicate =>
+  RxSubscriber.decorate1(
+    ~onNext,
+    ~onComplete=SubscriberForward.onComplete1,
+    predicate,
+  );

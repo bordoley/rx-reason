@@ -46,7 +46,7 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
   ctx.subscription0 :=
     observable0
     |> RxObservable.lift(
-         ObserveOperator.operator3(
+         ObserveOperator.create3(
            ~onNext,
            ~onComplete,
            ctx,
@@ -59,7 +59,7 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
   ctx.subscription1 :=
     observable1
     |> RxObservable.lift(
-         ObserveOperator.operator3(
+         ObserveOperator.create3(
            ~onNext,
            ~onComplete,
            ctx,

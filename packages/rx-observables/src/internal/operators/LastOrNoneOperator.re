@@ -1,5 +1,5 @@
-let operator = subscriber =>
-  LastOperator.operator @@
-  MapOperator.operator(RxFunctions.some) @@
-  DefaultIfEmptyOperator.operator(None) @@
+let create = subscriber =>
+  LastOperator.create @@
+  MapOperator.create(RxFunctions.some) @@
+  DefaultIfEmptyOperator.create(None) @@
   subscriber;

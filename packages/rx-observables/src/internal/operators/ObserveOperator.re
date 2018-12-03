@@ -62,32 +62,32 @@ let onComplete = (context, subscriber, exn) => {
 let decorate = (context, subscriber) =>
   subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, context);
 
-let operator = (~onNext, ~onComplete, subscriber) => {
+let create = (~onNext, ~onComplete, subscriber) => {
   let context = C0(onNext, onComplete);
   decorate(context, subscriber);
 };
 
-let operator1 = (~onNext, ~onComplete, ctx0, subscriber) => {
+let create1 = (~onNext, ~onComplete, ctx0, subscriber) => {
   let context = C1(onNext, onComplete, ctx0);
   decorate(context, subscriber);
 };
 
-let operator2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
+let create2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
   let context = C2(onNext, onComplete, ctx0, ctx1);
   decorate(context, subscriber);
 };
 
-let operator3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
+let create3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
   let context = C3(onNext, onComplete, ctx0, ctx1, ctx2);
   decorate(context, subscriber);
 };
 
-let operator4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
+let create4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
   let context = C4(onNext, onComplete, ctx0, ctx1, ctx2, ctx3);
   decorate(context, subscriber);
 };
 
-let operator5 =
+let create5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, subscriber) => {
   let context = C5(onNext, onComplete, ctx0, ctx1, ctx2, ctx3, ctx4);
   decorate(context, subscriber);

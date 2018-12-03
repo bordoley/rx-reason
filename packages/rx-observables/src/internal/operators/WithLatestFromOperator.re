@@ -25,7 +25,7 @@ let otherOnComplete = (self, _, exn) =>
   | _ => ()
   };
 
-let operator = (~selector, other, subscriber) => {
+let create = (~selector, other, subscriber) => {
   let otherLatest = RxMutableOption.create();
 
   let context = {
@@ -40,7 +40,7 @@ let operator = (~selector, other, subscriber) => {
   context.otherSubscription =
     other
     |> RxObservable.lift(
-         ObserveOperator.operator2(
+         ObserveOperator.create2(
            ~onNext=otherOnNext,
            ~onComplete=otherOnComplete,
            delegateSubscriber,

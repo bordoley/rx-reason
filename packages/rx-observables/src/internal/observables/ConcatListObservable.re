@@ -22,7 +22,7 @@ let rec loop = (scheduler, observables, innerSubscription, subscriber) => {
         }
       )
       |> RxObservable.lift(
-           ObserveOperator.operator5(
+           ObserveOperator.create5(
              ~onNext=SubscriberForward.onNext4,
              ~onComplete,
              scheduler,
