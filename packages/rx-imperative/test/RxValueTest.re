@@ -54,6 +54,7 @@ let test =
             |> RxObservable.subscribe
             |> ignore;
 
+            value |> RxValue.update(_ => 2);
             observedValue^ |> Expect.toBeEqualToInt(0);
           }),
           it("publishes the current value on subscribe", () => {

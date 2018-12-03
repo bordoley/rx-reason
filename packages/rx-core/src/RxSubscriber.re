@@ -174,20 +174,20 @@ let isStopped =
   | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
     RxAtomic.get(isStopped);
 
-let shouldComplete =
-  fun
-  | Disposed => false
-  | AutoDisposing(disposable) =>
-    ! RxCompositeDisposable.isDisposed(disposable)
-  | Decorating(_, isStopped, _, _)
-  | Decorating1(_, isStopped, _, _, _)
-  | Decorating2(_, isStopped, _, _, _, _)
-  | Decorating3(_, isStopped, _, _, _, _, _)
-  | Decorating4(_, isStopped, _, _, _, _, _, _)
-  | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
-    ! RxAtomic.exchange(isStopped, true);
-
 let rec completeWithResult: 'a .(~exn: exn=?, t('a)) => bool = {
+  let shouldComplete =
+    fun
+    | Disposed => false
+    | AutoDisposing(disposable) =>
+      ! RxCompositeDisposable.isDisposed(disposable)
+    | Decorating(_, isStopped, _, _)
+    | Decorating1(_, isStopped, _, _, _)
+    | Decorating2(_, isStopped, _, _, _, _)
+    | Decorating3(_, isStopped, _, _, _, _, _)
+    | Decorating4(_, isStopped, _, _, _, _, _, _)
+    | Decorating5(_, isStopped, _, _, _, _, _, _, _) =>
+      ! RxAtomic.exchange(isStopped, true);
+
   let doComplete = (exn, subscriber) =>
     switch (subscriber) {
     | Disposed => ()
