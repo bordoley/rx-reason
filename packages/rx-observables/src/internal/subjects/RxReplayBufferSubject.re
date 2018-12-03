@@ -23,12 +23,11 @@ let onComplete = (maxBufferCount, buffer, exn) => {
 let onSubscribe = (_, buffer, subscriber) => {
   let currentBuffer = buffer^;
   RxCopyOnWriteArray.forEach(
-    next =>
-      switch (next) {
-      | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
-      | RxNotification.Complete(exn) =>
-        subscriber |> RxSubscriber.complete(~exn?)
-      },
+    RxNotification.map1(
+      ~onNext=SubscriberForward.onNext,
+      ~onComplete=SubscriberForward.onComplete,
+      subscriber,
+    ),
     currentBuffer,
   );
 };

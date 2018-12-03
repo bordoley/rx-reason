@@ -8,7 +8,7 @@ let schedule = (wip, doWork, queue, delay, notification, scheduler) => {
 };
 
 let onNext = (scheduler, wip, doWork, queue, delay, _, next) =>
-  scheduler |> schedule(wip, doWork, queue, delay, RxNotification.Next(next));
+  scheduler |> schedule(wip, doWork, queue, delay, RxNotification.next(next));
 
 let onComplete = (scheduler, wip, doWork, queue, delay, _, exn) =>
   scheduler
@@ -30,11 +30,12 @@ let create = (~scheduler, delay, subscriber) => {
       | Some((dueTime, notification)) when currentTime >= dueTime =>
         RxMutableQueue.dequeue(queue) |> ignore;
 
-        switch (notification) {
-        | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
-        | RxNotification.Complete(exn) =>
-          subscriber |> RxSubscriber.complete(~exn?)
-        };
+        notification
+        |> RxNotification.map1(
+             ~onNext=SubscriberForward.onNext,
+             ~onComplete=SubscriberForward.onComplete,
+             subscriber,
+           );
 
         0.0;
       | Some((dueTime, _)) => dueTime -. currentTime

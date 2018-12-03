@@ -6,7 +6,7 @@ let schedule = (wip, doWork, queue, notification, scheduler) => {
 };
 
 let onNext = (scheduler, wip, doWork, queue, _, next) =>
-  scheduler |> schedule(wip, doWork, queue, RxNotification.Next(next));
+  scheduler |> schedule(wip, doWork, queue, RxNotification.next(next));
 
 let onComplete = (scheduler, wip, doWork, queue, _, exn) =>
   scheduler |> schedule(wip, doWork, queue, RxNotification.complete(exn));
@@ -18,11 +18,11 @@ let create = (scheduler, subscriber) => {
   let rec doWork = (~now, ~shouldYield) => {
     let loopAgain =
       switch (RxMutableQueue.dequeue(queue)) {
-      | Some(RxNotification.Next(v)) =>
-        subscriber |> RxSubscriber.next(v);
-        true;
-      | Some(RxNotification.Complete(exn)) =>
-        subscriber |> RxSubscriber.complete(~exn?);
+      | Some(notif) => notif |> RxNotification.map1(
+          ~onNext=SubscriberForward.onNext,
+          ~onComplete=SubscriberForward.onComplete,
+          subscriber,
+        );
         true;
       | _ => false
       };

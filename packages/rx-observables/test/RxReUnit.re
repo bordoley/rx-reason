@@ -1,12 +1,14 @@
 open ReUnit;
 open ReUnit.Test;
 
-
 let observableToList = {
   let toListAccumulator = (acc, next) => [next, ...acc];
 
   observable =>
-    observable |> RxObservables.scan(toListAccumulator, []) |> RxObservables.last |> RxObservables.map(List.rev);
+    observable
+    |> RxObservables.scan(toListAccumulator, [])
+    |> RxObservables.last
+    |> RxObservables.map(List.rev);
 };
 
 let rxNotificationEquals =
@@ -16,20 +18,38 @@ let rxNotificationEquals =
       a,
       b,
     ) =>
-  switch (a, b) {
-  | (RxNotification.Next(a), RxNotification.Next(b)) => nextEquals(a, b)
-  | (RxNotification.Complete(Some(a)), RxNotification.Complete(Some(b))) => exnEquals(a, b)
-  | (RxNotification.Complete(None), RxNotification.Complete(None)) => true
-  | _ => false
-  };
+  RxNotification.map(
+    ~onNext=
+      vA =>
+        RxNotification.map(
+          ~onNext=vB => nextEquals(vA, vB),
+          ~onComplete=_ => false,
+          b,
+        ),
+    ~onComplete=
+      exnA =>
+        RxNotification.map(
+          ~onNext=_ => false,
+          ~onComplete=
+            exnB =>
+              switch (exnA, exnB) {
+              | (Some(a), Some(b)) => exnEquals(a, b)
+              | _ => false
+              },
+          b,
+        ),
+    a,
+  );
 
 let rxNotificationToString = (~exnToString=_ => "exn", ~nextToString, notif) =>
-  switch (notif) {
-  | RxNotification.Next(v) => "Next(" ++ nextToString(v) ++ ")"
-  | RxNotification.Complete(Some(exn)) =>
-    "CompleteWithException(" ++ exnToString(exn) ++ ")"
-  | RxNotification.Complete(None) => "Complete"
-  };
+  notif
+  |> RxNotification.map(
+       ~onNext=v => "Next(" ++ nextToString(v) ++ ")",
+       ~onComplete=
+         fun
+         | Some(exn) => "CompleteWithException(" ++ exnToString(exn) ++ ")"
+         | None => "Complete",
+     );
 
 let expectObservableToProduce =
     (~nextEquals=(===), ~nextToString, expected, observable) =>

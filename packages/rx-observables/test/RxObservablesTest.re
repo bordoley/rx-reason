@@ -13,12 +13,11 @@ let ofRelativeTimeNotifications = {
               ~now as _,
               ~shouldYield as _,
             ) => {
-              
-      switch (notif) {
-        | RxNotification.Next(v) => subscriber |> RxSubscriber.next(v)
-        | RxNotification.Complete(exn) =>
-          subscriber |> RxSubscriber.complete(~exn?)
-        };        
+       
+      notif |> RxNotification.map(
+        ~onNext=v => subscriber |> RxSubscriber.next(v),
+        ~onComplete=exn => subscriber |> RxSubscriber.complete(~exn?),
+      );       
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
@@ -84,8 +83,8 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (1.0, Next(7)),
-                      (3.0, Next(9)),
+                      (1.0, RxNotification.next(7)),
+                      (3.0, RxNotification.next(9)),
                       (4.0, RxNotification.complete(None)),
                     ],
                   ),
@@ -93,24 +92,24 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (2.0, Next(8)),
-                      (4.0, Next(10)),
+                      (2.0, RxNotification.next(8)),
+                      (4.0, RxNotification.next(10)),
                       (5.0, RxNotification.complete(None)),
                     ],
                   ),
                   RxObservables.ofList([4, 5, 6]),
                 ]),
             ~expected=[
-              Next(7),
-              Next(9),
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(8),
-              Next(10),
-              Next(4),
-              Next(5),
-              Next(6),
+              RxNotification.next(7),
+              RxNotification.next(9),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(8),
+              RxNotification.next(10),
+              RxNotification.next(4),
+              RxNotification.next(5),
+              RxNotification.next(6),
               RxNotification.complete(None),
             ],
             (),
@@ -128,17 +127,17 @@ let test =
                 ofRelativeTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(1)),
-                    (4.0, Next(2)),
-                    (6.0, Next(3)),
-                    (15.0, Next(4)),
-                    (16.0, Next(5)),
-                    (17.0, Next(6)),
+                    (0.0, RxNotification.next(1)),
+                    (4.0, RxNotification.next(2)),
+                    (6.0, RxNotification.next(3)),
+                    (15.0, RxNotification.next(4)),
+                    (16.0, RxNotification.next(5)),
+                    (17.0, RxNotification.next(6)),
                     (18.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.debounce(~scheduler, 5.0),
-            ~expected=[Next(3), Next(6), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(3), RxNotification.next(6), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -153,7 +152,7 @@ let test =
               _ =>
                 RxObservables.empty()
                 |> RxObservables.defaultIfEmpty(1),
-            ~expected=[Next(1), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -164,9 +163,9 @@ let test =
                 RxObservables.ofList([1, 2, 3])
                 |> RxObservables.defaultIfEmpty(1),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
               RxNotification.complete(None),
             ],
             (),
@@ -203,11 +202,11 @@ let test =
                 RxObservables.ofList([1, 1, 1, 3, 5, 3, 3, 1])
                 |> RxObservables.distinctUntilChanged(~equals=(===)),
             ~expected=[
-              Next(1),
-              Next(3),
-              Next(5),
-              Next(3),
-              Next(1),
+              RxNotification.next(1),
+              RxNotification.next(3),
+              RxNotification.next(5),
+              RxNotification.next(3),
+              RxNotification.next(1),
               RxNotification.complete(None),
             ],
             (),
@@ -225,7 +224,7 @@ let test =
               _ =>
                 RxObservables.empty()
                 |> RxObservables.every(i => i > 10),
-            ~expected=[Next(true), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -236,10 +235,10 @@ let test =
                 ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (1.0, Next(12)),
-                    (2.0, Next(8)),
-                    (3.0, Next(14)),
-                    (5.0, Next(6)),
+                    (1.0, RxNotification.next(12)),
+                    (2.0, RxNotification.next(8)),
+                    (3.0, RxNotification.next(14)),
+                    (5.0, RxNotification.next(6)),
                     (6.0, RxNotification.complete(None)),
                   ],
                 )
@@ -247,7 +246,7 @@ let test =
                 |> RxObservables.map(_ =>
                      scheduler |> RxScheduler.now |> int_of_float
                    ),
-            ~expected=[Next(2), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -257,7 +256,7 @@ let test =
               _ =>
                 RxObservables.ofList([12, 13])
                 |> RxObservables.every(i => i > 10),
-            ~expected=[Next(true), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -274,10 +273,10 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (0.0, Next(1)),
-                      (10.0, Next(2)),
-                      (20.0, Next(3)),
-                      (30.0, Next(4)),
+                      (0.0, RxNotification.next(1)),
+                      (10.0, RxNotification.next(2)),
+                      (20.0, RxNotification.next(3)),
+                      (30.0, RxNotification.next(4)),
                       (40.0, RxNotification.complete(None)),
                     ],
                   );
@@ -286,10 +285,10 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (0.0, Next(5)),
-                      (10.0, Next(6)),
-                      (19.0, Next(7)),
-                      (30.0, Next(8)),
+                      (0.0, RxNotification.next(5)),
+                      (10.0, RxNotification.next(6)),
+                      (19.0, RxNotification.next(7)),
+                      (30.0, RxNotification.next(8)),
                       (40.0, RxNotification.complete(None)),
                     ],
                   );
@@ -297,24 +296,24 @@ let test =
                 ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(childObservableA)),
-                    (15.0, Next(childObservableB)),
-                    (35.0, Next(childObservableA)),
-                    (60.0, Next(childObservableB)),
+                    (0.0, RxNotification.next(childObservableA)),
+                    (15.0, RxNotification.next(childObservableB)),
+                    (35.0, RxNotification.next(childObservableA)),
+                    (60.0, RxNotification.next(childObservableB)),
                     (75.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.exhaust;
               },
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(4),
-              Next(5),
-              Next(6),
-              Next(7),
-              Next(8),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
+              RxNotification.next(5),
+              RxNotification.next(6),
+              RxNotification.next(7),
+              RxNotification.next(8),
               RxNotification.complete(None),
             ],
             (),
@@ -331,7 +330,7 @@ let test =
               _ =>
                 RxObservables.ofList([1, 3, 10, 6, 8])
                 |> RxObservables.find(x => x mod 2 === 0),
-            ~expected=[Next(10), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(10), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -346,7 +345,7 @@ let test =
               _ =>
                 RxObservables.ofList([2, 3])
                 |> RxObservables.first,
-            ~expected=[Next(2), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -356,7 +355,7 @@ let test =
               _ =>
                 RxObservables.raise(Division_by_zero)
                 |> RxObservables.first,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -365,7 +364,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.empty() |> RxObservables.first,
-            ~expected=[Complete(Some(RxEmptyException.Exn))],
+            ~expected=[RxNotification.complete(Some(RxEmptyException.Exn))],
             (),
           ),
         ],
@@ -381,7 +380,7 @@ let test =
               _ =>
                 RxObservables.ofList([2, 3])
                 |> RxObservables.firstOrNone,
-            ~expected=[Next(Some(2)), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(Some(2)), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -392,7 +391,7 @@ let test =
               _ =>
                 RxObservables.raise(Division_by_zero)
                 |> RxObservables.firstOrNone,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -404,7 +403,7 @@ let test =
                 RxObservables.empty()
                 |> RxObservables.first
                 |> RxObservables.firstOrNone,
-            ~expected=[Next(None), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(None), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -418,13 +417,13 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofNotifications([
-                  Next(1),
-                  Next(2),
-                  Next(3),
-                  Complete(Some(Division_by_zero)),
+                  RxNotification.next(1),
+                  RxNotification.next(2),
+                  RxNotification.next(3),
+                  RxNotification.complete(Some(Division_by_zero)),
                 ])
                 |> RxObservables.ignoreElements,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
         ],
@@ -439,7 +438,7 @@ let test =
               _ =>
                 RxObservables.ofValue(1)
                 |> RxObservables.isEmpty,
-            ~expected=[Next(false), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -449,7 +448,7 @@ let test =
               _ =>
                 RxObservables.empty()
                 |> RxObservables.isEmpty,
-            ~expected=[Next(true), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -464,7 +463,7 @@ let test =
               _ =>
                 RxObservables.ofValue(1)
                 |> RxObservables.keep(_ => raise(Division_by_zero)),
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -474,7 +473,7 @@ let test =
               _ =>
                 RxObservables.ofValue(1)
                 |> RxObservables.keep(_ => true),
-            ~expected=[Next(1), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -489,7 +488,7 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2, 3])
                 |> RxObservables.last,
-            ~expected=[Next(3), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(3), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -498,13 +497,13 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofNotifications([
-                  Next(1),
-                  Next(2),
-                  Next(3),
-                  Complete(Some(Division_by_zero)),
+                  RxNotification.next(1),
+                  RxNotification.next(2),
+                  RxNotification.next(3),
+                  RxNotification.complete(Some(Division_by_zero)),
                 ])
                 |> RxObservables.last,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -513,7 +512,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.empty() |> RxObservables.last,
-            ~expected=[Complete(Some(RxEmptyException.Exn))],
+            ~expected=[RxNotification.complete(Some(RxEmptyException.Exn))],
             (),
           ),
         ],
@@ -527,7 +526,7 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ => RxObservables.ofList([2, 3]) |> RxObservables.lastOrNone,
-            ~expected=[Next(Some(3)), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(Some(3)), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -537,12 +536,12 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofNotifications([
-                  Next(1),
-                  Next(2),
-                  Complete(Some(Division_by_zero)),
+                  RxNotification.next(1),
+                  RxNotification.next(2),
+                  RxNotification.complete(Some(Division_by_zero)),
                 ])
                 |> RxObservables.lastOrNone,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -554,7 +553,7 @@ let test =
                 RxObservables.empty()
                 |> RxObservables.first
                 |> RxObservables.lastOrNone,
-            ~expected=[Next(None), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(None), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -569,7 +568,7 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2, 3])
                 |> RxObservables.map(_ => raise(Division_by_zero)),
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -580,9 +579,9 @@ let test =
                 RxObservables.ofList([1, 2, 3])
                 |> RxObservables.map(i => i + 1),
             ~expected=[
-              Next(2),
-              Next(3),
-              Next(4),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
               RxNotification.complete(None),
             ],
             (),
@@ -599,9 +598,9 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2, 3]) |> RxObservables.mapTo("a"),
             ~expected=[
-              Next("a"),
-              Next("a"),
-              Next("a"),
+              RxNotification.next("a"),
+              RxNotification.next("a"),
+              RxNotification.next("a"),
               RxNotification.complete(None),
             ],
             (),
@@ -617,7 +616,7 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeFirst,
-            ~expected=[Next(1), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -627,7 +626,7 @@ let test =
               _ =>
                 RxObservables.raise(Division_by_zero)
                 |> RxObservables.maybeFirst,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -651,7 +650,7 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ => RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeLast,
-            ~expected=[Next(3), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(3), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -660,12 +659,12 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofNotifications([
-                  Next(1),
-                  Next(2),
-                  Complete(Some(Division_by_zero)),
+                  RxNotification.next(1),
+                  RxNotification.next(2),
+                  RxNotification.complete(Some(Division_by_zero)),
                 ])
                 |> RxObservables.maybeLast,
-            ~expected=[Complete(Some(Division_by_zero))],
+            ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
@@ -693,8 +692,8 @@ let test =
                   ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
-                      (1.0, Next(7)),
-                      (3.0, Next(9)),
+                      (1.0, RxNotification.next(7)),
+                      (3.0, RxNotification.next(9)),
                       (4.0, RxNotification.complete(None)),
                     ],
                   ),
@@ -702,24 +701,24 @@ let test =
                   ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
-                      (2.0, Next(8)),
-                      (4.0, Next(10)),
+                      (2.0, RxNotification.next(8)),
+                      (4.0, RxNotification.next(10)),
                       (5.0, RxNotification.complete(None)),
                     ],
                   ),
                   RxObservables.ofList([4, 5, 6]),
                 ]),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(4),
-              Next(5),
-              Next(6),
-              Next(7),
-              Next(8),
-              Next(9),
-              Next(10),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
+              RxNotification.next(5),
+              RxNotification.next(6),
+              RxNotification.next(7),
+              RxNotification.next(8),
+              RxNotification.next(9),
+              RxNotification.next(10),
               RxNotification.complete(None),
             ],
             (),
@@ -740,7 +739,7 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2])
                 |> RxObservables.onComplete(RxFunctions.alwaysUnit1),
-            ~expected=[Next(1), Next(2), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(1), RxNotification.next(2), RxNotification.complete(None)],
             (),
           ),
           it("calls the side effect function", () => {
@@ -765,7 +764,7 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2])
                 |> RxObservables.onNext(RxFunctions.alwaysUnit1),
-            ~expected=[Next(1), Next(2), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(1), RxNotification.next(2), RxNotification.complete(None)],
             (),
           ),
           it("calls the side effect function", () => {
@@ -806,12 +805,12 @@ let test =
                 |> RxObservables.retry(~predicate);
               },
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(1),
-              Next(2),
-              Next(1),
-              Next(2),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(1),
+              RxNotification.next(2),
               RxNotification.complete(Some(Division_by_zero)),
             ],
             (),
@@ -864,7 +863,7 @@ let test =
               ofAbsoluteTimeNotifications(
                 ~scheduler,
                 [
-                  (1.0, Next(5)),
+                  (1.0, RxNotification.next(5)),
                   (2.0, RxNotification.complete(Some(Division_by_zero))),
                 ],
               )
@@ -874,7 +873,7 @@ let test =
                  })
               |> expectObservableToProduce(
                    ~nextToString=string_of_int,
-                   [Next(5), RxNotification.complete(None)],
+                   [RxNotification.next(5), RxNotification.complete(None)],
                  );
 
             vts |> RxVirtualTimeScheduler.run;
@@ -892,10 +891,10 @@ let test =
                 RxObservables.ofList([2, 3, 4])
                 |> RxObservables.scan((acc, next) => acc + next, 0),
             ~expected=[
-              Next(0),
-              Next(2),
-              Next(5),
-              Next(9),
+              RxNotification.next(0),
+              RxNotification.next(2),
+              RxNotification.next(5),
+              RxNotification.next(9),
               RxNotification.complete(None),
             ],
             (),
@@ -915,10 +914,10 @@ let test =
                   ofAbsoluteTimeNotifications(
                     ~scheduler,
                     [
-                      (0.0, Next(1)),
-                      (2.0, Next(2)),
-                      (4.0, Next(3)),
-                      (6.0, Next(4)),
+                      (0.0, RxNotification.next(1)),
+                      (2.0, RxNotification.next(2)),
+                      (4.0, RxNotification.next(3)),
+                      (6.0, RxNotification.next(4)),
                       (9.0, RxNotification.complete(None)),
                     ],
                   )
@@ -930,13 +929,13 @@ let test =
                 ]);
               },
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(2),
-              Next(3),
-              Next(4),
-              Next(4),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
+              RxNotification.next(4),
               RxNotification.complete(None),
             ],
             (),
@@ -951,7 +950,7 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ => RxObservables.empty() |> RxObservables.some(i => i > 10),
-            ~expected=[Next(false), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -961,7 +960,7 @@ let test =
               _ =>
                 RxObservables.ofList([5, 6, 7])
                 |> RxObservables.some(i => i > 10),
-            ~expected=[Next(false), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
             (),
           ),
           observableIt(
@@ -972,17 +971,17 @@ let test =
                 ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (1.0, Next(8)),
-                    (2.0, Next(11)),
-                    (3.0, Next(14)),
-                    (4.0, Next(6)),
-                    (5.0, Next(5)),
+                    (1.0, RxNotification.next(8)),
+                    (2.0, RxNotification.next(11)),
+                    (3.0, RxNotification.next(14)),
+                    (4.0, RxNotification.next(6)),
+                    (5.0, RxNotification.next(5)),
                     (6.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.some(i => i > 10)
                 |> RxObservables.map(_ => now() |> int_of_float),
-            ~expected=[Next(2), RxNotification.complete(None)],
+            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
             (),
           ),
         ],
@@ -1000,18 +999,18 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (1.0, Next(4)),
-                      (2.0, Next(5)),
+                      (1.0, RxNotification.next(4)),
+                      (2.0, RxNotification.next(5)),
                       (3.0, RxNotification.complete(None)),
                     ],
                   ),
                 ),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(4),
-              Next(5),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
+              RxNotification.next(5),
               RxNotification.complete(None),
             ],
             (),
@@ -1031,9 +1030,9 @@ let test =
                   RxObservables.ofList([2, 3]),
                 ),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
               RxNotification.complete(None),
             ],
             (),
@@ -1052,10 +1051,10 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (0.0, Next(1)),
-                      (10.0, Next(2)),
-                      (20.0, Next(3)),
-                      (30.0, Next(4)),
+                      (0.0, RxNotification.next(1)),
+                      (10.0, RxNotification.next(2)),
+                      (20.0, RxNotification.next(3)),
+                      (30.0, RxNotification.next(4)),
                       (40.0, RxNotification.complete(None)),
                     ],
                   );
@@ -1064,10 +1063,10 @@ let test =
                   ofRelativeTimeNotifications(
                     ~scheduler,
                     [
-                      (0.0, Next(5)),
-                      (10.0, Next(6)),
-                      (19.0, Next(7)),
-                      (30.0, Next(8)),
+                      (0.0, RxNotification.next(5)),
+                      (10.0, RxNotification.next(6)),
+                      (19.0, RxNotification.next(7)),
+                      (30.0, RxNotification.next(8)),
                       (40.0, RxNotification.complete(None)),
                     ],
                   );
@@ -1075,26 +1074,26 @@ let test =
                 ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(childObservableA)),
-                    (15.0, Next(childObservableB)),
-                    (35.0, Next(childObservableA)),
-                    (60.0, Next(childObservableB)),
+                    (0.0, RxNotification.next(childObservableA)),
+                    (15.0, RxNotification.next(childObservableB)),
+                    (35.0, RxNotification.next(childObservableA)),
+                    (60.0, RxNotification.next(childObservableB)),
                     (75.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.switch_;
               },
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(5),
-              Next(6),
-              Next(7),
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(5),
-              Next(6),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(5),
+              RxNotification.next(6),
+              RxNotification.next(7),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(5),
+              RxNotification.next(6),
               RxNotification.complete(None),
             ],
             (),
@@ -1113,19 +1112,19 @@ let test =
                 ofRelativeTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(1)),
-                    (4.0, Next(2)),
-                    (6.0, Next(3)),
-                    (10.0, Next(4)),
+                    (0.0, RxNotification.next(1)),
+                    (4.0, RxNotification.next(2)),
+                    (6.0, RxNotification.next(3)),
+                    (10.0, RxNotification.next(4)),
                     (14.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.timeout(~scheduler, 5.0),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
-              Next(4),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
+              RxNotification.next(4),
               RxNotification.complete(None),
             ],
             (),
@@ -1138,18 +1137,18 @@ let test =
                 ofRelativeTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(1)),
-                    (4.0, Next(2)),
-                    (6.0, Next(3)),
-                    (15.0, Next(4)),
+                    (0.0, RxNotification.next(1)),
+                    (4.0, RxNotification.next(2)),
+                    (6.0, RxNotification.next(3)),
+                    (15.0, RxNotification.next(4)),
                     (20.0, RxNotification.complete(None)),
                   ],
                 )
                 |> RxObservables.timeout(~scheduler, 5.0),
             ~expected=[
-              Next(1),
-              Next(2),
-              Next(3),
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.next(3),
               RxNotification.complete(Some(RxTimeoutException.Exn)),
             ],
             (),
@@ -1167,10 +1166,10 @@ let test =
                 ofAbsoluteTimeNotifications(
                   ~scheduler,
                   [
-                    (0.0, Next(1)),
-                    (200.0, Next(2)),
-                    (400.0, Next(3)),
-                    (600.0, Next(4)),
+                    (0.0, RxNotification.next(1)),
+                    (200.0, RxNotification.next(2)),
+                    (400.0, RxNotification.next(3)),
+                    (600.0, RxNotification.next(4)),
                     (700.0, RxNotification.complete(None)),
                   ],
                 )
@@ -1179,18 +1178,18 @@ let test =
                      ofAbsoluteTimeNotifications(
                        ~scheduler,
                        [
-                         (100.0, Next(1)),
-                         (250.0, Next(2)),
-                         (300.0, Next(3)),
-                         (450.0, Next(4)),
+                         (100.0, RxNotification.next(1)),
+                         (250.0, RxNotification.next(2)),
+                         (300.0, RxNotification.next(3)),
+                         (450.0, RxNotification.next(4)),
                          (500.0, RxNotification.complete(None)),
                        ],
                      ),
                    ),
             ~expected=[
-              Next(3),
-              Next(6),
-              Next(8),
+              RxNotification.next(3),
+              RxNotification.next(6),
+              RxNotification.next(8),
               RxNotification.complete(None),
             ],
             (),
