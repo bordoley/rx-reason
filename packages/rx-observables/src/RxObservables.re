@@ -1,123 +1,129 @@
 let combineLatest2 = CombineLatest2Observable.create;
 
 let concat = observable =>
-  observable |> RxObservable.lift(RxOperators.concat);
+  observable |> RxObservable.lift(ConcatOperator.create);
 
 let concatMap = (f, observable) =>
-  observable |> RxObservable.lift(RxOperators.concatMap(f));
+  observable |> RxObservable.lift(ConcatMapOperator.create(f));
 
 let concatList = ConcatListObservable.create;
 
 let debounce = (~scheduler, dueTime, observable) =>
-  observable |> RxObservable.lift(RxOperators.debounce(~scheduler, dueTime));
+  observable
+  |> RxObservable.lift(DebounceOperator.create(~scheduler, dueTime));
 
 let defaultIfEmpty = (default, observable) =>
-  observable |> RxObservable.lift(RxOperators.defaultIfEmpty(default));
+  observable |> RxObservable.lift(DefaultIfEmptyOperator.create(default));
 
 let defer = DeferObservable.create;
 
 let delay = (~scheduler, delay, observable) =>
-  observable |> RxObservable.lift(RxOperators.delay(~scheduler, delay));
+  observable |> RxObservable.lift(DelayOperator.create(~scheduler, delay));
 
 let dematerialize = observable =>
-  observable |> RxObservable.lift(RxOperators.dematerialize);
+  observable |> RxObservable.lift(DematerializeOperator.create);
 
 let distinctUntilChanged = (~equals=?, observable) =>
-  observable |> RxObservable.lift(RxOperators.distinctUntilChanged(~equals?));
+  observable
+  |> RxObservable.lift(DistinctUntilChangedOperator.create(~equals?));
 
 let empty = EmptyObservable.create;
 
 let every = (predicate, observable) =>
-  observable |> RxObservable.lift(RxOperators.every(predicate));
+  observable |> RxObservable.lift(EveryOperator.create(predicate));
 
 let exhaust = observable =>
-  observable |> RxObservable.lift(RxOperators.exhaust);
+  observable |> RxObservable.lift(ExhaustOperator.create);
 
 let exhaustMap = (f, observable) =>
-  observable |> RxObservable.lift(RxOperators.exhaustMap(f));
+  observable |> RxObservable.lift(ExhaustMapOperator.create(f));
 
 let find = (predicate, observable) =>
-  observable |> RxObservable.lift(RxOperators.find(predicate));
+  observable |> RxObservable.lift(FindOperator.create(predicate));
 
-let first = observable => observable |> RxObservable.lift(RxOperators.first);
+let first = observable =>
+  observable |> RxObservable.lift(FirstOperator.create);
 
 let firstOrNone = observable =>
-  observable |> RxObservable.lift(RxOperators.firstOrNone);
+  observable |> RxObservable.lift(FirstOrNoneOperator.create);
 
 let ignoreElements = observable =>
-  observable |> RxObservable.lift(RxOperators.ignoreElements);
+  observable |> RxObservable.lift(IgnoreElementsOperator.create);
 
 let isEmpty = observable =>
-  observable |> RxObservable.lift(RxOperators.isEmpty);
+  observable |> RxObservable.lift(IsEmptyOperator.create);
 
 let keep = (predicate, observable) =>
-  observable |> RxObservable.lift(RxOperators.keep(predicate));
+  observable |> RxObservable.lift(KeepOperator.create(predicate));
 
-let last = observable => observable |> RxObservable.lift(RxOperators.last);
+let last = observable => observable |> RxObservable.lift(LastOperator.create);
 
 let lastOrNone = observable =>
-  observable |> RxObservable.lift(RxOperators.lastOrNone);
+  observable |> RxObservable.lift(LastOrNoneOperator.create);
 
 let map = (f, observable) =>
-  observable |> RxObservable.lift(RxOperators.map(f));
+  observable |> RxObservable.lift(MapOperator.create(f));
 
 let mapTo = (value, observable) =>
-  observable |> RxObservable.lift(RxOperators.mapTo(value));
+  observable |> RxObservable.lift(MapToOperator.create(value));
 
 let materialize = observable =>
-  observable |> RxObservable.lift(RxOperators.materialize);
+  observable |> RxObservable.lift(MaterializeOperator.create);
 
 let maybeFirst = observable =>
-  observable |> RxObservable.lift(RxOperators.maybeFirst);
+  observable |> RxObservable.lift(MaybeFirstOperator.create);
 
 let maybeLast = observable =>
-  observable |> RxObservable.lift(RxOperators.maybeLast);
+  observable |> RxObservable.lift(MaybeLastOperator.create);
 
 let merge = (~maxBufferSize=?, ~maxConcurrency=?, observable) =>
   observable
-  |> RxObservable.lift(RxOperators.merge(~maxBufferSize?, ~maxConcurrency?));
+  |> RxObservable.lift(
+       MergeOperator.create(~maxBufferSize?, ~maxConcurrency?),
+     );
 
 let mergeList = MergeListObservable.create;
 
 let mergeMap = (~maxBufferSize=?, ~maxConcurrency=?, f, observable) =>
   observable
   |> RxObservable.lift(
-       RxOperators.mergeMap(~maxBufferSize?, ~maxConcurrency?, f),
+       MergeMapOperator.create(~maxBufferSize?, ~maxConcurrency?, f),
      );
 
 let none = (predicate, observable) =>
-  observable |> RxObservable.lift(RxOperators.none(predicate));
+  observable |> RxObservable.lift(NoneOperator.create(predicate));
 
 let observe = (~onNext, ~onComplete, observable) =>
-  observable |> RxObservable.lift(RxOperators.observe(~onNext, ~onComplete));
+  observable
+  |> RxObservable.lift(ObserveOperator.create(~onNext, ~onComplete));
 
 let observe1 = (~onNext, ~onComplete, ctx0, observable) =>
   observable
-  |> RxObservable.lift(RxOperators.observe1(~onNext, ~onComplete, ctx0));
+  |> RxObservable.lift(ObserveOperator.create1(~onNext, ~onComplete, ctx0));
 
 let observe2 = (~onNext, ~onComplete, ctx0, ctx1, observable) =>
   observable
   |> RxObservable.lift(
-       RxOperators.observe2(~onNext, ~onComplete, ctx0, ctx1),
+       ObserveOperator.create2(~onNext, ~onComplete, ctx0, ctx1),
      );
 
 let observe3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) =>
   observable
   |> RxObservable.lift(
-       RxOperators.observe3(~onNext, ~onComplete, ctx0, ctx1, ctx2),
+       ObserveOperator.create3(~onNext, ~onComplete, ctx0, ctx1, ctx2),
      );
 
 let observe4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) =>
   observable
   |> RxObservable.lift(
-       RxOperators.observe4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3),
+       ObserveOperator.create4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3),
      );
 
 let observe5 =
     (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, observable) =>
   observable
   |> RxObservable.lift(
-       RxOperators.observe5(
+       ObserveOperator.create5(
          ~onNext,
          ~onComplete,
          ctx0,
@@ -129,7 +135,7 @@ let observe5 =
      );
 
 let observeOn = (scheduler, observable) =>
-  observable |> RxObservable.lift(RxOperators.observeOn(scheduler));
+  observable |> RxObservable.lift(ObserveOnOperator.create(scheduler));
 
 let ofList = OfListObservable.create;
 
@@ -161,7 +167,7 @@ let onNext2 = (onNext, ctx0, ctx1, observable) =>
   |> observe2(~onNext, ~onComplete=RxFunctions.alwaysUnit3, ctx0, ctx1);
 
 let onSubscribe = (f, observable) =>
-  observable |> RxObservable.lift(RxOperators.onSubscribe(f));
+  observable |> RxObservable.lift(OnSubscribeOperator.create(f));
 
 let raise = RaiseObservable.create;
 
@@ -204,7 +210,7 @@ let retry = {
 };
 
 let scan = (reducer, initialValue, observable) =>
-  observable |> RxObservable.lift(RxOperators.scan(reducer, initialValue));
+  observable |> RxObservable.lift(ScanOperator.create(reducer, initialValue));
 
 let share = observable =>
   MulticastObservable.create(RxSubject.createMulticast, observable);
@@ -215,7 +221,7 @@ let shareWithReplayBuffer = count => {
 };
 
 let some = (predicate, observable) =>
-  observable |> RxObservable.lift(RxOperators.some(predicate));
+  observable |> RxObservable.lift(SomeOperator.create(predicate));
 
 let startWithList = (~scheduler=?, values, observable) =>
   concatList([ofList(~scheduler?, values), observable]);
@@ -226,13 +232,13 @@ let startWithValue = (~scheduler=?, value, observable) =>
 let subscribeOn = SubscribeOnObservable.create;
 
 let switch_ = observable =>
-  observable |> RxObservable.lift(RxOperators.switch_);
+  observable |> RxObservable.lift(SwitchOperator.create);
 
 let switchMap = (f, observable) =>
-  observable |> RxObservable.lift(RxOperators.switchMap(f));
+  observable |> RxObservable.lift(SwitchMapOperator.create(f));
 
 let timeout = (~scheduler, due, observable) =>
-  observable |> RxObservable.lift(RxOperators.timeout(~scheduler, due));
+  observable |> RxObservable.lift(TimeoutOperator.create(~scheduler, due));
 
 let withLatestFrom = (~selector, other, source) =>
-  source |> RxObservable.lift(RxOperators.withLatestFrom(~selector, other));
+  source |> RxObservable.lift(WithLatestFromOperator.create(~selector, other));
