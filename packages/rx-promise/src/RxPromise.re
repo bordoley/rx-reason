@@ -5,22 +5,24 @@ external promiseThen :
   "then";
 
 let toObservable = {
-  let toObservableSubscribe = (promise, subscriber) => {
-    let onSuccessIfNotDisposed = result =>
-      if (! RxSubscriber.isDisposed(subscriber)) {
-        subscriber |> RxSubscriber.next(result);
-        subscriber |> RxSubscriber.complete;
-      };
+  let onSuccessIfNotDisposed = (subscriber, result) =>
+    if (! RxSubscriber.isDisposed(subscriber)) {
+      subscriber |> RxSubscriber.next(result);
+      subscriber |> RxSubscriber.complete;
+    };
 
-    let onErrorIfNotDisposed = err =>
-      if (! RxSubscriber.isDisposed(subscriber)) {
-        subscriber |> RxSubscriber.complete(~exn=RxPromiseException.Exn(err));
-      };
+  let onErrorIfNotDisposed = (subscriber, err) =>
+    if (! RxSubscriber.isDisposed(subscriber)) {
+      subscriber |> RxSubscriber.complete(~exn=RxPromiseException.Exn(err));
+    };
 
+  let toObservableSubscribe = (promise, subscriber) =>
     promise
-    |. promiseThen(onSuccessIfNotDisposed, onErrorIfNotDisposed)
+    |. promiseThen(
+         onSuccessIfNotDisposed(subscriber),
+         onErrorIfNotDisposed(subscriber),
+       )
     |> ignore;
-  };
 
   promise => RxObservable.create1(toObservableSubscribe, promise);
 };
@@ -36,18 +38,18 @@ let fromObservable = {
       resolve(. lastValue);
     | _ => ()
     };
-  
-  let operator = (last, resolve, reject) => RxSubscriber.decorate3(
-    ~onNext, ~onComplete, last, resolve, reject
-  );
 
-  observable =>
-    Js.Promise.make((~resolve, ~reject) => {
-      let last = RxMutableOption.create();
+  let operator = (last, resolve, reject) =>
+    RxSubscriber.decorate3(~onNext, ~onComplete, last, resolve, reject);
 
-      observable
-      |> RxObservable.lift(operator(last, resolve, reject))
-      |> RxObservable.subscribe
-      |> ignore;
-    });
+  let promiseCallback = (observable, ~resolve, ~reject) => {
+    let last = RxMutableOption.create();
+
+    observable
+    |> RxObservable.lift(operator(last, resolve, reject))
+    |> RxObservable.subscribe
+    |> ignore;
+  };
+
+  observable => Js.Promise.make(promiseCallback(observable));
 };
