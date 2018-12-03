@@ -4,7 +4,10 @@
   "description": "cooperative scheduler interface for reason",
   "scripts": {
     "build": "bsb -make-world",
-    "clean": "bsb -clean-world"
+    "clean": "bsb -clean-world",
+    "test": "npm run build && node lib/js/test/TestRunner.bs.js",
+    "test-debug": "npm run build && node --inspect-brk lib/js/test/TestRunner.bs.js",
+    "test-coverage": "npm run build && nyc node lib/js/test/TestRunner.bs.js && nyc report --reporter=html && open coverage/index.html"
   },
   "keywords": [
     "ocaml",
@@ -33,6 +36,8 @@
     "@rx-reason/rx-utils-do-not-depend-on": "0.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.7"
+    "bs-platform": "^4.0.7",
+    "nyc": "^13.1.0",
+    "@rx-reason/reunit": "^0.0.0"
   }
 }
