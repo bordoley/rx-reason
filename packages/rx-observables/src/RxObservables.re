@@ -57,5 +57,6 @@ let startWithValue = StartWithValueObservable.create;
 let subscribeOn = SubscribeOnObservable.create;
 let switch_ = SwitchObservable.create;
 let switchMap = SwitchMapObservable.create;
+let takeUntil = TakeUntilObservable.create;
 let timeout = TimeoutObservable.create;
 let withLatestFrom = WithLatestFromObservable.create;

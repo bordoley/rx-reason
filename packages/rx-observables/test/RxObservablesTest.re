@@ -13,11 +13,11 @@ let ofRelativeTimeNotifications = {
               ~now as _,
               ~shouldYield as _,
             ) => {
-       
-      notif |> RxNotification.map(
-        ~onNext=v => subscriber |> RxSubscriber.next(v),
-        ~onComplete=exn => subscriber |> RxSubscriber.complete(~exn?),
-      );       
+      notif
+      |> RxNotification.map(
+           ~onNext=v => subscriber |> RxSubscriber.next(v),
+           ~onComplete=exn => subscriber |> RxSubscriber.complete(~exn?),
+         );
 
       switch (notifications) {
       | [(requestedDelay, notif), ...tail] =>
@@ -60,9 +60,7 @@ let ofAbsoluteTimeNotifications = (~scheduler, notifications) => {
 
   let relativeTimeNotifications =
     notifications
-    |> List.map(((time, notif)) =>
-         (time -. currentTime, notif)
-       );
+    |> List.map(((time, notif)) => (time -. currentTime, notif));
 
   ofRelativeTimeNotifications(~scheduler, relativeTimeNotifications);
 };
@@ -137,7 +135,11 @@ let test =
                   ],
                 )
                 |> RxObservables.debounce(~scheduler, 5.0),
-            ~expected=[RxNotification.next(3), RxNotification.next(6), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(3),
+              RxNotification.next(6),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -149,10 +151,11 @@ let test =
             "returns the default if empty",
             ~nextToString=string_of_int,
             ~source=
-              _ =>
-                RxObservables.empty()
-                |> RxObservables.defaultIfEmpty(1),
-            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
+              _ => RxObservables.empty() |> RxObservables.defaultIfEmpty(1),
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -221,10 +224,11 @@ let test =
             "returns true for an subscriber that completes without producing values",
             ~nextToString=string_of_bool,
             ~source=
-              _ =>
-                RxObservables.empty()
-                |> RxObservables.every(i => i > 10),
-            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
+              _ => RxObservables.empty() |> RxObservables.every(i => i > 10),
+            ~expected=[
+              RxNotification.next(true),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -246,7 +250,10 @@ let test =
                 |> RxObservables.map(_ =>
                      scheduler |> RxScheduler.now |> int_of_float
                    ),
-            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -256,7 +263,10 @@ let test =
               _ =>
                 RxObservables.ofList([12, 13])
                 |> RxObservables.every(i => i > 10),
-            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(true),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -330,7 +340,10 @@ let test =
               _ =>
                 RxObservables.ofList([1, 3, 10, 6, 8])
                 |> RxObservables.find(x => x mod 2 === 0),
-            ~expected=[RxNotification.next(10), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(10),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -341,11 +354,11 @@ let test =
           observableIt(
             "publishes the first observed value",
             ~nextToString=string_of_int,
-            ~source=
-              _ =>
-                RxObservables.ofList([2, 3])
-                |> RxObservables.first,
-            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
+            ~source=_ => RxObservables.ofList([2, 3]) |> RxObservables.first,
+            ~expected=[
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -353,17 +366,14 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ =>
-                RxObservables.raise(Division_by_zero)
-                |> RxObservables.first,
+                RxObservables.raise(Division_by_zero) |> RxObservables.first,
             ~expected=[RxNotification.complete(Some(Division_by_zero))],
             (),
           ),
           observableIt(
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
-            ~source=
-              _ =>
-                RxObservables.empty() |> RxObservables.first,
+            ~source=_ => RxObservables.empty() |> RxObservables.first,
             ~expected=[RxNotification.complete(Some(RxEmptyException.Exn))],
             (),
           ),
@@ -377,10 +387,11 @@ let test =
             ~nextEquals=Option.equals,
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
-              _ =>
-                RxObservables.ofList([2, 3])
-                |> RxObservables.firstOrNone,
-            ~expected=[RxNotification.next(Some(2)), RxNotification.complete(None)],
+              _ => RxObservables.ofList([2, 3]) |> RxObservables.firstOrNone,
+            ~expected=[
+              RxNotification.next(Some(2)),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -403,7 +414,10 @@ let test =
                 RxObservables.empty()
                 |> RxObservables.first
                 |> RxObservables.firstOrNone,
-            ~expected=[RxNotification.next(None), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(None),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -434,21 +448,21 @@ let test =
           observableIt(
             "return false if not empty",
             ~nextToString=string_of_bool,
-            ~source=
-              _ =>
-                RxObservables.ofValue(1)
-                |> RxObservables.isEmpty,
-            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
+            ~source=_ => RxObservables.ofValue(1) |> RxObservables.isEmpty,
+            ~expected=[
+              RxNotification.next(false),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
             "return true if empty",
             ~nextToString=string_of_bool,
-            ~source=
-              _ =>
-                RxObservables.empty()
-                |> RxObservables.isEmpty,
-            ~expected=[RxNotification.next(true), RxNotification.complete(None)],
+            ~source=_ => RxObservables.empty() |> RxObservables.isEmpty,
+            ~expected=[
+              RxNotification.next(true),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -470,10 +484,11 @@ let test =
             "completes the subscriber when the keep subscriber is completed",
             ~nextToString=string_of_int,
             ~source=
-              _ =>
-                RxObservables.ofValue(1)
-                |> RxObservables.keep(_ => true),
-            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
+              _ => RxObservables.ofValue(1) |> RxObservables.keep(_ => true),
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -485,10 +500,11 @@ let test =
             "publishes the last observed value and disposes",
             ~nextToString=string_of_int,
             ~source=
-              _ =>
-                RxObservables.ofList([1, 2, 3])
-                |> RxObservables.last,
-            ~expected=[RxNotification.next(3), RxNotification.complete(None)],
+              _ => RxObservables.ofList([1, 2, 3]) |> RxObservables.last,
+            ~expected=[
+              RxNotification.next(3),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -509,9 +525,7 @@ let test =
           observableIt(
             "completes with exception if no values are produced",
             ~nextToString=string_of_int,
-            ~source=
-              _ =>
-                RxObservables.empty() |> RxObservables.last,
+            ~source=_ => RxObservables.empty() |> RxObservables.last,
             ~expected=[RxNotification.complete(Some(RxEmptyException.Exn))],
             (),
           ),
@@ -526,7 +540,10 @@ let test =
             ~nextToString=Option.toString(~toString=string_of_int),
             ~source=
               _ => RxObservables.ofList([2, 3]) |> RxObservables.lastOrNone,
-            ~expected=[RxNotification.next(Some(3)), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(Some(3)),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -553,7 +570,10 @@ let test =
                 RxObservables.empty()
                 |> RxObservables.first
                 |> RxObservables.lastOrNone,
-            ~expected=[RxNotification.next(None), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(None),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -616,7 +636,10 @@ let test =
             ~source=
               _ =>
                 RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeFirst,
-            ~expected=[RxNotification.next(1), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -650,7 +673,10 @@ let test =
             ~nextToString=string_of_int,
             ~source=
               _ => RxObservables.ofList([1, 2, 3]) |> RxObservables.maybeLast,
-            ~expected=[RxNotification.next(3), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(3),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -739,7 +765,11 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2])
                 |> RxObservables.onComplete(RxFunctions.alwaysUnit1),
-            ~expected=[RxNotification.next(1), RxNotification.next(2), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           it("calls the side effect function", () => {
@@ -764,7 +794,11 @@ let test =
               _ =>
                 RxObservables.ofList([1, 2])
                 |> RxObservables.onNext(RxFunctions.alwaysUnit1),
-            ~expected=[RxNotification.next(1), RxNotification.next(2), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           it("calls the side effect function", () => {
@@ -950,7 +984,10 @@ let test =
             ~nextToString=string_of_bool,
             ~source=
               _ => RxObservables.empty() |> RxObservables.some(i => i > 10),
-            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(false),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -960,7 +997,10 @@ let test =
               _ =>
                 RxObservables.ofList([5, 6, 7])
                 |> RxObservables.some(i => i > 10),
-            ~expected=[RxNotification.next(false), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(false),
+              RxNotification.complete(None),
+            ],
             (),
           ),
           observableIt(
@@ -981,7 +1021,10 @@ let test =
                 )
                 |> RxObservables.some(i => i > 10)
                 |> RxObservables.map(_ => now() |> int_of_float),
-            ~expected=[RxNotification.next(2), RxNotification.complete(None)],
+            ~expected=[
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
             (),
           ),
         ],
@@ -1101,6 +1144,73 @@ let test =
         ],
       ),
       describe("subscribeOn", []),
+      describe(
+        "takeUntil",
+        [
+          observableIt(
+            "emits values until notifier produces a value",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler => {
+                let source =
+                  ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (0.0, RxNotification.next(1)),
+                      (4.0, RxNotification.next(2)),
+                      (6.0, RxNotification.next(3)),
+                      (10.0, RxNotification.next(4)),
+                      (14.0, RxNotification.complete(None)),
+                    ],
+                  );
+
+                let notifier =
+                  ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [(5.0, RxNotification.next())],
+                  );
+                source |> RxObservables.takeUntil(notifier);
+              },
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.complete(None),
+            ],
+            (),
+          ),
+          observableIt(
+            "notifier emitting an exception completes the observable",
+            ~nextToString=string_of_int,
+            ~source=
+              scheduler => {
+                let source =
+                  ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [
+                      (0.0, RxNotification.next(1)),
+                      (4.0, RxNotification.next(2)),
+                      (6.0, RxNotification.next(3)),
+                      (10.0, RxNotification.next(4)),
+                      (14.0, RxNotification.complete(None)),
+                    ],
+                  );
+
+                let notifier =
+                  ofRelativeTimeNotifications(
+                    ~scheduler,
+                    [(5.0, RxNotification.complete(Some(Division_by_zero)))],
+                  );
+                source |> RxObservables.takeUntil(notifier);
+              },
+            ~expected=[
+              RxNotification.next(1),
+              RxNotification.next(2),
+              RxNotification.complete(Some(Division_by_zero)),
+            ],
+            (),
+          ),
+        ],
+      ),
       describe(
         "timeout",
         [

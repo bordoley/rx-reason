@@ -418,6 +418,8 @@ let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let switchMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+
+let takeUntil: (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
   
 /**
  * Returns an Observable which completes with a TimeoutException if
