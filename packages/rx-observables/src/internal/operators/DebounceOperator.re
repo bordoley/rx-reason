@@ -41,6 +41,11 @@ let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {
 };
 
 let create = (~scheduler, dueTime, subscriber) => {
+  RxPreconditions.checkArgument(
+    dueTime > 0.0,
+    "DebounceOperator: dueTime must be greater than 0.0 milliseconds",
+  );
+
   let debounceSubscription = RxSerialDisposable.create();
   let lastValue = RxMutableOption.create();
 

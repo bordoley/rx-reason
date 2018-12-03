@@ -66,6 +66,17 @@ let onComplete = (self, delegate, exn) => {
 };
 
 let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
+  RxPreconditions.checkArgument(
+    maxBufferSize >= 0,
+    "MergeOperator: maxBufferSize must be greater than or equal to 0",
+  );
+
+  RxPreconditions.checkArgument(
+    maxConcurrency > 0,
+    "MergeOperator: maxConcurrency must be greater than 0",
+  );
+
+
   let self = {
     activeCount: RxAtomic.make(0),
     isStopped: RxAtomic.make(false),

@@ -16,5 +16,14 @@ let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
   subscriber |> RxSubscriber.addDisposable(schedulerSubscription) |> ignore;
 };
 
-let create = (~delay=?, scheduler, observable) =>
+let create = (~delay=?, scheduler, observable) => {
+  switch (delay) {
+  | Some(delayInMs) =>
+    RxPreconditions.checkArgument(
+      delayInMs > 0.0,
+      "SubscribeOnObservable: If specified, delay must be greater than 0.0 milliseconds",
+    )
+  | _ => ()
+  };
   RxObservable.create3(subscribeOnSource, delay, scheduler, observable);
+};

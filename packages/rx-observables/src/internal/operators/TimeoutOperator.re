@@ -22,6 +22,11 @@ let onComplete = ({timeoutSubscription}, delegate, exn) => {
 };
 
 let create = (~scheduler, due) => {
+  RxPreconditions.checkArgument(
+    (due > 0.0),
+    "TimeoutOperator: due time must be greater than 0.0 milliseconds",
+  );
+
   let timeoutObservable =
     RaiseObservable.create(RxTimeoutException.Exn)
     |> RxObservable.lift(DelayOperator.create(~scheduler, due));

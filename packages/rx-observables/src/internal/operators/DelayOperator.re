@@ -15,6 +15,11 @@ let onComplete = (scheduler, wip, doWork, queue, delay, _, exn) =>
   |> schedule(wip, doWork, queue, delay, RxNotification.complete(exn));
 
 let create = (~scheduler, delay, subscriber) => {
+  RxPreconditions.checkArgument(
+    delay > 0.0,
+    "DelayOperator: delay must be greater than 0.0 milliseconds",
+  );
+
   let queue = RxMutableQueue.create();
   let wip = RxAtomic.make(0);
 
@@ -30,7 +35,7 @@ let create = (~scheduler, delay, subscriber) => {
         | RxNotification.Complete(exn) =>
           subscriber |> RxSubscriber.complete(~exn?)
         };
-        
+
         0.0;
       | Some((dueTime, _)) => dueTime -. currentTime
       | _ => (-1.0)
