@@ -37,47 +37,56 @@ let clearTimeout = timeoutId => Js.Global.clearTimeout(timeoutId);
 let now = () => schedulerNow();
 let scheduleCallback = (cb, ()) => schedulerScheduleCallback(cb);
 
-let rec makeCallback =
-        (shouldYield, disposable, priority, continuation: RxScheduler.Continuation.t, ())
-        : option(callback) => {
+let rec onYield = (shouldYield, disposable, priority, continuation) => {
+  let callback =
+    makeCallback(shouldYield, disposable, priority, continuation);
+  Some(Obj.magic(callback));
+}
+and onContinueAfter =
+    (shouldYield, disposable, priority, ~delay, continuation) => {
+  scheduleInternal(shouldYield, disposable, priority, ~delay, continuation);
+  None;
+}
+and onComplete = (_, disposable, _) => {
+  disposable |> RxSerialDisposable.dispose;
+  None;
+}
+and makeCallback =
+    (
+      shouldYield,
+      disposable,
+      priority,
+      continuation: RxScheduler.Continuation.t,
+      (),
+    )
+    : option(callback) => {
   let isDisposed = RxSerialDisposable.isDisposed(disposable);
 
   if (! isDisposed) {
-    let result = continuation(~now, ~shouldYield);
-
-    switch (result) {
-    | Yield(continuation) =>
-      let callback = makeCallback(shouldYield, disposable, priority, continuation);
-      Some(Obj.magic(callback))
-    | ContinueAfter(delay, continuation) =>
-      scheduleInternal(
-        shouldYield,
-        disposable,
-        priority,
-        ~delay,
-        continuation,
-      );
-      None;
-    | Complete => None
-    };
+    continuation(~now, ~shouldYield)
+    |> RxScheduler.Result.map3(
+         ~onYield,
+         ~onContinueAfter,
+         ~onComplete,
+         shouldYield,
+         disposable,
+         priority,
+       );
   } else {
     None;
   };
-} 
-
+}
 and scheduleNowWithPriority =
-        (shouldYield, disposable, priority, continuation) => {
+    (shouldYield, disposable, priority, continuation) => {
   let isDisposed = RxSerialDisposable.isDisposed(disposable);
 
   if (! isDisposed) {
-    let callback = makeCallback(shouldYield, disposable, priority, continuation);
+    let callback =
+      makeCallback(shouldYield, disposable, priority, continuation);
 
     let callbackHandle =
-      runWithPriority(
-        priority,
-        scheduleCallback(Obj.magic(callback)),
-      );
-      
+      runWithPriority(priority, scheduleCallback(Obj.magic(callback)));
+
     let innerDisposable =
       RxDisposable.create1(cancelCallback, callbackHandle);
 

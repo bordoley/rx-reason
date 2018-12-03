@@ -15,10 +15,10 @@ let advance = ({disposable, timeQueue} as vts: t) => {
   | None => ()
   | Some(queue) =>
     while ({
-      let isDisposed = RxDisposable.isDisposed(disposable);
-      let head = RxMutableQueue.peek(queue);
-      (head !== None) && !isDisposed;
-    }) {
+             let isDisposed = RxDisposable.isDisposed(disposable);
+             let head = RxMutableQueue.peek(queue);
+             head !== None && ! isDisposed;
+           }) {
       switch (RxMutableQueue.dequeue(queue)) {
       | Some(work) => work()
       | None => ()
@@ -60,7 +60,13 @@ let create = () => {
       let rec work = (continuation, ()) =>
         if (! RxDisposable.isDisposed(disposable)) {
           continuation(~now, ~shouldYield=RxFunctions.alwaysFalse1)
-          |> RxScheduler.Result.continueWith(scheduleWork);
+          |> RxScheduler.Result.map(
+               ~onYield=continuation => scheduleWork(continuation),
+               ~onContinueAfter=
+                 (~delay, continuation) =>
+                   scheduleWork(~delay, continuation),
+               ~onComplete=() => disposable |> RxDisposable.dispose,
+             );
         }
       and scheduleWork = (~delay=0.0, continuation) =>
         if (! RxDisposable.isDisposed(disposable)) {
@@ -77,7 +83,7 @@ let create = () => {
 
 let run = ({disposable, timeQueue} as vts: t) => {
   let break = ref(RxDisposable.isDisposed(disposable));
-  
+
   while (! break^) {
     advance(vts);
     break :=

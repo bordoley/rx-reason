@@ -10,34 +10,50 @@ let clearInterval = intervalId => Js.Global.clearInterval(intervalId);
 let now = () => Js.Date.now();
 
 let rec promiseContinuation = ctx => {
-  let (shouldYield, disposable, continuation) = ctx;
+  let (shouldYield, disposable, delayRef, continuationRef) = ctx;
 
   if (! RxSerialDisposable.isDisposed(disposable)) {
-    continuation(~now, ~shouldYield)
-    |> RxScheduler.Result.continueWith(scheduleInternal(shouldYield, disposable));
+    continuationRef^(~now, ~shouldYield)
+    |> RxScheduler.Result.map4(
+         ~onYield,
+         ~onContinueAfter,
+         ~onComplete,
+         shouldYield,
+         disposable,
+         delayRef,
+         continuationRef,
+       );
   };
 }
-and scheduleNow = (shouldYield, disposable, continuation) =>
-  Js.Promise.resolve((shouldYield, disposable, continuation))
+and scheduleNow = (shouldYield, disposable, delayRef, continuationRef) =>
+  Js.Promise.resolve((shouldYield, disposable, delayRef, continuationRef))
   |> then_(promiseContinuation)
   |> ignore
-and intervalContinueWithAndSchedulerIfDelayChanged =
-    (shouldYield, disposable, delayRef, continuationRef, ~delay=?, continuation) => {
+and onYield = (shouldYield, disposable, _, continuationRef, continuation) => {
   continuationRef := continuation;
-  if (delayRef != delay) {
-    scheduleInternal(shouldYield, disposable, ~delay?, continuation);
+  scheduleInternal(shouldYield, disposable, ~delay=0.0, continuation);
+}
+and onContinueAfter =
+    (shouldYield, disposable, delayRef, continuationRef, ~delay, continuation) => {
+  continuationRef := continuation;
+  if (delayRef^ != delay) {
+    scheduleInternal(shouldYield, disposable, ~delay, continuation);
   };
 }
-and intervalContinuation = (shouldYield, disposable, delayRef, continuationRef) =>
+and onComplete = (_, disposable, _, _) =>
+  disposable |> RxSerialDisposable.dispose
+and intervalContinuation =
+    (shouldYield, disposable, delayRef, continuationRef) =>
   if (! RxSerialDisposable.isDisposed(disposable)) {
     continuationRef^(~now, ~shouldYield)
-    |> RxScheduler.Result.continueWith(
-         intervalContinueWithAndSchedulerIfDelayChanged(
-           shouldYield,
-           disposable,
-           delayRef,
-           continuationRef,
-         ),
+    |> RxScheduler.Result.map4(
+         ~onYield,
+         ~onContinueAfter,
+         ~onComplete,
+         shouldYield,
+         disposable,
+         delayRef,
+         continuationRef,
        );
   }
 and scheduleInternal = (shouldYield, disposable, ~delay=?, continuation) => {
@@ -55,7 +71,7 @@ and scheduleInternal = (shouldYield, disposable, ~delay=?, continuation) => {
       );
     let innerDisposable = RxDisposable.create1(clearInterval, intervalId);
     disposable |> RxSerialDisposable.setInnerDisposable(innerDisposable);
-  | _ => scheduleNow(shouldYield, disposable, continuation)
+  | _ => scheduleNow(shouldYield, disposable, ref(0.0), ref(continuation))
   };
 };
 

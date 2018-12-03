@@ -29,7 +29,8 @@
     "url": "https://github.com/bordoley/rx-reason.git"
   },
   "dependencies": {
-    "@rx-reason/rx-disposables": "^0.0.0"
+    "@rx-reason/rx-disposables": "^0.0.0",
+    "@rx-reason/rx-utils-do-not-depend-on": "0.0.0"
   },
   "devDependencies": {
     "bs-platform": "^4.0.7"

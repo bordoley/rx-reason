@@ -9,7 +9,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "bs-dependencies": ["@rx-reason/rx-disposables"],
+  "bs-dependencies": ["@rx-reason/rx-disposables", "@rx-reason/rx-utils-do-not-depend-on"],
   "bs-dev-dependencies": [],
   "warnings": {
     "error": "+101"
