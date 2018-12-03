@@ -1,7 +1,7 @@
 let defaultPredicate =
   fun
-  | None => true
-  | Some(_) => false;
+  | None => false
+  | Some(_) => true;
 
 let create = (~predicate=RxFunctions.alwaysTrue1) => {
   let predicate =
@@ -9,8 +9,8 @@ let create = (~predicate=RxFunctions.alwaysTrue1) => {
       defaultPredicate :
       (
         fun
-        | None => predicate()
-        | Some(_) => false
+        | None => false
+        | Some(exn) => predicate(exn)
       );
 
   observable =>

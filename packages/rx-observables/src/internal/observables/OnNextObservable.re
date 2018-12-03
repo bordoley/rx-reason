@@ -1,0 +1,20 @@
+let create = (onNext, observable) =>
+  observable
+  |> ObserveObservable.create(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
+
+let create1 = (onNext, ctx0, observable) =>
+  observable
+  |> ObserveObservable.create1(
+       ~onNext,
+       ~onComplete=RxFunctions.alwaysUnit2,
+       ctx0,
+     );
+
+let create2 = (onNext, ctx0, ctx1, observable) =>
+  observable
+  |> ObserveObservable.create2(
+       ~onNext,
+       ~onComplete=RxFunctions.alwaysUnit3,
+       ctx0,
+       ctx1,
+     );
