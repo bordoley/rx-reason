@@ -24,10 +24,8 @@ module InnerSubscriber = {
 
     let next = self.parent.queue |> RxMutableQueue.dequeue;
     switch (exn, next) {
-    | (Some(_), _)
-    | _ when self.parent.activeCount |> RxAtomic.get === 0 =>
-      self.parent.subscriber |> RxSubscriber.complete(~exn?)
-    | (_, Some(next)) => doSubscribe(self.parent, self.delegate, next)
+    | (Some(_), _) => self.parent.subscriber |> RxSubscriber.complete(~exn?)
+    | (_, Some(next)) => doSubscribe(self.parent, self.delegate, next)   
     | _ => ()
     };
   }
