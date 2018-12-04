@@ -110,6 +110,9 @@ let isEmpty: RxObservable.t('a) => RxObservable.t(bool);
  * which satisfy the predicate.
  */
 let keep: ('a => bool, RxObservable.t('a)) => RxObservable.t('a);
+let keep1: (('ctx0, 'a) => bool, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+let keep2: (('ctx0, 'ctx1, 'a) => bool, 'ctx0, 'ctx1, RxObservable.t('a)) => RxObservable.t('a);
+
 
 /**
  * Returns an Observable which emits the last observed item or
@@ -366,6 +369,8 @@ let retry:
  */
 let scan:
   (('acc, 'a) => 'acc, 'acc, RxObservable.t('a)) => RxObservable.t('acc);
+
+let skip: (int, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable that emits a single true value if any
