@@ -1,41 +1,22 @@
 module NotifierObservable = {
-  let onNext = (_, seenValue, _) => seenValue := true;
+  let onNext = (takeUntilSubscriber, _) =>
+    takeUntilSubscriber |> RxSubscriber.complete;
 
-  let onComplete = (takeUntilSubscriber, _, exn) =>
+  let onComplete = (takeUntilSubscriber, exn) =>
     switch (exn) {
     | Some(_) => takeUntilSubscriber |> RxSubscriber.complete(~exn?)
     | None => ()
     };
 
-  let create = (takeUntilSubscriber, seenValue) =>
-    ObserveObservable.create2(
-      ~onNext,
-      ~onComplete,
-      takeUntilSubscriber,
-      seenValue,
-    );
+  let create = takeUntilSubscriber =>
+    ObserveObservable.create1(~onNext, ~onComplete, takeUntilSubscriber);
 };
 
-let onNext = (seenValue, delegate, next) =>
-  if (! seenValue^) {
-    delegate |> RxSubscriber.next(next);
-  };
-
 let create = (notifier, subscriber) => {
-  let seenValue = ref(false);
-
-  let takeUntilSubscriber =
-    RxSubscriber.decorate1(
-      ~onNext,
-      ~onComplete=SubscriberForward.onComplete1,
-      seenValue,
-      subscriber,
-    );
-
   let notifierSubscription =
     notifier
-    |> NotifierObservable.create(takeUntilSubscriber, seenValue)
+    |> NotifierObservable.create(subscriber)
     |> RxObservable.subscribe;
 
-  takeUntilSubscriber |> RxSubscriber.addDisposable(notifierSubscription);
+  subscriber |> RxSubscriber.addDisposable(notifierSubscription);
 };
