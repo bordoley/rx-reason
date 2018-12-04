@@ -3,10 +3,10 @@ open RxReUnit;
 
 let test =
   describe(
-    "exhaust",
+    "switch_",
     [
       observableIt(
-        "exhausts",
+        "switches",
         ~nextToString=string_of_int,
         ~source=
           scheduler => {
@@ -44,17 +44,19 @@ let test =
                 (75.0, RxNotification.complete(None)),
               ],
             )
-            |> RxObservables.exhaust;
+            |> RxObservables.switch_;
           },
         ~expected=[
           RxNotification.next(1),
           RxNotification.next(2),
-          RxNotification.next(3),
-          RxNotification.next(4),
           RxNotification.next(5),
           RxNotification.next(6),
           RxNotification.next(7),
-          RxNotification.next(8),
+          RxNotification.next(1),
+          RxNotification.next(2),
+          RxNotification.next(3),
+          RxNotification.next(5),
+          RxNotification.next(6),
           RxNotification.complete(None),
         ],
         (),

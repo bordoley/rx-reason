@@ -1,6 +1,5 @@
 open ReUnit;
 open ReUnit.Test;
-open RxReUnit;
 
 let test =
   describe(
