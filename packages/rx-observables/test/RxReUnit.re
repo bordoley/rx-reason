@@ -97,3 +97,67 @@ let observableIt =
       };
     },
   );
+
+
+let ofRelativeTimeNotifications = {
+  let ofRelativeTimeNotificationsScheduledSource = {
+    let rec loop =
+            (
+              subscriber,
+              notif,
+              previousDelay,
+              notifications,
+              ~now as _,
+              ~shouldYield as _,
+            ) => {
+      notif
+      |> RxNotification.map(
+           ~onNext=v => subscriber |> RxSubscriber.next(v),
+           ~onComplete=exn => subscriber |> RxSubscriber.complete(~exn?),
+         );
+
+      switch (notifications) {
+      | [(requestedDelay, notif), ...tail] =>
+        let computedDelay = max(0.0, requestedDelay -. previousDelay);
+
+        RxScheduler.Result.continueAfter(
+          ~delay=computedDelay,
+          loop(subscriber, notif, requestedDelay, tail),
+        );
+      | [] => RxScheduler.Result.complete
+      };
+    };
+
+    (scheduler, notifications, subscriber) =>
+      switch (notifications) {
+      | [(delay, notif), ...tail] =>
+        let schedulerSubscription =
+          scheduler
+          |> RxScheduler.schedule(
+               ~delay,
+               loop(subscriber, notif, delay, tail),
+             );
+        subscriber
+        |> RxSubscriber.addDisposable(schedulerSubscription)
+        |> ignore;
+      | [] => ()
+      };
+  };
+
+  (~scheduler, notifications) =>
+    RxObservable.create2(
+      ofRelativeTimeNotificationsScheduledSource,
+      scheduler,
+      notifications,
+    );
+};
+
+let ofAbsoluteTimeNotifications = (~scheduler, notifications) => {
+  let currentTime = scheduler |> RxScheduler.now;
+
+  let relativeTimeNotifications =
+    notifications
+    |> List.map(((time, notif)) => (time -. currentTime, notif));
+
+  ofRelativeTimeNotifications(~scheduler, relativeTimeNotifications);
+};
