@@ -893,6 +893,7 @@ let test =
             let scheduler = vts |> RxVirtualTimeScheduler.asScheduler;
 
             let subscription = ref(RxDisposable.disposed);
+            let thrownException = ref(None);
             subscription :=
               ofAbsoluteTimeNotifications(
                 ~scheduler,
@@ -908,9 +909,17 @@ let test =
               |> expectObservableToProduce(
                    ~nextToString=string_of_int,
                    [RxNotification.next(5), RxNotification.complete(None)],
-                 );
+                 )
+              |> RxObservables.onComplete(exn => thrownException := exn)
+              |> RxObservable.subscribe;
 
             vts |> RxVirtualTimeScheduler.run;
+            subscription^ |> RxDisposable.dispose;
+
+            switch (thrownException^) {
+            | Some(exn) => raise(exn)
+            | _ => ()
+            };
           }),
         ],
       ),
@@ -1198,7 +1207,9 @@ let test =
                 let notifier =
                   ofRelativeTimeNotifications(
                     ~scheduler,
-                    [(5.0, RxNotification.complete(Some(Division_by_zero)))],
+                    [
+                      (5.0, RxNotification.complete(Some(Division_by_zero))),
+                    ],
                   );
                 source |> RxObservables.takeUntil(notifier);
               },

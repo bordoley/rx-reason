@@ -34,6 +34,7 @@ let rxNotificationEquals =
             exnB =>
               switch (exnA, exnB) {
               | (Some(a), Some(b)) => exnEquals(a, b)
+              | (None, None) => true
               | _ => false
               },
           b,
@@ -63,13 +64,7 @@ let expectObservableToProduce =
          expected,
        ),
      )
-  |> RxObservables.first
-  |> RxObservables.onComplete(
-       fun
-       | Some(exn) => raise(exn)
-       | _ => (),
-     )
-  |> RxObservable.subscribe;
+  |> RxObservables.first;
 
 let observableIt =
     (
@@ -86,11 +81,19 @@ let observableIt =
       let vts = RxVirtualTimeScheduler.create();
       let scheduler = vts |> RxVirtualTimeScheduler.asScheduler;
 
+      let thrownException = ref(None);
       let subscription =
         source(scheduler)
-        |> expectObservableToProduce(~nextEquals, ~nextToString, expected);
+        |> expectObservableToProduce(~nextEquals, ~nextToString, expected)
+        |> RxObservables.onComplete(exn => thrownException := exn)
+        |> RxObservable.subscribe;
 
       vts |> RxVirtualTimeScheduler.run;
       subscription |> RxDisposable.dispose;
+
+      switch (thrownException^) {
+      | Some(exn) => raise(exn)
+      | _ => ()
+      };
     },
   );
