@@ -1,6 +1,5 @@
 type context('a) = {
   activeCount: RxAtomic.t(int),
-  isStopped: RxAtomic.t(bool),
   maxBufferSize: int,
   maxConcurrency: int,
   queue: RxMutableQueue.t(RxObservable.t('a)),
@@ -25,23 +24,25 @@ module InnerSubscriber = {
     let next = self.parent.queue |> RxMutableQueue.dequeue;
     switch (exn, next) {
     | (Some(_), _) => self.parent.subscriber |> RxSubscriber.complete(~exn?)
-    | (_, Some(next)) => doSubscribe(self.parent, self.delegate, next)   
+    | (_, Some(next)) => doSubscribeInternal(self, next)
     | _ => ()
     };
   }
   and innerSubscriberOperator = self =>
     RxSubscriber.decorate1(~onNext, ~onComplete, self)
-  and doSubscribe = (parent, delegate, next) => {
-    RxAtomic.incr(parent.activeCount) |> ignore;
-
-    let self = {parent, delegate, disposable: RxDisposable.disposed};
-
+  and doSubscribeInternal = (self, next) => {
+    RxAtomic.incr(self.parent.activeCount) |> ignore;
     self.disposable =
       next
       |> RxObservable.lift(innerSubscriberOperator(self))
       |> RxObservable.subscribe;
-
-    parent.subscriber |> RxSubscriber.addDisposable(self.disposable) |> ignore;
+    self.parent.subscriber
+    |> RxSubscriber.addDisposable(self.disposable)
+    |> ignore;
+  }
+  and doSubscribe = (parent, delegate, next) => {
+    let self = {parent, delegate, disposable: RxDisposable.disposed};
+    doSubscribeInternal(self, next);
   };
 };
 
@@ -52,16 +53,13 @@ let onNext = (self, delegate, next) =>
     self.queue |> RxMutableQueue.enqueue(next);
   };
 
-let onComplete = (self, delegate, exn) => {
-  RxAtomic.set(self.isStopped, true);
-
+let onComplete = (self, delegate, exn) =>
   switch (exn) {
   | Some(_)
   | _ when self.activeCount |> RxAtomic.get === 0 =>
     delegate |> RxSubscriber.complete(~exn?)
   | _ => ()
   };
-};
 
 let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
   RxPreconditions.checkArgument(
@@ -74,10 +72,8 @@ let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
     "MergeOperator: maxConcurrency must be greater than 0",
   );
 
-
   let self = {
     activeCount: RxAtomic.make(0),
-    isStopped: RxAtomic.make(false),
     maxBufferSize,
     maxConcurrency,
     queue: RxMutableQueue.create(),
