@@ -6,6 +6,7 @@ let test =
   describe(
     "RxObservables",
     [
+      CombineLatest2Test.test,
       ConcatListTest.test,
       DebounceTest.test,
       DefaultIfEmptyTest.test,
