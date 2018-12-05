@@ -6,6 +6,36 @@ let test =
     "RxValue",
     [
       describe(
+        "update",
+        [
+          it(
+            "does not emit a value if the new value is reference equal to the old value",
+            () => {
+            let stringRef = ref("abc");
+
+            let value = RxValue.create(stringRef);
+            let observedCount = ref(0);
+
+            value |> RxValue.dispose;
+
+            value
+            |> RxValue.asObservable
+            |> RxObservable.lift(
+                 RxSubscriber.decorate(
+                   ~onNext=(_, _) => incr(observedCount),
+                   ~onComplete=(_, _) => (),
+                 ),
+               )
+            |> RxObservable.subscribe
+            |> ignore;
+
+            value |> RxValue.update(old => old);
+
+            observedCount^ |> Expect.toBeEqualToInt(0);
+          }),
+        ],
+      ),
+      describe(
         "asObservable",
         [
           it("disposed instance emits no values.", () => {

@@ -57,12 +57,12 @@ let create = initialValue => {
 
 let notify = nextValue =>
   fun
-  | Disposed => ()
-  | Value(value, subscribers, _, _) => {
+  | Value(value, subscribers, _, _) when value^ !== nextValue => {
       value := nextValue;
       subscribers^
       |> RxCopyOnWriteArray.forEach(RxSubscriber.next(nextValue));
-    };
+    }
+  | _ => ();
 
 let update = (f, self) =>
   switch (self) {
