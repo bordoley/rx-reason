@@ -1,6 +1,7 @@
 {
   "name": "@rx-reason/examples",
   "version": "0.0.0",
+  "private": true,
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
