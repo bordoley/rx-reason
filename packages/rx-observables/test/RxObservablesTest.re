@@ -372,7 +372,7 @@ let test =
 
             RxObservables.ofList([1])
             |> RxObservables.onComplete(_ => incr(sideEffectCount))
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             sideEffectCount^ |> Expect.toBeEqualToInt(1);
@@ -401,7 +401,7 @@ let test =
 
             RxObservables.ofList([1])
             |> RxObservables.onNext(_ => incr(sideEffectCount))
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             sideEffectCount^ |> Expect.toBeEqualToInt(1);

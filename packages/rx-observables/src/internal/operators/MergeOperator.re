@@ -35,7 +35,7 @@ module InnerSubscriber = {
     self.disposable =
       next
       |> RxObservable.lift(innerSubscriberOperator(self))
-      |> RxObservable.subscribe;
+      |> RxObservable.connect;
     self.parent.subscriber
     |> RxSubscriber.addDisposable(self.disposable)
     |> ignore;

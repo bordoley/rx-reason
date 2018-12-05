@@ -53,13 +53,13 @@ let test =
                    ~onComplete=
                      exn => subscriber |> RxSubscriber.complete(~exn?),
                  )
-              |> RxObservable.subscribe;
+              |> RxObservable.connect;
 
             subscriber |> RxSubscriber.addDisposable(subscription) |> ignore;
           })
           |> RxObservables.retry
           |> RxObservables.onNext(x => result := [x, ...result^])
-          |> RxObservable.subscribe;
+          |> RxObservable.connect;
 
         let subscriber = subject^;
         subscriber |> RxSubject.next(1);
@@ -98,7 +98,7 @@ let test =
                [RxNotification.next(5), RxNotification.complete(None)],
              )
           |> RxObservables.onComplete(exn => thrownException := exn)
-          |> RxObservable.subscribe;
+          |> RxObservable.connect;
 
         vts |> RxVirtualTimeScheduler.run;
         subscription^ |> RxDisposable.dispose;

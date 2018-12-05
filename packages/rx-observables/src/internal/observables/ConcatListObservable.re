@@ -32,7 +32,7 @@ let rec loop = (scheduler, observables, innerSubscription, subscriber) => {
              subscriber,
            ),
          )
-      |> RxObservable.subscribe
+      |> RxObservable.connect
     };
 
   if (! RxDisposable.isDisposed(newSubscription)) {

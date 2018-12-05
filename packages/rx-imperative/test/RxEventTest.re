@@ -20,7 +20,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
 
@@ -33,7 +33,7 @@ let test =
 
             event
             |> RxEvent.asObservable
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
           }),
@@ -51,7 +51,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             event |> RxEvent.trigger(1); 
@@ -72,7 +72,7 @@ let test =
                      ~onComplete=(_, _) => (),
                    ),
                  )
-              |> RxObservable.subscribe;
+              |> RxObservable.connect;
 
             let observedValue2 = ref(0);
             let subscription2 =
@@ -84,7 +84,7 @@ let test =
                      ~onComplete=(_, _) => (),
                    ),
                  )
-              |> RxObservable.subscribe;
+              |> RxObservable.connect;
 
             observedValue1^ |> Expect.toBeEqualToInt(0);
             observedValue2^ |> Expect.toBeEqualToInt(0);

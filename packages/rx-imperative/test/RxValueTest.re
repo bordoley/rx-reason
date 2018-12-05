@@ -26,7 +26,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             value |> RxValue.update(old => old);
@@ -50,7 +50,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
 
@@ -63,7 +63,7 @@ let test =
 
             value
             |> RxValue.asObservable
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
           }),
@@ -81,7 +81,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             value |> RxValue.update(_ => 2);
@@ -99,7 +99,7 @@ let test =
                    ~onComplete=(_, _) => (),
                  ),
                )
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> ignore;
 
             observedValue^ |> Expect.toBeEqualToInt(1);
@@ -119,7 +119,7 @@ let test =
                      ~onComplete=(_, _) => (),
                    ),
                  )
-              |> RxObservable.subscribe;
+              |> RxObservable.connect;
 
             let observedValue2 = ref(0);
             let subscription2 =
@@ -131,7 +131,7 @@ let test =
                      ~onComplete=(_, _) => (),
                    ),
                  )
-              |> RxObservable.subscribe;
+              |> RxObservable.connect;
 
             observedValue1^ |> Expect.toBeEqualToInt(0);
             observedValue2^ |> Expect.toBeEqualToInt(0);

@@ -94,7 +94,7 @@ let tryCompleteWithExceptionOrRaise = (exn, subscriber) => {
   };
 };
 
-let subscribe = observable => {
+let connect = observable => {
   let subscriber = RxSubscriber.create();
 
   switch (observable) {

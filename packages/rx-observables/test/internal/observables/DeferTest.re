@@ -14,9 +14,9 @@ let test =
             RxObservables.empty();
           });
 
-        observable |> RxObservable.subscribe |> ignore;
-        observable |> RxObservable.subscribe |> ignore;
-        observable |> RxObservable.subscribe |> ignore;
+        observable |> RxObservable.connect |> ignore;
+        observable |> RxObservable.connect |> ignore;
+        observable |> RxObservable.connect |> ignore;
         count^ |> Expect.toBeEqualToInt(3);
       }),
     ],

@@ -47,7 +47,7 @@ let fromObservable = {
 
     observable
     |> RxObservable.lift(operator(last, resolve, reject))
-    |> RxObservable.subscribe
+    |> RxObservable.connect
     |> ignore;
   };
 

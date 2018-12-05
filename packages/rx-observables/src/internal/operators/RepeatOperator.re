@@ -24,7 +24,7 @@ and setupSubscription = (observable, shouldRepeat, subscription, delegate) => {
              delegate,
            ),
          )
-      |> RxObservable.subscribe;
+      |> RxObservable.connect;
     subscription
     |> RxSerialDisposable.setInnerDisposable(newInnerSubscription);
   };

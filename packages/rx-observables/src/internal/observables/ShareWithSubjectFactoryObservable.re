@@ -33,7 +33,7 @@ let source = (state, subscriber) => {
     state.subject
     |> RxSubject.asObservable
     |> RxObservable.lift(ForwardingOperator.create(subscriber))
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   subscriber
   |> RxSubscriber.addDisposable(RxDisposable.create1(teardown, state))
@@ -50,7 +50,7 @@ let source = (state, subscriber) => {
              state.subject,
            ),
          )
-      |> RxObservable.subscribe;
+      |> RxObservable.connect;
 
     state.subscription |> RxSerialDisposable.setInnerDisposable(subscriber);
   };

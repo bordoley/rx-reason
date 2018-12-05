@@ -76,11 +76,11 @@ let test =
 
                 subject
                 |> RxSubject.asObservable
-                |> RxObservable.subscribe
+                |> RxObservable.connect
                 |> ignore;
                 subject
                 |> RxSubject.asObservable
-                |> RxObservable.subscribe
+                |> RxObservable.connect
                 |> ignore;
 
                 onSubscribeCount^ |> Expect.toBeEqualToInt(2);
@@ -102,12 +102,12 @@ let test =
 
                 subject
                 |> RxSubject.asObservable
-                |> RxObservable.subscribe
+                |> RxObservable.connect
                 |> ignore;
                 subject |> RxSubject.dispose;
                 subject
                 |> RxSubject.asObservable
-                |> RxObservable.subscribe
+                |> RxObservable.connect
                 |> ignore;
 
                 onSubscribeCount^ |> Expect.toBeEqualToInt(1);

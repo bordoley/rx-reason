@@ -1,6 +1,6 @@
 let useObservable = {
   let subscribe = observable => {
-    let subscription = observable |> RxObservable.subscribe;
+    let subscription = observable |> RxObservable.connect;
     () => subscription |> RxDisposable.dispose;
   };
 

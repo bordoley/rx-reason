@@ -47,7 +47,7 @@ let create = (~selector, other, subscriber) => {
            otherLatest,
          ),
        )
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   delegateSubscriber |> RxSubscriber.addDisposable(context.otherSubscription);
 };

@@ -2,7 +2,7 @@ let source = (f, subscriber) => {
   let innerSubscription =
     f()
     |> RxObservable.lift(ForwardingOperator.create(subscriber))
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   subscriber |> RxSubscriber.addDisposable(innerSubscription) |> ignore;
 };

@@ -56,7 +56,7 @@ let sideEffectsSubscription = {
   actions
   |> RxEvent.asObservable
   |> RxObservables.observe1(~onNext, ~onComplete, stateStore)
-  |> RxObservable.subscribe;
+  |> RxObservable.connect;
 };
 
 ReactDom.renderToElementWithId(
@@ -86,7 +86,7 @@ let windowPopStateSubscription =
   |> Webapi.Dom.Window.asEventTarget
   |> RxDomEventTarget.observeEvent("popstate")
   |> RxObservables.onNext(Js.log)
-  |> RxObservable.subscribe;
+  |> RxObservable.connect;
 
 Webapi.Dom.(
   History.(
@@ -99,7 +99,7 @@ let observable = promise |> RxPromise.toObservable;
 observable
 |> RxObservables.onNext(Js.log)
 |> RxObservables.onComplete(Js.log)
-|> RxObservable.subscribe;
+|> RxObservable.connect;
 
 let promise =
   observable

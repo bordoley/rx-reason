@@ -1,14 +1,14 @@
 type context = {
-  mutable connect: RxObservable.t(unit),
+  mutable timeoutObservable: RxObservable.t(unit),
   timeoutSubscription: RxSerialDisposable.t,
 };
 
-let subscribeToTimeout = ({connect, timeoutSubscription}) => {
+let subscribeToTimeout = ({timeoutObservable, timeoutSubscription}) => {
   timeoutSubscription
   |> RxSerialDisposable.getInnerDisposable
   |> RxDisposable.dispose;
   timeoutSubscription
-  |> RxSerialDisposable.setInnerDisposable(connect |> RxObservable.subscribe);
+  |> RxSerialDisposable.setInnerDisposable(timeoutObservable |> RxObservable.connect);
 };
 
 let onNext = (ctx, delegate, next) => {
@@ -33,7 +33,7 @@ let create = (~scheduler, due) => {
 
   subscriber => {
     let context = {
-      connect: RxObservable.never,
+      timeoutObservable: RxObservable.never,
       timeoutSubscription: RxSerialDisposable.create(),
     };
 
@@ -44,7 +44,7 @@ let create = (~scheduler, due) => {
       |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
       |> RxSubscriber.addDisposable(timeoutDisposable);
 
-    context.connect =
+    context.timeoutObservable =
       timeoutObservable
       |> RxObservable.lift(
            ObserveOperator.create1(

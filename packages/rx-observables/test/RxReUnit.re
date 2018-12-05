@@ -86,7 +86,7 @@ let observableIt =
         source(scheduler)
         |> expectObservableToProduce(~nextEquals, ~nextToString, expected)
         |> RxObservables.onComplete(exn => thrownException := exn)
-        |> RxObservable.subscribe;
+        |> RxObservable.connect;
 
       vts |> RxVirtualTimeScheduler.run;
       subscription |> RxDisposable.dispose;

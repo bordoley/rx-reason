@@ -20,7 +20,7 @@ let testSourceThrows = observable =>
 
     observable
     |> RxObservable.lift(operator)
-    |> RxObservable.subscribe
+    |> RxObservable.connect
     |> ignore;
 
     exceptionCaught^ |> Expect.toBeEqualToTrue;
@@ -28,7 +28,7 @@ let testSourceThrows = observable =>
 
 let testSourceThrowsAfterCompletingSynchronous = observable =>
   it("rethrows synchronous exceptions if subscriber is completed", () =>
-    Expect.shouldRaise(() => observable |> RxObservable.subscribe |> ignore)
+    Expect.shouldRaise(() => observable |> RxObservable.connect |> ignore)
   );
 
 let test =
@@ -40,7 +40,7 @@ let test =
         [
           it("subscribe returns a disposed disposable", () =>
             RxObservable.never
-            |> RxObservable.subscribe
+            |> RxObservable.connect
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue
           ),

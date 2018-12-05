@@ -39,7 +39,7 @@ let onNext = (ctx, delegate, next) => {
   let newInnerSubscription =
     next
     |> RxObservable.lift(InnerOperator.create(id, ctx, delegate))
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   ctx.innerSubscription
   |> RxSerialDisposable.setInnerDisposable(newInnerSubscription);

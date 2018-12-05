@@ -54,7 +54,7 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
            ctx.subscription1,
          ),
        )
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   ctx.subscription1 :=
     observable1
@@ -67,7 +67,7 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
            ctx.subscription0,
          ),
        )
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   subscriber
   |> RxSubscriber.addDisposable(ctx.subscription0^)

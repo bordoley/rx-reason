@@ -12,6 +12,8 @@ module type S1 = {
   let asObservable: t('a) => observable('a);
 };
 
+include RxConnectableLike.S1 with type t('a) := t('a);
+
 /**
  * Returns an Observable from the specified subscribe function.
  */
@@ -72,5 +74,3 @@ let lift: (RxOperator.t('a, 'b), t('a)) => t('b);
  * Returns an Observable the emits no values and never completes.
  */
 let never: t('a);
-
-let subscribe: t('a) => RxDisposable.t;

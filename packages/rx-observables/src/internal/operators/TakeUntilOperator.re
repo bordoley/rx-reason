@@ -16,7 +16,7 @@ let create = (notifier, subscriber) => {
   let notifierSubscription =
     notifier
     |> NotifierObservable.create(subscriber)
-    |> RxObservable.subscribe;
+    |> RxObservable.connect;
 
   subscriber |> RxSubscriber.addDisposable(notifierSubscription);
 };
