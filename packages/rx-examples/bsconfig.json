@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/examples",
+  "name": "@rx-reason/rx-examples",
   "package-specs": [
     {
       "module": "commonjs"
