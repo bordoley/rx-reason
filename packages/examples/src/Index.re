@@ -22,7 +22,15 @@ let greetingStateComponent = {
   let name = "GreetingStateComponent";
 
   let render = (~key as _=?, ~props, ()) => {
-    let ({count, greeting, show}: State.t, dispatch, dispatcher) = props;
+    let {
+      RxReactStateDispatchComponent.RenderProps.state: {
+        State.count,
+        greeting,
+        show,
+      },
+      dispatch,
+      dispatcher,
+    } = props;
 
     let incrementCount = useMemoCb(dispatcher, dispatch, Action.Click);
     let toggle = useMemoCb(dispatcher, dispatch, Action.Toggle);

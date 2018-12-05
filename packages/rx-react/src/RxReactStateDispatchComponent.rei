@@ -6,6 +6,14 @@ module Props: {
   };
 };
 
+module RenderProps: {
+  type t('state, 'action, 'dispatcher) = {
+    state: 'state,
+    dispatch: ('action, 'dispatcher) => unit,
+    dispatcher: 'dispatcher,
+  };
+};
+
 let createReactComponent:
   (
     ~name: string=?,
@@ -15,7 +23,7 @@ let createReactComponent:
     ~renderExn: (~key: string=?, ~props: exn, 'children) => React.Element.t=?,
     ~render: (
                ~key: string=?,
-               ~props: ('state, ('action, 'dispatcher) => unit, 'dispatcher),
+               ~props: RenderProps.t('state, 'action, 'dispatcher),
                'children
              ) =>
              React.Element.t
@@ -27,7 +35,7 @@ let create:
     ~name: string=?,
     ~renderDefault: (~key: string=?, ~props: unit, 'children) => React.Element.t=?,
     ~renderExn: (~key: string=?, ~props: exn, 'children) => React.Element.t=?,
-    ~render: (~key: string=?, ~props: ('state, ('action, 'dispatcher) => unit, 'dispatcher), 'children) =>
+    ~render: (~key: string=?, ~props: RenderProps.t('state, 'action, 'dispatcher), 'children) =>
              React.Element.t,
     unit,
     ~key: string=?,
