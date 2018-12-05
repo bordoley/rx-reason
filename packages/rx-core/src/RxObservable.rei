@@ -5,6 +5,14 @@ type t('a);
 
 type observable('a) = t('a);
 
+module type S = {
+  type a;
+  type t;
+
+  /** Cast to Observable.t. */
+  let asObservable: t => observable(a);
+};
+
 module type S1 = {
   type t('a);
 

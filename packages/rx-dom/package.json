@@ -13,7 +13,9 @@
   "license": "MIT",
   "dependencies": {
     "@rx-reason/rx-core": "^0.0.0",
-    "@rx-reason/rx-disposables": "^0.0.0"
+    "@rx-reason/rx-disposables": "^0.0.0",
+    "@rx-reason/rx-imperative": "^0.0.0",
+    "@rx-reason/rx-observables": "^0.0.0"
   },
   "devDependencies": {
     "bs-platform": "^4.0.7"

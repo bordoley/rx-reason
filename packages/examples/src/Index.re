@@ -14,7 +14,10 @@ module Action = {
 };
 
 let greetingStateComponent = {
-  let useMemoCb = React.useMemo3((dispatcher, dispatch, action, ()) => dispatcher |> dispatch(action));
+  let useMemoCb =
+    React.useMemo3((dispatcher, dispatch, action, ()) =>
+      dispatcher |> dispatch(action)
+    );
 
   let name = "GreetingStateComponent";
 
@@ -45,7 +48,7 @@ let sideEffectsSubscription = {
     switch (action) {
     | Action.Click => {...state, State.count: state.State.count + 1}
     | Action.SetGreeting(greeting) => {...state, State.greeting}
-    | Action.Toggle => {...state, State.show: ! state.State.show}
+    | Action.Toggle => {...state, State.show: !state.State.show}
     };
 
   let onNext = (stateStore, action) =>
@@ -64,7 +67,7 @@ ReactDom.renderToElementWithId(
     ~props={
       dispatch: RxEvent.dispatch,
       stateStream: stateStore |> RxValue.asObservable,
-      dispatcher: dispatcher,
+      dispatcher,
     },
     (),
   ),
@@ -76,24 +79,19 @@ Js.Global.setInterval(
   () => {
     Js.log("settting props");
     state := ! state^;
-    dispatcher |> RxEvent.dispatch(Action.SetGreeting(state^ ? "true" : "false"));
+    dispatcher
+    |> RxEvent.dispatch(Action.SetGreeting(state^ ? "true" : "false"));
   },
   5000,
 )
 |> ignore;
 
-let windowPopStateSubscription =
-  Webapi.Dom.window
-  |> Webapi.Dom.Window.asEventTarget
-  |> RxDomEventTarget.observeEvent("popstate")
-  |> RxObservables.onNext(Js.log)
-  |> RxObservable.connect;
+RxDomLocation.instance
+|> RxDomLocation.asObservable
+|> RxObservables.onNext(Js.log)
+|> RxObservable.connect;
 
-Webapi.Dom.(
-  History.(
-    pushState(History.state(history), "My title", "?next=rock", history)
-  )
-);
+RxDomLocation.instance |> RxDomLocation.update(_ => "?next=rock");
 
 let promise: Js.Promise.t(int) = Js.Promise.resolve(1);
 let observable = promise |> RxPromise.toObservable;
