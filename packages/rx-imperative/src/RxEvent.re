@@ -6,4 +6,4 @@ let create = RxSubject.createMulticast;
 let dispose = RxSubject.dispose;
 let disposed = RxSubject.disposed;
 let isDisposed = RxSubject.isDisposed;
-let trigger = RxSubject.next;
+let dispatch = RxSubject.next;

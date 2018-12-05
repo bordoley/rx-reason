@@ -24,7 +24,7 @@ let test =
             |> RxDisposable.isDisposed
             |> Expect.toBeEqualToTrue;
 
-            event |> RxEvent.trigger(1);
+            event |> RxEvent.dispatch(1);
             observedValue^ |> Expect.toBeEqualToInt(0);
           }),
           it("subscribe after dispose returns a disposed Disposable", () => {
@@ -54,7 +54,7 @@ let test =
             |> RxObservable.connect
             |> ignore;
 
-            event |> RxEvent.trigger(1); 
+            event |> RxEvent.dispatch(1); 
             observedValue^ |> Expect.toBeEqualToInt(0);
           }),
           it(
@@ -89,17 +89,17 @@ let test =
             observedValue1^ |> Expect.toBeEqualToInt(0);
             observedValue2^ |> Expect.toBeEqualToInt(0);
 
-            event |> RxEvent.trigger(1);
+            event |> RxEvent.dispatch(1);
             observedValue1^ |> Expect.toBeEqualToInt(1);
             observedValue2^ |> Expect.toBeEqualToInt(1);
 
             subscription1 |> RxDisposable.dispose;
-            event |> RxEvent.trigger(2);
+            event |> RxEvent.dispatch(2);
             observedValue1^ |> Expect.toBeEqualToInt(1);
             observedValue2^ |> Expect.toBeEqualToInt(2);
 
             subscription2 |> RxDisposable.dispose;
-            event |> RxEvent.trigger(3);
+            event |> RxEvent.dispatch(3);
             observedValue1^ |> Expect.toBeEqualToInt(1);
             observedValue2^ |> Expect.toBeEqualToInt(2);
           }),

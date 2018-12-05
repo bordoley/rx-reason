@@ -60,7 +60,7 @@ let useObservableState = {
     |> React.useMemo3(makeStateStream, propsToState, setState)
     |> useObservable;
 
-    propsStream |> React.useEffect2(RxEvent.trigger, props);
+    propsStream |> React.useEffect2(RxEvent.dispatch, props);
     state;
   };
 };

@@ -54,7 +54,7 @@ let rxRefTest =
     (~props as _: unit, ~children as _: unit) => {
       let event = React.useMemo(RxEvent.create);
       let onClick =
-        React.useMemo1((event, _) => event |> RxEvent.trigger(), event);
+        React.useMemo1((event, _) => event |> RxEvent.dispatch(), event);
 
       div([|
         button(

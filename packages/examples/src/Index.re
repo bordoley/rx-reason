@@ -14,15 +14,15 @@ module Action = {
 };
 
 let greetingStateComponent = {
-  let useMemoCb = React.useMemo2((dispatch, action, ()) => dispatch(action));
+  let useMemoCb = React.useMemo3((dispatcher, dispatch, action, ()) => dispatcher |> dispatch(action));
 
   let name = "GreetingStateComponent";
 
   let render = (~key as _=?, ~props, ()) => {
-    let ({count, greeting, show}: State.t, dispatch) = props;
+    let ({count, greeting, show}: State.t, dispatch, dispatcher) = props;
 
-    let incrementCount = useMemoCb(dispatch, Action.Click);
-    let toggle = useMemoCb(dispatch, Action.Toggle);
+    let incrementCount = useMemoCb(dispatcher, dispatch, Action.Click);
+    let toggle = useMemoCb(dispatcher, dispatch, Action.Toggle);
 
     Components.greeting(
       ~props={count, greeting, show, incrementCount, toggle},
@@ -33,7 +33,7 @@ let greetingStateComponent = {
   RxReactStateDispatchComponent.create(~name, ~render, ());
 };
 
-let actions: RxEvent.t(Action.t) = RxEvent.create();
+let dispatcher: RxEvent.t(Action.t) = RxEvent.create();
 
 let stateStore =
   RxValue.create(
@@ -53,7 +53,7 @@ let sideEffectsSubscription = {
 
   let onComplete = (stateStore, _) => stateStore |> RxValue.dispose;
 
-  actions
+  dispatcher
   |> RxEvent.asObservable
   |> RxObservables.observe1(~onNext, ~onComplete, stateStore)
   |> RxObservable.connect;
@@ -62,8 +62,9 @@ let sideEffectsSubscription = {
 ReactDom.renderToElementWithId(
   greetingStateComponent(
     ~props={
-      dispatch: action => actions |> RxEvent.trigger(action),
+      dispatch: RxEvent.dispatch,
       stateStream: stateStore |> RxValue.asObservable,
+      dispatcher: dispatcher,
     },
     (),
   ),
@@ -75,7 +76,7 @@ Js.Global.setInterval(
   () => {
     Js.log("settting props");
     state := ! state^;
-    actions |> RxEvent.trigger(Action.SetGreeting(state^ ? "true" : "false"));
+    dispatcher |> RxEvent.dispatch(Action.SetGreeting(state^ ? "true" : "false"));
   },
   5000,
 )
