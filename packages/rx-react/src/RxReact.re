@@ -48,6 +48,7 @@ let useObservableState = {
     propsStream
     |> RxEvent.asObservable
     |> propsToState
+    |> RxObservables.observeOn(RxJsPriorityScheduler.immediate)
     |> RxObservables.observe1(~onNext, ~onComplete, setState);
 
   (propsToState, props) => {
