@@ -1,7 +1,3 @@
-module Dispatcher = {
-  type t('action) = 'action => unit;
-};
-
 module Props = {
   type t('state, 'action, 'dispatcher) = {
     stateStream: RxObservable.t('state),
