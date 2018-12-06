@@ -11,6 +11,9 @@ let concatList:
 let concatMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
+let concatMap1:
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+
 let combineLatest2:
   (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
   RxObservable.t('c);
@@ -76,6 +79,9 @@ let exhaust: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 let exhaustMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
+let exhaustMap1:
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+
 /**
  * Returns an Observable which emits the first observed item
  * from the source which satisfies the predicate.
@@ -113,7 +119,6 @@ let keep: ('a => bool, RxObservable.t('a)) => RxObservable.t('a);
 let keep1: (('ctx0, 'a) => bool, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
 let keep2: (('ctx0, 'ctx1, 'a) => bool, 'ctx0, 'ctx1, RxObservable.t('a)) => RxObservable.t('a);
 
-
 /**
  * Returns an Observable which emits the last observed item or
  * completes with EmptyException.
@@ -131,6 +136,7 @@ let lastOrNone: RxObservable.t('a) => RxObservable.t(option('a));
  * each item observed, emitting the result of the function application.
  */
 let map: ('a => 'b, RxObservable.t('a)) => RxObservable.t('b);
+let map1: (('ctx0, 'a) => 'b, 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
 
 /**
  * Returns an Observable which emits the specified value for
@@ -175,6 +181,16 @@ let mergeMap:
     ~maxBufferSize: int=?,
     ~maxConcurrency: int=?,
     'a => RxObservable.t('b),
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
+let mergeMap1:
+  (
+    ~maxBufferSize: int=?,
+    ~maxConcurrency: int=?,
+    ('ctx0, 'a) => RxObservable.t('b),
+    'ctx0,
     RxObservable.t('a)
   ) =>
   RxObservable.t('b);
@@ -423,6 +439,8 @@ let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let switchMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+let switchMap1:
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
 
 let takeUntil: (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
   
