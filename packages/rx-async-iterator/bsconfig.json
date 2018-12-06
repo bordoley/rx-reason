@@ -1,0 +1,35 @@
+{
+  "name": "@rx-reason/rx-async-iterator",
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "@rx-reason/rx-core",
+    "@rx-reason/rx-disposables",
+    "@rx-reason/rx-observables",
+    "@rx-reason/rx-imperative"
+  ],
+  "bs-dev-dependencies": [
+    "@rx-reason/reunit"
+  ],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "sources": [
+    {
+      "dir": "src"
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ]
+}
