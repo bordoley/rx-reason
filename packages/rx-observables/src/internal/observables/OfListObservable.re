@@ -11,23 +11,27 @@ let ofListSynchronousSource = (list, subscriber) => {
 
 let ofListScheduledSource = (scheduler, list, subscriber) => {
   let rec loop = (list, ~now, ~shouldYield) =>
-    switch (list) {
-    | [hd] =>
-      subscriber |> RxSubscriber.next(hd);
-      subscriber |> RxSubscriber.complete;
+    if (RxSubscriber.isDisposed(subscriber)) {
       RxScheduler.Result.complete;
-    | [hd, ...tail] =>
-      subscriber |> RxSubscriber.next(hd);
+    } else {
+      switch (list) {
+      | [hd] =>
+        subscriber |> RxSubscriber.next(hd);
+        subscriber |> RxSubscriber.complete;
+        RxScheduler.Result.complete;
+      | [hd, ...tail] =>
+        subscriber |> RxSubscriber.next(hd);
 
-      /* Keep pushing values until told to yield */
-      if (shouldYield()) {
-        RxScheduler.Result.yield(loop(tail));
-      } else {
-        loop(tail, ~now, ~shouldYield);
+        /* Keep pushing values until told to yield */
+        if (shouldYield()) {
+          RxScheduler.Result.yield(loop(tail));
+        } else {
+          loop(tail, ~now, ~shouldYield);
+        };
+      | [] =>
+        subscriber |> RxSubscriber.complete;
+        RxScheduler.Result.complete;
       };
-    | [] =>
-      subscriber |> RxSubscriber.complete;
-      RxScheduler.Result.complete;
     };
 
   let schedulerSubscription = scheduler |> RxScheduler.schedule(loop(list));
