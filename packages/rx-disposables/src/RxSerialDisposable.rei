@@ -28,6 +28,16 @@ module type S1 = {
   let asSerialDisposable: t('a) => serialDisposable;
 };
 
+module type S2 = {
+  type t('a, 'b);
+
+  include RxSerialDisposableLike.S2 with type t('a, 'b) := t('a, 'b);
+  include RxDisposable.S2 with type t('a, 'b) := t('a, 'b);
+
+  /** Cast to SerialDisposable.t. */
+  let asSerialDisposable: t('a, 'b) => serialDisposable;
+};
+
 include RxDisposable.S with type t := t;
 include RxSerialDisposableLike.S with type t := t;
 

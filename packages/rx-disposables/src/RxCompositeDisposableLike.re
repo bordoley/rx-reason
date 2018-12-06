@@ -15,3 +15,12 @@ module type S1 = {
   let addDisposable: (RxDisposable.t, t('a)) => t('a);
   let removeDisposable: (RxDisposable.t, t('a)) => t('a);
 };
+
+module type S2 = {
+  type t('a, 'b);
+
+  include RxDisposableLike.S2 with type t('a, 'b) := t('a, 'b);
+
+  let addDisposable: (RxDisposable.t, t('a, 'b)) => t('a, 'b);
+  let removeDisposable: (RxDisposable.t, t('a, 'b)) => t('a, 'b);
+};

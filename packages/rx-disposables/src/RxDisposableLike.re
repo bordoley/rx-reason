@@ -23,3 +23,16 @@ module type S1 = {
   /** Returns true if this resource has been disposed. */
   let isDisposed: t('a) => bool;
 };
+
+/**
+ * Module type signature for a DisposableLike type with parametric type arity of 2.
+ */
+module type S2 = {
+  type t('a, 'b);
+
+  /** Dispose the resource. The operation must be idempotent. */
+  let dispose: t('a, 'b) => unit;
+
+  /** Returns true if this resource has been disposed. */
+  let isDisposed: t('a, 'b) => bool;
+};

@@ -25,3 +25,15 @@ module type S1 = {
    */
   let setInnerDisposable: (RxDisposable.t, t('a)) => unit;
 };
+
+module type S2 = {
+  include RxDisposableLike.S2;
+
+  /** Returns the currently contained Disposable */
+  let getInnerDisposable: t('a, 'b) => RxDisposable.t;
+
+  /** Atomically set the next disposable on this container and dispose the previous
+   *  one (if any) or dispose next if the container has been disposed
+   */
+  let setInnerDisposable: (RxDisposable.t, t('a, 'b)) => unit;
+};

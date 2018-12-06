@@ -25,6 +25,16 @@ module type S1 = {
   let asCompositeDisposable: t('a) => compositeDisposable;
 };
 
+module type S2 = {
+  type t('a, 'b);
+
+  include RxCompositeDisposableLike.S2 with type t('a, 'b) := t('a, 'b);
+  include RxDisposable.S2 with type t('a, 'b) := t('a, 'b);
+
+  /** Cast to CompositeDisposable.t. */
+  let asCompositeDisposable: t('a, 'b) => compositeDisposable;
+};
+
 include RxDisposable.S with type t := t;
 include RxCompositeDisposableLike.S with type t := t;
 

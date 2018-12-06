@@ -26,6 +26,16 @@ module type S1 = {
   let asDisposable: t('a) => disposable;
 };
 
+/**
+ * Module type signature for a Disposable type with parametric type arity of 2.
+ */
+module type S2 = {
+  include RxDisposableLike.S2;
+
+  /** Cast to Disposable.t. */
+  let asDisposable: t('a, 'b) => disposable;
+};
+
 include RxDisposableLike.S with type t := t;
 
 /**

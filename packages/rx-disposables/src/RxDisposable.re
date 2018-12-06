@@ -43,6 +43,13 @@ module type S1 = {
   let asDisposable: t('a) => disposable;
 };
 
+module type S2 = {
+  include RxDisposableLike.S2;
+
+  /** Cast to Disposable.t. */
+  let asDisposable: t('a, 'b) => disposable;
+};
+
 let create = teardown : t => Disposable(RxAtomic.make(false), teardown);
 
 let create1 = (teardown, d0) : t =>
