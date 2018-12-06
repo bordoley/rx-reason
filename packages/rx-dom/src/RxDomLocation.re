@@ -18,7 +18,7 @@ let observable =
   |> RxDomEventTarget.observeEvent(~passive=true, "popstate")
   |> RxObservables.map(_ => location |> href)
   |> RxObservables.startWithValue(location |> href)
-  |> RxObservables.shareWithReplayBuffer(1);
+  |> RxObservables.shareReplayLast;
 
 let asObservable = _ => observable;
 

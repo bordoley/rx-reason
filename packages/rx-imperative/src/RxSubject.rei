@@ -7,6 +7,7 @@ include RxDisposable.S1 with type t('a) := t('a);
 include RxSubjectLike.S1 with type t('a) := t('a);
 
 let createMulticast: unit => t('a);
+let createReplayLast: unit => t('a);
 
 let create2:
   (

@@ -56,6 +56,7 @@ let repeat = RepeatObservable.create;
 let retry = RetryObservable.create;
 let scan = ScanObservable.create;
 let share = ShareObservable.create;
+let shareReplayLast = ShareReplayLast.create;
 let shareWithReplayBuffer = ShareWithReplayBufferObservable.create;
 let skip = SkipObservable.create;
 let some = SomeObservable.create;
