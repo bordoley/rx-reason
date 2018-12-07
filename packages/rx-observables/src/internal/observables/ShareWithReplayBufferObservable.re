@@ -4,6 +4,6 @@ let create = count => {
     "ShareWithReplayBufferObservable: count must be greater than 0.",
   );
 
-  let createSubject = () => RxReplayBufferSubject.create(count);
+  let createSubject = () => RxSubject.createReplayBuffer(count);
   obs => ShareWithSubjectFactoryObservable.create(createSubject, obs);
 };

@@ -41,10 +41,6 @@
               "public": "none"
             },
             {
-              "dir": "subjects",
-              "public": "none"
-            },
-            {
               "dir": "utils",
               "public": "none"
             }

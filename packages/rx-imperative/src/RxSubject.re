@@ -218,7 +218,7 @@ let create2 = (~onNext, ~onComplete, ~onSubscribe, ~onDispose, ctx0, ctx1) => {
   self^;
 };
 
-module ReplayLast = {
+let createReplayLast = {
   let onNext = (buffer, next) => buffer := Some(RxNotification.next(next));
 
   let onComplete = (buffer, exn) =>
@@ -239,10 +239,65 @@ module ReplayLast = {
 
   let onDispose = buffer => buffer := None;
 
-  let create = () => {
+  () => {
     let buffer = ref(None);
     create1(~onNext, ~onComplete, ~onSubscribe, ~onDispose, buffer);
   };
 };
 
-let createReplayLast = ReplayLast.create;
+let createReplayBuffer = {
+  let onNext = (maxBufferCount, buffer, next) => {
+    let currentBuffer = buffer^;
+
+    buffer :=
+      currentBuffer
+      |> RxCopyOnWriteArray.addLastWithMaxCount(
+           maxBufferCount,
+           RxNotification.next(next),
+         );
+  };
+
+  let onComplete = (maxBufferCount, buffer, exn) => {
+    let currentBuffer = buffer^;
+
+    buffer :=
+      currentBuffer
+      |> RxCopyOnWriteArray.addLastWithMaxCount(
+           maxBufferCount,
+           RxNotification.complete(exn),
+         );
+  };
+
+  let onSubscribe = {
+    let onNext = (subscriber, v) => subscriber |> RxSubscriber.next(v);
+    let onComplete = (subscriber, exn) =>
+      subscriber |> RxSubscriber.complete(~exn?);
+
+    (_, buffer, subscriber) => {
+      let currentBuffer = buffer^;
+      RxCopyOnWriteArray.forEach(
+        RxNotification.map1(~onNext, ~onComplete, subscriber),
+        currentBuffer,
+      );
+    };
+  };
+
+  let onDispose = (_, buffer) => buffer := RxCopyOnWriteArray.empty();
+
+  maxBufferCount => {
+    RxPreconditions.checkArgument(
+      maxBufferCount > 0,
+      "ShareWithReplayBufferObservable: maxBufferCount must be greater than 0.",
+    );
+
+    let buffer = ref(RxCopyOnWriteArray.empty());
+    create2(
+      ~onNext,
+      ~onComplete,
+      ~onSubscribe,
+      ~onDispose,
+      maxBufferCount,
+      buffer,
+    );
+  };
+};
