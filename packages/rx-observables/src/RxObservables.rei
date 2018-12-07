@@ -412,7 +412,7 @@ let shareReplayLast: RxObservable.t('a) => RxObservable.t('a);
  * Returns a new MulticastObservable that shares a single subscription to the provided source Observable.
  * In addition, it replays the last n events each time it is subscribed to.
  */
-let shareWithReplayBuffer: (int, RxObservable.t('a)) => RxObservable.t('a);
+let shareReplayBuffer: (int, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable that emits the specified items before it
