@@ -15,10 +15,6 @@ let ofListScheduledSource = (scheduler, list, subscriber) => {
       RxScheduler.Result.complete;
     } else {
       switch (list) {
-      | [hd] =>
-        subscriber |> RxSubscriber.next(hd);
-        subscriber |> RxSubscriber.complete;
-        RxScheduler.Result.complete;
       | [hd, ...tail] =>
         subscriber |> RxSubscriber.next(hd);
 
