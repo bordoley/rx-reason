@@ -12,7 +12,8 @@ let concatMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let concatMap1:
-  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('b);
 
 let combineLatest2:
   (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
@@ -80,7 +81,8 @@ let exhaustMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let exhaustMap1:
-  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('b);
 
 /**
  * Returns an Observable which emits the first observed item
@@ -116,8 +118,11 @@ let isEmpty: RxObservable.t('a) => RxObservable.t(bool);
  * which satisfy the predicate.
  */
 let keep: ('a => bool, RxObservable.t('a)) => RxObservable.t('a);
-let keep1: (('ctx0, 'a) => bool, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
-let keep2: (('ctx0, 'ctx1, 'a) => bool, 'ctx0, 'ctx1, RxObservable.t('a)) => RxObservable.t('a);
+let keep1:
+  (('ctx0, 'a) => bool, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+let keep2:
+  (('ctx0, 'ctx1, 'a) => bool, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which emits the last observed item or
@@ -136,7 +141,8 @@ let lastOrNone: RxObservable.t('a) => RxObservable.t(option('a));
  * each item observed, emitting the result of the function application.
  */
 let map: ('a => 'b, RxObservable.t('a)) => RxObservable.t('b);
-let map1: (('ctx0, 'a) => 'b, 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+let map1:
+  (('ctx0, 'a) => 'b, 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
 
 /**
  * Returns an Observable which emits the specified value for
@@ -174,7 +180,13 @@ let merge:
  * Returns an Observable that merges items emitted by the source Observables,
  * interleaving the items emitted by each Observable.
  */
-let mergeList: (~scheduler: RxScheduler.t=?, list(RxObservable.t('a))) => RxObservable.t('a);
+let mergeList:
+  (
+    ~scheduler: RxScheduler.t=?,
+    ~maxConcurrency: int=?,
+    list(RxObservable.t('a))
+  ) =>
+  RxObservable.t('a);
 
 let mergeMap:
   (
@@ -446,10 +458,12 @@ let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 let switchMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 let switchMap1:
-  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+  (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('b);
 
-let takeUntil: (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
-  
+let takeUntil:
+  (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
+
 /**
  * Returns an Observable which completes with a TimeoutException if
  * no notifications are observed before a duration determined
@@ -458,7 +472,7 @@ let takeUntil: (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
 let timeout:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
   RxObservable.t('a);
-  
+
 /**
  * Returns an Observable that combines each observed item from the source with
  * the last observed item from the other Observable using the selector function.
