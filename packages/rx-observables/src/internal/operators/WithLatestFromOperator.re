@@ -39,13 +39,11 @@ let create = (~selector, other, subscriber) => {
 
   context.otherSubscription =
     other
-    |> RxObservable.lift(
-         ObserveOperator.create2(
-           ~onNext=otherOnNext,
-           ~onComplete=otherOnComplete,
-           delegateSubscriber,
-           otherLatest,
-         ),
+    |> ObserveObservable.create2(
+         ~onNext=otherOnNext,
+         ~onComplete=otherOnComplete,
+         delegateSubscriber,
+         otherLatest,
        )
     |> RxObservable.connect;
 

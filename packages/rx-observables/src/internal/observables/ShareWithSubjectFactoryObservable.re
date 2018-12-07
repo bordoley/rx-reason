@@ -43,12 +43,10 @@ let source = (state, subscriber) => {
   if (state.refCount === 1) {
     let subscriber =
       state.source
-      |> RxObservable.lift(
-           ObserveOperator.create1(
-             ~onNext=forwardOnNext,
-             ~onComplete=forwardOnComplete,
-             state.subject,
-           ),
+      |> ObserveObservable.create1(
+           ~onNext=forwardOnNext,
+           ~onComplete=forwardOnComplete,
+           state.subject,
          )
       |> RxObservable.connect;
 

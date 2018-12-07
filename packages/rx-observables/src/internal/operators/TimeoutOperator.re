@@ -8,7 +8,9 @@ let subscribeToTimeout = ({timeoutObservable, timeoutSubscription}) => {
   |> RxSerialDisposable.getInnerDisposable
   |> RxDisposable.dispose;
   timeoutSubscription
-  |> RxSerialDisposable.setInnerDisposable(timeoutObservable |> RxObservable.connect);
+  |> RxSerialDisposable.setInnerDisposable(
+       timeoutObservable |> RxObservable.connect,
+     );
 };
 
 let onNext = (ctx, delegate, next) => {
@@ -23,7 +25,7 @@ let onComplete = ({timeoutSubscription}, delegate, exn) => {
 
 let create = (~scheduler, due) => {
   RxPreconditions.checkArgument(
-    (due > 0.0),
+    due > 0.0,
     "TimeoutOperator: due time must be greater than 0.0 milliseconds",
   );
 
@@ -46,12 +48,10 @@ let create = (~scheduler, due) => {
 
     context.timeoutObservable =
       timeoutObservable
-      |> RxObservable.lift(
-           ObserveOperator.create1(
-             ~onNext=RxFunctions.alwaysUnit2,
-             ~onComplete=SubscriberForward.onComplete,
-             subscriber,
-           ),
+      |> ObserveObservable.create1(
+           ~onNext=RxFunctions.alwaysUnit2,
+           ~onComplete=SubscriberForward.onComplete,
+           subscriber,
          );
 
     subscribeToTimeout(context);

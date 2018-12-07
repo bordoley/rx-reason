@@ -1,5 +1,5 @@
 let rec onComplete = (observable, shouldRepeat, subscription, delegate, exn) => {
-  let shouldComplete = ! shouldRepeat(exn);
+  let shouldComplete = !shouldRepeat(exn);
 
   shouldComplete ?
     delegate |> RxSubscriber.complete(~exn?) :
@@ -8,21 +8,19 @@ let rec onComplete = (observable, shouldRepeat, subscription, delegate, exn) => 
 and setupSubscription = (observable, shouldRepeat, subscription, delegate) => {
   let alreadyDisposed = subscription |> RxSerialDisposable.isDisposed;
 
-  if (! alreadyDisposed) {
+  if (!alreadyDisposed) {
     subscription
     |> RxSerialDisposable.getInnerDisposable
     |> RxDisposable.dispose;
     let newInnerSubscription =
       observable
-      |> RxObservable.lift(
-           ObserveOperator.create4(
-             ~onNext=SubscriberForward.onNext3,
-             ~onComplete,
-             observable,
-             shouldRepeat,
-             subscription,
-             delegate,
-           ),
+      |> ObserveObservable.create4(
+           ~onNext=SubscriberForward.onNext3,
+           ~onComplete,
+           observable,
+           shouldRepeat,
+           subscription,
+           delegate,
          )
       |> RxObservable.connect;
     subscription

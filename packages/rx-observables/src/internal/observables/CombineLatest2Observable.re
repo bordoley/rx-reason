@@ -45,27 +45,23 @@ let observableSource = (selector, observable0, observable1, subscriber) => {
 
   ctx.subscription0 :=
     observable0
-    |> RxObservable.lift(
-         ObserveOperator.create3(
-           ~onNext,
-           ~onComplete,
-           ctx,
-           ctx.value0,
-           ctx.subscription1,
-         ),
+    |> ObserveObservable.create3(
+         ~onNext,
+         ~onComplete,
+         ctx,
+         ctx.value0,
+         ctx.subscription1,
        )
     |> RxObservable.connect;
 
   ctx.subscription1 :=
     observable1
-    |> RxObservable.lift(
-         ObserveOperator.create3(
-           ~onNext,
-           ~onComplete,
-           ctx,
-           ctx.value1,
-           ctx.subscription0,
-         ),
+    |> ObserveObservable.create3(
+         ~onNext,
+         ~onComplete,
+         ctx,
+         ctx.value1,
+         ctx.subscription0,
        )
     |> RxObservable.connect;
 
