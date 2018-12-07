@@ -48,11 +48,7 @@ let test =
             let observable = subject^ |> RxSubject.asObservable;
             let subscription =
               observable
-              |> RxObservables.observe(
-                   ~onNext=next => subscriber |> RxSubscriber.next(next),
-                   ~onComplete=
-                     exn => subscriber |> RxSubscriber.complete(~exn?),
-                 )
+              |> RxObservables.publishToSubscriber(subscriber)
               |> RxObservable.connect;
 
             subscriber |> RxSubscriber.addDisposable(subscription) |> ignore;
