@@ -14,30 +14,34 @@ module RenderProps = {
   };
 };
 
-let createReactComponent =
-    (~name=?, ~renderDefault=?, ~renderExn=?, ~render)
-    : React.Component.t(Props.t('state, 'action, 'dispatcher), 'children) => {
+let createReactComponent = {
+  let stateToRenderProps =
+      (dispatch, dispatcher, state)
+      : RenderProps.t('state, 'action, 'dispatch) => {
+    state,
+    dispatch,
+    dispatcher,
+  };
+
   let f =
       (
         {stateStream, dispatch, dispatcher}:
           Props.t('state, 'action, 'dispatcher),
       ) =>
     stateStream
-    |> RxObservables.map(state =>
-         (
-           {state, dispatch, dispatcher}:
-             RenderProps.t('state, 'action, 'dispatch)
-         )
-       );
-  let propsToState = RxObservables.switchMap(f);
+    |> RxObservables.map2(stateToRenderProps, dispatch, dispatcher);
 
-  RxReact.createReactComponent(
-    ~name?,
-    ~propsToState,
-    ~renderDefault?,
-    ~renderExn?,
-    ~render,
-  );
+  (~name=?, ~renderDefault=?, ~renderExn=?, ~render) => {
+    let propsToState = RxObservables.switchMap(f);
+
+    RxReact.createReactComponent(
+      ~name?,
+      ~propsToState,
+      ~renderDefault?,
+      ~renderExn?,
+      ~render,
+    );
+  };
 };
 
 let create = (~name=?, ~renderDefault=?, ~renderExn=?, ~render, ()) => {

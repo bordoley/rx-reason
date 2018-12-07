@@ -11,3 +11,10 @@ let create1 = (~maxBufferSize=?, ~maxConcurrency=?, f, ctx0) => {
 
   s => mapOperator @@ mergeOperator @@ s;
 };
+
+let create2 = (~maxBufferSize=?, ~maxConcurrency=?, f, ctx0, ctx1) => {
+  let mapOperator = MapOperator.create2(f, ctx0, ctx1);
+  let mergeOperator = MergeOperator.create(~maxBufferSize?, ~maxConcurrency?);
+
+  s => mapOperator @@ mergeOperator @@ s;
+};

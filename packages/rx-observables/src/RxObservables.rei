@@ -15,6 +15,15 @@ let concatMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
   RxObservable.t('b);
 
+let concatMap2:
+  (
+    ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
 let combineLatest2:
   (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
   RxObservable.t('c);
@@ -39,6 +48,9 @@ let defaultIfEmpty: ('a, RxObservable.t('a)) => RxObservable.t('a);
  * create a new Observable for each subscription.
  */
 let defer: (unit => RxObservable.t('a)) => RxObservable.t('a);
+let defer1: ('ctx0 => RxObservable.t('a), 'ctx0) => RxObservable.t('a);
+let defer2:
+  (('ctx0, 'ctx1) => RxObservable.t('a), 'ctx0, 'ctx1) => RxObservable.t('a);
 
 let delay:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
@@ -82,6 +94,15 @@ let exhaustMap:
 
 let exhaustMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('b);
+
+let exhaustMap2:
+  (
+    ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    RxObservable.t('a)
+  ) =>
   RxObservable.t('b);
 
 /**
@@ -141,8 +162,13 @@ let lastOrNone: RxObservable.t('a) => RxObservable.t(option('a));
  * each item observed, emitting the result of the function application.
  */
 let map: ('a => 'b, RxObservable.t('a)) => RxObservable.t('b);
+
 let map1:
   (('ctx0, 'a) => 'b, 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
+
+let map2:
+  (('ctx0, 'ctx1, 'a) => 'b, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('b);
 
 /**
  * Returns an Observable which emits the specified value for
@@ -203,6 +229,17 @@ let mergeMap1:
     ~maxConcurrency: int=?,
     ('ctx0, 'a) => RxObservable.t('b),
     'ctx0,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
+let mergeMap2:
+  (
+    ~maxBufferSize: int=?,
+    ~maxConcurrency: int=?,
+    ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
     RxObservable.t('a)
   ) =>
   RxObservable.t('b);
@@ -332,6 +369,12 @@ let ofValue: (~scheduler: RxScheduler.t=?, 'a) => RxObservable.t('a);
  */
 let onComplete:
   (option(exn) => unit, RxObservable.t('a)) => RxObservable.t('a);
+let onComplete1:
+  (('ctx0, option(exn)) => unit, 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('a);
+let onComplete2:
+  (('ctx0, 'ctx1, option(exn)) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
@@ -463,8 +506,18 @@ let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let switchMap:
   ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+
 let switchMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
+  RxObservable.t('b);
+
+let switchMap2:
+  (
+    ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    RxObservable.t('a)
+  ) =>
   RxObservable.t('b);
 
 let takeUntil:

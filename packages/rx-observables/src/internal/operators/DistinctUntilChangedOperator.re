@@ -1,13 +1,15 @@
 let defaultShouldUpdate = (a, b) => a !== b;
 
+let predicate = (shouldUpdate, state, next) =>
+  RxMutableOption.setIf(shouldUpdate, next, state);
+
 let create = (~equals=RxFunctions.referenceEquality) => {
   let shouldUpdate =
     equals === RxFunctions.referenceEquality ?
-      defaultShouldUpdate : ((a, b) => ! equals(a, b));
+      defaultShouldUpdate : ((a, b) => !equals(a, b));
 
   subscriber => {
     let state = RxMutableOption.create();
-    let predicate = next => RxMutableOption.setIf(shouldUpdate, next, state);
-    KeepOperator.create(predicate, subscriber);
+    KeepOperator.create2(predicate, shouldUpdate, state, subscriber);
   };
 };
