@@ -1,4 +1,4 @@
-let create = observables =>
+let create = (~scheduler=?, observables) =>
   observables
-  |> OfListObservable.create
+  |> OfListObservable.create(~scheduler?)
   |> RxObservable.lift(MergeOperator.create);

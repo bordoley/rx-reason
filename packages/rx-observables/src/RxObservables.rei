@@ -174,7 +174,7 @@ let merge:
  * Returns an Observable that merges items emitted by the source Observables,
  * interleaving the items emitted by each Observable.
  */
-let mergeList: list(RxObservable.t('a)) => RxObservable.t('a);
+let mergeList: (~scheduler: RxScheduler.t=?, list(RxObservable.t('a))) => RxObservable.t('a);
 
 let mergeMap:
   (
