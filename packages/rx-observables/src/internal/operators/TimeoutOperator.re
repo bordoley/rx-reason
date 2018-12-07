@@ -1,9 +1,4 @@
-type context = {
-  mutable timeoutObservable: RxObservable.t(unit),
-  timeoutSubscription: RxSerialDisposable.t,
-};
-
-let subscribeToTimeout = ({timeoutObservable, timeoutSubscription}) => {
+let subscribeToTimeout = (timeoutObservable, timeoutSubscription) => {
   timeoutSubscription
   |> RxSerialDisposable.getInnerDisposable
   |> RxDisposable.dispose;
@@ -13,12 +8,12 @@ let subscribeToTimeout = ({timeoutObservable, timeoutSubscription}) => {
      );
 };
 
-let onNext = (ctx, delegate, next) => {
+let onNext = (timeoutObservable, timeoutSubscription, delegate, next) => {
   delegate |> RxSubscriber.next(next);
-  subscribeToTimeout(ctx);
+  subscribeToTimeout(timeoutObservable, timeoutSubscription);
 };
 
-let onComplete = ({timeoutSubscription}, delegate, exn) => {
+let onComplete = (_, timeoutSubscription, delegate, exn) => {
   timeoutSubscription |> RxSerialDisposable.dispose;
   delegate |> RxSubscriber.complete(~exn?);
 };
@@ -29,32 +24,22 @@ let create = (~scheduler, due) => {
     "TimeoutOperator: due time must be greater than 0.0 milliseconds",
   );
 
-  let timeoutObservable =
-    RaiseObservable.create(RxTimeoutException.Exn)
-    |> RxObservable.lift(DelayOperator.create(~scheduler, due));
-
   subscriber => {
-    let context = {
-      timeoutObservable: RxObservable.never,
-      timeoutSubscription: RxSerialDisposable.create(),
-    };
+    let timeoutObservable =
+      RaiseObservable.create(RxTimeoutException.Exn)
+      |> DelayObservable.create(~scheduler, due)
+      |> IgnoreElementsObservable.create
+      |> PublishToSubscriberObservable.create(subscriber);
 
-    let timeoutDisposable =
-      context.timeoutSubscription |> RxSerialDisposable.asDisposable;
+    let timeoutSubscription = RxSerialDisposable.create();
+    let timeoutDisposable = timeoutSubscription |> RxSerialDisposable.asDisposable;
+
     let self =
       subscriber
-      |> RxSubscriber.decorate1(~onNext, ~onComplete, context)
+      |> RxSubscriber.decorate2(~onNext, ~onComplete, timeoutObservable, timeoutSubscription)
       |> RxSubscriber.addDisposable(timeoutDisposable);
 
-    context.timeoutObservable =
-      timeoutObservable
-      |> ObserveObservable.create1(
-           ~onNext=RxFunctions.alwaysUnit2,
-           ~onComplete=SubscriberForward.onComplete,
-           subscriber,
-         );
-
-    subscribeToTimeout(context);
+    subscribeToTimeout(timeoutObservable, timeoutSubscription);
     self;
   };
 };
