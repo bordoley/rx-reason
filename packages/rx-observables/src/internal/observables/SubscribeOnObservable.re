@@ -1,7 +1,7 @@
 let doSubscribe = (observable, subscriber, ~now as _, ~shouldYield as _) => {
   let innerSubscription =
     observable
-    |> RxObservable.lift(ForwardingOperator.create(subscriber))
+    |> PublishToSubscriberObservable.create(subscriber)
     |> RxObservable.connect;
 
   subscriber |> RxSubscriber.addDisposable(innerSubscription) |> ignore;

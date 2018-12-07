@@ -368,6 +368,12 @@ let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);
 let onSubscribe:
   (unit => RxDisposable.t, RxObservable.t('a)) => RxObservable.t('a);
 
+let publishToSubject:
+  (RxSubject.t('a), RxObservable.t('a)) => RxObservable.t('a);
+
+let publishToSubscriber:
+  (RxSubscriber.t('a), RxObservable.t('a)) => RxObservable.t('a);
+
 /**
  * Returns an Observable that completes with the specified exception
  * when subscribed to.

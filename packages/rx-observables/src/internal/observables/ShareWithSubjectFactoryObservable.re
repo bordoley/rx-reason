@@ -6,11 +6,6 @@ type multicastState('a) = {
   subscription: RxSerialDisposable.t,
 };
 
-let forwardOnComplete = (subject, exn) =>
-  subject |> RxSubject.complete(~exn?);
-
-let forwardOnNext = (subject, v) => subject |> RxSubject.next(v);
-
 let teardown = state => {
   state.refCount = state.refCount - 1;
 
@@ -32,7 +27,7 @@ let source = (state, subscriber) => {
   let innerSubscription =
     state.subject
     |> RxSubject.asObservable
-    |> RxObservable.lift(ForwardingOperator.create(subscriber))
+    |> PublishToSubscriberObservable.create(subscriber)
     |> RxObservable.connect;
 
   subscriber
@@ -43,11 +38,7 @@ let source = (state, subscriber) => {
   if (state.refCount === 1) {
     let subscriber =
       state.source
-      |> ObserveObservable.create1(
-           ~onNext=forwardOnNext,
-           ~onComplete=forwardOnComplete,
-           state.subject,
-         )
+      |> PublishToSubjectObservable.create(state.subject)
       |> RxObservable.connect;
 
     state.subscription |> RxSerialDisposable.setInnerDisposable(subscriber);

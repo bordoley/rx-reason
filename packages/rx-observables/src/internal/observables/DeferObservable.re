@@ -1,7 +1,7 @@
 let source = (f, subscriber) => {
   let innerSubscription =
     f()
-    |> RxObservable.lift(ForwardingOperator.create(subscriber))
+    |> PublishToSubscriberObservable.create(subscriber)
     |> RxObservable.connect;
 
   subscriber |> RxSubscriber.addDisposable(innerSubscription) |> ignore;

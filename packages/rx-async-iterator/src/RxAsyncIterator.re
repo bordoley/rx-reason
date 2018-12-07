@@ -21,32 +21,27 @@ let request = action =>
   | Disposed => ()
   | Instance(event, _, _) => event |> RxEvent.dispatch(action);
 
-let createInternal = {
-  let onNext = (subject, next) => subject |> RxSubject.next(next);
-  let onComplete = (subject, exn) => subject |> RxSubject.complete(~exn?);
+let createInternal = flatMap => {
+  let event = RxEvent.create();
+  let requestStream = event |> RxEvent.asObservable;
 
-  flatMap => {
-    let event = RxEvent.create();
-    let requestStream = event |> RxEvent.asObservable;
+  let subject = RxSubject.createMulticast();
+  let observable = subject |> RxSubject.asObservable;
 
-    let subject = RxSubject.createMulticast();
-    let observable = subject |> RxSubject.asObservable;
+  let requestSubscription =
+    requestStream
+    |> flatMap
+    |> RxObservables.publishToSubject(subject)
+    |> RxObservable.connect;
 
-    let requestSubscription =
-      requestStream
-      |> flatMap
-      |> RxObservables.observe1(~onNext, ~onComplete, subject)
-      |> RxObservable.connect;
+  let disposable =
+    RxDisposable.compose([
+      requestSubscription,
+      RxSubject.asDisposable(subject),
+      RxEvent.asDisposable(event),
+    ]);
 
-    let disposable =
-      RxDisposable.compose([
-        requestSubscription,
-        RxSubject.asDisposable(subject),
-        RxEvent.asDisposable(event),
-      ]);
-
-    Instance(event, observable, disposable);
-  };
+  Instance(event, observable, disposable);
 };
 
 let create = f => {
