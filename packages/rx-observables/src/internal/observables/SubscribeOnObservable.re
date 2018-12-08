@@ -16,7 +16,7 @@ let subscribeOnSource = (delay, scheduler, observable, subscriber) => {
   subscriber |> RxSubscriber.addDisposable(schedulerSubscription) |> ignore;
 };
 
-let create = (~delay=?, scheduler, observable) => {
+let create = (~delay=?, scheduler) => {
   switch (delay) {
   | Some(delayInMs) =>
     RxPreconditions.checkArgument(
@@ -25,5 +25,7 @@ let create = (~delay=?, scheduler, observable) => {
     )
   | _ => ()
   };
-  RxObservable.create3(subscribeOnSource, delay, scheduler, observable);
+  
+  observable =>
+    RxObservable.create3(subscribeOnSource, delay, scheduler, observable);
 };
