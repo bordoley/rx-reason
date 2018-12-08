@@ -24,6 +24,16 @@ let concatMap2:
   ) =>
   RxObservable.t('b);
 
+let concatMap3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
 let combineLatest2:
   (~selector: ('a, 'b) => 'c, RxObservable.t('a), RxObservable.t('b)) =>
   RxObservable.t('c);
@@ -51,6 +61,9 @@ let defer: (unit => RxObservable.t('a)) => RxObservable.t('a);
 let defer1: ('ctx0 => RxObservable.t('a), 'ctx0) => RxObservable.t('a);
 let defer2:
   (('ctx0, 'ctx1) => RxObservable.t('a), 'ctx0, 'ctx1) => RxObservable.t('a);
+let defer3:
+  (('ctx0, 'ctx1, 'ctx2) => RxObservable.t('a), 'ctx0, 'ctx1, 'ctx2) =>
+  RxObservable.t('a);
 
 let delay:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
@@ -105,6 +118,16 @@ let exhaustMap2:
   ) =>
   RxObservable.t('b);
 
+let exhaustMap3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
 /**
  * Returns an Observable which emits the first observed item
  * from the source which satisfies the predicate.
@@ -144,6 +167,15 @@ let keep1:
 let keep2:
   (('ctx0, 'ctx1, 'a) => bool, 'ctx0, 'ctx1, RxObservable.t('a)) =>
   RxObservable.t('a);
+let keep3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => bool,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
 
 /**
  * Returns an Observable which emits the last observed item or
@@ -168,6 +200,16 @@ let map1:
 
 let map2:
   (('ctx0, 'ctx1, 'a) => 'b, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('b);
+
+let map3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => 'b,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
   RxObservable.t('b);
 
 /**
@@ -240,6 +282,18 @@ let mergeMap2:
     ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
     'ctx0,
     'ctx1,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
+let mergeMap3:
+  (
+    ~maxBufferSize: int=?,
+    ~maxConcurrency: int=?,
+    ('ctx0, 'ctx1, 'ctx2, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    'ctx2,
     RxObservable.t('a)
   ) =>
   RxObservable.t('b);
@@ -343,6 +397,16 @@ let onComplete2:
   (('ctx0, 'ctx1, option(exn)) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
   RxObservable.t('a);
 
+let onComplete3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
 /**
  * Returns an Observable which invokes the side-effect function
  * with each observed item.
@@ -364,6 +428,16 @@ let onNext2:
   (('ctx0, 'ctx1, 'a) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
   RxObservable.t('a);
 
+let onNext3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
 /**
  * Returns an Observable which invokes the side-effect function
  * when an exception occurs.
@@ -375,6 +449,16 @@ let onExn1:
 
 let onExn2:
   (('ctx0, 'ctx1, exn) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
+
+let onExn3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, exn) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
   RxObservable.t('a);
 
 /**
@@ -390,6 +474,16 @@ let onSubscribe1:
 
 let onSubscribe2:
   (('ctx0, 'ctx1) => RxDisposable.t, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
+
+let onSubscribe3:
+  (
+    ('ctx0, 'ctx1, 'ctx2) => RxDisposable.t,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
   RxObservable.t('a);
 
 let publishToSubject:
@@ -497,6 +591,16 @@ let switchMap2:
     ('ctx0, 'ctx1, 'a) => RxObservable.t('b),
     'ctx0,
     'ctx1,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('b);
+
+let switchMap3:
+  (
+    ('ctx0, 'ctx1, 'ctx2, 'a) => RxObservable.t('b),
+    'ctx0,
+    'ctx1,
+    'ctx2,
     RxObservable.t('a)
   ) =>
   RxObservable.t('b);

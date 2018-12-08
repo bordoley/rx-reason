@@ -29,3 +29,14 @@ let create2 = {
   (predicate, ctx0, ctx1) =>
     RxSubscriber.decorateOnNext3(onNext, predicate, ctx0, ctx1);
 };
+
+let create3 = {
+  let onNext = (predicate, ctx0, ctx1, ctx2, subscriber, next) => {
+    let shouldKeep = predicate(ctx0, ctx1, ctx2, next);
+    if (shouldKeep) {
+      subscriber |> RxSubscriber.next(next);
+    };
+  };
+  (predicate, ctx0, ctx1, ctx2) =>
+    RxSubscriber.decorateOnNext4(onNext, predicate, ctx0, ctx1, ctx2);
+};

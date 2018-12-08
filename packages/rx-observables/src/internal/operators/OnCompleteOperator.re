@@ -21,3 +21,13 @@ let create2 = (onComplete, ctx0, ctx1, subscriber) =>
     ctx1,
     subscriber,
   );
+
+let create3 = (onComplete, ctx0, ctx1, ctx2, subscriber) =>
+  ObserveOperator.create3(
+    ~onNext=RxFunctions.alwaysUnit4,
+    ~onComplete,
+    ctx0,
+    ctx1,
+    ctx2,
+    subscriber,
+  );

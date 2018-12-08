@@ -6,3 +6,6 @@ let create1 = (f, ctx0, subscriber) =>
 
 let create2 = (f, ctx0, ctx1, subscriber) =>
   subscriber |> RxSubscriber.addDisposable(f(ctx0, ctx1));
+
+let create3 = (f, ctx0, ctx1, ctx2, subscriber) =>
+  subscriber |> RxSubscriber.addDisposable(f(ctx0, ctx1, ctx2,));

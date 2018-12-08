@@ -21,3 +21,17 @@ let create2 = (~maxBufferSize=?, ~maxConcurrency=?, f, ctx0, ctx1, observable) =
          ctx1,
        ),
      );
+
+let create3 =
+    (~maxBufferSize=?, ~maxConcurrency=?, f, ctx0, ctx1, ctx2, observable) =>
+  observable
+  |> RxObservable.lift(
+       MergeMapOperator.create3(
+         ~maxBufferSize?,
+         ~maxConcurrency?,
+         f,
+         ctx0,
+         ctx1,
+         ctx2,
+       ),
+     );

@@ -25,3 +25,13 @@ let create2 = {
   (mapper, ctx0, ctx1) =>
     RxSubscriber.decorateOnNext3(onNext, ctx0, ctx1, mapper);
 };
+
+let create3 = {
+  let onNext = (ctx0, ctx1, ctx2, mapper, delegate, next) => {
+    let mapped = mapper(ctx0, ctx1, ctx2, next);
+    delegate |> RxSubscriber.next(mapped);
+  };
+
+  (mapper, ctx0, ctx1, ctx2) =>
+    RxSubscriber.decorateOnNext4(onNext, ctx0, ctx1, ctx2, mapper);
+};
