@@ -17,23 +17,3 @@ let create3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, observable) =>
   |> RxObservable.lift(
        ObserveOperator.create3(~onNext, ~onComplete, ctx0, ctx1, ctx2),
      );
-
-let create4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, observable) =>
-  observable
-  |> RxObservable.lift(
-       ObserveOperator.create4(~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3),
-     );
-
-let create5 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, ctx4, observable) =>
-  observable
-  |> RxObservable.lift(
-       ObserveOperator.create5(
-         ~onNext,
-         ~onComplete,
-         ctx0,
-         ctx1,
-         ctx2,
-         ctx3,
-         ctx4,
-       ),
-     );

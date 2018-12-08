@@ -299,39 +299,6 @@ let observe3:
   RxObservable.t('a);
 
 /**
- * Returns an Observable which invokes side-effect functions on each
- * observed event and on completion.
- */
-let observe4:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('a);
-
-/**
- * Returns an Observable which invokes side-effect functions on each
- * observed event and on completion.
- */
-let observe5:
-  (
-    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, 'a) => unit,
-    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, option(exn)) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    'ctx3,
-    'ctx4,
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('a);
-
-/**
  * Returns an Observable that emits a single true value if every
  * observed item fails to satisfy the predicate.
  *
