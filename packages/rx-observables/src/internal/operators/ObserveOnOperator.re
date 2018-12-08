@@ -44,5 +44,8 @@ let create = (scheduler, subscriber) => {
        wip,
        doWork,
        queue,
+     )
+  |> RxSubscriber.addDisposable(
+       RxDisposable.create1(RxMutableQueue.clear, queue),
      );
 };
