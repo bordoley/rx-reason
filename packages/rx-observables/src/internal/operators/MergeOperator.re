@@ -61,17 +61,7 @@ let onComplete = (self, delegate, exn) =>
   | _ => ()
   };
 
-let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
-  RxPreconditions.checkArgument(
-    maxBufferSize >= 0,
-    "MergeOperator: maxBufferSize must be greater than or equal to 0",
-  );
-
-  RxPreconditions.checkArgument(
-    maxConcurrency > 0,
-    "MergeOperator: maxConcurrency must be greater than 0",
-  );
-
+let createImpl = (~maxBufferSize, ~maxConcurrency, subscriber) => {
   let self = {
     activeCount: RxAtomic.make(0),
     maxBufferSize,
@@ -83,4 +73,18 @@ let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int, subscriber) => {
   self.subscriber =
     subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, self);
   self.subscriber;
+};
+
+let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int) => {
+  RxPreconditions.checkArgument(
+    maxBufferSize >= 0,
+    "MergeOperator: maxBufferSize must be greater than or equal to 0",
+  );
+
+  RxPreconditions.checkArgument(
+    maxConcurrency > 0,
+    "MergeOperator: maxConcurrency must be greater than 0",
+  );
+
+  createImpl(~maxBufferSize, ~maxConcurrency);
 };
