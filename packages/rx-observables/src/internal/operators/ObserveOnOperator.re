@@ -18,7 +18,7 @@ let create = (scheduler, subscriber) => {
   let rec doWork = (~now, ~shouldYield) => {
     let loopAgain =
       switch (RxMutableQueue.dequeue(queue)) {
-      | Some(notif) =>
+      | Some(notif) when !RxSubscriber.isDisposed(subscriber) =>
         subscriber |> RxSubscriber.notify(notif);
         true;
       | _ => false

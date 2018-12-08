@@ -20,13 +20,16 @@ let createImpl = (~scheduler, delay, subscriber) => {
 
   let rec doWork = (~now, ~shouldYield) => {
     let currentTime = now();
+    let subscriberIsDisposed = subscriber |> RxSubscriber.isDisposed;
     let nextDelay =
       switch (RxMutableQueue.peek(queue)) {
-      | Some((dueTime, notification)) when currentTime >= dueTime =>
+      | Some((dueTime, notification))
+          when currentTime >= dueTime && !subscriberIsDisposed =>
         RxMutableQueue.dequeue(queue) |> ignore;
         subscriber |> RxSubscriber.notify(notification);
         0.0;
-      | Some((dueTime, _)) => dueTime -. currentTime
+      | Some((dueTime, _)) when !subscriberIsDisposed =>
+        dueTime -. currentTime
       | _ => (-1.0)
       };
 
