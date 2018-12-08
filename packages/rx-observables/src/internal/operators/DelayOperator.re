@@ -14,12 +14,7 @@ let onComplete = (scheduler, wip, doWork, queue, delay, _, exn) =>
   scheduler
   |> schedule(wip, doWork, queue, delay, RxNotification.complete(exn));
 
-let create = (~scheduler, delay, subscriber) => {
-  RxPreconditions.checkArgument(
-    delay > 0.0,
-    "DelayOperator: delay must be greater than 0.0 milliseconds",
-  );
-
+let createImpl = (~scheduler, delay, subscriber) => {
   let queue = RxMutableQueue.create();
   let wip = RxAtomic.make(0);
 
@@ -60,5 +55,17 @@ let create = (~scheduler, delay, subscriber) => {
        doWork,
        queue,
        delay,
+     )
+  |> RxSubscriber.addDisposable(
+       RxDisposable.create1(RxMutableQueue.clear, queue),
      );
+};
+
+let create = (~scheduler, delay) => {
+  RxPreconditions.checkArgument(
+    delay > 0.0,
+    "DelayOperator: delay must be greater than 0.0 milliseconds",
+  );
+
+  createImpl(~scheduler, delay);
 };
