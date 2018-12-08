@@ -9,7 +9,7 @@ let test =
         "emits the number of requested values ",
         ~nextToString=string_of_int,
         ~source=
-          scheduler => {
+          _ => {
             let source =
               RxObservables.ofNotifications([
                 RxNotification.next(1),
