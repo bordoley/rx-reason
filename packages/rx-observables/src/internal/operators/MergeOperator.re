@@ -71,7 +71,11 @@ let createImpl = (~maxBufferSize, ~maxConcurrency, subscriber) => {
   };
 
   self.subscriber =
-    subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, self);
+    subscriber
+    |> RxSubscriber.decorate1(~onNext, ~onComplete, self)
+    |> RxSubscriber.addDisposable(
+         RxDisposable.create1(RxMutableQueue.clear, self.queue),
+       );
   self.subscriber;
 };
 
