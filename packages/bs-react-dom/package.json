@@ -1,0 +1,40 @@
+{
+  "name": "@rx-reason/bs-react-dom",
+  "version": "0.0.0",
+  "description": "react dom bindings for reason",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "ocaml",
+    "react",
+    "reason",
+    "reasonml",
+    "BuckleScript"
+  ],
+  "author": {
+    "name": "David Bordoley",
+    "email": "bordoley@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "David Bordoley",
+      "email": "bordoley@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordoley/rx-reason.git"
+  },
+  "dependencies": {
+    "react": "16.7.0-alpha.2",
+    "react-dom": "16.7.0-alpha.2",
+    "@rx-reason/bs-react": "0.0.0"
+  },
+  "devDependencies": {
+    "bs-platform": "^4.0.7"
+  }
+}

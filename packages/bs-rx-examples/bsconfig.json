@@ -1,0 +1,34 @@
+{
+  "name": "@rx-reason/bs-rx-examples",
+  "package-specs": [
+    {
+      "module": "commonjs"
+    },
+    {
+      "module": "es6"
+    }
+  ],
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "bs-webapi",
+    "@rx-reason/bs-react",
+    "@rx-reason/bs-react-dom",
+    "@rx-reason/bs-rx-dom",
+    "@rx-reason/bs-rx-promise",
+    "@rx-reason/bs-rx-react",
+    "@rx-reason/bs-rx-schedulers",
+    "@rx-reason/rx-core",
+    "@rx-reason/rx-disposables",
+    "@rx-reason/rx-imperative",
+    "@rx-reason/rx-observables"
+  ],
+  "bs-dev-dependencies": [],
+  "warnings": {
+    "error": "+101"
+  },
+  "refmt": 3,
+  "sources": {
+    "dir": "src",
+    "subdirs": true
+  }
+}

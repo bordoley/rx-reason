@@ -1,0 +1,39 @@
+{
+  "name": "@rx-reason/bs-rx-schedulers",
+  "version": "0.0.0",
+  "description": "javascript schedulers",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "ocaml",
+    "reason",
+    "reasonml",
+    "BuckleScript"
+  ],
+  "author": {
+    "name": "David Bordoley",
+    "email": "bordoley@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "David Bordoley",
+      "email": "bordoley@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordoley/rx-reason.git"
+  },
+  "dependencies": {
+    "@rx-reason/rx-disposables": "^0.0.0",
+    "@rx-reason/rx-scheduler": "^0.0.0",
+    "scheduler": "^0.11.2"
+  },
+  "devDependencies": {
+    "bs-platform": "^4.0.7"
+  }
+}

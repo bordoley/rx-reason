@@ -1,0 +1,39 @@
+{
+  "name": "@rx-reason/bs-rx-promise",
+  "version": "0.0.0",
+  "description": "observable to js promise bindings",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "ocaml",
+    "reason",
+    "reasonml",
+    "BuckleScript"
+  ],
+  "author": {
+    "name": "David Bordoley",
+    "email": "bordoley@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "David Bordoley",
+      "email": "bordoley@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bordoley/rx-reason.git"
+  },
+  "dependencies": {
+    "@rx-reason/rx-core": "^0.0.0",
+    "@rx-reason/rx-disposables": "^0.0.0",
+    "@rx-reason/rx-utils-do-not-depend-on": "^0.0.0"
+  },
+  "devDependencies": {
+    "bs-platform": "^4.0.7"
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/rx-utils-do-not-depend-on",
+  "name": "@rx-reason/bs-react-dom",
   "package-specs": [
     {
       "module": "commonjs"
@@ -9,7 +9,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "bs-dependencies": [],
+  "bs-dependencies": ["@rx-reason/bs-react"],
   "bs-dev-dependencies": [],
   "warnings": {
     "error": "+101"
@@ -17,12 +17,7 @@
   "refmt": 3,
   "sources": [
     {
-      "dir": "src",
-      "subdirs": [
-        {
-          "dir": "bs"
-        }
-      ]
+      "dir": "src"
     }
   ]
 }
