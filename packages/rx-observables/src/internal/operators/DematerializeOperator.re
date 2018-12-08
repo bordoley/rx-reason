@@ -8,6 +8,6 @@ let onNext = {
 
 let create = subscriber => {
   let self = ref(RxSubscriber.disposed);
-  self := subscriber |> RxSubscriber.decorateOnNext1(~onNext, self);
+  self := subscriber |> RxSubscriber.decorateOnNext1(onNext, self);
   self^;
 };

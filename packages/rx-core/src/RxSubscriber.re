@@ -218,12 +218,12 @@ let decorate = (~onNext, ~onComplete, subscriber) => {
 
 let decorateOnNext = {
   let onComplete = (subscriber, exn) => subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete = {
   let onNext = (subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate(~onNext, ~onComplete, subscriber);
 };
 
 let decorate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
@@ -235,12 +235,12 @@ let decorate1 = (~onNext, ~onComplete, ctx0, subscriber) => {
 
 let decorateOnNext1 = {
   let onComplete = (_, subscriber, exn) => subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate1(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate1(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete1 = {
   let onNext = (_, subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate1(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate1(~onNext, ~onComplete, subscriber);
 };
 
 let decorate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
@@ -252,12 +252,12 @@ let decorate2 = (~onNext, ~onComplete, ctx0, ctx1, subscriber) => {
 
 let decorateOnNext2 = {
   let onComplete = (_, _, subscriber, exn) => subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate2(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate2(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete2 = {
   let onNext = (_, _, subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate2(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate2(~onNext, ~onComplete, subscriber);
 };
 
 let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
@@ -270,12 +270,12 @@ let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
 let decorateOnNext3 = {
   let onComplete = (_, _, _, subscriber, exn) =>
     subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate3(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate3(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete3 = {
   let onNext = (_, _, _, subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate3(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate3(~onNext, ~onComplete, subscriber);
 };
 
 let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
@@ -297,12 +297,12 @@ let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
 let decorateOnNext4 = {
   let onComplete = (_, _, _, _, subscriber, exn) =>
     subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate4(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate4(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete4 = {
   let onNext = (_, _, _, _, subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate4(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate4(~onNext, ~onComplete, subscriber);
 };
 
 let decorate5 =
@@ -326,12 +326,12 @@ let decorate5 =
 let decorateOnNext5 = {
   let onComplete = (_, _, _, _, _, subscriber, exn) =>
     subscriber |> complete(~exn?);
-  (~onNext, subscriber) => decorate5(~onNext, ~onComplete, subscriber);
+  (onNext, subscriber) => decorate5(~onNext, ~onComplete, subscriber);
 };
 
 let decorateOnComplete5 = {
   let onNext = (_, _, _, _, _, subscriber, v) => subscriber |> next(v);
-  (~onComplete, subscriber) => decorate5(~onNext, ~onComplete, subscriber);
+  (onComplete, subscriber) => decorate5(~onNext, ~onComplete, subscriber);
 };
 
 let disposed = Disposed;

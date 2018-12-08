@@ -5,7 +5,7 @@ let create = {
       subscriber |> RxSubscriber.next(next);
     };
   };
-  predicate => RxSubscriber.decorateOnNext1(~onNext, predicate);
+  predicate => RxSubscriber.decorateOnNext1(onNext, predicate);
 };
 
 let create1 = {
@@ -16,7 +16,7 @@ let create1 = {
     };
   };
   (predicate, ctx0) =>
-    RxSubscriber.decorateOnNext2(~onNext, predicate, ctx0);
+    RxSubscriber.decorateOnNext2(onNext, predicate, ctx0);
 };
 
 let create2 = {
@@ -27,5 +27,5 @@ let create2 = {
     };
   };
   (predicate, ctx0, ctx1) =>
-    RxSubscriber.decorateOnNext3(~onNext, predicate, ctx0, ctx1);
+    RxSubscriber.decorateOnNext3(onNext, predicate, ctx0, ctx1);
 };

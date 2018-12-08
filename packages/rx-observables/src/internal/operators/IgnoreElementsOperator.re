@@ -1,2 +1,2 @@
 let create = subscriber =>
-  RxSubscriber.decorateOnNext(~onNext=RxFunctions.alwaysUnit2, subscriber);
+  RxSubscriber.decorateOnNext(RxFunctions.alwaysUnit2, subscriber);

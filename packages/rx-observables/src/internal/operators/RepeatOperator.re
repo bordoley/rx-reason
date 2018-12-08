@@ -33,6 +33,6 @@ let create = (shouldRepeat, observable, subscriber) => {
   let ctx = (shouldRepeat, observable, subscription);
 
   subscriber
-  |> RxSubscriber.decorateOnComplete1(~onComplete, ctx)
+  |> RxSubscriber.decorateOnComplete1(onComplete, ctx)
   |> RxSubscriber.addDisposable(disposable);
 };
