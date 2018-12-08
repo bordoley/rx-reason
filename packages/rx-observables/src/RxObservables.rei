@@ -403,6 +403,13 @@ let onNext2:
  */
 let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);
 
+let onExn1:
+  (('ctx0, exn) => unit, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+
+let onExn2:
+  (('ctx0, 'ctx1, exn) => unit, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
+
 /**
  * Returns an Observable that mirrors the source Observable,
  * calling the specified function when subscribed to, and
@@ -410,6 +417,13 @@ let onExn: (exn => unit, RxObservable.t('a)) => RxObservable.t('a);
  */
 let onSubscribe:
   (unit => RxDisposable.t, RxObservable.t('a)) => RxObservable.t('a);
+
+let onSubscribe1:
+  ('ctx0 => RxDisposable.t, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+
+let onSubscribe2:
+  (('ctx0, 'ctx1) => RxDisposable.t, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
 
 let publishToSubject:
   (RxSubject.t('a), RxObservable.t('a)) => RxObservable.t('a);
