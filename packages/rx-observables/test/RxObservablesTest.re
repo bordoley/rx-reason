@@ -34,6 +34,7 @@ let test =
       StartWithListTest.test,
       StartWithValueTest.test,
       SwitchTest.test,
+      TakeTest.test,
       TakeUntilTest.test,
       TimeoutTest.test,
       WithLatestFromTest.test,

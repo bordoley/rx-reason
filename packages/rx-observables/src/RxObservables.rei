@@ -605,6 +605,8 @@ let switchMap3:
   ) =>
   RxObservable.t('b);
 
+let take: (int, RxObservable.t('a)) => RxObservable.t('a);
+
 let takeUntil:
   (RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('a);
 
