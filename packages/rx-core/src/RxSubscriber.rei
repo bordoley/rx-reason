@@ -24,6 +24,11 @@ let decorate:
   ) =>
   t('a);
 
+let decorateOnComplete:
+  (~onComplete: (t('a), option(exn)) => unit, t('a)) => t('a);
+
+let decorateOnNext: (~onNext: (t('b), 'a) => unit, t('b)) => t('a);
+
 let decorate1:
   (
     ~onNext: ('ctx0, t('b), 'a) => unit,
@@ -32,6 +37,12 @@ let decorate1:
     t('b)
   ) =>
   t('a);
+
+let decorateOnComplete1:
+  (~onComplete: ('ctx0, t('a), option(exn)) => unit, 'ctx0, t('a)) => t('a);
+
+let decorateOnNext1:
+  (~onNext: ('ctx0, t('b), 'a) => unit, 'ctx0, t('b)) => t('a);
 
 let decorate2:
   (
@@ -43,10 +54,42 @@ let decorate2:
   ) =>
   t('a);
 
+let decorateOnComplete2:
+  (
+    ~onComplete: ('ctx0, 'ctx1, t('a), option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    t('a)
+  ) =>
+  t('a);
+
+let decorateOnNext2:
+  (~onNext: ('ctx0, 'ctx1, t('b), 'a) => unit, 'ctx0, 'ctx1, t('b)) => t('a);
+
 let decorate3:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, t('b), option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    t('b)
+  ) =>
+  t('a);
+
+let decorateOnComplete3:
+  (
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, t('a), option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    t('a)
+  ) =>
+  t('a);
+
+let decorateOnNext3:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, t('b), 'a) => unit,
     'ctx0,
     'ctx1,
     'ctx2,
@@ -66,11 +109,58 @@ let decorate4:
   ) =>
   t('a);
 
+let decorateOnComplete4:
+  (
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('a), option(exn)) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t('a)
+  ) =>
+  t('a);
+
+let decorateOnNext4:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, t('b), 'a) => unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    t('b)
+  ) =>
+  t('a);
+
 let decorate5:
   (
     ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
     ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), option(exn)) =>
                  unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t('b)
+  ) =>
+  t('a);
+
+let decorateOnComplete5:
+  (
+    ~onComplete: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('a), option(exn)) =>
+                 unit,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    'ctx3,
+    'ctx4,
+    t('a)
+  ) =>
+  t('a);
+
+let decorateOnNext5:
+  (
+    ~onNext: ('ctx0, 'ctx1, 'ctx2, 'ctx3, 'ctx4, t('b), 'a) => unit,
     'ctx0,
     'ctx1,
     'ctx2,

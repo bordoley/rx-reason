@@ -8,5 +8,4 @@ let onComplete = (delegate, exn) => {
 };
 
 let create = subscriber =>
-  subscriber
-  |> RxSubscriber.decorate(~onNext=SubscriberForward.onNext, ~onComplete);
+  subscriber |> RxSubscriber.decorateOnComplete(~onComplete);

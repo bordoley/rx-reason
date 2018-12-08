@@ -32,8 +32,7 @@ let create = (shouldRepeat, observable, subscriber) => {
   let subscription = RxSerialDisposable.create();
   let disposable = subscription |> RxSerialDisposable.asDisposable;
   subscriber
-  |> RxSubscriber.decorate3(
-       ~onNext=SubscriberForward.onNext3,
+  |> RxSubscriber.decorateOnComplete3(
        ~onComplete,
        observable,
        shouldRepeat,

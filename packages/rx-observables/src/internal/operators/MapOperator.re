@@ -4,12 +4,7 @@ let create = {
     delegate |> RxSubscriber.next(mapped);
   };
 
-  mapper =>
-    RxSubscriber.decorate1(
-      ~onNext,
-      ~onComplete=SubscriberForward.onComplete1,
-      mapper,
-    );
+  mapper => RxSubscriber.decorateOnNext1(~onNext, mapper);
 };
 
 let create1 = {
@@ -17,14 +12,8 @@ let create1 = {
     let mapped = mapper(ctx0, next);
     delegate |> RxSubscriber.next(mapped);
   };
-  
-  (mapper, ctx0) =>
-    RxSubscriber.decorate2(
-      ~onNext,
-      ~onComplete=SubscriberForward.onComplete2,
-      ctx0,
-      mapper,
-    );
+
+  (mapper, ctx0) => RxSubscriber.decorateOnNext2(~onNext, ctx0, mapper);
 };
 
 let create2 = {
@@ -32,13 +21,7 @@ let create2 = {
     let mapped = mapper(ctx0, ctx1, next);
     delegate |> RxSubscriber.next(mapped);
   };
-  
+
   (mapper, ctx0, ctx1) =>
-    RxSubscriber.decorate3(
-      ~onNext,
-      ~onComplete=SubscriberForward.onComplete3,
-      ctx0,
-      ctx1,
-      mapper,
-    );
+    RxSubscriber.decorateOnNext3(~onNext, ctx0, ctx1, mapper);
 };
