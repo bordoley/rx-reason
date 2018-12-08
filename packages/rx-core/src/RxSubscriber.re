@@ -196,6 +196,14 @@ let next = {
   };
 };
 
+let notify = {
+  let onComplete = (subscriber, exn) => subscriber |> complete(~exn?);
+  let onNext = (subscriber, v) => subscriber |> next(v);
+
+  (notif, subscriber) =>
+    RxNotification.map1(~onNext, ~onComplete, subscriber, notif);
+};
+
 let create = () => {
   let disposable = RxCompositeDisposable.create();
   AutoDisposing(disposable);
@@ -260,7 +268,8 @@ let decorate3 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, subscriber) => {
 };
 
 let decorateOnNext3 = {
-  let onComplete = (_, _, _, subscriber, exn) => subscriber |> complete(~exn?);
+  let onComplete = (_, _, _, subscriber, exn) =>
+    subscriber |> complete(~exn?);
   (~onNext, subscriber) => decorate3(~onNext, ~onComplete, subscriber);
 };
 
@@ -286,7 +295,8 @@ let decorate4 = (~onNext, ~onComplete, ctx0, ctx1, ctx2, ctx3, subscriber) => {
 };
 
 let decorateOnNext4 = {
-  let onComplete = (_, _, _, _, subscriber, exn) => subscriber |> complete(~exn?);
+  let onComplete = (_, _, _, _, subscriber, exn) =>
+    subscriber |> complete(~exn?);
   (~onNext, subscriber) => decorate4(~onNext, ~onComplete, subscriber);
 };
 
@@ -314,7 +324,8 @@ let decorate5 =
 };
 
 let decorateOnNext5 = {
-  let onComplete = (_, _, _, _, _, subscriber, exn) => subscriber |> complete(~exn?);
+  let onComplete = (_, _, _, _, _, subscriber, exn) =>
+    subscriber |> complete(~exn?);
   (~onNext, subscriber) => decorate5(~onNext, ~onComplete, subscriber);
 };
 

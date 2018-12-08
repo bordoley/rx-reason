@@ -39,10 +39,6 @@
             {
               "dir": "operators",
               "public": "none"
-            },
-            {
-              "dir": "utils",
-              "public": "none"
             }
           ]
         }

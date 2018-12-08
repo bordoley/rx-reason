@@ -1,3 +1,5 @@
+let onNext = (_, _, _, subscriber, v) => subscriber |> RxSubscriber.next(v);
+
 let rec onComplete = (observable, shouldRepeat, subscription, delegate, exn) => {
   let shouldComplete = !shouldRepeat(exn);
 
@@ -15,7 +17,7 @@ and setupSubscription = (observable, shouldRepeat, subscription, delegate) => {
     let newInnerSubscription =
       observable
       |> ObserveObservable.create4(
-           ~onNext=SubscriberForward.onNext3,
+           ~onNext,
            ~onComplete,
            observable,
            shouldRepeat,

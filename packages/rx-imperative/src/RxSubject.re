@@ -112,6 +112,14 @@ let next = (next, subject) =>
     };
   };
 
+let notify = {
+  let onComplete = (subject, exn) => subject |> complete(~exn?);
+  let onNext = (subject, v) => subject |> next(v);
+
+  (notif, subject) =>
+    RxNotification.map1(~onNext, ~onComplete, subject, notif);
+};
+
 let subscriberTeardown = (subscriber, subscribers) => {
   let currentSubscribers = subscribers^;
   subscribers :=

@@ -1,14 +1,10 @@
-let forwardOnCompleteToDelegate = (self, _, exn) =>
-  self^ |> RxSubscriber.complete(~exn?);
+let onNext = {
+  let onNext = (_, subscriber, v) => subscriber |> RxSubscriber.next(v);
+  let onComplete = (self, _, exn) => self^ |> RxSubscriber.complete(~exn?);
 
-let onNext = (self, delegate, notif) =>
-  notif
-  |> RxNotification.map2(
-       ~onNext=SubscriberForward.onNext1,
-       ~onComplete=forwardOnCompleteToDelegate,
-       self,
-       delegate,
-     );
+  (self, delegate, notif) =>
+    notif |> RxNotification.map2(~onNext, ~onComplete, self, delegate);
+};
 
 let create = subscriber => {
   let self = ref(RxSubscriber.disposed);

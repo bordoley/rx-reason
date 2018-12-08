@@ -1,4 +1,3 @@
-
 module type S = {
   type a;
   type t;
@@ -15,6 +14,7 @@ module type S = {
   /* Notify the Observer of the next element to observe. */
   let next: (a, t) => unit;
 
+  let notify: (RxNotification.t(a), t) => unit;
 };
 
 module type S1 = {
@@ -32,4 +32,5 @@ module type S1 = {
   /* Notify the Observer of the next element to observe. */
   let next: ('a, t('a)) => unit;
 
+  let notify: (RxNotification.t('a), t('a)) => unit;
 };

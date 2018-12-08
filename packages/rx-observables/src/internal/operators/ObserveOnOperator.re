@@ -18,17 +18,14 @@ let create = (scheduler, subscriber) => {
   let rec doWork = (~now, ~shouldYield) => {
     let loopAgain =
       switch (RxMutableQueue.dequeue(queue)) {
-      | Some(notif) => notif |> RxNotification.map1(
-          ~onNext=SubscriberForward.onNext,
-          ~onComplete=SubscriberForward.onComplete,
-          subscriber,
-        );
+      | Some(notif) =>
+        subscriber |> RxSubscriber.notify(notif);
         true;
       | _ => false
       };
 
     let yieldRequested = shouldYield();
-    if (loopAgain && ! yieldRequested) {
+    if (loopAgain && !yieldRequested) {
       doWork(~now, ~shouldYield);
     } else if (loopAgain) {
       RxScheduler.Result.yield(doWork);

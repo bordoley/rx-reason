@@ -29,14 +29,7 @@ let create = (~scheduler, delay, subscriber) => {
       switch (RxMutableQueue.peek(queue)) {
       | Some((dueTime, notification)) when currentTime >= dueTime =>
         RxMutableQueue.dequeue(queue) |> ignore;
-
-        notification
-        |> RxNotification.map1(
-             ~onNext=SubscriberForward.onNext,
-             ~onComplete=SubscriberForward.onComplete,
-             subscriber,
-           );
-
+        subscriber |> RxSubscriber.notify(notification);
         0.0;
       | Some((dueTime, _)) => dueTime -. currentTime
       | _ => (-1.0)
