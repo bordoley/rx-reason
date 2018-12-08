@@ -6,7 +6,7 @@ let test =
     [
       CombineLatest2Test.test,
       ConcatListTest.test,
-      DebounceTest.test,
+      DebounceTimeTest.test,
       DefaultIfEmptyTest.test,
       DeferTest.test,
       DistinctUntilChangedTest.test,

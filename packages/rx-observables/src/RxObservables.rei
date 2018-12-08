@@ -43,7 +43,7 @@ let combineLatest2:
  * are followed by another item within a debounce duration
  * determined by the scheduler.
  */
-let debounce:
+let debounceTime:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
   RxObservable.t('a);
 

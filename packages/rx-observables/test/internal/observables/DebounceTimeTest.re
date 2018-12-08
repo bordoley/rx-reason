@@ -3,7 +3,7 @@ open RxReUnit;
 
 let test =
   describe(
-    "debounce",
+    "debounceTime",
     [
       observableIt(
         "debounces",
@@ -22,7 +22,7 @@ let test =
                 (18.0, RxNotification.complete(None)),
               ],
             )
-            |> RxObservables.debounce(~scheduler, 5.0),
+            |> RxObservables.debounceTime(~scheduler, 5.0),
         ~expected=[
           RxNotification.next(3),
           RxNotification.next(6),

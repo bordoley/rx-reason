@@ -4,6 +4,7 @@ let clearDebounce = debounceSubscription =>
 
 let debounceNext = (debounceSubscription, lastValue, delegate) => {
   clearDebounce(debounceSubscription);
+
   if (RxMutableOption.isNotEmpty(lastValue)) {
     let next = RxMutableOption.get(lastValue);
     RxMutableOption.unset(lastValue);
@@ -21,6 +22,7 @@ let onNext =
     (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
   clearDebounce(debounceSubscription);
   RxMutableOption.set(next, lastValue);
+
   let schedulerDisposable =
     scheduler
     |> RxScheduler.schedule(
@@ -40,26 +42,30 @@ let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {
   delegate |> RxSubscriber.complete(~exn?);
 };
 
-let create = (~scheduler, dueTime, subscriber) => {
+let create = (~scheduler, dueTime) => {
   RxPreconditions.checkArgument(
     dueTime > 0.0,
     "DebounceOperator: dueTime must be greater than 0.0 milliseconds",
   );
 
-  let debounceSubscription = RxSerialDisposable.create();
-  let lastValue = RxMutableOption.create();
+  subscriber => {
+    let lastValue = RxMutableOption.create();
+    let debounceSubscription = RxSerialDisposable.create();
 
-  let debounceDisposable =
-    debounceSubscription |> RxSerialDisposable.asDisposable;
-
-  subscriber
-  |> RxSubscriber.decorate4(
-       ~onNext,
-       ~onComplete,
-       debounceSubscription,
-       lastValue,
-       scheduler,
-       dueTime,
-     )
-  |> RxSubscriber.addDisposable(debounceDisposable);
+    subscriber
+    |> RxSubscriber.decorate4(
+         ~onNext,
+         ~onComplete,
+         debounceSubscription,
+         lastValue,
+         scheduler,
+         dueTime,
+       )
+    |> RxSubscriber.addDisposable(
+         RxDisposable.create1(RxMutableOption.unset, lastValue),
+       )
+    |> RxSubscriber.addDisposable(
+         RxSerialDisposable.asDisposable(debounceSubscription),
+       );
+  };
 };
