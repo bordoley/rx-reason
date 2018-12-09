@@ -93,4 +93,7 @@ let switchMap3 = SwitchMapObservable.create3;
 let take = TakeObservable.create;
 let takeUntil = TakeUntilObservable.create;
 let timeout = TimeoutObservable.create;
+let using = UsingObservable.create;
+let using1 = UsingObservable.create1;
+let using2 = UsingObservable.create2;
 let withLatestFrom = WithLatestFromObservable.create;

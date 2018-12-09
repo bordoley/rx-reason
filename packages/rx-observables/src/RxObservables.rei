@@ -619,6 +619,33 @@ let timeout:
   (~scheduler: RxScheduler.t, float, RxObservable.t('a)) =>
   RxObservable.t('a);
 
+let using:
+  (
+    ~createResource: unit => 'b,
+    ~disposeResource: 'b => unit,
+    'b => RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
+let using1:
+  (
+    ~createResource: 'c => 'b,
+    ~disposeResource: 'b => unit,
+    'c,
+    'b => RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
+let using2:
+  (
+    ~createResource: ('c, 'd) => 'b,
+    ~disposeResource: 'b => unit,
+    'c,
+    'd,
+    'b => RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
 /**
  * Returns an Observable that combines each observed item from the source with
  * the last observed item from the other Observable using the selector function.
