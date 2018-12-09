@@ -52,6 +52,7 @@ let observe1 = ObserveObservable.create1;
 let observe2 = ObserveObservable.create2;
 let observe3 = ObserveObservable.create3;
 let observeOn = ObserveOnObservable.create;
+let ofArray = OfArrayObservable.create;
 let ofList = OfListObservable.create;
 let ofNotifications = OfNotificationsObservable.create;
 let ofValue = OfValueObservable.create;

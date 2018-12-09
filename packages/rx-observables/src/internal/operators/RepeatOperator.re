@@ -27,12 +27,24 @@ and setupSubscription = (ctx, delegate) => {
   };
 };
 
-let create = (shouldRepeat, observable, subscriber) => {
-  let subscription = RxSerialDisposable.create();
-  let disposable = subscription |> RxSerialDisposable.asDisposable;
-  let ctx = (shouldRepeat, observable, subscription);
+let create = (shouldRepeat, observable) => {
+  let onComplete =
+    (. ctx, delegate, exn) => {
+      let (shouldRepeat, _, _) = ctx;
+      let shouldComplete = !shouldRepeat(exn);
 
-  subscriber
-  |> RxSubscriber.decorateOnComplete1(onComplete, ctx)
-  |> RxSubscriber.addDisposable(disposable);
+      shouldComplete ?
+        delegate |> RxSubscriber.complete(~exn?) :
+        setupSubscription(ctx, delegate);
+    };
+
+  subscriber => {
+    let subscription = RxSerialDisposable.create();
+    let disposable = subscription |> RxSerialDisposable.asDisposable;
+    let ctx = (shouldRepeat, observable, subscription);
+
+    subscriber
+    |> RxSubscriber.decorateOnComplete1(onComplete, ctx)
+    |> RxSubscriber.addDisposable(disposable);
+  };
 };

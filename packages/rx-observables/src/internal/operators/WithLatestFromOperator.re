@@ -4,18 +4,6 @@ type context('a, 'b, 'c) = {
   selector: ('a, 'b) => 'c,
 };
 
-let onNext = ({otherLatest, selector}, delegate, next) =>
-  if (RxMutableOption.isNotEmpty(otherLatest)) {
-    let latest = otherLatest |> RxMutableOption.get;
-    let nextWithLatest = selector(next, latest);
-    delegate |> RxSubscriber.next(nextWithLatest);
-  };
-
-let onComplete = ({otherSubscription}, delegate, exn) => {
-  delegate |> RxSubscriber.complete(~exn?);
-  otherSubscription |> RxDisposable.dispose;
-};
-
 let otherOnNext = (_, otherLatest, next) =>
   otherLatest |> RxMutableOption.set(next);
 
@@ -25,27 +13,44 @@ let otherOnComplete = (self, _, exn) =>
   | _ => ()
   };
 
-let create = (~selector, other, subscriber) => {
-  let otherLatest = RxMutableOption.create();
+let create = (~selector, other) => {
+  let onNext =
+    (. {otherLatest, selector}, delegate, next) =>
+      if (RxMutableOption.isNotEmpty(otherLatest)) {
+        let latest = otherLatest |> RxMutableOption.get;
+        let nextWithLatest = selector(next, latest);
+        delegate |> RxSubscriber.next(nextWithLatest);
+      };
 
-  let context = {
-    otherLatest,
-    otherSubscription: RxDisposable.disposed,
-    selector,
+  let onComplete =
+    (. {otherSubscription}, delegate, exn) => {
+      delegate |> RxSubscriber.complete(~exn?);
+      otherSubscription |> RxDisposable.dispose;
+    };
+
+  subscriber => {
+    let otherLatest = RxMutableOption.create();
+
+    let context = {
+      otherLatest,
+      otherSubscription: RxDisposable.disposed,
+      selector,
+    };
+
+    let delegateSubscriber =
+      subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, context);
+
+    context.otherSubscription =
+      other
+      |> ObserveObservable.create2(
+           ~onNext=otherOnNext,
+           ~onComplete=otherOnComplete,
+           delegateSubscriber,
+           otherLatest,
+         )
+      |> RxObservable.connect;
+
+    delegateSubscriber
+    |> RxSubscriber.addDisposable(context.otherSubscription);
   };
-
-  let delegateSubscriber =
-    subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, context);
-
-  context.otherSubscription =
-    other
-    |> ObserveObservable.create2(
-         ~onNext=otherOnNext,
-         ~onComplete=otherOnComplete,
-         delegateSubscriber,
-         otherLatest,
-       )
-    |> RxObservable.connect;
-
-  delegateSubscriber |> RxSubscriber.addDisposable(context.otherSubscription);
 };

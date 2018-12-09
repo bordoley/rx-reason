@@ -7,15 +7,15 @@ let testSourceThrows = observable =>
 
     let operator =
       RxSubscriber.decorate(
-        ~onNext=(_, _) => (),
+        ~onNext=(. _, _) => (),
         ~onComplete=
-          _ =>
-            fun
-            | Some(_) => {
-                exceptionCaught := true;
-                ();
-              }
-            | _ => (),
+          (. _, exn) =>
+            switch (exn) {
+            | Some(_) =>
+              exceptionCaught := true;
+              ();
+            | _ => ()
+            },
       );
 
     observable

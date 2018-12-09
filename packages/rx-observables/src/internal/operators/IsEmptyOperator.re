@@ -2,25 +2,29 @@ exception CompleteWithoutErrorException;
 
 let completeWithoutErrorExn = Some(CompleteWithoutErrorException);
 
-let onNext = (self, delegate, _) => {
-  delegate |> RxSubscriber.next(false);
-  self^ |> RxSubscriber.complete(~exn=?completeWithoutErrorExn);
-};
-
-let onComplete = (_, delegate, exn) => {
-  let exn =
-    switch (exn) {
-    | Some(CompleteWithoutErrorException) => None
-    | Some(_) => exn
-    | None =>
-      delegate |> RxSubscriber.next(true);
-      exn;
+let create = () => {
+  let onNext =
+    (. self, delegate, _) => {
+      delegate |> RxSubscriber.next(false);
+      self^ |> RxSubscriber.complete(~exn=?completeWithoutErrorExn);
     };
-  delegate |> RxSubscriber.complete(~exn?);
-};
 
-let create = subscriber => {
-  let self = ref(RxSubscriber.disposed);
-  self := subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, self);
-  self^;
+  let onComplete =
+    (. _, delegate, exn) => {
+      let exn =
+        switch (exn) {
+        | Some(CompleteWithoutErrorException) => None
+        | Some(_) => exn
+        | None =>
+          delegate |> RxSubscriber.next(true);
+          exn;
+        };
+      delegate |> RxSubscriber.complete(~exn?);
+    };
+    
+  subscriber => {
+    let self = ref(RxSubscriber.disposed);
+    self := subscriber |> RxSubscriber.decorate1(~onNext, ~onComplete, self);
+    self^;
+  };
 };

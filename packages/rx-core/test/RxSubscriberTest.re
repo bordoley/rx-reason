@@ -15,15 +15,15 @@ let test =
               let observedException = ref(None);
               let lastDecorator =
                 RxSubscriber.decorate(
-                  ~onNext=(_, _) => (),
-                  ~onComplete=(_, exn) => observedException := exn,
+                  ~onNext=(. _, _) => (),
+                  ~onComplete=(. _, exn) => observedException := exn,
                   subscriber,
                 );
               let throwingDecorator =
                 RxSubscriber.decorate(
-                  ~onNext=(_, _) => (),
+                  ~onNext=(. _, _) => (),
                   ~onComplete=
-                    (_, exn) =>
+                    (. _, exn) =>
                       switch (exn) {
                       | Some(exn) => raise(exn)
                       | _ => ()
@@ -88,8 +88,8 @@ let test =
             let subscriber = RxSubscriber.create();
             let decorator =
               RxSubscriber.decorate(
-                ~onNext=(_, _) => incr(onNextCalledCount),
-                ~onComplete=(_, _) => (),
+                ~onNext=(. _, _) => incr(onNextCalledCount),
+                ~onComplete=(. _, _) => (),
                 subscriber,
               );
 
@@ -105,8 +105,8 @@ let test =
             let subscriber = RxSubscriber.create();
             let decorator =
               RxSubscriber.decorate(
-                ~onNext=(_, _) => incr(onNextCalledCount),
-                ~onComplete=(_, _) => (),
+                ~onNext=(. _, _) => incr(onNextCalledCount),
+                ~onComplete=(. _, _) => (),
                 subscriber,
               );
 
@@ -122,8 +122,8 @@ let test =
             let subscriber = RxSubscriber.create();
             let decorator =
               RxSubscriber.decorate(
-                ~onNext=(_, _) => raise(Division_by_zero),
-                ~onComplete=(_, _) => completed := true,
+                ~onNext=(. _, _) => raise(Division_by_zero),
+                ~onComplete=(. _, _) => completed := true,
                 subscriber,
               );
 

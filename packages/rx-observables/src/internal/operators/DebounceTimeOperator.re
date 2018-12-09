@@ -18,35 +18,36 @@ let onDebounceScheduled =
   RxScheduler.Result.complete;
 };
 
-let onNext =
-    (debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
-  clearDebounce(debounceSubscription);
-  RxMutableOption.set(next, lastValue);
-
-  let schedulerDisposable =
-    scheduler
-    |> RxScheduler.schedule(
-         ~delay=dueTime,
-         onDebounceScheduled(debounceSubscription, lastValue, delegate),
-       );
-
-  debounceSubscription
-  |> RxSerialDisposable.setInnerDisposable(schedulerDisposable);
-};
-
-let onComplete = (debounceSubscription, lastValue, _, _, delegate, exn) => {
-  switch (exn) {
-  | Some(_) => clearDebounce(debounceSubscription)
-  | None => debounceNext(debounceSubscription, lastValue, delegate)
-  };
-  delegate |> RxSubscriber.complete(~exn?);
-};
-
 let create = (~scheduler, dueTime) => {
   RxPreconditions.checkArgument(
     dueTime > 0.0,
     "DebounceOperator: dueTime must be greater than 0.0 milliseconds",
   );
+
+  let onNext =
+    (. debounceSubscription, lastValue, scheduler, dueTime, delegate, next) => {
+      clearDebounce(debounceSubscription);
+      RxMutableOption.set(next, lastValue);
+
+      let schedulerDisposable =
+        scheduler
+        |> RxScheduler.schedule(
+             ~delay=dueTime,
+             onDebounceScheduled(debounceSubscription, lastValue, delegate),
+           );
+
+      debounceSubscription
+      |> RxSerialDisposable.setInnerDisposable(schedulerDisposable);
+    };
+
+  let onComplete =
+    (. debounceSubscription, lastValue, _, _, delegate, exn) => {
+      switch (exn) {
+      | Some(_) => clearDebounce(debounceSubscription)
+      | None => debounceNext(debounceSubscription, lastValue, delegate)
+      };
+      delegate |> RxSubscriber.complete(~exn?);
+    };
 
   subscriber => {
     let lastValue = RxMutableOption.create();

@@ -1,11 +1,13 @@
-let onComplete = (delegate, exn) => {
-  let exn =
-    switch (exn) {
-    | Some(RxEmptyException.Exn) => None
-    | _ => exn
+let create = () => {
+  let onComplete =
+    (. delegate, exn) => {
+      let exn =
+        switch (exn) {
+        | Some(RxEmptyException.Exn) => None
+        | _ => exn
+        };
+      delegate |> RxSubscriber.complete(~exn?);
     };
-  delegate |> RxSubscriber.complete(~exn?);
+    
+  subscriber => subscriber |> RxSubscriber.decorateOnComplete(onComplete);
 };
-
-let create = subscriber =>
-  subscriber |> RxSubscriber.decorateOnComplete(onComplete);

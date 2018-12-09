@@ -13,23 +13,27 @@ module InnerSubscriber = {
     mutable disposable: RxDisposable.t,
   };
 
-  let onNext = (self, _, next) => self.delegate |> RxSubscriber.next(next);
+  let rec innerSubscriberOperator = self => {
+    let onNext =
+      (. self, _, next) => self.delegate |> RxSubscriber.next(next);
 
-  let rec onComplete = (self, _, exn) => {
-    RxAtomic.decr(self.parent.activeCount) |> ignore;
-    self.parent.subscriber
-    |> RxSubscriber.removeDisposable(self.disposable)
-    |> ignore;
+    let onComplete =
+      (. self, _, exn) => {
+        RxAtomic.decr(self.parent.activeCount) |> ignore;
+        self.parent.subscriber
+        |> RxSubscriber.removeDisposable(self.disposable)
+        |> ignore;
 
-    let next = self.parent.queue |> RxMutableQueue.dequeue;
-    switch (exn, next) {
-    | (Some(_), _) => self.parent.subscriber |> RxSubscriber.complete(~exn?)
-    | (_, Some(next)) => doSubscribeInternal(self, next)
-    | _ => ()
-    };
+        let next = self.parent.queue |> RxMutableQueue.dequeue;
+        switch (exn, next) {
+        | (Some(_), _) =>
+          self.parent.subscriber |> RxSubscriber.complete(~exn?)
+        | (_, Some(next)) => doSubscribeInternal(self, next)
+        | _ => ()
+        };
+      };
+    RxSubscriber.decorate1(~onNext, ~onComplete, self);
   }
-  and innerSubscriberOperator = self =>
-    RxSubscriber.decorate1(~onNext, ~onComplete, self)
   and doSubscribeInternal = (self, next) => {
     RxAtomic.incr(self.parent.activeCount) |> ignore;
     self.disposable =
@@ -46,39 +50,6 @@ module InnerSubscriber = {
   };
 };
 
-let onNext = (self, delegate, next) =>
-  if (self.activeCount |> RxAtomic.get < self.maxConcurrency) {
-    InnerSubscriber.doSubscribe(self, delegate, next);
-  } else if (RxMutableQueue.length(self.queue) < self.maxBufferSize) {
-    self.queue |> RxMutableQueue.enqueue(next);
-  };
-
-let onComplete = (self, delegate, exn) =>
-  switch (exn) {
-  | Some(_)
-  | _ when self.activeCount |> RxAtomic.get === 0 =>
-    delegate |> RxSubscriber.complete(~exn?)
-  | _ => ()
-  };
-
-let createImpl = (~maxBufferSize, ~maxConcurrency, subscriber) => {
-  let self = {
-    activeCount: RxAtomic.make(0),
-    maxBufferSize,
-    maxConcurrency,
-    queue: RxMutableQueue.create(),
-    subscriber: RxSubscriber.disposed,
-  };
-
-  self.subscriber =
-    subscriber
-    |> RxSubscriber.decorate1(~onNext, ~onComplete, self)
-    |> RxSubscriber.addDisposable(
-         RxDisposable.create1(RxMutableQueue.clear, self.queue),
-       );
-  self.subscriber;
-};
-
 let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int) => {
   RxPreconditions.checkArgument(
     maxBufferSize >= 0,
@@ -90,5 +61,38 @@ let create = (~maxBufferSize=max_int, ~maxConcurrency=max_int) => {
     "MergeOperator: maxConcurrency must be greater than 0",
   );
 
-  createImpl(~maxBufferSize, ~maxConcurrency);
+  let onNext =
+    (. self, delegate, next) =>
+      if (self.activeCount |> RxAtomic.get < self.maxConcurrency) {
+        InnerSubscriber.doSubscribe(self, delegate, next);
+      } else if (RxMutableQueue.length(self.queue) < self.maxBufferSize) {
+        self.queue |> RxMutableQueue.enqueue(next);
+      };
+
+  let onComplete =
+    (. self, delegate, exn) =>
+      switch (exn) {
+      | Some(_)
+      | _ when self.activeCount |> RxAtomic.get === 0 =>
+        delegate |> RxSubscriber.complete(~exn?)
+      | _ => ()
+      };
+
+  subscriber => {
+    let self = {
+      activeCount: RxAtomic.make(0),
+      maxBufferSize,
+      maxConcurrency,
+      queue: RxMutableQueue.create(),
+      subscriber: RxSubscriber.disposed,
+    };
+
+    self.subscriber =
+      subscriber
+      |> RxSubscriber.decorate1(~onNext, ~onComplete, self)
+      |> RxSubscriber.addDisposable(
+           RxDisposable.create1(RxMutableQueue.clear, self.queue),
+         );
+    self.subscriber;
+  };
 };

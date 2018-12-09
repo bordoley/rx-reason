@@ -1,15 +1,15 @@
 type subscribers('a) = ref(RxCopyOnWriteArray.t(RxSubscriber.t('a)));
 
-type onNext1('a, 'ctx0) = ('ctx0, 'a) => unit;
-type onComplete1('a, 'ctx0) = ('ctx0, option(exn)) => unit;
-type onSubscribe1('a, 'ctx0) = ('ctx0, RxSubscriber.t('a)) => unit;
-type onDispose1('ctx0) = 'ctx0 => unit;
+type onNext1('a, 'ctx0) = (. 'ctx0, 'a) => unit;
+type onComplete1('a, 'ctx0) = (. 'ctx0, option(exn)) => unit;
+type onSubscribe1('a, 'ctx0) = (. 'ctx0, RxSubscriber.t('a)) => unit;
+type onDispose1('ctx0) = (. 'ctx0) => unit;
 
-type onNext2('a, 'ctx0, 'ctx1) = ('ctx0, 'ctx1, 'a) => unit;
-type onComplete2('a, 'ctx0, 'ctx1) = ('ctx0, 'ctx1, option(exn)) => unit;
+type onNext2('a, 'ctx0, 'ctx1) = (. 'ctx0, 'ctx1, 'a) => unit;
+type onComplete2('a, 'ctx0, 'ctx1) = (. 'ctx0, 'ctx1, option(exn)) => unit;
 type onSubscribe2('a, 'ctx0, 'ctx1) =
-  ('ctx0, 'ctx1, RxSubscriber.t('a)) => unit;
-type onDispose2('ctx0, 'ctx1) = ('ctx0, 'ctx1) => unit;
+  (. 'ctx0, 'ctx1, RxSubscriber.t('a)) => unit;
+type onDispose2('ctx0, 'ctx1) = (. 'ctx0, 'ctx1) => unit;
 
 type t('a) =
   | Disposed
@@ -75,10 +75,10 @@ let completeWithResult = (~exn=?, subject) => {
     | Disposed => ()
     | Multicast(subscribers, _, _) => notifyComplete(exn, subscribers)
     | S1(subscribers, _, _, _, onComplete, _, _, ctx0) =>
-      onComplete(ctx0, exn);
+      onComplete(. ctx0, exn);
       notifyComplete(exn, subscribers);
     | S2(subscribers, _, _, _, onComplete, _, _, ctx0, ctx1) =>
-      onComplete(ctx0, ctx1, exn);
+      onComplete(. ctx0, ctx1, exn);
       notifyComplete(exn, subscribers);
     };
 
@@ -104,10 +104,10 @@ let next = (next, subject) =>
     | Disposed => ()
     | Multicast(subscribers, _, _) => notifyNext(next, subscribers)
     | S1(subscribers, _, _, onNext, _, _, _, ctx0) =>
-      onNext(ctx0, next);
+      onNext(. ctx0, next);
       notifyNext(next, subscribers);
     | S2(subscribers, _, _, onNext, _, _, _, ctx0, ctx1) =>
-      onNext(ctx0, ctx1, next);
+      onNext(. ctx0, ctx1, next);
       notifyNext(next, subscribers);
     };
   };
@@ -147,10 +147,10 @@ let observableSource = (self, subscriber) =>
     | Multicast(subscribers, _, _) =>
       subscriber |> addToSubscribers(subscribers)
     | S1(subscribers, _, _, _, _, onSubscribe, _, ctx0) =>
-      onSubscribe(ctx0, subscriber);
+      onSubscribe(. ctx0, subscriber);
       subscriber |> addToSubscribers(subscribers);
     | S2(subscribers, _, _, _, _, onSubscribe, _, ctx0, ctx1) =>
-      onSubscribe(ctx0, ctx1, subscriber);
+      onSubscribe(. ctx0, ctx1, subscriber);
       subscriber |> addToSubscribers(subscribers);
     };
   };
@@ -165,10 +165,10 @@ let disposableTeardown = {
     | Multicast(subscribers, _, _) => clearSubscribers(subscribers)
     | S1(subscribers, _, _, _, _, _, onDispose, ctx0) =>
       clearSubscribers(subscribers);
-      onDispose(ctx0);
+      onDispose(. ctx0);
     | S2(subscribers, _, _, _, _, _, onDispose, ctx0, ctx1) =>
       clearSubscribers(subscribers);
-      onDispose(ctx0, ctx1);
+      onDispose(. ctx0, ctx1);
     };
 };
 
@@ -226,18 +226,19 @@ let create2 = (~onNext, ~onComplete, ~onSubscribe, ~onDispose, ctx0, ctx1) => {
   self^;
 };
 
-let createReplayLast = {
-  let onNext = (buffer, next) => buffer := Some(RxNotification.next(next));
+let createReplayLast = () => {
+  let onNext =
+    (. buffer, next) => buffer := Some(RxNotification.next(next));
 
-  let onComplete = (buffer, exn) =>
-    buffer := Some(RxNotification.complete(exn));
+  let onComplete =
+    (. buffer, exn) => buffer := Some(RxNotification.complete(exn));
 
   let onSubscribe = {
     let onNext = (subscriber, v) => subscriber |> RxSubscriber.next(v);
     let onComplete = (subscriber, exn) =>
       subscriber |> RxSubscriber.complete(~exn?);
 
-    (buffer, subscriber) =>
+    (. buffer, subscriber) =>
       switch (buffer^) {
       | Some(notification) =>
         RxNotification.map1(~onNext, ~onComplete, subscriber, notification)
@@ -245,43 +246,43 @@ let createReplayLast = {
       };
   };
 
-  let onDispose = buffer => buffer := None;
+  let onDispose = (. buffer) => buffer := None;
 
-  () => {
-    let buffer = ref(None);
-    create1(~onNext, ~onComplete, ~onSubscribe, ~onDispose, buffer);
-  };
+  let buffer = ref(None);
+  create1(~onNext, ~onComplete, ~onSubscribe, ~onDispose, buffer);
 };
 
-let createReplayBuffer = {
-  let onNext = (maxBufferCount, buffer, next) => {
-    let currentBuffer = buffer^;
+let createReplayBuffer = maxBufferCount => {
+  let onNext =
+    (. maxBufferCount, buffer, next) => {
+      let currentBuffer = buffer^;
 
-    buffer :=
-      currentBuffer
-      |> RxCopyOnWriteArray.addLastWithMaxCount(
-           maxBufferCount,
-           RxNotification.next(next),
-         );
-  };
+      buffer :=
+        currentBuffer
+        |> RxCopyOnWriteArray.addLastWithMaxCount(
+             maxBufferCount,
+             RxNotification.next(next),
+           );
+    };
 
-  let onComplete = (maxBufferCount, buffer, exn) => {
-    let currentBuffer = buffer^;
+  let onComplete =
+    (. maxBufferCount, buffer, exn) => {
+      let currentBuffer = buffer^;
 
-    buffer :=
-      currentBuffer
-      |> RxCopyOnWriteArray.addLastWithMaxCount(
-           maxBufferCount,
-           RxNotification.complete(exn),
-         );
-  };
+      buffer :=
+        currentBuffer
+        |> RxCopyOnWriteArray.addLastWithMaxCount(
+             maxBufferCount,
+             RxNotification.complete(exn),
+           );
+    };
 
   let onSubscribe = {
     let onNext = (subscriber, v) => subscriber |> RxSubscriber.next(v);
     let onComplete = (subscriber, exn) =>
       subscriber |> RxSubscriber.complete(~exn?);
 
-    (_, buffer, subscriber) => {
+    (. _, buffer, subscriber) => {
       let currentBuffer = buffer^;
       RxCopyOnWriteArray.forEach(
         RxNotification.map1(~onNext, ~onComplete, subscriber),
@@ -290,22 +291,20 @@ let createReplayBuffer = {
     };
   };
 
-  let onDispose = (_, buffer) => buffer := RxCopyOnWriteArray.empty();
+  let onDispose = (. _, buffer) => buffer := RxCopyOnWriteArray.empty();
 
-  maxBufferCount => {
-    RxPreconditions.checkArgument(
-      maxBufferCount > 0,
-      "ShareWithReplayBufferObservable: maxBufferCount must be greater than 0.",
-    );
+  RxPreconditions.checkArgument(
+    maxBufferCount > 0,
+    "ShareWithReplayBufferObservable: maxBufferCount must be greater than 0.",
+  );
 
-    let buffer = ref(RxCopyOnWriteArray.empty());
-    create2(
-      ~onNext,
-      ~onComplete,
-      ~onSubscribe,
-      ~onDispose,
-      maxBufferCount,
-      buffer,
-    );
-  };
+  let buffer = ref(RxCopyOnWriteArray.empty());
+  create2(
+    ~onNext,
+    ~onComplete,
+    ~onSubscribe,
+    ~onDispose,
+    maxBufferCount,
+    buffer,
+  );
 };

@@ -370,6 +370,11 @@ let observeOn: (RxScheduler.t, RxObservable.t('a)) => RxObservable.t('a);
 /**
  * Returns an Observable that emits the given items and then completes.
  */
+let ofArray: (~scheduler: RxScheduler.t=?, array('a)) => RxObservable.t('a);
+
+/**
+ * Returns an Observable that emits the given items and then completes.
+ */
 let ofList: (~scheduler: RxScheduler.t=?, list('a)) => RxObservable.t('a);
 
 /**

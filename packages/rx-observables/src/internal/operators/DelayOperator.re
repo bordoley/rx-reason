@@ -7,68 +7,69 @@ let schedule = (wip, doWork, queue, delay, notification, scheduler) => {
   };
 };
 
-let onNext = (scheduler, wip, doWork, queue, delay, _, next) =>
-  scheduler |> schedule(wip, doWork, queue, delay, RxNotification.next(next));
-
-let onComplete = (scheduler, wip, doWork, queue, delay, _, exn) =>
-  scheduler
-  |> schedule(wip, doWork, queue, delay, RxNotification.complete(exn));
-
-let createImpl = (~scheduler, delay, subscriber) => {
-  let queue = RxMutableQueue.create();
-  let wip = RxAtomic.make(0);
-
-  let rec doWork = (~now, ~shouldYield) => {
-    let currentTime = now();
-    let subscriberIsDisposed = subscriber |> RxSubscriber.isDisposed;
-    let nextDelay =
-      switch (RxMutableQueue.peek(queue)) {
-      | Some((dueTime, notification))
-          when currentTime >= dueTime && !subscriberIsDisposed =>
-        RxMutableQueue.dequeue(queue) |> ignore;
-        subscriber |> RxSubscriber.notify(notification);
-        0.0;
-      | Some((dueTime, _)) when !subscriberIsDisposed =>
-        dueTime -. currentTime
-      | _ => (-1.0)
-      };
-
-    let yieldRequested = shouldYield();
-    if (nextDelay > 0.0) {
-      RxScheduler.Result.continueAfter(~delay=nextDelay, doWork);
-    } else if (nextDelay < 0.0) {
-      if (RxAtomic.decr(wip) !== 0) {
-        RxScheduler.Result.yield(doWork);
-      } else {
-        RxScheduler.Result.complete;
-      };
-    } else if (yieldRequested) {
-      RxScheduler.Result.yield(doWork);
-    } else {
-      doWork(~now, ~shouldYield);
-    };
-  };
-
-  subscriber
-  |> RxSubscriber.decorate5(
-       ~onNext,
-       ~onComplete,
-       scheduler,
-       wip,
-       doWork,
-       queue,
-       delay,
-     )
-  |> RxSubscriber.addDisposable(
-       RxDisposable.create1(RxMutableQueue.clear, queue),
-     );
-};
-
 let create = (~scheduler, delay) => {
   RxPreconditions.checkArgument(
     delay > 0.0,
     "DelayOperator: delay must be greater than 0.0 milliseconds",
   );
 
-  createImpl(~scheduler, delay);
+  let onNext =
+    (. scheduler, wip, doWork, queue, delay, _, next) =>
+      scheduler
+      |> schedule(wip, doWork, queue, delay, RxNotification.next(next));
+
+  let onComplete =
+    (. scheduler, wip, doWork, queue, delay, _, exn) =>
+      scheduler
+      |> schedule(wip, doWork, queue, delay, RxNotification.complete(exn));
+
+  subscriber => {
+    let queue = RxMutableQueue.create();
+    let wip = RxAtomic.make(0);
+
+    let rec doWork = (~now, ~shouldYield) => {
+      let currentTime = now();
+      let subscriberIsDisposed = subscriber |> RxSubscriber.isDisposed;
+      let nextDelay =
+        switch (RxMutableQueue.peek(queue)) {
+        | Some((dueTime, notification))
+            when currentTime >= dueTime && !subscriberIsDisposed =>
+          RxMutableQueue.dequeue(queue) |> ignore;
+          subscriber |> RxSubscriber.notify(notification);
+          0.0;
+        | Some((dueTime, _)) when !subscriberIsDisposed =>
+          dueTime -. currentTime
+        | _ => (-1.0)
+        };
+
+      let yieldRequested = shouldYield();
+      if (nextDelay > 0.0) {
+        RxScheduler.Result.continueAfter(~delay=nextDelay, doWork);
+      } else if (nextDelay < 0.0) {
+        if (RxAtomic.decr(wip) !== 0) {
+          RxScheduler.Result.yield(doWork);
+        } else {
+          RxScheduler.Result.complete;
+        };
+      } else if (yieldRequested) {
+        RxScheduler.Result.yield(doWork);
+      } else {
+        doWork(~now, ~shouldYield);
+      };
+    };
+
+    subscriber
+    |> RxSubscriber.decorate5(
+         ~onNext,
+         ~onComplete,
+         scheduler,
+         wip,
+         doWork,
+         queue,
+         delay,
+       )
+    |> RxSubscriber.addDisposable(
+         RxDisposable.create1(RxMutableQueue.clear, queue),
+       );
+  };
 };

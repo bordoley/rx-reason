@@ -57,19 +57,19 @@ module type S1 = {
   let asObservable: t('a) => observable('a);
 };
 
-let create = onSubscribe => Source(onSubscribe, RxFunctions.identity);
+let create = onSubscribe => Source(onSubscribe, (a) => a);
 let create1 = (onSubscribe, ctx0) =>
-  Source1(onSubscribe, RxFunctions.identity, ctx0);
+  Source1(onSubscribe, ( a) => a, ctx0);
 let create2 = (onSubscribe, ctx0, ctx1) =>
-  Source2(onSubscribe, RxFunctions.identity, ctx0, ctx1);
+  Source2(onSubscribe, ( a) => a, ctx0, ctx1);
 let create3 = (onSubscribe, ctx0, ctx1, ctx2) =>
-  Source3(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2);
+  Source3(onSubscribe, ( a) => a, ctx0, ctx1, ctx2);
 let create4 = (onSubscribe, ctx0, ctx1, ctx2, ctx3) =>
-  Source4(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2, ctx3);
+  Source4(onSubscribe, ( a) => a, ctx0, ctx1, ctx2, ctx3);
 let create5 = (onSubscribe, ctx0, ctx1, ctx2, ctx3, ctx4) =>
-  Source5(onSubscribe, RxFunctions.identity, ctx0, ctx1, ctx2, ctx3, ctx4);
+  Source5(onSubscribe, ( a) => a, ctx0, ctx1, ctx2, ctx3, ctx4);
 
-let liftOperator = (op0, op1, subscriber) => op0 @@ op1 @@ subscriber;
+let liftOperator = (op0, op1) =>  (subscriber) => op0(op1(subscriber))
 
 let lift = (operator, observable) =>
   switch (observable) {

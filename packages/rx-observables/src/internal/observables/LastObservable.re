@@ -1,2 +1,2 @@
 let create = observable =>
-  observable |> RxObservable.lift(LastOperator.create);
+  observable |> RxObservable.lift(LastOperator.create());

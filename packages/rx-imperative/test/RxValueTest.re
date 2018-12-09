@@ -22,8 +22,8 @@ let test =
             |> RxValue.asObservable
             |> RxObservable.lift(
                  RxSubscriber.decorate(
-                   ~onNext=(_, _) => incr(observedCount),
-                   ~onComplete=(_, _) => (),
+                   ~onNext=(._, _) => incr(observedCount),
+                   ~onComplete=(._, _) => (),
                  ),
                )
             |> RxObservable.connect
@@ -46,8 +46,8 @@ let test =
             |> RxValue.asObservable
             |> RxObservable.lift(
                  RxSubscriber.decorate(
-                   ~onNext=(_, next) => observedValue := next,
-                   ~onComplete=(_, _) => (),
+                   ~onNext=(._, next) => observedValue := next,
+                   ~onComplete=(._, _) => (),
                  ),
                )
             |> RxObservable.connect
@@ -77,8 +77,8 @@ let test =
             |> RxValue.asObservable
             |> RxObservable.lift(
                  RxSubscriber.decorate(
-                   ~onNext=(_, next) => observedValue := next,
-                   ~onComplete=(_, _) => (),
+                   ~onNext=(._, next) => observedValue := next,
+                   ~onComplete=(._, _) => (),
                  ),
                )
             |> RxObservable.connect
@@ -95,8 +95,8 @@ let test =
             |> RxValue.asObservable
             |> RxObservable.lift(
                  RxSubscriber.decorate(
-                   ~onNext=(_, next) => observedValue := next,
-                   ~onComplete=(_, _) => (),
+                   ~onNext=(._, next) => observedValue := next,
+                   ~onComplete=(._, _) => (),
                  ),
                )
             |> RxObservable.connect
@@ -115,8 +115,8 @@ let test =
               |> RxValue.asObservable
               |> RxObservable.lift(
                    RxSubscriber.decorate(
-                     ~onNext=(_, next) => observedValue1 := next,
-                     ~onComplete=(_, _) => (),
+                     ~onNext=(._, next) => observedValue1 := next,
+                     ~onComplete=(._, _) => (),
                    ),
                  )
               |> RxObservable.connect;
@@ -127,8 +127,8 @@ let test =
               |> RxValue.asObservable
               |> RxObservable.lift(
                    RxSubscriber.decorate(
-                     ~onNext=(_, next) => observedValue2 := next,
-                     ~onComplete=(_, _) => (),
+                     ~onNext=(._, next) => observedValue2 := next,
+                     ~onComplete=(._, _) => (),
                    ),
                  )
               |> RxObservable.connect;

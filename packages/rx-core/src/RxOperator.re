@@ -7,4 +7,4 @@
  */;
 
 /** The RxOperator type */
-type t('a, 'b) = RxSubscriber.t('b) => RxSubscriber.t('a);
+type t('a, 'b) = (RxSubscriber.t('b)) => RxSubscriber.t('a);
