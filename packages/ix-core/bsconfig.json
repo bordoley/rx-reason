@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/rx-async-iterator",
+  "name": "@rx-reason/ix-core",
   "package-specs": [
     {
       "module": "commonjs"

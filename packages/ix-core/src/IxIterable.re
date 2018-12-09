@@ -1,5 +1,5 @@
 let create = (~createResource, ~disposeResource, ~request) => {
-  let createIterator = RxAsyncIterator.create(~request, ~disposeResource);
+  let createIterator = IxIterator.create(~request, ~disposeResource);
 
   () => {
     let resource = createResource();
@@ -8,7 +8,7 @@ let create = (~createResource, ~disposeResource, ~request) => {
 };
 
 let create1 = (~createResource, ~disposeResource, ~request) => {
-  let createIterator = RxAsyncIterator.create(~request, ~disposeResource);
+  let createIterator = IxIterator.create(~request, ~disposeResource);
 
   ctx0 => {
     let resource = createResource(ctx0);
@@ -17,7 +17,7 @@ let create1 = (~createResource, ~disposeResource, ~request) => {
 };
 
 let create2 = (~createResource, ~disposeResource, ~request) => {
-  let createIterator = RxAsyncIterator.create(~request, ~disposeResource);
+  let createIterator = IxIterator.create(~request, ~disposeResource);
 
   (ctx0, ctx1) => {
     let resource = createResource(ctx0, ctx1);
@@ -26,7 +26,7 @@ let create2 = (~createResource, ~disposeResource, ~request) => {
 };
 
 let create3 = (~createResource, ~disposeResource, ~request) => {
-  let createIterator = RxAsyncIterator.create(~request, ~disposeResource);
+  let createIterator = IxIterator.create(~request, ~disposeResource);
 
   (ctx0, ctx1, ctx2) => {
     let resource = createResource(ctx0, ctx1, ctx2);

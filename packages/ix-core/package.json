@@ -1,5 +1,5 @@
 {
-  "name": "@rx-reason/rx-async-iterator",
+  "name": "@rx-reason/ix-core",
   "version": "0.0.0",
   "description": "Asynchoronous iterators for reason/ocaml",
   "scripts": {
