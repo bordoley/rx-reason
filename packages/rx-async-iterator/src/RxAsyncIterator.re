@@ -21,6 +21,9 @@ let request = action =>
   | Disposed => ()
   | Instance(event, _, _) => event |> RxEvent.dispatch(action);
 
+let onRequestSubscriptionComplete = (dispose, disposable, _) =>
+  dispose(disposable);
+
 let create = (~request, ~disposeResource) => {
   let mapper = (resource, next) => resource |> request(next);
 
@@ -31,19 +34,29 @@ let create = (~request, ~disposeResource) => {
     let subject = RxSubject.createMulticast();
     let observable = subject |> RxSubject.asObservable;
 
+    let compositeDisposable =
+      RxCompositeDisposable.create()
+      |> RxCompositeDisposable.addDisposable(
+           RxDisposable.create1(disposeResource, resource),
+         )
+      |> RxCompositeDisposable.addDisposable(RxEvent.asDisposable(event))
+      |> RxCompositeDisposable.addDisposable(RxSubject.asDisposable(subject));
+
     let requestSubscription =
       requestStream
       |> RxObservables.switchMap1(mapper, resource)
       |> RxObservables.publishToSubject(subject)
+      |> RxObservables.onComplete2(
+           onRequestSubscriptionComplete,
+           RxCompositeDisposable.dispose,
+           compositeDisposable,
+         )
       |> RxObservable.connect;
 
     let disposable =
-      RxDisposable.compose([
-        requestSubscription,
-        RxSubject.asDisposable(subject),
-        RxEvent.asDisposable(event),
-        RxDisposable.create1(disposeResource, resource),
-      ]);
+      compositeDisposable
+      |> RxCompositeDisposable.addDisposable(requestSubscription)
+      |> RxCompositeDisposable.asDisposable;
 
     Instance(event, observable, disposable);
   };
