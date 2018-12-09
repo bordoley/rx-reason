@@ -408,6 +408,31 @@ let onComplete3:
   RxObservable.t('a);
 
 /**
+ * Returns an Observable that mirrors the source Observable,
+ * calling the specified function when subscribed to, and
+ * disposing the returned Disposable when disposed.
+ */
+let onConnect:
+  (unit => RxDisposable.t, RxObservable.t('a)) => RxObservable.t('a);
+
+let onConnect1:
+  ('ctx0 => RxDisposable.t, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
+
+let onConnect2:
+  (('ctx0, 'ctx1) => RxDisposable.t, 'ctx0, 'ctx1, RxObservable.t('a)) =>
+  RxObservable.t('a);
+
+let onConnect3:
+  (
+    ('ctx0, 'ctx1, 'ctx2) => RxDisposable.t,
+    'ctx0,
+    'ctx1,
+    'ctx2,
+    RxObservable.t('a)
+  ) =>
+  RxObservable.t('a);
+
+/**
  * Returns an Observable which invokes the side-effect function
  * with each observed item.
  */
@@ -454,31 +479,6 @@ let onExn2:
 let onExn3:
   (
     ('ctx0, 'ctx1, 'ctx2, exn) => unit,
-    'ctx0,
-    'ctx1,
-    'ctx2,
-    RxObservable.t('a)
-  ) =>
-  RxObservable.t('a);
-
-/**
- * Returns an Observable that mirrors the source Observable,
- * calling the specified function when subscribed to, and
- * disposing the returned Disposable when disposed.
- */
-let onSubscribe:
-  (unit => RxDisposable.t, RxObservable.t('a)) => RxObservable.t('a);
-
-let onSubscribe1:
-  ('ctx0 => RxDisposable.t, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
-
-let onSubscribe2:
-  (('ctx0, 'ctx1) => RxDisposable.t, 'ctx0, 'ctx1, RxObservable.t('a)) =>
-  RxObservable.t('a);
-
-let onSubscribe3:
-  (
-    ('ctx0, 'ctx1, 'ctx2) => RxDisposable.t,
     'ctx0,
     'ctx1,
     'ctx2,
