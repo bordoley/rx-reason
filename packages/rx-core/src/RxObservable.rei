@@ -82,7 +82,7 @@ let create5:
   t('a);
 
 /**
- * Returns an RxObservable that applies the Operator function to the
+ * Returns an RxObservable that applies the RxOperator function to the
  * source RxObservable's notifications.
  */
 let lift: (RxOperator.t('a, 'b), t('a)) => t('b);
