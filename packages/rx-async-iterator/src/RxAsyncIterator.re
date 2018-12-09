@@ -1,4 +1,4 @@
-type t('request, 'a) =
+type t('a, 'request) =
   | Disposed
   | Instance(RxEvent.t('request), RxObservable.t('a), RxDisposable.t);
 
@@ -21,37 +21,32 @@ let request = action =>
   | Disposed => ()
   | Instance(event, _, _) => event |> RxEvent.dispatch(action);
 
-let createInternal = flatMap => {
-  let event = RxEvent.create();
-  let requestStream = event |> RxEvent.asObservable;
+let create = (~request, ~disposeResource) => {
+  let mapper = (resource, next) => resource |> request(next);
 
-  let subject = RxSubject.createMulticast();
-  let observable = subject |> RxSubject.asObservable;
+  resource => {
+    let event = RxEvent.create();
+    let requestStream = event |> RxEvent.asObservable;
 
-  let requestSubscription =
-    requestStream
-    |> flatMap
-    |> RxObservables.publishToSubject(subject)
-    |> RxObservable.connect;
+    let subject = RxSubject.createMulticast();
+    let observable = subject |> RxSubject.asObservable;
 
-  let disposable =
-    RxDisposable.compose([
-      requestSubscription,
-      RxSubject.asDisposable(subject),
-      RxEvent.asDisposable(event),
-    ]);
+    let requestSubscription =
+      requestStream
+      |> RxObservables.switchMap1(mapper, resource)
+      |> RxObservables.publishToSubject(subject)
+      |> RxObservable.connect;
 
-  Instance(event, observable, disposable);
-};
+    let disposable =
+      RxDisposable.compose([
+        requestSubscription,
+        RxSubject.asDisposable(subject),
+        RxEvent.asDisposable(event),
+        RxDisposable.create1(disposeResource, resource),
+      ]);
 
-let create = f => {
-  let switchMap = RxObservables.switchMap(f);
-  createInternal(switchMap);
-};
-
-let create1 = (f, ctx0) => {
-  let switchMap = RxObservables.switchMap1(f, ctx0);
-  createInternal(switchMap);
+    Instance(event, observable, disposable);
+  };
 };
 
 let disposed = Disposed;
