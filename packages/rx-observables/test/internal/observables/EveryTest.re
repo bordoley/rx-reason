@@ -8,7 +8,7 @@ let test = describe(
       "returns true for an subscriber that completes without producing values",
       ~nextToString=string_of_bool,
       ~source=
-        _ => RxObservables.empty() |> RxObservables.every(i => i > 10),
+        _ => RxObservables.empty() |> RxObservables.every((.i) => i > 10),
       ~expected=[
         RxNotification.next(true),
         RxNotification.complete(None),
@@ -30,8 +30,8 @@ let test = describe(
               (6.0, RxNotification.complete(None)),
             ],
           )
-          |> RxObservables.every(i => i > 10)
-          |> RxObservables.map(_ =>
+          |> RxObservables.every((.i) => i > 10)
+          |> RxObservables.map((. _) =>
                scheduler |> RxScheduler.now |> int_of_float
              ),
       ~expected=[
@@ -46,7 +46,7 @@ let test = describe(
       ~source=
         _ =>
           RxObservables.ofList([12, 13])
-          |> RxObservables.every(i => i > 10),
+          |> RxObservables.every((.i) => i > 10),
       ~expected=[
         RxNotification.next(true),
         RxNotification.complete(None),

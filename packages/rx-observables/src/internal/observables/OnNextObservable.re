@@ -1,6 +1,6 @@
 let create = (onNext, observable) =>
   observable
-  |> ObserveObservable.create(~onNext, ~onComplete=RxFunctions.alwaysUnit1);
+  |> ObserveObservable.create(~onNext, ~onComplete=(._) => ());
 
 let create1 = (onNext, ctx0, observable) =>
   observable

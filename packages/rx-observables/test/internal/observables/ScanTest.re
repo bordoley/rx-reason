@@ -10,7 +10,7 @@ let test =      describe(
             ~source=
               _ =>
                 RxObservables.ofList([2, 3, 4])
-                |> RxObservables.scan((acc, next) => acc + next, 0),
+                |> RxObservables.scan((. acc, next) => acc + next, 0),
             ~expected=[
               RxNotification.next(0),
               RxNotification.next(2),

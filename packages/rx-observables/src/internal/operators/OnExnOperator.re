@@ -1,15 +1,13 @@
 let create = onExn => {
   let onComplete =
-    fun
-    | None => ()
-    | Some(exn) => onExn(exn);
+    (. exn) =>
+      switch (exn) {
+      | None => ()
+      | Some(exn) => onExn(exn)
+      };
 
   subscriber =>
-    ObserveOperator.create(
-      ~onNext=RxFunctions.alwaysUnit1,
-      ~onComplete,
-      subscriber,
-    );
+    ObserveOperator.create(~onNext=(. _) => (), ~onComplete, subscriber);
 };
 
 let create1 = onExn => {

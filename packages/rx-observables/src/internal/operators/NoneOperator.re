@@ -1,4 +1,4 @@
-let keepIfTrueOperator = KeepOperator.create(RxFunctions.identity);
+let keepIfTrueOperator = KeepOperator.create((. a) => a);
 
 let create = predicate => {
   let mapOperator = MapOperator.create(predicate);

@@ -1,12 +1,12 @@
 let create = (~onNext, ~onComplete) => {
   let onNext_ =
     (. onNext, _, subscriber, next) => {
-      onNext(next);
+      onNext(. next);
       subscriber |> RxSubscriber.next(next);
     };
   let onComplete_ =
     (. _, onComplete, subscriber, exn) => {
-      onComplete(exn);
+      onComplete(. exn);
       subscriber |> RxSubscriber.complete(~exn?);
     };
 

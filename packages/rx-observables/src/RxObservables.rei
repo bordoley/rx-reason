@@ -9,7 +9,7 @@ let concatList:
   RxObservable.t('a);
 
 let concatMap:
-  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+  ((. 'a) => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let concatMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
@@ -93,7 +93,7 @@ let empty: (~scheduler: RxScheduler.t=?, unit) => RxObservable.t('a);
  * Note: If the source completes before emitting any values,
  * completes with true.
  */
-let every: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
+let every: ((. 'a) => bool, RxObservable.t('a)) => RxObservable.t(bool);
 
 /**
  * Returns an Observable that flattens Observable items,
@@ -103,7 +103,7 @@ let every: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
 let exhaust: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let exhaustMap:
-  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+  ((.'a) => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let exhaustMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>
@@ -132,7 +132,7 @@ let exhaustMap3:
  * Returns an Observable which emits the first observed item
  * from the source which satisfies the predicate.
  */
-let find: ('a => bool, RxObservable.t('a)) => RxObservable.t('a);
+let find: ((. 'a) => bool, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which emits the first observed item
@@ -161,7 +161,7 @@ let isEmpty: RxObservable.t('a) => RxObservable.t(bool);
  * Returns an Observable which only emits items from the source
  * which satisfy the predicate.
  */
-let keep: ('a => bool, RxObservable.t('a)) => RxObservable.t('a);
+let keep: ((. 'a) => bool, RxObservable.t('a)) => RxObservable.t('a);
 let keep1:
   (('ctx0, 'a) => bool, 'ctx0, RxObservable.t('a)) => RxObservable.t('a);
 let keep2:
@@ -193,7 +193,7 @@ let lastOrNone: RxObservable.t('a) => RxObservable.t(option('a));
  * Returns an Observable which applies the specified function to
  * each item observed, emitting the result of the function application.
  */
-let map: ('a => 'b, RxObservable.t('a)) => RxObservable.t('b);
+let map: ((. 'a) => 'b, RxObservable.t('a)) => RxObservable.t('b);
 
 let map1:
   (('ctx0, 'a) => 'b, 'ctx0, RxObservable.t('a)) => RxObservable.t('b);
@@ -260,7 +260,7 @@ let mergeMap:
   (
     ~maxBufferSize: int=?,
     ~maxConcurrency: int=?,
-    'a => RxObservable.t('b),
+    (. 'a) => RxObservable.t('b),
     RxObservable.t('a)
   ) =>
   RxObservable.t('b);
@@ -304,8 +304,8 @@ let mergeMap3:
  */
 let observe:
   (
-    ~onNext: 'a => unit,
-    ~onComplete: option(exn) => unit,
+    ~onNext: (. 'a) => unit,
+    ~onComplete: (. option(exn)) => unit,
     RxObservable.t('a)
   ) =>
   RxObservable.t('a);
@@ -359,7 +359,7 @@ let observe3:
  * Note: If the source completes before observing any values,
  * completes with true.
  */
-let none: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
+let none: ((.'a) => bool, RxObservable.t('a)) => RxObservable.t(bool);
 
 /**
  * Returns an Observable which emits notifications on the specified scheduler. The default
@@ -394,7 +394,7 @@ let ofValue: (~scheduler: RxScheduler.t=?, 'a) => RxObservable.t('a);
  * Returns an Observable which invokes the side-effect function when it completes.
  */
 let onComplete:
-  (option(exn) => unit, RxObservable.t('a)) => RxObservable.t('a);
+  ((. option(exn)) => unit, RxObservable.t('a)) => RxObservable.t('a);
 let onComplete1:
   (('ctx0, option(exn)) => unit, 'ctx0, RxObservable.t('a)) =>
   RxObservable.t('a);
@@ -441,7 +441,7 @@ let onConnect3:
  * Returns an Observable which invokes the side-effect function
  * with each observed item.
  */
-let onNext: ('a => unit, RxObservable.t('a)) => RxObservable.t('a);
+let onNext: ((. 'a) => unit, RxObservable.t('a)) => RxObservable.t('a);
 
 /**
  * Returns an Observable which invokes the side-effect function
@@ -525,7 +525,7 @@ let retry:
  * accumulated values. The first item emitted is the initial value.
  */
 let scan:
-  (('acc, 'a) => 'acc, 'acc, RxObservable.t('a)) => RxObservable.t('acc);
+  ((. 'acc, 'a) => 'acc, 'acc, RxObservable.t('a)) => RxObservable.t('acc);
 
 let skip: (int, RxObservable.t('a)) => RxObservable.t('a);
 
@@ -536,7 +536,7 @@ let skip: (int, RxObservable.t('a)) => RxObservable.t('a);
  * Note: If the source Observable complete before producing any values,
  * completes with false.
  */
-let some: ('a => bool, RxObservable.t('a)) => RxObservable.t(bool);
+let some: ((.'a) => bool, RxObservable.t('a)) => RxObservable.t(bool);
 
 /**
  * Returns a new MulticastObservable that shares a single subscription to the provided source Observable.
@@ -585,7 +585,7 @@ let subscribeOn:
 let switch_: RxObservable.t(RxObservable.t('a)) => RxObservable.t('a);
 
 let switchMap:
-  ('a => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
+  ((. 'a) => RxObservable.t('b), RxObservable.t('a)) => RxObservable.t('b);
 
 let switchMap1:
   (('ctx0, 'a) => RxObservable.t('b), 'ctx0, RxObservable.t('a)) =>

@@ -2,13 +2,15 @@ open ReUnit;
 open ReUnit.Test;
 
 let observableToList = {
-  let toListAccumulator = (acc, next) => [next, ...acc];
+  observable => {
+    let toListAccumulator = (. acc, next) => [next, ...acc];
 
-  observable =>
+
     observable
     |> RxObservables.scan(toListAccumulator, [])
     |> RxObservables.last
-    |> RxObservables.map(List.rev);
+    |> RxObservables.map((. list) => List.rev(list));
+  };
 };
 
 let rxNotificationEquals =

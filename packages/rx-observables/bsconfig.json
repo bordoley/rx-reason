@@ -44,10 +44,6 @@
         }
       ]
     },
-    {
-      "dir": "test",
-      "subdirs": true,
-      "type": "dev"
-    }
+   
   ]
 }

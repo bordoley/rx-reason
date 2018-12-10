@@ -1,11 +1,11 @@
-let create = mapper => {
+let create = (mapper: (. 'a) => 'b) => {
   let onNext =
-    (. mapper, delegate, next) => {
-      let mapped = mapper(next);
+    (. delegate, next) => {
+      let mapped = mapper(. next);
       delegate |> RxSubscriber.next(mapped);
     };
 
-  RxSubscriber.decorateOnNext1(onNext, mapper);
+  RxSubscriber.decorateOnNext(onNext);
 };
 
 let create1 = (mapper, ctx0) => {

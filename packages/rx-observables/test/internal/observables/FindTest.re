@@ -10,7 +10,7 @@ let test = describe(
       ~source=
         _ =>
           RxObservables.ofList([1, 3, 10, 6, 8])
-          |> RxObservables.find(x => x mod 2 === 0),
+          |> RxObservables.find((. x) => x mod 2 === 0),
       ~expected=[
         RxNotification.next(10),
         RxNotification.complete(None),

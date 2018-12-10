@@ -11,7 +11,7 @@ let test =
         ~source=
           _ =>
             RxObservables.ofValue(1)
-            |> RxObservables.keep(_ => raise(Division_by_zero)),
+            |> RxObservables.keep((. _) => raise(Division_by_zero)),
         ~expected=[RxNotification.complete(Some(Division_by_zero))],
         (),
       ),
@@ -19,7 +19,7 @@ let test =
         "completes the subscriber when the keep subscriber is completed",
         ~nextToString=string_of_int,
         ~source=
-          _ => RxObservables.ofValue(1) |> RxObservables.keep(_ => true),
+          _ => RxObservables.ofValue(1) |> RxObservables.keep((._) => true),
         ~expected=[RxNotification.next(1), RxNotification.complete(None)],
         (),
       ),

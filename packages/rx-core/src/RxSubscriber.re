@@ -189,7 +189,8 @@ let next = {
   (next, subscriber) => {
     let isStopped = subscriber |> isStopped;
     if (!isStopped) {
-      try (doNext(next, subscriber)) {
+      doNext(next, subscriber)
+      try () {
       | exn => subscriber |> complete(~exn)
       };
     };

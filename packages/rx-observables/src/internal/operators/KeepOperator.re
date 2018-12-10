@@ -1,7 +1,7 @@
 let create = predicate => {
   let onNext =
     (. predicate, subscriber, next) => {
-      let shouldKeep = predicate(next);
+      let shouldKeep = predicate(. next);
       if (shouldKeep) {
         subscriber |> RxSubscriber.next(next);
       };
