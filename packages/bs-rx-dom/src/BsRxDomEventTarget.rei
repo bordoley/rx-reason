@@ -1,1 +1,0 @@
-let observeEvent: (~capture: bool=?, ~passive: bool=?, string, Dom.eventTarget) => RxObservable.t(Dom.event);
